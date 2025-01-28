@@ -37,11 +37,36 @@ namespace Rodana.Core.Common
         /// </summary>
         Dictionary<CodedObject<RCCode, RCLabel>, int> SpecifiedDuration;
 
-        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session sessionLink)
+
+        int? CashedDuration;
+        Dictionary<CodedObject<RCCode, RCLabel>, int> CashedDurations;
+
+        [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
+        public int GetDuration() => Duration.Value;
+
+        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session<RCCode, RCLabel, OrderCode, OrderLabel, CommonCode, CommonLabel> sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
+
+            if (CashedDuration.HasValue) return CashedDuration.Value;
+
+
             if (SpecifiedDuration != null && SpecifiedDuration.TryGetValue(RC, out var specifiedDuration)) return specifiedDuration;
+
+            if (CashedDurations != null && CashedDurations.TryGetValue(RC, out specifiedDuration)) return specifiedDuration;
+
             // Если нет информации там, ищу в базах данных
+            if (sessionLink.StageTypicalDurations.AnyDurations && sessionLink.StageTypicalDurations.TryGetTypicalDuration(RC, OperationType, out var time))
+            {
+                if (sessionLink.Settings.CasheStageDurations)
+                {
+                    if (CashedDurations == null) CashedDurations = new();
+                    CashedDurations.TryAdd(RC, time);
+                }
+                return time;
+            }
+
+            if (sessionLink.Settings.CasheStageDurations) CashedDuration = sessionLink.Settings.OriginalDurationTime;
             return sessionLink.Settings.OriginalDurationTime;
         }
         #endregion

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,9 +14,16 @@ namespace Rodana.Core
     /// После того, как Родана загрузит настройки и с их помощью активирует Хопперы.
     /// Теперь, запуская алгоритмы планирования и партий, можно хавать данные из данных сессии.
     /// </summary>
-    public class Session
+    public class Session<RCCode, RCLabel, OrderCode, OrderLabel, CommonCode, CommonLabel>
     {
         public SettingsClass Settings;
+
+        public MasterData.StageTypicalDurations<RCCode, RCLabel, CommonCode, CommonLabel> StageTypicalDurations;
+
+        public void Start(string[] args, SettingsClass? data = null)
+        {
+
+        }
         /*
          internal RechangeEngine RechangeEngine;
          */
