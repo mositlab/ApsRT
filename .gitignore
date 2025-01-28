@@ -1,0 +1,12 @@
+*.log
+*.user
+/*.json
+
+/.vs
+/logs
+/out
+
+bin/
+obj/
+/public
+.env
