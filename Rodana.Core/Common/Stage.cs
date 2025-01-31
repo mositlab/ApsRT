@@ -15,7 +15,7 @@ namespace Rodana.Core.Common
     /// <typeparam name="OrderLabel"></typeparam>
     /// <typeparam name="CommonCode"></typeparam>
     /// <typeparam name="CommonLabel"></typeparam>
-    public class Stage<RCCode, RCLabel, OrderCode, OrderLabel, CommonCode, CommonLabel>
+    public class Stage<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
     {
         public int ID;
 
@@ -44,7 +44,7 @@ namespace Rodana.Core.Common
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
         public int GetDuration() => Duration.Value;
 
-        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session<RCCode, RCLabel, OrderCode, OrderLabel, CommonCode, CommonLabel> sessionLink)
+        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
 
@@ -55,10 +55,12 @@ namespace Rodana.Core.Common
 
             if (CashedDurations != null && CashedDurations.TryGetValue(RC, out specifiedDuration)) return specifiedDuration;
 
+            var currSets = sessionLink.SettingsController.CurrentSettings;
+
             // Если нет информации там, ищу в базах данных
             if (sessionLink.StageTypicalDurations.AnyDurations && sessionLink.StageTypicalDurations.TryGetTypicalDuration(RC, OperationType, out var time))
             {
-                if (sessionLink.Settings.CasheStageDurations)
+                if (currSets.CasheStageDurations)
                 {
                     if (CashedDurations == null) CashedDurations = new();
                     CashedDurations.TryAdd(RC, time);
@@ -66,8 +68,8 @@ namespace Rodana.Core.Common
                 return time;
             }
 
-            if (sessionLink.Settings.CasheStageDurations) CashedDuration = sessionLink.Settings.OriginalDurationTime;
-            return sessionLink.Settings.OriginalDurationTime;
+            if (currSets.CasheStageDurations) CashedDuration = currSets.OriginalDurationTime;
+            return currSets.OriginalDurationTime;
         }
         #endregion
     }

@@ -5,8 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rodana.ZMK"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+        Initialized="MainWindow_Initialized"
+        Closed="MainWindow_Closed"
+        Title="APS «Родана» для Завода «Москабель»" Height="450" Width="800">
+    <TabControl>
+        <TabItem Header="Настройки">
+            <Grid Background="#FFE5E5E5">
+                <GroupBox x:Name="HoppersGroupBox" Header="Данные" Margin="0,0,221,170"/>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Формирование партий">
+            <Grid Background="#FFE5E5E5"/>
+        </TabItem>
+        <TabItem Header="Ручной анализ партий"/>
+        <TabItem Header="Планирование"/>
+        <TabItem Header="Графики эффективности"/>
+        <TabItem Header="Ручной анализ плана"/>
+    </TabControl>
 </Window>
