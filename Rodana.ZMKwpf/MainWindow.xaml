@@ -4,14 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rodana.ZMK"
+        Style="{DynamicResource WindowStyle}"
         mc:Ignorable="d"
         Initialized="MainWindow_Initialized"
         Closed="MainWindow_Closed"
-        Title="APS «Родана» для Завода «Москабель»" Height="450" Width="800">
-    <TabControl>
+        Title="APS «Родана» для Завода «Москабель»" Height="450" Width="800" WindowStyle="ThreeDBorderWindow">
+    <TabControl Style="{DynamicResource TabStyle}">
         <TabItem Header="Настройки">
-            <Grid Background="#FFE5E5E5">
-                <GroupBox x:Name="HoppersGroupBox" Header="Данные" Margin="0,0,221,170"/>
+            <Grid Style="{DynamicResource GridStyle}" Background="#FF3F3F3F">
+                <GroupBox Style="{DynamicResource GroupBoxStyle}" x:Name="HoppersGroupBox" Header="Данные" Margin="0,0,221,170" BorderBrush="White" Background="#FF4D4D4D" BorderThickness="0.5,0.5,0.5,0" 
+                          FontFamily="Segoe UI Semibold" FontSize="14" Foreground="White"/>
+                <Button Style="{DynamicResource ButtonStyle}" x:Name="ThemeButton" Content="Button" HorizontalAlignment="Left" Margin="760,10,0,0" VerticalAlignment="Top" Width="24" Click="ThemeButton_Click"/>
             </Grid>
         </TabItem>
         <TabItem Header="Формирование партий">

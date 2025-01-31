@@ -9,7 +9,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rodana.Core
+namespace Rodana.Core.Session
 {
     /// <summary>
     /// Класс сессии. Каждая сессия - это по сути и есть экземпляр АПС. 
@@ -26,14 +26,14 @@ namespace Rodana.Core
         public HoppersHandler<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> HoppersHandler { get; init; }
         public MasterData.StageTypicalDurations<RCCode, RCLabel, CommonCode, CommonLabel> StageTypicalDurations { get; init; }
 
-        //public event Action OnSessionEnded;
+        public event Action OnSessionDataLoaded;
 
         /*
          internal RechangeEngine RechangeEngine;
          */
 
-        Common.Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> KillMe;
-        Common.Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> StopMe;
+        Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> KillMe;
+        Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> StopMe;
 
 
         static bool FirstInvoked = false;
@@ -53,7 +53,10 @@ namespace Rodana.Core
             {
                 session = this
             };
-            HoppersHandler = new();
+            HoppersHandler = new()
+            {
+                session = this
+            };
         }
 
         static SessionOptions ParseCommandLine(string[] args)
@@ -162,10 +165,14 @@ namespace Rodana.Core
             CheckFiles();
 
             // Если с ними всё в порядке, то можно и начинать
-            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Common.Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>("killme", 100, this);
-            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Common.Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>("stopme", 0, this);
+            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>("killme", 100, this);
+            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>("stopme", 0, this);
+        }
 
-            HoppersHandler.LoadAllHoppers(this);
+        async public Task LoadDataAsync()
+        {
+            await Task.Run(() => HoppersHandler.LoadAllHoppersAsync());
+            OnSessionDataLoaded?.Invoke();
         }
 
         void CheckFiles()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rodana.Core.Session;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -10,7 +11,8 @@ namespace Rodana.Core.Hoppers
 {
     public class HoppersHandler<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
     {
-        //public  { get; init; }
+
+        public Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> session { get; init; }
 
         public Dictionary<string, (HopperAttribute Data, IHopperInterface Interface)> Hoppers { get; init; }
         public HoppersHandler()
@@ -18,11 +20,13 @@ namespace Rodana.Core.Hoppers
             Hoppers = new();
             FindAllHoppers();
         }
-    void FindAllHoppers()
-    {
-    }
 
-        public void LoadAllHoppers(Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> session)
+        void FindAllHoppers()
+        {
+
+        }
+
+        public void LoadAllHoppersAsync()
         {
             Dictionary<string, string[]> Paths = session.SettingsController.CurrentSettings.HoppersPaths;
         }
