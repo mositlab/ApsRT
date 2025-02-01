@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rodana.Core.Settings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -8,15 +9,15 @@ using System.Xml.Linq;
 
 namespace Rodana.Core.Session
 {
-    internal class Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
+    internal class Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
         public string CheckingFileName { get; init; }
         public int ExitCode { get; init; }
-        Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> session;
+        Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> session;
 
         FileSystemWatcher watcher;
 
-        public Stopper(string checkingFileName, int exitCode, Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> sessionLink)
+        public Stopper(string checkingFileName, int exitCode, Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> sessionLink)
         {
             CheckingFileName = checkingFileName;
             if (!File.Exists(checkingFileName)) File.WriteAllLines(checkingFileName, Array.Empty<string>());

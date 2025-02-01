@@ -18,7 +18,7 @@ namespace Rodana.ZMK
         [STAThread]
         static void Main()
         {
-            var sessionLink = new Rodana.Core.Session.Session<Guid, string, Guid, string, int, Guid, string>(Environment.GetCommandLineArgs());
+            var sessionLink = new Rodana.Core.Session.Session<Guid, string, Guid, string, int, Guid, string, SettingsAddon>(Environment.GetCommandLineArgs());
 
             sessionLink.Start();
             sessionLink.OnSessionDataLoaded += On_ZMK_DataLoaded;

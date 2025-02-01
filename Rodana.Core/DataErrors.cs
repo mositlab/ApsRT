@@ -6,13 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rodana.Core.Session;
+using Rodana.Core.Settings;
 
 namespace Rodana.Core
 {
-    public class DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
+    public class DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
 
-        public Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> session { get; init; }
+        public Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> session { get; init; }
 
 
         public string PartiasErrorsFile = "partiasErrors.csv";

@@ -18,12 +18,12 @@ namespace Rodana.Core.Session
     /// После того, как Родана загрузит настройки и с их помощью активирует Хопперы.
     /// Теперь, запуская алгоритмы планирования и партий, можно хавать данные из данных сессии.
     /// </summary>
-    public class Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
+    public class Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
         public SessionOptions SessionOptions { get; init; }
-        public DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> DataErrors { get; init; }
-        public SettingsController SettingsController { get; init; }
-        public HoppersHandler<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> HoppersHandler { get; init; }
+        public DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> DataErrors { get; init; }
+        public SettingsController<SettingsClassType> SettingsController { get; init; }
+        public HoppersHandler<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> HoppersHandler { get; init; }
         public MasterData.StageTypicalDurations<RCCode, RCLabel, CommonCode, CommonLabel> StageTypicalDurations { get; init; }
 
         public event Action OnSessionDataLoaded;
@@ -32,8 +32,8 @@ namespace Rodana.Core.Session
          internal RechangeEngine RechangeEngine;
          */
 
-        Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> KillMe;
-        Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> StopMe;
+        Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> KillMe;
+        Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> StopMe;
 
 
         static bool FirstInvoked = false;
@@ -46,7 +46,7 @@ namespace Rodana.Core.Session
 
         public Session()
         {
-            SettingsController = new SettingsController();
+            SettingsController = new SettingsController<SettingsClassType>();
             StageTypicalDurations = new();
             SessionOptions = new();
             DataErrors = new()
@@ -152,7 +152,7 @@ namespace Rodana.Core.Session
         /// Запустить сессию.
         /// </summary>
         /// <param name="data">По желанию можно дать сессии собственные настройки (по умолчанию Родана грузит их из файла). Обычно в этом нет нужды.</param>
-        public void Start(SettingsClass? data = null)
+        public void Start(SettingsClassType? data = null)
         {
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -165,8 +165,8 @@ namespace Rodana.Core.Session
             CheckFiles();
 
             // Если с ними всё в порядке, то можно и начинать
-            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>("killme", 100, this);
-            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>("stopme", 0, this);
+            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType>("killme", 100, this);
+            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType>("stopme", 0, this);
         }
 
         async public Task LoadDataAsync()
@@ -215,7 +215,7 @@ namespace Rodana.Core.Session
             CheckFile(DataErrors.PartiasErrorsFile, 514, true);
             CheckFile(DataErrors.PartiasErrorsBigFile, 515, true);
 
-            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>.NewDataErrorType.SomeFileIsOpened, new DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>.DataErrorMore("", string.Join(", ", list)));
+            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType>.NewDataErrorType.SomeFileIsOpened, new DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType>.DataErrorMore("", string.Join(", ", list)));
             if (DataErrors.TryOutputDataErrors())
             {
                 EndSession(601);

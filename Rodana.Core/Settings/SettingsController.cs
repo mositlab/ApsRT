@@ -7,24 +7,24 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.Settings
 {
-    public class SettingsController
+    public class SettingsController<SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
         public string SavePath = "settings.txt";
-        public SettingsClass CurrentSettings;
+        public SettingsClassType CurrentSettings;
         public event Action OnSettingsLoaded;
 
         /// <summary>
         /// Загружает настройки из файла, указанного в пути <cref >SavePath</cref>
         /// </summary>
         /// <param name="settings">Класс уже сформированных настроек, которые можно передать сюда.</param>
-        public void Load(SettingsClass? settings = null)
+        public void Load(SettingsClassType? settings = null)
         {
             if (!File.Exists(SavePath))
             {
-                privateSave(SettingsClass.OriginalSettings);
+                privateSave(new SettingsClassType());
             }
 
-            CurrentSettings = settings ?? JsonConvert.DeserializeObject<SettingsClass>(File.ReadAllText(SavePath, Encoding.UTF8));
+            CurrentSettings = settings ?? JsonConvert.DeserializeObject<SettingsClassType>(File.ReadAllText(SavePath, Encoding.UTF8));
             ToggleConsole(CurrentSettings.HideConsole);
             OnSettingsLoaded?.Invoke();
         }
@@ -34,7 +34,7 @@ namespace Rodana.Core.Settings
             ConsoleParams.ShowWindow(ConsoleParams.ConsoleHandle, hideConsole ? ConsoleParams.SW_HIDE : ConsoleParams.SW_SHOW);
         }
 
-        void privateSave(SettingsClass settings)
+        void privateSave(SettingsClassType settings)
         {
             File.WriteAllText(SavePath, JsonConvert.SerializeObject(settings, Formatting.Indented));
         }

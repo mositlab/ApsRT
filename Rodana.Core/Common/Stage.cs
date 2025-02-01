@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rodana.Core.Session;
+using Rodana.Core.Settings;
 
 namespace Rodana.Core.Common
 {
@@ -16,7 +17,7 @@ namespace Rodana.Core.Common
     /// <typeparam name="OrderLabel"></typeparam>
     /// <typeparam name="CommonCode"></typeparam>
     /// <typeparam name="CommonLabel"></typeparam>
-    public class Stage<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
+    public class Stage<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
         public int ID;
 
@@ -45,7 +46,7 @@ namespace Rodana.Core.Common
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
         public int GetDuration() => Duration.Value;
 
-        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> sessionLink)
+        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
 

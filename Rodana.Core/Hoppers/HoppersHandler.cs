@@ -1,4 +1,5 @@
 ﻿using Rodana.Core.Session;
+using Rodana.Core.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Rodana.Core.Hoppers
 {
-    public class HoppersHandler<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel>
+    public class HoppersHandler<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
 
-        public Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel> session { get; init; }
+        public Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> session { get; init; }
 
         public Dictionary<string, (HopperAttribute Data, IHopperInterface Interface)> Hoppers { get; init; }
         public HoppersHandler()
