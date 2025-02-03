@@ -41,5 +41,8 @@ namespace Rodana.Core.Settings
 
         [JsonProperty]
         public bool HideConsole { get; set; }
+
+        [JsonProperty]
+        public bool AutoDataLoad { get; set; }
     }
 }

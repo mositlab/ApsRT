@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.MasterData
 {
-    public class StageTypicalDurations<RCCode, RCLabel, CommonCode, CommonLabel>
+    public class StageTypicalDurations<InputDataType>
     {
-        Dictionary<CodedObject<RCCode, RCLabel>,
-            Dictionary<CodedObject<CommonCode, CommonLabel>,
+        Dictionary<CodedObject<InputDataType>,
+            Dictionary<CodedObject<InputDataType>,
                 int>
             > TypicalDurations;
 
         public bool AnyDurations => TypicalDurations != null;
 
-        public bool TryGetTypicalDuration(CodedObject<RCCode, RCLabel> RC, CodedObject<CommonCode, CommonLabel> OperationType, out int duration)
+        public bool TryGetTypicalDuration(CodedObject<InputDataType> RC, CodedObject<InputDataType> OperationType, out int duration)
         {
             if (TypicalDurations.TryGetValue(RC, out var opers))
             {
@@ -38,7 +38,7 @@ namespace Rodana.Core.MasterData
             }
         }
 
-        public bool TryAddTypicalDuration(CodedObject<RCCode, RCLabel> RC, CodedObject<CommonCode, CommonLabel> OperationType, int DurationSecs)
+        public bool TryAddTypicalDuration(CodedObject<InputDataType> RC, CodedObject<InputDataType> OperationType, int DurationSecs)
         {
             if (TypicalDurations == null) TypicalDurations = new();
             if (!TypicalDurations.ContainsKey(RC)) TypicalDurations.Add(RC, new());

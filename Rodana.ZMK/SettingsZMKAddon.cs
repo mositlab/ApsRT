@@ -10,9 +10,17 @@ using System.Threading.Tasks;
 
 namespace Rodana.ZMK
 {
-    public partial class SettingsAddon: SettingsClass
+    public partial class SettingsZMKAddon: SettingsClass
     {
         [JsonProperty]
-        public bool DarkTheme { get; set; }
+        public Theme CurrentTheme { get; set; }
+
+        public enum Theme
+        {
+            LightBlue,
+            DarkBlue,
+            LightRed,
+            DarkRed
+        }
     }
 }

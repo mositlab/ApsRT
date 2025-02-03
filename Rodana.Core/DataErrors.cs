@@ -10,10 +10,10 @@ using Rodana.Core.Settings;
 
 namespace Rodana.Core
 {
-    public class DataErrors<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
+    public class DataErrors<InputDataType, OrderSubType, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
 
-        public Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> session { get; init; }
+        public Session<InputDataType, OrderSubType, SettingsClassType> session { get; init; }
 
 
         public string PartiasErrorsFile = "partiasErrors.csv";
@@ -90,31 +90,31 @@ namespace Rodana.Core
             internal string PartiaSettings; // список настроек партий
             internal Guid? PartiaGuid;
             internal List<Guid> customEtapsGuids;
-            internal CodedObject<RCCode, RCLabel>? customRC, customRCroute;
-            internal CodedObject<CommonCode, CommonLabel>? customNomen, customProd, customVid;
-            internal List<CodedObject<RCCode, RCLabel>> RCsOnThisEtap; // Набор РЦ на текущей операции
-            internal List<CodedObject<CommonCode, CommonLabel>> TarasOnThisEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
-            internal List<(CodedObject<CommonCode, CommonLabel> Tara, bool WasVspom)> NeededOtdTarasOnThisEtap; // Требуемые отдающие тары здесь - Отдающая тара на текущей операции
-            internal List<(CodedObject<CommonCode, CommonLabel> Tara, double Max)> MaxNamotka; // максимальная намотка
-            internal List<CodedObject<CommonCode, CommonLabel>> MaxPlusUsedTaras; // Пересечение максимальных намоток и применяемых тар - Подходящая тара с максимальной намотки
-            internal List<CodedObject<RCCode, RCLabel>> RCsOnNextEtap; // РЦ на след уровне
-            internal List<CodedObject<CommonCode, CommonLabel>> TarasOnNextEtap; // тары на след. уровне
+            internal CodedObject<InputDataType>? customRC, customRCroute;
+            internal CodedObject<InputDataType>? customNomen, customProd, customVid;
+            internal List<CodedObject<InputDataType>> RCsOnThisEtap; // Набор РЦ на текущей операции
+            internal List<CodedObject<InputDataType>> TarasOnThisEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
+            internal List<(CodedObject<InputDataType> Tara, bool WasVspom)> NeededOtdTarasOnThisEtap; // Требуемые отдающие тары здесь - Отдающая тара на текущей операции
+            internal List<(CodedObject<InputDataType> Tara, double Max)> MaxNamotka; // максимальная намотка
+            internal List<CodedObject<InputDataType>> MaxPlusUsedTaras; // Пересечение максимальных намоток и применяемых тар - Подходящая тара с максимальной намотки
+            internal List<CodedObject<InputDataType>> RCsOnNextEtap; // РЦ на след уровне
+            internal List<CodedObject<InputDataType>> TarasOnNextEtap; // тары на след. уровне
 
-            internal List<CodedObject<RCCode, RCLabel>> RCsOnPrevEtap; // Набор РЦ на текущей операции
-            internal List<CodedObject<CommonCode, CommonLabel>> TarasOnPrevEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
+            internal List<CodedObject<InputDataType>> RCsOnPrevEtap; // Набор РЦ на текущей операции
+            internal List<CodedObject<InputDataType>> TarasOnPrevEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
 
             public DataErrorMore(string dataToInsert) : this(dataToInsert, null, null, null, null, null, null, null, null) { }
             public DataErrorMore(string dataToInsert, string moreData) : this(dataToInsert, null, null, null, null, null, null, null, moreData) { }
 
             public DataErrorMore(
                 string dataToInsert,
-                List<CodedObject<RCCode, RCLabel>> rCsOnThisEtap,
-                List<CodedObject<CommonCode, CommonLabel>> tarasOnThisEtap,
-                List<(CodedObject<CommonCode, CommonLabel> Tara, bool WasVspom)> neededOtdTarasOnThisEtap,
-                List<(CodedObject<CommonCode, CommonLabel> Tara, double Max)> maxNamotka,
-                List<CodedObject<CommonCode, CommonLabel>> maxPlusUsedTaras,
-                List<CodedObject<RCCode, RCLabel>> rCsOnNextEtap,
-                List<CodedObject<CommonCode, CommonLabel>> tarasOnNextEtap,
+                List<CodedObject<InputDataType>> rCsOnThisEtap,
+                List<CodedObject<InputDataType>> tarasOnThisEtap,
+                List<(CodedObject<InputDataType> Tara, bool WasVspom)> neededOtdTarasOnThisEtap,
+                List<(CodedObject<InputDataType> Tara, double Max)> maxNamotka,
+                List<CodedObject<InputDataType>> maxPlusUsedTaras,
+                List<CodedObject<InputDataType>> rCsOnNextEtap,
+                List<CodedObject<InputDataType>> tarasOnNextEtap,
                 string moreData = null
                 )
             {

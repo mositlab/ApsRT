@@ -32,34 +32,50 @@
             OpenPlanningButton = new Button();
             OpenPartiasButton = new Button();
             materialTabSelector1 = new CustomComponents.MaterialTabSelector();
-            materialTabControl1 = new CustomComponents.MaterialTabControl();
-            tabPage10 = new TabPage();
-            button4 = new Button();
-            panel1 = new Panel();
-            button3 = new Button();
-            button2 = new Button();
-            button1 = new Button();
+            MainTabControl = new CustomComponents.MaterialTabControl();
+            MainTabPage = new TabPage();
+            OpenSettingsButton = new Button();
+            PanelNearMainLabel = new Panel();
+            OpenGraphsButton = new Button();
+            OpenHandPlanButton = new Button();
+            OpenHandPartiasButton = new Button();
             mainlabel = new Label();
-            tabPage8 = new TabPage();
-            materialTabControl2 = new CustomComponents.MaterialTabControl();
-            tabPage1 = new TabPage();
-            materialCheckBox3 = new CustomComponents.MaterialCheckBox();
+            PartiasTabPage = new TabPage();
+            PartiasTabControl = new CustomComponents.MaterialTabControl();
+            AllPartiasTabControl = new TabPage();
+            splitContainer1 = new SplitContainer();
+            label2 = new Label();
+            PartiasProgressLabel = new Label();
+            label1 = new Label();
+            numericUpDown1 = new NumericUpDown();
             button5 = new Button();
-            customProgressBar3 = new CustomComponents.CustomProgressBar();
+            materialCheckBox3 = new CustomComponents.MaterialCheckBox();
             materialCheckBox2 = new CustomComponents.MaterialCheckBox();
-            tabPage2 = new TabPage();
+            customProgressBar3 = new CustomComponents.CustomProgressBar();
+            HandPartiasTabControl = new TabPage();
             materialTabSelector2 = new CustomComponents.MaterialTabSelector();
-            tabPage9 = new TabPage();
-            tabPage11 = new TabPage();
+            PlanningTabPage = new TabPage();
+            PlanningTabControl = new CustomComponents.MaterialTabControl();
+            TyrantTabPage = new TabPage();
+            HandPlanningPage = new TabPage();
+            GraphsTabPage = new TabPage();
+            materialTabSelector3 = new CustomComponents.MaterialTabSelector();
+            SettingsTabPage = new TabPage();
             ToggleThemeButton = new Button();
             materialRadioButton1 = new CustomComponents.MaterialRadioButton();
             materialRadioButton2 = new CustomComponents.MaterialRadioButton();
-            materialTabControl1.SuspendLayout();
-            tabPage10.SuspendLayout();
-            tabPage8.SuspendLayout();
-            materialTabControl2.SuspendLayout();
-            tabPage1.SuspendLayout();
-            tabPage11.SuspendLayout();
+            MainTabControl.SuspendLayout();
+            MainTabPage.SuspendLayout();
+            PartiasTabPage.SuspendLayout();
+            PartiasTabControl.SuspendLayout();
+            AllPartiasTabControl.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
+            PlanningTabPage.SuspendLayout();
+            PlanningTabControl.SuspendLayout();
+            SettingsTabPage.SuspendLayout();
             SuspendLayout();
             // 
             // OpenPlanningButton
@@ -70,7 +86,7 @@
             OpenPlanningButton.Cursor = Cursors.Hand;
             OpenPlanningButton.FlatAppearance.BorderSize = 0;
             OpenPlanningButton.FlatStyle = FlatStyle.Flat;
-            OpenPlanningButton.Font = new Font("Montserrat", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            OpenPlanningButton.Font = new Font("Montserrat", 10F);
             OpenPlanningButton.ForeColor = Color.White;
             OpenPlanningButton.Location = new Point(66, 295);
             OpenPlanningButton.Name = "OpenPlanningButton";
@@ -88,7 +104,7 @@
             OpenPartiasButton.Cursor = Cursors.Hand;
             OpenPartiasButton.FlatAppearance.BorderSize = 0;
             OpenPartiasButton.FlatStyle = FlatStyle.Flat;
-            OpenPartiasButton.Font = new Font("Montserrat", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            OpenPartiasButton.Font = new Font("Montserrat", 10F);
             OpenPartiasButton.ForeColor = Color.White;
             OpenPartiasButton.Location = new Point(66, 131);
             OpenPartiasButton.Name = "OpenPartiasButton";
@@ -101,7 +117,7 @@
             // materialTabSelector1
             // 
             materialTabSelector1.BackColor = Color.CornflowerBlue;
-            materialTabSelector1.BaseTabControl = materialTabControl1;
+            materialTabSelector1.BaseTabControl = MainTabControl;
             materialTabSelector1.Dock = DockStyle.Top;
             materialTabSelector1.Font = new Font("Montserrat", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             materialTabSelector1.ForeColor = Color.White;
@@ -111,115 +127,115 @@
             materialTabSelector1.TabIndex = 16;
             materialTabSelector1.Text = "materialTabSelector1";
             // 
-            // materialTabControl1
+            // MainTabControl
             // 
-            materialTabControl1.Controls.Add(tabPage10);
-            materialTabControl1.Controls.Add(tabPage8);
-            materialTabControl1.Controls.Add(tabPage9);
-            materialTabControl1.Controls.Add(tabPage11);
-            materialTabControl1.Dock = DockStyle.Fill;
-            materialTabControl1.Location = new Point(0, 35);
-            materialTabControl1.Name = "materialTabControl1";
-            materialTabControl1.SelectedIndex = 0;
-            materialTabControl1.Size = new Size(1177, 522);
-            materialTabControl1.TabIndex = 17;
+            MainTabControl.Controls.Add(MainTabPage);
+            MainTabControl.Controls.Add(PartiasTabPage);
+            MainTabControl.Controls.Add(PlanningTabPage);
+            MainTabControl.Controls.Add(SettingsTabPage);
+            MainTabControl.Dock = DockStyle.Fill;
+            MainTabControl.Location = new Point(0, 35);
+            MainTabControl.Name = "MainTabControl";
+            MainTabControl.SelectedIndex = 0;
+            MainTabControl.Size = new Size(1177, 522);
+            MainTabControl.TabIndex = 17;
             // 
-            // tabPage10
+            // MainTabPage
             // 
-            tabPage10.BackColor = Color.White;
-            tabPage10.Controls.Add(button4);
-            tabPage10.Controls.Add(panel1);
-            tabPage10.Controls.Add(button3);
-            tabPage10.Controls.Add(button2);
-            tabPage10.Controls.Add(button1);
-            tabPage10.Controls.Add(mainlabel);
-            tabPage10.Controls.Add(OpenPlanningButton);
-            tabPage10.Controls.Add(OpenPartiasButton);
-            tabPage10.Location = new Point(4, 29);
-            tabPage10.Name = "tabPage10";
-            tabPage10.Size = new Size(1169, 489);
-            tabPage10.TabIndex = 2;
-            tabPage10.Text = "Главная";
+            MainTabPage.BackColor = Color.White;
+            MainTabPage.Controls.Add(OpenSettingsButton);
+            MainTabPage.Controls.Add(PanelNearMainLabel);
+            MainTabPage.Controls.Add(OpenGraphsButton);
+            MainTabPage.Controls.Add(OpenHandPlanButton);
+            MainTabPage.Controls.Add(OpenHandPartiasButton);
+            MainTabPage.Controls.Add(mainlabel);
+            MainTabPage.Controls.Add(OpenPlanningButton);
+            MainTabPage.Controls.Add(OpenPartiasButton);
+            MainTabPage.Location = new Point(4, 33);
+            MainTabPage.Name = "MainTabPage";
+            MainTabPage.Size = new Size(1169, 485);
+            MainTabPage.TabIndex = 2;
+            MainTabPage.Text = "Главная";
             // 
-            // button4
+            // OpenSettingsButton
             // 
-            button4.BackColor = Color.CornflowerBlue;
-            button4.BackgroundImage = (Image)resources.GetObject("button4.BackgroundImage");
-            button4.BackgroundImageLayout = ImageLayout.Zoom;
-            button4.Cursor = Cursors.Hand;
-            button4.FlatAppearance.BorderSize = 0;
-            button4.FlatStyle = FlatStyle.Flat;
-            button4.Font = new Font("Montserrat", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button4.ForeColor = Color.White;
-            button4.Location = new Point(929, 131);
-            button4.Name = "button4";
-            button4.Size = new Size(158, 158);
-            button4.TabIndex = 21;
-            button4.Text = "Настройки";
-            button4.TextAlign = ContentAlignment.BottomLeft;
-            button4.UseVisualStyleBackColor = false;
+            OpenSettingsButton.BackColor = Color.CornflowerBlue;
+            OpenSettingsButton.BackgroundImage = (Image)resources.GetObject("OpenSettingsButton.BackgroundImage");
+            OpenSettingsButton.BackgroundImageLayout = ImageLayout.Zoom;
+            OpenSettingsButton.Cursor = Cursors.Hand;
+            OpenSettingsButton.FlatAppearance.BorderSize = 0;
+            OpenSettingsButton.FlatStyle = FlatStyle.Flat;
+            OpenSettingsButton.Font = new Font("Montserrat", 10F);
+            OpenSettingsButton.ForeColor = Color.White;
+            OpenSettingsButton.Location = new Point(929, 131);
+            OpenSettingsButton.Name = "OpenSettingsButton";
+            OpenSettingsButton.Size = new Size(158, 158);
+            OpenSettingsButton.TabIndex = 21;
+            OpenSettingsButton.Text = "Настройки";
+            OpenSettingsButton.TextAlign = ContentAlignment.BottomLeft;
+            OpenSettingsButton.UseVisualStyleBackColor = false;
             // 
-            // panel1
+            // PanelNearMainLabel
             // 
-            panel1.BackColor = Color.Black;
-            panel1.Location = new Point(32, 68);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(1003, 6);
-            panel1.TabIndex = 20;
+            PanelNearMainLabel.BackColor = Color.Black;
+            PanelNearMainLabel.Location = new Point(32, 68);
+            PanelNearMainLabel.Name = "PanelNearMainLabel";
+            PanelNearMainLabel.Size = new Size(1003, 6);
+            PanelNearMainLabel.TabIndex = 20;
             // 
-            // button3
+            // OpenGraphsButton
             // 
-            button3.BackColor = Color.CornflowerBlue;
-            button3.BackgroundImage = (Image)resources.GetObject("button3.BackgroundImage");
-            button3.BackgroundImageLayout = ImageLayout.Zoom;
-            button3.Cursor = Cursors.Hand;
-            button3.FlatAppearance.BorderSize = 0;
-            button3.FlatStyle = FlatStyle.Flat;
-            button3.Font = new Font("Montserrat", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button3.ForeColor = Color.White;
-            button3.Location = new Point(662, 131);
-            button3.Name = "button3";
-            button3.Size = new Size(158, 158);
-            button3.TabIndex = 19;
-            button3.Text = "Графики эффективности";
-            button3.TextAlign = ContentAlignment.BottomLeft;
-            button3.UseVisualStyleBackColor = false;
+            OpenGraphsButton.BackColor = Color.CornflowerBlue;
+            OpenGraphsButton.BackgroundImage = (Image)resources.GetObject("OpenGraphsButton.BackgroundImage");
+            OpenGraphsButton.BackgroundImageLayout = ImageLayout.Zoom;
+            OpenGraphsButton.Cursor = Cursors.Hand;
+            OpenGraphsButton.FlatAppearance.BorderSize = 0;
+            OpenGraphsButton.FlatStyle = FlatStyle.Flat;
+            OpenGraphsButton.Font = new Font("Montserrat", 8F);
+            OpenGraphsButton.ForeColor = Color.White;
+            OpenGraphsButton.Location = new Point(662, 131);
+            OpenGraphsButton.Name = "OpenGraphsButton";
+            OpenGraphsButton.Size = new Size(158, 158);
+            OpenGraphsButton.TabIndex = 19;
+            OpenGraphsButton.Text = "Графики эффективности";
+            OpenGraphsButton.TextAlign = ContentAlignment.BottomLeft;
+            OpenGraphsButton.UseVisualStyleBackColor = false;
             // 
-            // button2
+            // OpenHandPlanButton
             // 
-            button2.BackColor = Color.CornflowerBlue;
-            button2.BackgroundImage = (Image)resources.GetObject("button2.BackgroundImage");
-            button2.BackgroundImageLayout = ImageLayout.Zoom;
-            button2.Cursor = Cursors.Hand;
-            button2.FlatAppearance.BorderSize = 0;
-            button2.FlatStyle = FlatStyle.Flat;
-            button2.Font = new Font("Montserrat", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button2.ForeColor = Color.White;
-            button2.Location = new Point(498, 295);
-            button2.Name = "button2";
-            button2.Size = new Size(158, 158);
-            button2.TabIndex = 18;
-            button2.Text = "Ручной анализ плана";
-            button2.TextAlign = ContentAlignment.BottomLeft;
-            button2.UseVisualStyleBackColor = false;
+            OpenHandPlanButton.BackColor = Color.CornflowerBlue;
+            OpenHandPlanButton.BackgroundImage = (Image)resources.GetObject("OpenHandPlanButton.BackgroundImage");
+            OpenHandPlanButton.BackgroundImageLayout = ImageLayout.Zoom;
+            OpenHandPlanButton.Cursor = Cursors.Hand;
+            OpenHandPlanButton.FlatAppearance.BorderSize = 0;
+            OpenHandPlanButton.FlatStyle = FlatStyle.Flat;
+            OpenHandPlanButton.Font = new Font("Montserrat", 8F);
+            OpenHandPlanButton.ForeColor = Color.White;
+            OpenHandPlanButton.Location = new Point(498, 295);
+            OpenHandPlanButton.Name = "OpenHandPlanButton";
+            OpenHandPlanButton.Size = new Size(158, 158);
+            OpenHandPlanButton.TabIndex = 18;
+            OpenHandPlanButton.Text = "Ручной анализ плана";
+            OpenHandPlanButton.TextAlign = ContentAlignment.BottomLeft;
+            OpenHandPlanButton.UseVisualStyleBackColor = false;
             // 
-            // button1
+            // OpenHandPartiasButton
             // 
-            button1.BackColor = Color.CornflowerBlue;
-            button1.BackgroundImage = (Image)resources.GetObject("button1.BackgroundImage");
-            button1.BackgroundImageLayout = ImageLayout.Zoom;
-            button1.Cursor = Cursors.Hand;
-            button1.FlatAppearance.BorderSize = 0;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Montserrat", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button1.ForeColor = Color.White;
-            button1.Location = new Point(498, 131);
-            button1.Name = "button1";
-            button1.Size = new Size(158, 158);
-            button1.TabIndex = 17;
-            button1.Text = "Поштуч. объединение";
-            button1.TextAlign = ContentAlignment.BottomLeft;
-            button1.UseVisualStyleBackColor = false;
+            OpenHandPartiasButton.BackColor = Color.CornflowerBlue;
+            OpenHandPartiasButton.BackgroundImage = (Image)resources.GetObject("OpenHandPartiasButton.BackgroundImage");
+            OpenHandPartiasButton.BackgroundImageLayout = ImageLayout.Zoom;
+            OpenHandPartiasButton.Cursor = Cursors.Hand;
+            OpenHandPartiasButton.FlatAppearance.BorderSize = 0;
+            OpenHandPartiasButton.FlatStyle = FlatStyle.Flat;
+            OpenHandPartiasButton.Font = new Font("Montserrat", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            OpenHandPartiasButton.ForeColor = Color.White;
+            OpenHandPartiasButton.Location = new Point(498, 131);
+            OpenHandPartiasButton.Name = "OpenHandPartiasButton";
+            OpenHandPartiasButton.Size = new Size(158, 158);
+            OpenHandPartiasButton.TabIndex = 17;
+            OpenHandPartiasButton.Text = "Поштуч. объединение";
+            OpenHandPartiasButton.TextAlign = ContentAlignment.BottomLeft;
+            OpenHandPartiasButton.UseVisualStyleBackColor = false;
             // 
             // mainlabel
             // 
@@ -231,52 +247,129 @@
             mainlabel.TabIndex = 16;
             mainlabel.Text = "Система оптимизации графика производства (APS) «РОДАНА»";
             // 
-            // tabPage8
+            // PartiasTabPage
             // 
-            tabPage8.BackColor = Color.White;
-            tabPage8.Controls.Add(materialTabControl2);
-            tabPage8.Controls.Add(materialTabSelector2);
-            tabPage8.Location = new Point(4, 29);
-            tabPage8.Name = "tabPage8";
-            tabPage8.Size = new Size(1169, 489);
-            tabPage8.TabIndex = 0;
-            tabPage8.Text = "Формирование партий";
+            PartiasTabPage.BackColor = Color.White;
+            PartiasTabPage.Controls.Add(PartiasTabControl);
+            PartiasTabPage.Controls.Add(materialTabSelector2);
+            PartiasTabPage.Location = new Point(4, 33);
+            PartiasTabPage.Name = "PartiasTabPage";
+            PartiasTabPage.Size = new Size(1169, 485);
+            PartiasTabPage.TabIndex = 0;
+            PartiasTabPage.Text = "Формирование партий";
             // 
-            // materialTabControl2
+            // PartiasTabControl
             // 
-            materialTabControl2.Controls.Add(tabPage1);
-            materialTabControl2.Controls.Add(tabPage2);
-            materialTabControl2.Dock = DockStyle.Fill;
-            materialTabControl2.Location = new Point(0, 35);
-            materialTabControl2.Name = "materialTabControl2";
-            materialTabControl2.SelectedIndex = 0;
-            materialTabControl2.Size = new Size(1169, 454);
-            materialTabControl2.TabIndex = 21;
+            PartiasTabControl.Controls.Add(AllPartiasTabControl);
+            PartiasTabControl.Controls.Add(HandPartiasTabControl);
+            PartiasTabControl.Dock = DockStyle.Fill;
+            PartiasTabControl.Location = new Point(0, 35);
+            PartiasTabControl.Name = "PartiasTabControl";
+            PartiasTabControl.SelectedIndex = 0;
+            PartiasTabControl.Size = new Size(1169, 450);
+            PartiasTabControl.TabIndex = 21;
             // 
-            // tabPage1
+            // AllPartiasTabControl
             // 
-            tabPage1.BackColor = Color.White;
-            tabPage1.Controls.Add(materialCheckBox3);
-            tabPage1.Controls.Add(button5);
-            tabPage1.Controls.Add(customProgressBar3);
-            tabPage1.Controls.Add(materialCheckBox2);
-            tabPage1.Location = new Point(4, 29);
-            tabPage1.Name = "tabPage1";
-            tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(1161, 421);
-            tabPage1.TabIndex = 0;
-            tabPage1.Text = "Полный расчёт";
+            AllPartiasTabControl.BackColor = Color.White;
+            AllPartiasTabControl.Controls.Add(splitContainer1);
+            AllPartiasTabControl.Location = new Point(4, 33);
+            AllPartiasTabControl.Name = "AllPartiasTabControl";
+            AllPartiasTabControl.Padding = new Padding(3);
+            AllPartiasTabControl.Size = new Size(1161, 413);
+            AllPartiasTabControl.TabIndex = 0;
+            AllPartiasTabControl.Text = "Полный расчёт";
+            // 
+            // splitContainer1
+            // 
+            splitContainer1.BackColor = Color.White;
+            splitContainer1.BorderStyle = BorderStyle.FixedSingle;
+            splitContainer1.Dock = DockStyle.Fill;
+            splitContainer1.Location = new Point(3, 3);
+            splitContainer1.Margin = new Padding(0);
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(label2);
+            splitContainer1.Panel1.Controls.Add(PartiasProgressLabel);
+            splitContainer1.Panel1.Controls.Add(label1);
+            splitContainer1.Panel1.Controls.Add(numericUpDown1);
+            splitContainer1.Panel1.Controls.Add(button5);
+            splitContainer1.Panel1.Controls.Add(materialCheckBox3);
+            splitContainer1.Panel1.Controls.Add(materialCheckBox2);
+            splitContainer1.Panel1.Controls.Add(customProgressBar3);
+            splitContainer1.Panel1MinSize = 400;
+            splitContainer1.Size = new Size(1155, 407);
+            splitContainer1.SplitterDistance = 400;
+            splitContainer1.TabIndex = 23;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(3, 123);
+            label2.Name = "label2";
+            label2.Size = new Size(128, 24);
+            label2.TabIndex = 26;
+            label2.Text = "GUID партии:";
+            // 
+            // PartiasProgressLabel
+            // 
+            PartiasProgressLabel.AutoSize = true;
+            PartiasProgressLabel.Location = new Point(3, 89);
+            PartiasProgressLabel.Name = "PartiasProgressLabel";
+            PartiasProgressLabel.Size = new Size(287, 24);
+            PartiasProgressLabel.TabIndex = 25;
+            PartiasProgressLabel.Text = "Расчёт недоступен без данных.";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(282, 61);
+            label1.Name = "label1";
+            label1.Size = new Size(113, 24);
+            label1.TabIndex = 24;
+            label1.Text = "Макс. дней:";
+            // 
+            // numericUpDown1
+            // 
+            numericUpDown1.BackColor = Color.CornflowerBlue;
+            numericUpDown1.BorderStyle = BorderStyle.None;
+            numericUpDown1.ForeColor = Color.White;
+            numericUpDown1.Location = new Point(303, 87);
+            numericUpDown1.Margin = new Padding(0);
+            numericUpDown1.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            numericUpDown1.Name = "numericUpDown1";
+            numericUpDown1.Size = new Size(88, 24);
+            numericUpDown1.TabIndex = 23;
+            numericUpDown1.TextAlign = HorizontalAlignment.Center;
+            numericUpDown1.Value = new decimal(new int[] { 30, 0, 0, 0 });
+            // 
+            // button5
+            // 
+            button5.BackColor = Color.CornflowerBlue;
+            button5.BackgroundImageLayout = ImageLayout.Zoom;
+            button5.Cursor = Cursors.Hand;
+            button5.Enabled = false;
+            button5.FlatAppearance.BorderSize = 0;
+            button5.FlatStyle = FlatStyle.Flat;
+            button5.Font = new Font("Montserrat", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button5.ForeColor = Color.White;
+            button5.Location = new Point(3, 3);
+            button5.Name = "button5";
+            button5.Size = new Size(297, 51);
+            button5.TabIndex = 21;
+            button5.Text = "Расчёт";
+            button5.UseVisualStyleBackColor = false;
             // 
             // materialCheckBox3
             // 
             materialCheckBox3.AutoSize = true;
             materialCheckBox3.BackColor = Color.Black;
-            materialCheckBox3.Checked = true;
-            materialCheckBox3.CheckState = CheckState.Checked;
             materialCheckBox3.Depth = 0;
             materialCheckBox3.Font = new Font("Montserrat", 10F);
             materialCheckBox3.ForeColor = Color.CornflowerBlue;
-            materialCheckBox3.Location = new Point(306, 36);
+            materialCheckBox3.Location = new Point(303, 33);
             materialCheckBox3.Margin = new Padding(0);
             materialCheckBox3.MouseLocation = new Point(-1, -1);
             materialCheckBox3.Name = "materialCheckBox3";
@@ -286,48 +379,14 @@
             materialCheckBox3.Text = "Zadel";
             materialCheckBox3.UseVisualStyleBackColor = false;
             // 
-            // button5
-            // 
-            button5.BackColor = Color.CornflowerBlue;
-            button5.BackgroundImageLayout = ImageLayout.Zoom;
-            button5.Cursor = Cursors.Hand;
-            button5.FlatAppearance.BorderSize = 0;
-            button5.FlatStyle = FlatStyle.Flat;
-            button5.Font = new Font("Montserrat", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button5.ForeColor = Color.White;
-            button5.Location = new Point(6, 6);
-            button5.Name = "button5";
-            button5.Size = new Size(297, 51);
-            button5.TabIndex = 21;
-            button5.Text = "Расчёт";
-            button5.UseVisualStyleBackColor = false;
-            // 
-            // customProgressBar3
-            // 
-            customProgressBar3.BackColor = SystemColors.ControlLight;
-            customProgressBar3.BarPadding = new Padding(0);
-            customProgressBar3.Font = new Font("Montserrat", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
-            customProgressBar3.ForeColor = Color.CornflowerBlue;
-            customProgressBar3.IsInfinite = false;
-            customProgressBar3.Location = new Point(6, 63);
-            customProgressBar3.Maximum = 100;
-            customProgressBar3.Minimum = 0;
-            customProgressBar3.Name = "customProgressBar3";
-            customProgressBar3.Size = new Size(297, 26);
-            customProgressBar3.TabIndex = 16;
-            customProgressBar3.Text = "customProgressBar3";
-            customProgressBar3.Value = 6;
-            // 
             // materialCheckBox2
             // 
             materialCheckBox2.AutoSize = true;
             materialCheckBox2.BackColor = Color.Black;
-            materialCheckBox2.Checked = true;
-            materialCheckBox2.CheckState = CheckState.Checked;
             materialCheckBox2.Depth = 0;
             materialCheckBox2.Font = new Font("Montserrat", 10F);
             materialCheckBox2.ForeColor = Color.CornflowerBlue;
-            materialCheckBox2.Location = new Point(306, 6);
+            materialCheckBox2.Location = new Point(303, 3);
             materialCheckBox2.Margin = new Padding(0);
             materialCheckBox2.MouseLocation = new Point(-1, -1);
             materialCheckBox2.Name = "materialCheckBox2";
@@ -337,20 +396,36 @@
             materialCheckBox2.Text = "Part";
             materialCheckBox2.UseVisualStyleBackColor = false;
             // 
-            // tabPage2
+            // customProgressBar3
             // 
-            tabPage2.Location = new Point(4, 29);
-            tabPage2.Name = "tabPage2";
-            tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(1161, 421);
-            tabPage2.TabIndex = 1;
-            tabPage2.Text = "Поштучное объединение";
-            tabPage2.UseVisualStyleBackColor = true;
+            customProgressBar3.BackColor = SystemColors.ControlLight;
+            customProgressBar3.BarPadding = new Padding(0);
+            customProgressBar3.Font = new Font("Montserrat", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
+            customProgressBar3.ForeColor = Color.CornflowerBlue;
+            customProgressBar3.IsInfinite = false;
+            customProgressBar3.Location = new Point(3, 60);
+            customProgressBar3.Maximum = 100;
+            customProgressBar3.Minimum = 0;
+            customProgressBar3.Name = "customProgressBar3";
+            customProgressBar3.Size = new Size(273, 26);
+            customProgressBar3.TabIndex = 16;
+            customProgressBar3.Text = "customProgressBar3";
+            customProgressBar3.Value = 6;
+            // 
+            // HandPartiasTabControl
+            // 
+            HandPartiasTabControl.Location = new Point(4, 29);
+            HandPartiasTabControl.Name = "HandPartiasTabControl";
+            HandPartiasTabControl.Padding = new Padding(3);
+            HandPartiasTabControl.Size = new Size(1161, 417);
+            HandPartiasTabControl.TabIndex = 1;
+            HandPartiasTabControl.Text = "Поштучное объединение";
+            HandPartiasTabControl.UseVisualStyleBackColor = true;
             // 
             // materialTabSelector2
             // 
             materialTabSelector2.BackColor = Color.CornflowerBlue;
-            materialTabSelector2.BaseTabControl = materialTabControl2;
+            materialTabSelector2.BaseTabControl = PartiasTabControl;
             materialTabSelector2.Dock = DockStyle.Top;
             materialTabSelector2.Font = new Font("Montserrat", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
             materialTabSelector2.ForeColor = Color.White;
@@ -361,29 +436,85 @@
             materialTabSelector2.TabIndex = 22;
             materialTabSelector2.Text = "materialTabSelector2";
             // 
-            // tabPage9
+            // PlanningTabPage
             // 
-            tabPage9.Location = new Point(4, 29);
-            tabPage9.Name = "tabPage9";
-            tabPage9.Size = new Size(1169, 489);
-            tabPage9.TabIndex = 1;
-            tabPage9.Text = "Планирование производства";
-            tabPage9.UseVisualStyleBackColor = true;
+            PlanningTabPage.Controls.Add(PlanningTabControl);
+            PlanningTabPage.Controls.Add(materialTabSelector3);
+            PlanningTabPage.Location = new Point(4, 29);
+            PlanningTabPage.Name = "PlanningTabPage";
+            PlanningTabPage.Size = new Size(1169, 489);
+            PlanningTabPage.TabIndex = 1;
+            PlanningTabPage.Text = "Планирование производства";
+            PlanningTabPage.UseVisualStyleBackColor = true;
             // 
-            // tabPage11
+            // PlanningTabControl
             // 
-            tabPage11.BackColor = Color.White;
-            tabPage11.Controls.Add(ToggleThemeButton);
-            tabPage11.Controls.Add(materialRadioButton1);
-            tabPage11.Controls.Add(materialRadioButton2);
-            tabPage11.Location = new Point(4, 29);
-            tabPage11.Name = "tabPage11";
-            tabPage11.Size = new Size(1169, 489);
-            tabPage11.TabIndex = 3;
-            tabPage11.Text = "Настройки";
+            PlanningTabControl.Controls.Add(TyrantTabPage);
+            PlanningTabControl.Controls.Add(HandPlanningPage);
+            PlanningTabControl.Controls.Add(GraphsTabPage);
+            PlanningTabControl.Dock = DockStyle.Fill;
+            PlanningTabControl.Location = new Point(0, 35);
+            PlanningTabControl.Name = "PlanningTabControl";
+            PlanningTabControl.SelectedIndex = 0;
+            PlanningTabControl.Size = new Size(1169, 454);
+            PlanningTabControl.TabIndex = 0;
+            // 
+            // TyrantTabPage
+            // 
+            TyrantTabPage.Location = new Point(4, 33);
+            TyrantTabPage.Name = "TyrantTabPage";
+            TyrantTabPage.Padding = new Padding(3);
+            TyrantTabPage.Size = new Size(1161, 417);
+            TyrantTabPage.TabIndex = 0;
+            TyrantTabPage.Text = "Полное планирование";
+            TyrantTabPage.UseVisualStyleBackColor = true;
+            // 
+            // HandPlanningPage
+            // 
+            HandPlanningPage.Location = new Point(4, 29);
+            HandPlanningPage.Name = "HandPlanningPage";
+            HandPlanningPage.Padding = new Padding(3);
+            HandPlanningPage.Size = new Size(1161, 421);
+            HandPlanningPage.TabIndex = 1;
+            HandPlanningPage.Text = "Ручной анализ плана";
+            HandPlanningPage.UseVisualStyleBackColor = true;
+            // 
+            // GraphsTabPage
+            // 
+            GraphsTabPage.Location = new Point(4, 29);
+            GraphsTabPage.Name = "GraphsTabPage";
+            GraphsTabPage.Size = new Size(1161, 421);
+            GraphsTabPage.TabIndex = 2;
+            GraphsTabPage.Text = "Графики эффективности";
+            GraphsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // materialTabSelector3
+            // 
+            materialTabSelector3.BackColor = Color.CornflowerBlue;
+            materialTabSelector3.BaseTabControl = PlanningTabControl;
+            materialTabSelector3.Dock = DockStyle.Top;
+            materialTabSelector3.ForeColor = Color.White;
+            materialTabSelector3.Location = new Point(0, 0);
+            materialTabSelector3.Name = "materialTabSelector3";
+            materialTabSelector3.Size = new Size(1169, 35);
+            materialTabSelector3.TabIndex = 1;
+            materialTabSelector3.Text = "materialTabSelector3";
+            // 
+            // SettingsTabPage
+            // 
+            SettingsTabPage.BackColor = Color.White;
+            SettingsTabPage.Controls.Add(ToggleThemeButton);
+            SettingsTabPage.Controls.Add(materialRadioButton1);
+            SettingsTabPage.Controls.Add(materialRadioButton2);
+            SettingsTabPage.Location = new Point(4, 29);
+            SettingsTabPage.Name = "SettingsTabPage";
+            SettingsTabPage.Size = new Size(1169, 489);
+            SettingsTabPage.TabIndex = 3;
+            SettingsTabPage.Text = "Настройки";
             // 
             // ToggleThemeButton
             // 
+            ToggleThemeButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             ToggleThemeButton.BackColor = Color.CornflowerBlue;
             ToggleThemeButton.BackgroundImageLayout = ImageLayout.Zoom;
             ToggleThemeButton.Cursor = Cursors.Hand;
@@ -438,19 +569,26 @@
             AutoScaleMode = AutoScaleMode.None;
             BackColor = SystemColors.Control;
             ClientSize = new Size(1177, 557);
-            Controls.Add(materialTabControl1);
+            Controls.Add(MainTabControl);
             Controls.Add(materialTabSelector1);
+            Font = new Font("Montserrat", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
             MinimumSize = new Size(1195, 604);
             Name = "MainForm";
             Text = "APS «Родана»";
-            materialTabControl1.ResumeLayout(false);
-            tabPage10.ResumeLayout(false);
-            tabPage10.PerformLayout();
-            tabPage8.ResumeLayout(false);
-            materialTabControl2.ResumeLayout(false);
-            tabPage1.ResumeLayout(false);
-            tabPage1.PerformLayout();
-            tabPage11.ResumeLayout(false);
+            MainTabControl.ResumeLayout(false);
+            MainTabPage.ResumeLayout(false);
+            MainTabPage.PerformLayout();
+            PartiasTabPage.ResumeLayout(false);
+            PartiasTabControl.ResumeLayout(false);
+            AllPartiasTabControl.ResumeLayout(false);
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
+            PlanningTabPage.ResumeLayout(false);
+            PlanningTabControl.ResumeLayout(false);
+            SettingsTabPage.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -458,27 +596,37 @@
         private Button OpenPartiasButton;
         public Button OpenPlanningButton;
         private CustomComponents.MaterialTabSelector materialTabSelector1;
-        private CustomComponents.MaterialTabControl materialTabControl1;
-        private TabPage tabPage8;
-        private TabPage tabPage9;
-        private TabPage tabPage10;
-        private TabPage tabPage11;
+        private CustomComponents.MaterialTabControl MainTabControl;
+        private TabPage PartiasTabPage;
+        private TabPage PlanningTabPage;
+        private TabPage MainTabPage;
+        private TabPage SettingsTabPage;
         private Label mainlabel;
         private CustomComponents.MaterialCheckBox materialCheckBox2;
         private CustomComponents.CustomProgressBar customProgressBar3;
-        public Button button3;
-        public Button button2;
-        private Button button1;
-        public Button button4;
-        private Panel panel1;
+        public Button OpenGraphsButton;
+        public Button OpenHandPlanButton;
+        private Button OpenHandPartiasButton;
+        public Button OpenSettingsButton;
+        private Panel PanelNearMainLabel;
         private CustomComponents.MaterialTabSelector materialTabSelector2;
-        private CustomComponents.MaterialTabControl materialTabControl2;
-        private TabPage tabPage1;
-        private TabPage tabPage2;
+        private CustomComponents.MaterialTabControl PartiasTabControl;
+        private TabPage AllPartiasTabControl;
+        private TabPage HandPartiasTabControl;
         private CustomComponents.MaterialCheckBox materialCheckBox3;
         private Button button5;
         private CustomComponents.MaterialRadioButton materialRadioButton1;
         private CustomComponents.MaterialRadioButton materialRadioButton2;
         private Button ToggleThemeButton;
+        private SplitContainer splitContainer1;
+        private NumericUpDown numericUpDown1;
+        private Label PartiasProgressLabel;
+        private Label label1;
+        private Label label2;
+        private CustomComponents.MaterialTabControl PlanningTabControl;
+        private TabPage TyrantTabPage;
+        private TabPage HandPlanningPage;
+        private TabPage GraphsTabPage;
+        private CustomComponents.MaterialTabSelector materialTabSelector3;
     }
 }

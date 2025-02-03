@@ -17,14 +17,14 @@ namespace Rodana.Core.Common
     /// <typeparam name="OrderLabel"></typeparam>
     /// <typeparam name="CommonCode"></typeparam>
     /// <typeparam name="CommonLabel"></typeparam>
-    public class Stage<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> where SettingsClassType : SettingsClass, new()
+    public class Stage<InputDataType, OrderSubType, SettingsClassType> where SettingsClassType : SettingsClass, new()
     {
         public int ID;
 
         /// <summary>
         /// Вид операции
         /// </summary>
-        public CodedObject<CommonCode, CommonLabel> OperationType;
+        public CodedObject<InputDataType> OperationType;
 
 
         #region Длительность
@@ -37,16 +37,16 @@ namespace Rodana.Core.Common
         /// <summary>
         /// Длительность конкретно этого этапа в зависимости от РЦ
         /// </summary>
-        Dictionary<CodedObject<RCCode, RCLabel>, int> SpecifiedDuration;
+        Dictionary<CodedObject<InputDataType>, int> SpecifiedDuration;
 
 
         int? CashedDuration;
-        Dictionary<CodedObject<RCCode, RCLabel>, int> CashedDurations;
+        Dictionary<CodedObject<InputDataType>, int> CashedDurations;
 
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
         public int GetDuration() => Duration.Value;
 
-        public int GetDuration(CodedObject<RCCode, RCLabel> RC, Session<RCCode, RCLabel, OrderCode, OrderLabel, OrderSubType, CommonCode, CommonLabel, SettingsClassType> sessionLink)
+        public int GetDuration(CodedObject<InputDataType> RC, Session<InputDataType, OrderSubType, SettingsClassType> sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
 

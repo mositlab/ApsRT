@@ -2,27 +2,27 @@
 
 namespace Rodana.Core.Common
 {
-    public struct CodedObject<C, L>
+    public struct CodedObject<InputDataType>
     {
-        private C _code;
-        private L _label;
+        private InputDataType _code;
+        private string _label;
         private int _hashCode;
         private bool _isEmpty;
 
         [JsonProperty]
-        public C Code
+        public InputDataType Code
         {
             get => _code;
             set
             {
                 _code = value;
-                _isEmpty = EqualityComparer<C>.Default.Equals(_code, default);
+                _isEmpty = EqualityComparer<InputDataType>.Default.Equals(_code, default);
                 UpdateHashCode();
             }
         }
 
         [JsonProperty]
-        public L Label
+        public string Label
         {
             get => _label;
             set
@@ -32,10 +32,10 @@ namespace Rodana.Core.Common
             }
         }
 
-        public CodedObject(C code, L label)
+        public CodedObject(InputDataType code, string label)
         {
             _code = code;
-            _isEmpty = EqualityComparer<C>.Default.Equals(_code, default);
+            _isEmpty = EqualityComparer<InputDataType>.Default.Equals(_code, default);
             _label = label;
             _hashCode = default;
             UpdateHashCode();
@@ -51,9 +51,9 @@ namespace Rodana.Core.Common
 
         public readonly bool IsEmpty => _isEmpty;
 
-        public static bool operator ==(CodedObject<C, L> a, CodedObject<C, L> b) => a._hashCode == b._hashCode;
+        public static bool operator ==(CodedObject<InputDataType> a, CodedObject<InputDataType> b) => a._hashCode == b._hashCode;
 
-        public static bool operator !=(CodedObject<C, L> a, CodedObject<C, L> b) => a._hashCode != b._hashCode;
+        public static bool operator !=(CodedObject<InputDataType> a, CodedObject<InputDataType> b) => a._hashCode != b._hashCode;
 
         public override string ToString()
         {
@@ -62,7 +62,7 @@ namespace Rodana.Core.Common
 
         public override bool Equals(object obj)
         {
-            return obj is CodedObject<C, L> codedObject && codedObject._hashCode == _hashCode;
+            return obj is CodedObject<InputDataType> codedObject && codedObject._hashCode == _hashCode;
         }
 
         public override int GetHashCode()

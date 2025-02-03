@@ -18,29 +18,29 @@ namespace Rodana.ZMK
         [STAThread]
         static void Main()
         {
-            var sessionLink = new Rodana.Core.Session.Session<Guid, string, Guid, string, int, Guid, string, SettingsAddon>(Environment.GetCommandLineArgs());
+            var sessionLink = new Rodana.Core.Session.Session<Guid, int, SettingsZMKAddon>(Environment.GetCommandLineArgs());
 
             sessionLink.Start();
             sessionLink.OnSessionDataLoaded += On_ZMK_DataLoaded;
 
-            sessionLink.LoadDataAsync();
+            MainForm form = null;
+            if (!sessionLink.SessionOptions.IsSilent)
+            {
+                form = new MainForm(sessionLink);
+                // Подписываем тут все события
+            }
 
-            //App app = new App();
+            if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAsync();
 
             if (sessionLink.SessionOptions.IsSilent)
             {
-                //app.Run();
                 //Application.Run();
             }
             else
             {
                 ApplicationConfiguration.Initialize();
-                Application.Run(new MainForm(sessionLink));
-                //MainWindow window = new MainWindow(sessionLink);
-                //window.Activate();
-                //app.Run(window);
+                Application.Run(form);
             }
-
 
         }
 
