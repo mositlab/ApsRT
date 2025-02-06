@@ -5,9 +5,7 @@ VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rodana.Core", "Rodana.Core\Rodana.Core.csproj", "{EA499EEC-3008-41FF-996C-9E7A75A1BD8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rodana.Core.Tests", "Rodana.Core.Tests\Rodana.Core.Tests.csproj", "{E7A1497C-1D73-45BD-8281-A4007A83A17C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rodana.ZMKwpf", "Rodana.ZMKwpf\Rodana.ZMKwpf.csproj", "{B385CCDD-E626-4CFB-A867-A6A767A299D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rodana.Core.Tests", "Rodana.Core.Tests\Rodana.Core.Tests.csproj", "{E7A1497C-1D73-45BD-8281-A4007A83A17C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rodana.ZMK", "Rodana.ZMK\Rodana.ZMK.csproj", "{F4A7623F-6806-42B2-8269-D99E7896ABCD}"
 EndProject
@@ -25,10 +23,6 @@ Global
 		{E7A1497C-1D73-45BD-8281-A4007A83A17C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7A1497C-1D73-45BD-8281-A4007A83A17C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7A1497C-1D73-45BD-8281-A4007A83A17C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B385CCDD-E626-4CFB-A867-A6A767A299D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B385CCDD-E626-4CFB-A867-A6A767A299D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B385CCDD-E626-4CFB-A867-A6A767A299D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B385CCDD-E626-4CFB-A867-A6A767A299D4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4A7623F-6806-42B2-8269-D99E7896ABCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F4A7623F-6806-42B2-8269-D99E7896ABCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4A7623F-6806-42B2-8269-D99E7896ABCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
