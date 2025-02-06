@@ -23,9 +23,15 @@ namespace Rodana.ZMK
             sessionLink.Start();
             sessionLink.OnSessionDataLoaded += On_ZMK_DataLoaded;
 
+
             MainForm form = null;
             if (!sessionLink.SessionOptions.IsSilent)
             {
+                ApplicationConfiguration.Initialize();
+                //Application.EnableVisualStyles();
+                //Application.SetCompatibleTextRenderingDefault(false);
+                //Application.SetHighDpiMode(HighDpiMode.SystemAware);
+
                 form = new MainForm(sessionLink);
                 // Подписываем тут все события
             }
@@ -38,7 +44,7 @@ namespace Rodana.ZMK
             }
             else
             {
-                ApplicationConfiguration.Initialize();
+                
                 Application.Run(form);
             }
 
