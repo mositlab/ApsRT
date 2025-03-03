@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rodana.Core.MasterData
+namespace Rodana.Core.MasterData.Stages
 {
-    public class StageTypicalDurations<InputDataType>
+    public class StagesTypicalDurationsMasterData<InputDataType>
     {
         Dictionary<CodedObject<InputDataType>,
             Dictionary<CodedObject<InputDataType>,

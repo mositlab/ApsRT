@@ -3,36 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rodana.Core.Common;
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
 
-namespace Rodana.Core.Common
+namespace Rodana.Core.MasterData.Stages
 {
     /// <summary>
     /// Элементарный этап, основная единица планирования.
     /// </summary>
-    /// <typeparam name="RCCode">Тип кода РЦ</typeparam>
-    /// <typeparam name="RCLabel"></typeparam>
-    /// <typeparam name="OrderCode"></typeparam>
-    /// <typeparam name="OrderLabel"></typeparam>
-    /// <typeparam name="CommonCode"></typeparam>
-    /// <typeparam name="CommonLabel"></typeparam>
-    public class Stage<InputDataType, OrderSubType, SettingsClassType> where SettingsClassType : SettingsClass, new()
+    public class Stage<InputDataType, OrderSubType>
     {
-        public int ID;
+        /// <summary>
+        /// Индекс, который проще кода, используется при быстрых расчётах повсюду.
+        /// </summary>
+        public int Index { get; init; }
+
+        /// <summary>
+        /// Уникальный идентификатор этапа.
+        /// </summary>
+        public InputDataType GUID { get; init; }
 
         /// <summary>
         /// Вид операции
         /// </summary>
-        public CodedObject<InputDataType> OperationType;
-
+        public CodedObject<InputDataType> OperationVid { get; set; }
 
         #region Длительность
 
         /// <summary>
         /// Длительность этого этапа вне зависимости от РЦ
         /// </summary>
-        int? Duration;
+        public int? Duration { get; set; }
 
         /// <summary>
         /// Длительность конкретно этого этапа в зависимости от РЦ
@@ -46,7 +48,7 @@ namespace Rodana.Core.Common
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
         public int GetDuration() => Duration.Value;
 
-        public int GetDuration(CodedObject<InputDataType> RC, Session<InputDataType, OrderSubType, SettingsClassType> sessionLink)
+        public int GetDuration(CodedObject<InputDataType> RC, Session<InputDataType, OrderSubType> sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
 
@@ -60,7 +62,7 @@ namespace Rodana.Core.Common
             var currSets = sessionLink.SettingsController.CurrentSettings;
 
             // Если нет информации там, ищу в базах данных
-            if (sessionLink.StageTypicalDurations.AnyDurations && sessionLink.StageTypicalDurations.TryGetTypicalDuration(RC, OperationType, out var time))
+            if (sessionLink.MasterDataLinks.StageTypicalDurations.AnyDurations && sessionLink.MasterDataLinks.StageTypicalDurations.TryGetTypicalDuration(RC, OperationVid, out var time))
             {
                 if (currSets.CasheStageDurations)
                 {
@@ -75,4 +77,5 @@ namespace Rodana.Core.Common
         }
         #endregion
     }
+
 }

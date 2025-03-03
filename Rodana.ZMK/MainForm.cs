@@ -1,10 +1,11 @@
 using Rodana.Core.Session;
+using Rodana.Core.Settings;
 
 namespace Rodana.ZMK
 {
     public partial class MainForm : Form
     {
-        public MainForm(Session<Guid, int, SettingsZMKAddon> sessionLink)
+        public MainForm(Session<Guid, int> sessionLink)
         {
             InitializeComponent();
             this.sessionLink = sessionLink;
@@ -58,11 +59,11 @@ namespace Rodana.ZMK
         {
             sessionLink.SettingsController.CurrentSettings.CurrentTheme = sessionLink.SettingsController.CurrentSettings.CurrentTheme switch
             {
-                SettingsZMKAddon.Theme.LightBlue => SettingsZMKAddon.Theme.DarkBlue,
-                SettingsZMKAddon.Theme.DarkBlue => SettingsZMKAddon.Theme.LightRed,
-                SettingsZMKAddon.Theme.LightRed => SettingsZMKAddon.Theme.DarkRed,
-                SettingsZMKAddon.Theme.DarkRed => SettingsZMKAddon.Theme.LightBlue,
-                _ => SettingsZMKAddon.Theme.DarkRed
+                FormTheme.LightBlue => FormTheme.DarkBlue,
+                FormTheme.DarkBlue => FormTheme.LightRed,
+                FormTheme.LightRed => FormTheme.DarkRed,
+                FormTheme.DarkRed => FormTheme.LightBlue,
+                _ => FormTheme.DarkRed
             };
             SetTheme(sessionLink.SettingsController.CurrentSettings.CurrentTheme);
         }
@@ -91,12 +92,12 @@ namespace Rodana.ZMK
         public Color MOSITLAB_RED { get; } = Color.FromArgb(234, 84, 84);
         public Color MOSITLAB_RED_DARK { get; } = Color.FromArgb(180, 60, 61);
 
-        void SetTheme(SettingsZMKAddon.Theme theme)
+        void SetTheme(FormTheme theme)
         {
-            Color color = theme == SettingsZMKAddon.Theme.LightRed || theme == SettingsZMKAddon.Theme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
-            Color textColor = theme == SettingsZMKAddon.Theme.DarkBlue || theme == SettingsZMKAddon.Theme.DarkRed ? Color.White : Color.Black;
+            Color color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
+            Color textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
 
-            Color backColor = theme == SettingsZMKAddon.Theme.DarkBlue || theme == SettingsZMKAddon.Theme.DarkRed ? Color.FromArgb(64,64,64) : Color.White;
+            Color backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64,64,64) : Color.White;
 
             PanelNearMainLabel.BackColor = textColor;
             //mainlabel.ForeColor = textColor;
@@ -158,7 +159,7 @@ namespace Rodana.ZMK
             sessionLink.EndSession(0);
         }
 
-        Session<Guid, int, SettingsZMKAddon> sessionLink;
+        Session<Guid, int> sessionLink;
 
     }
 }

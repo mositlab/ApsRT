@@ -1,4 +1,6 @@
-﻿using Rodana.Core.Hoppers;
+﻿using Rodana.Core.DataErrors;
+using Rodana.Core.Hoppers;
+using Rodana.Core.MasterData;
 using Rodana.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -18,22 +20,18 @@ namespace Rodana.Core.Session
     /// После того, как Родана загрузит настройки и с их помощью активирует Хопперы.
     /// Теперь, запуская алгоритмы планирования и партий, можно хавать данные из данных сессии.
     /// </summary>
-    public class Session<InputDataType, OrderSubType, SettingsClassType> where SettingsClassType : SettingsClass, new()
+    public class Session<InputDataType, OrderSubType>
     {
         public SessionOptions SessionOptions { get; init; }
-        public DataErrors<InputDataType, OrderSubType, SettingsClassType> DataErrors { get; init; }
-        public SettingsController<SettingsClassType> SettingsController { get; init; }
-        public HoppersHandler<InputDataType, OrderSubType, SettingsClassType> HoppersHandler { get; init; }
-        public MasterData.StageTypicalDurations<InputDataType> StageTypicalDurations { get; init; }
+        public DataErrors<InputDataType, OrderSubType> DataErrors { get; init; }
+        public SettingsController SettingsController { get; init; }
+        public HoppersHandler<InputDataType, OrderSubType> HoppersHandler { get; init; }
+        public MasterDataLinks<InputDataType> MasterDataLinks { get; init; }
 
         public event Action OnSessionDataLoaded;
 
-        /*
-         internal RechangeEngine RechangeEngine;
-         */
-
-        Stopper<InputDataType, OrderSubType, SettingsClassType> KillMe;
-        Stopper<InputDataType, OrderSubType, SettingsClassType> StopMe;
+        Stopper<InputDataType, OrderSubType> KillMe;
+        Stopper<InputDataType, OrderSubType> StopMe;
 
 
         static bool FirstInvoked = false;
@@ -46,8 +44,8 @@ namespace Rodana.Core.Session
 
         public Session()
         {
-            SettingsController = new SettingsController<SettingsClassType>();
-            StageTypicalDurations = new();
+            SettingsController = new SettingsController();
+            MasterDataLinks = new();
             SessionOptions = new();
             DataErrors = new()
             {
@@ -152,7 +150,7 @@ namespace Rodana.Core.Session
         /// Запустить сессию.
         /// </summary>
         /// <param name="data">По желанию можно дать сессии собственные настройки (по умолчанию Родана грузит их из файла). Обычно в этом нет нужды.</param>
-        public void Start(SettingsClassType? data = null)
+        public void Start(SettingsClass? data = null)
         {
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -165,8 +163,8 @@ namespace Rodana.Core.Session
             CheckFiles();
 
             // Если с ними всё в порядке, то можно и начинать
-            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper<InputDataType, OrderSubType, SettingsClassType>("killme", 100, this);
-            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper<InputDataType, OrderSubType, SettingsClassType>("stopme", 0, this);
+            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper<InputDataType, OrderSubType>("killme", 100, this);
+            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper<InputDataType, OrderSubType>("stopme", 0, this);
         }
 
         async public Task LoadDataAsync()
@@ -215,7 +213,7 @@ namespace Rodana.Core.Session
             CheckFile(DataErrors.PartiasErrorsFile, 514, true);
             CheckFile(DataErrors.PartiasErrorsBigFile, 515, true);
 
-            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, DataErrors<InputDataType, OrderSubType, SettingsClassType>.NewDataErrorType.SomeFileIsOpened, new DataErrors<InputDataType, OrderSubType, SettingsClassType>.DataErrorMore("", string.Join(", ", list)));
+            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, NewDataErrorType.SomeFileIsOpened, new DataErrorStruct<InputDataType>("", string.Join(", ", list)));
             if (DataErrors.TryOutputDataErrors())
             {
                 EndSession(601);

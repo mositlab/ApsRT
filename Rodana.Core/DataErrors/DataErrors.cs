@@ -1,5 +1,4 @@
-﻿using Rodana.Core.Common;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +7,12 @@ using System.Threading.Tasks;
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
 
-namespace Rodana.Core
+namespace Rodana.Core.DataErrors
 {
-    public class DataErrors<InputDataType, OrderSubType, SettingsClassType> where SettingsClassType : SettingsClass, new()
+    public partial class DataErrors<InputDataType, OrderSubType>
     {
 
-        public Session<InputDataType, OrderSubType, SettingsClassType> session { get; init; }
+        public Session<InputDataType, OrderSubType> session { get; init; }
 
 
         public string PartiasErrorsFile = "partiasErrors.csv";
@@ -21,128 +20,10 @@ namespace Rodana.Core
         public string DatasErrorsFile = "dataErrors.csv";
         public string DatasErrorsBigFile = "dataErrorsBig.csv";
 
-        public enum NewDataErrorType : byte
-        {
-            NoProduction,
-            NoNomenklature,
-            NoVidOper,
-
-            NoNomenklatureEmptyProd,
-            NoVidOperEmptyProd,
-
-            NoGP, // гп не задана
-
-            Restricted_VPZ,
-            Restricted_Fact,
-            Restricted_NoReplan,
-
-            NoOrigTara, // не задана конечная тара
-
-            NoChangeTaraNoPriem, // нет приемной тары при "не менять тару"
-            NoChangeTaraNoPriemVspom, // То же, но с вспомогательной
-            NoChangeTaraMoreThanOne, // апс откопал 2+ "не менять тару
-
-            NonPositiveLength, // отрицательная длительность
-            BadStartTimeFact, // дата начала факт
-
-            SomeFileIsOpened, // открыты файлы
-            CorruptedDataFile, // повреждены файлы с данными
-
-            NotEnoughMaxOnTaras, // тара найдена, но не хватает макс намотки
-            NotEnoughMaxOnTarasVspom, // то же, но вспом
-            NoTaraNMaxIntersection, // Не найдена основная тара для рассчитанного количества с учетом выбранной тары по макс намотке и приемной таре по цепочке по таре.
-            NoTaraNMaxIntersectionVspom, // то же, но вспом
-            NoPriemNOtdIntersection, // Нарушение цепочки приемная-отдающая тара по основной таре
-            NoPriemNOtdIntersectionVspom, // то же, но со вспомогательной
-            NoPriemNOtdIntersectionNoChange, // то же, но с признаком не менять тару
-
-            NoPriemOrigTara, // тут не найдена приемная отдающая тара
-            NoOtdOrigTara, // нет РЦ с нужной отдающей тарой
-
-            WasNotAbleToMerge, // не смог соединить на 1 уровне
-            WasNotAbleToMergeNoSettings, // то же, но без настроек
-            WasNotAbleToMergeMax, // не влезло на одну
-            WasNotAbleToMergeDontKnow, // хз почему
-
-            NoAllNeededOtdTaras, // нет ни одного рц у которого есть все нужные отдающие тары
-            NoAllNeededOtdTarasWithCheck, // то же, с доп проверкой
-        }
-
-        public struct DataErrorMore
-        {
-            /*
-             * Набор РЦ на текущей операции ☑
-             * Подходящая тара с максимальной намотки ☑
-             * Отдающая тара на текущей операции ☑
-             * Тип тары приемная на текущей операции; ☑
-             * максимальная намотка ☑
-             * Пересечение макс намотки и применяемой тары
-             * Набор РЦ на предыдущей операции
-             * Тип  отдающей тары на предыдущей операции,вспомогательная истина/ложь;максимальная намотка
-             * Следующий этап
-             * Набор РЦ на следующей операции
-             * Тип отдающей тары на следующей операции;максимальная намотка
-             * Количество на уровне в партии
-            */
-            internal string DataToInsert; // строка, которую можно вставить в основное сообщение
-            internal string TechData; // строка, которую можно вставить в основное сообщение
-            internal double Count;
-            internal string PartiaSettings; // список настроек партий
-            internal Guid? PartiaGuid;
-            internal List<Guid> customEtapsGuids;
-            internal CodedObject<InputDataType>? customRC, customRCroute;
-            internal CodedObject<InputDataType>? customNomen, customProd, customVid;
-            internal List<CodedObject<InputDataType>> RCsOnThisEtap; // Набор РЦ на текущей операции
-            internal List<CodedObject<InputDataType>> TarasOnThisEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
-            internal List<(CodedObject<InputDataType> Tara, bool WasVspom)> NeededOtdTarasOnThisEtap; // Требуемые отдающие тары здесь - Отдающая тара на текущей операции
-            internal List<(CodedObject<InputDataType> Tara, double Max)> MaxNamotka; // максимальная намотка
-            internal List<CodedObject<InputDataType>> MaxPlusUsedTaras; // Пересечение максимальных намоток и применяемых тар - Подходящая тара с максимальной намотки
-            internal List<CodedObject<InputDataType>> RCsOnNextEtap; // РЦ на след уровне
-            internal List<CodedObject<InputDataType>> TarasOnNextEtap; // тары на след. уровне
-
-            internal List<CodedObject<InputDataType>> RCsOnPrevEtap; // Набор РЦ на текущей операции
-            internal List<CodedObject<InputDataType>> TarasOnPrevEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
-
-            public DataErrorMore(string dataToInsert) : this(dataToInsert, null, null, null, null, null, null, null, null) { }
-            public DataErrorMore(string dataToInsert, string moreData) : this(dataToInsert, null, null, null, null, null, null, null, moreData) { }
-
-            public DataErrorMore(
-                string dataToInsert,
-                List<CodedObject<InputDataType>> rCsOnThisEtap,
-                List<CodedObject<InputDataType>> tarasOnThisEtap,
-                List<(CodedObject<InputDataType> Tara, bool WasVspom)> neededOtdTarasOnThisEtap,
-                List<(CodedObject<InputDataType> Tara, double Max)> maxNamotka,
-                List<CodedObject<InputDataType>> maxPlusUsedTaras,
-                List<CodedObject<InputDataType>> rCsOnNextEtap,
-                List<CodedObject<InputDataType>> tarasOnNextEtap,
-                string moreData = null
-                )
-            {
-                DataToInsert = dataToInsert;
-                RCsOnThisEtap = rCsOnThisEtap;
-                TarasOnThisEtap = tarasOnThisEtap;
-                NeededOtdTarasOnThisEtap = neededOtdTarasOnThisEtap;
-                MaxNamotka = maxNamotka;
-                MaxPlusUsedTaras = maxPlusUsedTaras;
-                TechData = moreData;
-                RCsOnNextEtap = rCsOnNextEtap;
-                TarasOnNextEtap = tarasOnNextEtap;
-                Count = 0;
-                PartiaSettings = null;
-                PartiaGuid = null;
-                customEtapsGuids = null;
-                customRC = null;
-                customRCroute = null;
-                RCsOnPrevEtap = null;
-                TarasOnPrevEtap = null;
-                customNomen = customProd = customVid = null;
-            }
-        }
-
-        public ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorMore>> NewDataErrors = new();
+        public ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorStruct<InputDataType>>> NewDataErrors = new();
 
         object lockerHere = new();
-        public void AddNewPartiaError(int ID, NewDataErrorType error, DataErrorMore errorData)
+        public void AddNewPartiaError(int ID, NewDataErrorType error, DataErrorStruct<InputDataType> errorData)
         {
             if (!NewDataErrors.ContainsKey(ID))
             {

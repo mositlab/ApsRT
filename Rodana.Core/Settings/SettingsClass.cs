@@ -44,5 +44,8 @@ namespace Rodana.Core.Settings
 
         [JsonProperty]
         public bool AutoDataLoad { get; set; }
+
+        [JsonProperty]
+        public FormTheme CurrentTheme { get; set; }
     }
 }
