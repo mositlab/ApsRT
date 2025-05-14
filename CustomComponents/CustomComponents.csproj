@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="CustomProgressBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialCheckbox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialRadioButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialTabSelector.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CustomComponents\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="9.0.5" />
+  </ItemGroup>
+
+</Project>

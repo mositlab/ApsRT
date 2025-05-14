@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.MasterData.Stages
 {
+
+    /// <summary>
+    /// НСИ "Операции" (к формированию партий и планированию)
+    /// </summary>
     public class StagesMasterData
     {
 

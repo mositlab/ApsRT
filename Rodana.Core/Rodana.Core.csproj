@@ -14,4 +14,8 @@
     <Folder Include="MasterData\Rechanges\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\UniversalPack\UniversalPack.csproj" />
+  </ItemGroup>
+
 </Project>

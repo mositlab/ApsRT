@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.MasterData.Stages
 {
+
+    /// <summary>
+    /// НСИ "Длительности операций"
+    /// </summary>
     public class StagesTypicalDurationsMasterData<InputDataType>
     {
         Dictionary<CodedObject<InputDataType, string>,

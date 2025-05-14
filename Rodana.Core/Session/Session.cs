@@ -10,6 +10,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack;
 
 namespace Rodana.Core.Session
 {
@@ -30,8 +31,8 @@ namespace Rodana.Core.Session
 
         public event Action OnSessionDataLoaded;
 
-        Stopper<InputDataType, OrderSubType> KillMe;
-        Stopper<InputDataType, OrderSubType> StopMe;
+        Stopper KillMe;
+        Stopper StopMe;
 
 
         static bool FirstInvoked = false;
@@ -163,8 +164,8 @@ namespace Rodana.Core.Session
             CheckFiles();
 
             // Если с ними всё в порядке, то можно и начинать
-            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper<InputDataType, OrderSubType>("killme", 100, this);
-            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper<InputDataType, OrderSubType>("stopme", 0, this);
+            if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper("killme", 100, x => EndSession(x));
+            if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper("stopme", 0, x => EndSession(x));
         }
 
         async public Task LoadDataAsync()

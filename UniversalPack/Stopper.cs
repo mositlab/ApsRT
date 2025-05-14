@@ -1,5 +1,4 @@
-﻿using Rodana.Core.Settings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -7,17 +6,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Rodana.Core.Session
+namespace UniversalPack
 {
-    internal class Stopper<InputDataType, OrderSubType>
+    public class Stopper
     {
         public string CheckingFileName { get; init; }
         public int ExitCode { get; init; }
-        Session<InputDataType, OrderSubType> session;
+        Action<int> ActionLink;
 
         FileSystemWatcher watcher;
 
-        public Stopper(string checkingFileName, int exitCode, Session<InputDataType, OrderSubType> sessionLink)
+        public Stopper(string checkingFileName, int exitCode, Action<int> actionLink)
         {
             CheckingFileName = checkingFileName;
             if (!File.Exists(checkingFileName)) File.WriteAllLines(checkingFileName, Array.Empty<string>());
@@ -28,14 +27,14 @@ namespace Rodana.Core.Session
             watcher.Filter = "*.*";
             watcher.Deleted += Watcher_Deleted;
             watcher.EnableRaisingEvents = true;
-            session = sessionLink;
+            ActionLink = actionLink;
         }
 
         public void Stop() => watcher.Dispose();
 
         private void Watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            if (CheckingFileName == e.Name) session.EndSession(ExitCode);
+            if (CheckingFileName == e.Name) ActionLink(ExitCode);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rodana.ZMK.CustomComponents.Animations
+namespace CustomComponents.Animations
 {
     enum AnimationType
     {
@@ -47,7 +47,7 @@ namespace Rodana.ZMK.CustomComponents.Animations
         public static double CalculateProgress(double progress)
         {
             var kickoff = 0.6;
-            return 1 - Math.Cos((Math.Max(progress, kickoff) - kickoff) * Math.PI / (2 - (2 * kickoff)));
+            return 1 - Math.Cos((Math.Max(progress, kickoff) - kickoff) * Math.PI / (2 - 2 * kickoff));
         }
     }
 }

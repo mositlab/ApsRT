@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="CustomProgressBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialCheckbox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialRadioButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="MaterialTabSelector.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

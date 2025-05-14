@@ -18,10 +18,24 @@ namespace Rodana.Core.MasterData
         // Переналадки
         // Наладочные длины
 
+        /// <summary>
+        /// НСИ "Операции" (к формированию партий и планированию)
+        /// </summary>
         public StagesMasterData StagesMasterData { get; init; } = new();
-        public StagesTypicalDurationsMasterData<InputDataType> StageTypicalDurations { get; init; } = new();
 
+        /// <summary>
+        /// НСИ "Длительности операций"
+        /// </summary>
+        public StagesTypicalDurationsMasterData<InputDataType> StagesTypicalDurationsMasterData { get; init; } = new();
+
+        /// <summary>
+        /// НСИ "Применяемая тара"
+        /// </summary>
         public UsedTaraMasterData UsedTaraMasterData { get; init; } = new();
+
+        /// <summary>
+        /// НСИ "Максимальные намотки"
+        /// </summary>
         public MaxTaraCapacityMasterData MaxTaraCapacityMasterData { get; init; } = new();
         public TaraCountMasterData TaraCountMasterData { get; init; } = new();
 

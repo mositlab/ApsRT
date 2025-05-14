@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Windows.Forms;
-using Rodana.ZMK.CustomComponents.Animations;
+using CustomComponents.Animations;
 
-namespace Rodana.ZMK.CustomComponents
+namespace CustomComponents
 {
     public class MaterialTabSelector : Control
     {
@@ -77,7 +77,7 @@ namespace Rodana.ZMK.CustomComponents
             //Click feedback
             if (_animationManager.IsAnimating())
             {
-                var rippleBrush = new SolidBrush(Color.FromArgb((int)(51 - (animationProgress * 50)), Color.White));
+                var rippleBrush = new SolidBrush(Color.FromArgb((int)(51 - animationProgress * 50), Color.White));
                 var rippleSize = (int)(animationProgress * _tabRects[_baseTabControl.SelectedIndex].Width * 1.75);
 
                 g.SetClip(_tabRects[_baseTabControl.SelectedIndex]);

@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rodana.Core.Tests", "Rodana
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rodana.ZMK", "Rodana.ZMK\Rodana.ZMK.csproj", "{F4A7623F-6806-42B2-8269-D99E7896ABCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsCustomComponents", "WinFormsCustomComponents\WinFormsCustomComponents.csproj", "{6B89AF7B-908E-495A-9526-EAE4B4A4455C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversalPack", "UniversalPack\UniversalPack.csproj", "{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{F4A7623F-6806-42B2-8269-D99E7896ABCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4A7623F-6806-42B2-8269-D99E7896ABCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4A7623F-6806-42B2-8269-D99E7896ABCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B89AF7B-908E-495A-9526-EAE4B4A4455C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B89AF7B-908E-495A-9526-EAE4B4A4455C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B89AF7B-908E-495A-9526-EAE4B4A4455C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B89AF7B-908E-495A-9526-EAE4B4A4455C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

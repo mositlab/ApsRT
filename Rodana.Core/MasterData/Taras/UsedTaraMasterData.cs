@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.MasterData.Taras
 {
+
+    /// <summary>
+    /// НСИ "Применяемая тара"
+    /// </summary>
     public class UsedTaraMasterData
     {
     }

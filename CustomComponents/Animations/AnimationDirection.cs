@@ -1,4 +1,4 @@
-﻿namespace Rodana.ZMK.CustomComponents.Animations
+﻿namespace CustomComponents.Animations
 {
     enum AnimationDirection
     {

@@ -7,9 +7,9 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Rodana.ZMK.CustomComponents.Animations;
+using CustomComponents.Animations;
 
-namespace Rodana.ZMK.CustomComponents
+namespace CustomComponents
 {
     public class MaterialRadioButton : RadioButton
     {
@@ -53,7 +53,7 @@ namespace Rodana.ZMK.CustomComponents
         private const int RADIOBUTTON_SIZE = 19;
         private const int RADIOBUTTON_SIZE_HALF = RADIOBUTTON_SIZE / 2;
         private const int RADIOBUTTON_OUTER_CIRCLE_WIDTH = 2;
-        private const int RADIOBUTTON_INNER_CIRCLE_SIZE = RADIOBUTTON_SIZE - (2 * RADIOBUTTON_OUTER_CIRCLE_WIDTH);
+        private const int RADIOBUTTON_INNER_CIRCLE_SIZE = RADIOBUTTON_SIZE - 2 * RADIOBUTTON_OUTER_CIRCLE_WIDTH;
 
         public MaterialRadioButton()
         {
@@ -121,9 +121,9 @@ namespace Rodana.ZMK.CustomComponents
                 {
                     var animationValue = _rippleAnimationManager.GetProgress(i);
                     var animationSource = new Point(RADIOBUTTON_CENTER, RADIOBUTTON_CENTER);
-                    var rippleBrush = new SolidBrush(Color.FromArgb((int)((animationValue * 40)), ((bool)_rippleAnimationManager.GetData(i)[0]) ? Color.Black : brush.Color));
-                    var rippleHeight = (Height % 2 == 0) ? Height - 3 : Height - 2;
-                    var rippleSize = (_rippleAnimationManager.GetDirection(i) == AnimationDirection.InOutIn) ? (int)(rippleHeight * (0.8d + (0.2d * animationValue))) : rippleHeight;
+                    var rippleBrush = new SolidBrush(Color.FromArgb((int)(animationValue * 40), (bool)_rippleAnimationManager.GetData(i)[0] ? Color.Black : brush.Color));
+                    var rippleHeight = Height % 2 == 0 ? Height - 3 : Height - 2;
+                    var rippleSize = _rippleAnimationManager.GetDirection(i) == AnimationDirection.InOutIn ? (int)(rippleHeight * (0.8d + 0.2d * animationValue)) : rippleHeight;
                     using (var path = DrawHelper.CreateRoundRect(animationSource.X - rippleSize / 2, animationSource.Y - rippleSize / 2, rippleSize, rippleSize, rippleSize / 2))
                     {
                         g.FillPath(rippleBrush, path);

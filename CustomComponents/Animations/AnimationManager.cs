@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
-namespace Rodana.ZMK.CustomComponents.Animations
+namespace CustomComponents.Animations
 {
     class AnimationManager
     {
@@ -65,22 +65,22 @@ namespace Rodana.ZMK.CustomComponents.Animations
 
                 if (!Singular)
                 {
-                    if ((_animationDirections[i] == AnimationDirection.InOutIn && _animationProgresses[i] == MAX_VALUE))
+                    if (_animationDirections[i] == AnimationDirection.InOutIn && _animationProgresses[i] == MAX_VALUE)
                     {
                         _animationDirections[i] = AnimationDirection.InOutOut;
                     }
-                    else if ((_animationDirections[i] == AnimationDirection.InOutRepeatingIn && _animationProgresses[i] == MIN_VALUE))
+                    else if (_animationDirections[i] == AnimationDirection.InOutRepeatingIn && _animationProgresses[i] == MIN_VALUE)
                     {
                         _animationDirections[i] = AnimationDirection.InOutRepeatingOut;
                     }
-                    else if ((_animationDirections[i] == AnimationDirection.InOutRepeatingOut && _animationProgresses[i] == MIN_VALUE))
+                    else if (_animationDirections[i] == AnimationDirection.InOutRepeatingOut && _animationProgresses[i] == MIN_VALUE)
                     {
                         _animationDirections[i] = AnimationDirection.InOutRepeatingIn;
                     }
                     else if (
-                        (_animationDirections[i] == AnimationDirection.In && _animationProgresses[i] == MAX_VALUE) ||
-                        (_animationDirections[i] == AnimationDirection.Out && _animationProgresses[i] == MIN_VALUE) ||
-                        (_animationDirections[i] == AnimationDirection.InOutOut && _animationProgresses[i] == MIN_VALUE))
+                        _animationDirections[i] == AnimationDirection.In && _animationProgresses[i] == MAX_VALUE ||
+                        _animationDirections[i] == AnimationDirection.Out && _animationProgresses[i] == MIN_VALUE ||
+                        _animationDirections[i] == AnimationDirection.InOutOut && _animationProgresses[i] == MIN_VALUE)
                     {
                         _animationProgresses.RemoveAt(i);
                         _animationSources.RemoveAt(i);
@@ -90,15 +90,15 @@ namespace Rodana.ZMK.CustomComponents.Animations
                 }
                 else
                 {
-                    if ((_animationDirections[i] == AnimationDirection.InOutIn && _animationProgresses[i] == MAX_VALUE))
+                    if (_animationDirections[i] == AnimationDirection.InOutIn && _animationProgresses[i] == MAX_VALUE)
                     {
                         _animationDirections[i] = AnimationDirection.InOutOut;
                     }
-                    else if ((_animationDirections[i] == AnimationDirection.InOutRepeatingIn && _animationProgresses[i] == MAX_VALUE))
+                    else if (_animationDirections[i] == AnimationDirection.InOutRepeatingIn && _animationProgresses[i] == MAX_VALUE)
                     {
                         _animationDirections[i] = AnimationDirection.InOutRepeatingOut;
                     }
-                    else if ((_animationDirections[i] == AnimationDirection.InOutRepeatingOut && _animationProgresses[i] == MIN_VALUE))
+                    else if (_animationDirections[i] == AnimationDirection.InOutRepeatingOut && _animationProgresses[i] == MIN_VALUE)
                     {
                         _animationDirections[i] = AnimationDirection.InOutRepeatingIn;
                     }
@@ -215,7 +215,7 @@ namespace Rodana.ZMK.CustomComponents.Animations
 
         private void DecrementProgress(int index)
         {
-            _animationProgresses[index] -= (_animationDirections[index] == AnimationDirection.InOutOut || _animationDirections[index] == AnimationDirection.InOutRepeatingOut) ? SecondaryIncrement : Increment;
+            _animationProgresses[index] -= _animationDirections[index] == AnimationDirection.InOutOut || _animationDirections[index] == AnimationDirection.InOutRepeatingOut ? SecondaryIncrement : Increment;
             if (_animationProgresses[index] < MIN_VALUE)
             {
                 _animationProgresses[index] = MIN_VALUE;

@@ -63,7 +63,7 @@ namespace Rodana.Core.MasterData.Stages
             var currSets = sessionLink.SettingsController.CurrentSettings;
 
             // Если нет информации там, ищу в базах данных
-            if (sessionLink.MasterDataLinks.StageTypicalDurations.AnyDurations && sessionLink.MasterDataLinks.StageTypicalDurations.TryGetTypicalDuration(RC, OperationVid, out var time))
+            if (sessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.AnyDurations && sessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.TryGetTypicalDuration(RC, OperationVid, out var time))
             {
                 if (currSets.CasheStageDurations)
                 {
