@@ -9,14 +9,14 @@ namespace Rodana.Core.MasterData.Stages
 {
     public class StagesTypicalDurationsMasterData<InputDataType>
     {
-        Dictionary<CodedObject<InputDataType>,
-            Dictionary<CodedObject<InputDataType>,
+        Dictionary<CodedObject<InputDataType, string>,
+            Dictionary<CodedObject<InputDataType, string>,
                 int>
             > TypicalDurations;
 
         public bool AnyDurations => TypicalDurations != null;
 
-        public bool TryGetTypicalDuration(CodedObject<InputDataType> RC, CodedObject<InputDataType> OperationType, out int duration)
+        public bool TryGetTypicalDuration(CodedObject<InputDataType, string> RC, CodedObject<InputDataType, string> OperationType, out int duration)
         {
             if (TypicalDurations.TryGetValue(RC, out var opers))
             {
@@ -38,7 +38,7 @@ namespace Rodana.Core.MasterData.Stages
             }
         }
 
-        public bool TryAddTypicalDuration(CodedObject<InputDataType> RC, CodedObject<InputDataType> OperationType, int DurationSecs)
+        public bool TryAddTypicalDuration(CodedObject<InputDataType, string> RC, CodedObject<InputDataType, string> OperationType, int DurationSecs)
         {
             if (TypicalDurations == null) TypicalDurations = new();
             if (!TypicalDurations.ContainsKey(RC)) TypicalDurations.Add(RC, new());

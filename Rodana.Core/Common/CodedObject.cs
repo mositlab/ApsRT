@@ -2,10 +2,10 @@
 
 namespace Rodana.Core.Common
 {
-    public struct CodedObject<InputDataType>
+    public struct CodedObject<InputDataType, ValueType>
     {
         private InputDataType _code;
-        private string _label;
+        private ValueType _label;
         private int _hashCode;
         private bool _isEmpty;
 
@@ -22,7 +22,7 @@ namespace Rodana.Core.Common
         }
 
         [JsonProperty]
-        public string Label
+        public ValueType Label
         {
             get => _label;
             set
@@ -32,7 +32,7 @@ namespace Rodana.Core.Common
             }
         }
 
-        public CodedObject(InputDataType code, string label)
+        public CodedObject(InputDataType code, ValueType label)
         {
             _code = code;
             _isEmpty = EqualityComparer<InputDataType>.Default.Equals(_code, default);
@@ -51,9 +51,9 @@ namespace Rodana.Core.Common
 
         public readonly bool IsEmpty => _isEmpty;
 
-        public static bool operator ==(CodedObject<InputDataType> a, CodedObject<InputDataType> b) => a._hashCode == b._hashCode;
+        public static bool operator ==(CodedObject<InputDataType, ValueType> a, CodedObject<InputDataType, ValueType> b) => a._hashCode == b._hashCode;
 
-        public static bool operator !=(CodedObject<InputDataType> a, CodedObject<InputDataType> b) => a._hashCode != b._hashCode;
+        public static bool operator !=(CodedObject<InputDataType, ValueType> a, CodedObject<InputDataType, ValueType> b) => a._hashCode != b._hashCode;
 
         public override string ToString()
         {
@@ -62,7 +62,7 @@ namespace Rodana.Core.Common
 
         public override bool Equals(object obj)
         {
-            return obj is CodedObject<InputDataType> codedObject && codedObject._hashCode == _hashCode;
+            return obj is CodedObject<InputDataType, ValueType> codedObject && codedObject._hashCode == _hashCode;
         }
 
         public override int GetHashCode()

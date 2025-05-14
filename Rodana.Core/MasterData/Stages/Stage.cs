@@ -14,6 +14,7 @@ namespace Rodana.Core.MasterData.Stages
     /// </summary>
     public class Stage<InputDataType, OrderSubType>
     {
+
         /// <summary>
         /// Индекс, который проще кода, используется при быстрых расчётах повсюду.
         /// </summary>
@@ -27,7 +28,7 @@ namespace Rodana.Core.MasterData.Stages
         /// <summary>
         /// Вид операции
         /// </summary>
-        public CodedObject<InputDataType> OperationVid { get; set; }
+        public CodedObject<InputDataType, string> OperationVid { get; set; }
 
         #region Длительность
 
@@ -39,16 +40,16 @@ namespace Rodana.Core.MasterData.Stages
         /// <summary>
         /// Длительность конкретно этого этапа в зависимости от РЦ
         /// </summary>
-        Dictionary<CodedObject<InputDataType>, int> SpecifiedDuration;
+        Dictionary<CodedObject<InputDataType, string>, int> SpecifiedDuration;
 
 
         int? CashedDuration;
-        Dictionary<CodedObject<InputDataType>, int> CashedDurations;
+        Dictionary<CodedObject<InputDataType, string>, int> CashedDurations;
 
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
         public int GetDuration() => Duration.Value;
 
-        public int GetDuration(CodedObject<InputDataType> RC, Session<InputDataType, OrderSubType> sessionLink)
+        public int GetDuration(CodedObject<InputDataType, string> RC, Session<InputDataType, OrderSubType> sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
 
