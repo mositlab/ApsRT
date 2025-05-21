@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace InfimumMES.Core.Extensions
+namespace UniversalPack.Extensions
 {
     public static class EventExtensions
     {

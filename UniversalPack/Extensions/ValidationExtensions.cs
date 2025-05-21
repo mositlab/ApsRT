@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+//using System.Windows.Forms;
 
 namespace UniversalPack.Extensions
 {
@@ -29,7 +29,7 @@ namespace UniversalPack.Extensions
             {
                 if (showMessageBox)
                 {
-                    MessageBox.Show(string.Join("\r\n", result.Select(x => $"- {x.ErrorMessage} (поля: {(string.Join(", ", x.MemberNames))})")), "Объект не прошёл валидацию!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //MessageBox.Show(string.Join("\r\n", result.Select(x => $"- {x.ErrorMessage} (поля: {(string.Join(", ", x.MemberNames))})")), "Объект не прошёл валидацию!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {

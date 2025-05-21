@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace CustomComponents
+namespace WinFormsCustomComponents
 {
     public class MaterialTabControl : TabControl
     {

@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Windows.Forms;
-using CustomComponents.Animations;
+using WinFormsCustomComponents.Animations;
 
-namespace CustomComponents
+namespace WinFormsCustomComponents
 {
     public class MaterialCheckBox : CheckBox
     {

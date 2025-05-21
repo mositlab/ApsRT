@@ -1,9 +1,9 @@
 ﻿using ExcelDataReader;
-using InfimumMES.Core.Common;
+using UniversalPack.Common;
 using System;
 using System.IO;
 
-namespace InfimumMES.Core.Extensions
+namespace UniversalPack.Extensions
 {
     public static class ExcelExtensions
     {

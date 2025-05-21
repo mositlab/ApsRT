@@ -13,12 +13,13 @@ namespace Rodana.Core.Hoppers
     [AttributeUsage(AttributeTargets.Class)]
     public class HopperAttribute : Attribute
     {
-        public string Label;
-        public bool LoadWhenOnlyPart = true; // загружать при ТОЛЬКО ПАРТИЯХ?
-        public bool LoadWhenOnlyZadel = false; // загружать, только если я в режиме задела?
-        public bool IsMultiple;
-        public bool IsDirectory;
-        public bool UsesGuid;
-        public string[] NeededHoppers;
+        public string Label { get; set; }
+        public bool LoadWhenOnlyPart { get; set; } = true; // загружать при ТОЛЬКО ПАРТИЯХ?
+        public bool LoadWhenOnlyZadel { get; set; } // загружать, только если я в режиме задела?
+        public bool IsMultiple { get; set; }
+        public bool IsDirectory { get; set; }
+        public bool UsesGuid { get; set; }
+        public string[] NeededHoppers { get; set; }
+        internal bool LoadedFlag { get; set; }
     }
 }

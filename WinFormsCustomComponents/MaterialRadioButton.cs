@@ -7,9 +7,9 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CustomComponents.Animations;
+using WinFormsCustomComponents.Animations;
 
-namespace CustomComponents
+namespace WinFormsCustomComponents
 {
     public class MaterialRadioButton : RadioButton
     {

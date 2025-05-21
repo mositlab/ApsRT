@@ -1,4 +1,4 @@
-﻿namespace CustomComponents.Animations
+﻿namespace WinFormsCustomComponents.Animations
 {
     enum AnimationDirection
     {

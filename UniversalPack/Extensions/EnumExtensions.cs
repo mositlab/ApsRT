@@ -1,6 +1,4 @@
-﻿using InfimumMES.Core.Common.Planning;
-
-namespace InfimumMES.Core.Extensions
+﻿namespace UniversalPack.Extensions
 {
     public static class EnumExtensions
     {
@@ -44,86 +42,6 @@ namespace InfimumMES.Core.Extensions
                 DimensionUnit.sht => "шт",
                 DimensionUnit.kg => fullname ? "по весу" : "кг",
                 _ => string.Empty,
-            };
-        }
-
-        /// <summary>
-        /// Превращаем строку в критерий переналадки
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static RechangeCriteria ParseRechangeCriteria(this string value)
-        {
-            return value.Debloat() switch
-            {
-                "диаметр" => RechangeCriteria.Diam,
-                "изоляция" => RechangeCriteria.Isolation,
-                "количествожил" => RechangeCriteria.ZhilaCount,
-                "краситель" => RechangeCriteria.Color,
-                "марка" => RechangeCriteria.Mark,
-                "напряжение" => RechangeCriteria.Voltage,
-                "сечение" => RechangeCriteria.Razm1Sech,
-                "технологическаяоперация" => RechangeCriteria.Operation,
-                "типпродукции" => RechangeCriteria.TPZH,
-                _ => RechangeCriteria.Unknown
-            };
-        }
-
-        /// <summary>
-        /// Превращаем критерий переналадки в строку
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string RechangeCriteriaToString(this RechangeCriteria value)
-        {
-            return value switch
-            {
-                RechangeCriteria.Diam => "Диаметр",
-                RechangeCriteria.Isolation => "Изоляция",
-                RechangeCriteria.ZhilaCount => "Количество жил",
-                RechangeCriteria.Color => "Краситель",
-                RechangeCriteria.Mark => "Марка",
-                RechangeCriteria.Voltage => "Напряжение",
-                RechangeCriteria.Razm1Sech => "Сечение",
-                RechangeCriteria.Operation => "Технологическая операция",
-                RechangeCriteria.TPZH => "Тип продукции",
-                _ => string.Empty
-            };
-        }
-
-        /// <summary>
-        /// Парсим объект перехода переналадки
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static RechangeObject ParseRechangeObject(this string value)
-        {
-            return value.Debloat() switch
-            {
-                null or "" => RechangeObject.Undefined,
-                "отсутствует" => RechangeObject.None,
-                "любоидругои" => RechangeObject.Any,
-                "круглая" or "мк" or "ок" => RechangeObject.Round,
-                "секторная" or "мс" => RechangeObject.Sector,
-                _ => RechangeObject.OtherDefined
-            };
-        }
-
-        /// <summary>
-        /// Превращаем объект переналадки в строку
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string RechangeObjectToString(this RechangeObject value)
-        {
-            return value switch
-            {
-                RechangeObject.None => "Отсутствует",
-                RechangeObject.Any => "Любой другой",
-                RechangeObject.Round => "Круглая",
-                RechangeObject.Sector => "Секторная",
-                RechangeObject.OtherDefined => "Опредено другое наименование",
-                _ => string.Empty
             };
         }
     }

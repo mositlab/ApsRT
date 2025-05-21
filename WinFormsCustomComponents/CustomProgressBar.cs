@@ -8,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace CustomComponents
+namespace WinFormsCustomComponents
 {
-    internal class CustomProgressBar : Control
+    public class CustomProgressBar : Control
     {
         private static readonly StringFormat _stringFormat;
 

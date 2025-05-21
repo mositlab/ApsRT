@@ -28,12 +28,7 @@ namespace Rodana.ZMK
             if (!sessionLink.SessionOptions.IsSilent)
             {
                 ApplicationConfiguration.Initialize();
-                //Application.EnableVisualStyles();
-                //Application.SetCompatibleTextRenderingDefault(false);
-                //Application.SetHighDpiMode(HighDpiMode.SystemAware);
-
-                form = new MainForm(sessionLink);
-                // Подписываем тут все события
+                form = new MainForm(sessionLink); // Подписываем тут все события
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAsync();

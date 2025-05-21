@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CustomComponents.Animations
+namespace WinFormsCustomComponents.Animations
 {
     enum AnimationType
     {

@@ -1,10 +1,13 @@
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
+using static UniversalPack.Common.Drawing.Colors;
 
 namespace Rodana.ZMK
 {
     public partial class MainForm : Form
     {
+        Session<Guid, int> sessionLink;
+
         public MainForm(Session<Guid, int> sessionLink)
         {
             InitializeComponent();
@@ -18,6 +21,46 @@ namespace Rodana.ZMK
             OpenPlanningButton.Click += OpenPlanningButton_Click;
             OpenHandPlanButton.Click += OpenHandPlanButton_Click;
             OpenGraphsButton.Click += OpenGraphsButton_Click;
+            SaveSettingsButton.Click += SaveSettingsButton_Click;
+
+            CreateHoppers();
+
+            PrepareSettings();
+        }
+
+        private void SaveSettingsButton_Click(object? sender, EventArgs e) => sessionLink.SettingsController.Save();
+
+        void PrepareSettings()
+        {
+            var settings = sessionLink.SettingsController.CurrentSettings;
+            AutoLoadCheckBox.Checked = settings.AutoDataLoad;
+            AutoLoadCheckBox.CheckedChanged += (sender, args) => { settings.AutoDataLoad = ((CheckBox)sender).Checked; };
+
+            SaveOnExitCheckBox.Checked = settings.SaveOnSessionEnd;
+            SaveOnExitCheckBox.CheckedChanged += (sender, args) => { settings.SaveOnSessionEnd = ((CheckBox)sender).Checked; };
+
+            CreateKillMeCheckBox.Checked = settings.CreateKillMe;
+            CreateKillMeCheckBox.CheckedChanged += (sender, args) => { settings.CreateKillMe = ((CheckBox)sender).Checked; };
+
+            CreateStopMe.Checked = settings.CreateStopMe;
+            CreateStopMe.CheckedChanged += (sender, args) => { settings.CreateStopMe = ((CheckBox)sender).Checked; };
+
+            CacheDurationsCheckBox.Checked = settings.CacheStageDurations;
+            CacheDurationsCheckBox.CheckedChanged += (sender, args) => { settings.CacheStageDurations = ((CheckBox)sender).Checked; };
+
+            PartiasMaxDaysNumericUpDown.Value = (decimal)settings.MaxDaysBetweenPartias;
+            PartiasMaxDaysNumericUpDown.ValueChanged += (sender, args) => { settings.MaxDaysBetweenPartias = (double)((NumericUpDown)sender).Value; };
+
+            BackupStagesDurationNumericUpDown.Value = (decimal)settings.OriginalDurationTime;
+            BackupStagesDurationNumericUpDown.ValueChanged += (sender, args) => { settings.OriginalDurationTime = (int)((NumericUpDown)sender).Value; };
+
+            HideConsoleCheckBox.Checked = settings.HideConsole;
+            HideConsoleCheckBox.CheckedChanged += (sender, args) =>
+            {
+                settings.HideConsole = ((CheckBox)sender).Checked;
+                sessionLink.SettingsController.ToggleConsole(settings.HideConsole);
+            };
+
         }
 
         private void OpenGraphsButton_Click(object? sender, EventArgs e)
@@ -87,11 +130,6 @@ namespace Rodana.ZMK
             }
         }
 
-        public Color MOSITLAB_BLUE { get; } = Color.FromArgb(47, 184, 196);
-        public Color MOSITLAB_BLUE_DARK { get; } = Color.FromArgb(5, 95, 103);
-        public Color MOSITLAB_RED { get; } = Color.FromArgb(234, 84, 84);
-        public Color MOSITLAB_RED_DARK { get; } = Color.FromArgb(180, 60, 61);
-
         void SetTheme(FormTheme theme)
         {
             Color color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
@@ -130,24 +168,24 @@ namespace Rodana.ZMK
                 comp.BackColor = color;
                 //button.ForeColor = Color.Black;
             }
-            foreach (var comp in Descendant<CustomComponents.CustomProgressBar>(this))
+            foreach (var comp in Descendant<WinFormsCustomComponents.CustomProgressBar>(this))
             {
                 comp.ForeColor = color;
                 //button.ForeColor = Color.Black;
             }
-            foreach (var comp in Descendant<CustomComponents.MaterialCheckBox>(this))
-            {
-                comp.BackColor = textColor;
-                comp.ForeColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<CustomComponents.MaterialRadioButton>(this))
+            foreach (var comp in Descendant<WinFormsCustomComponents.MaterialCheckBox>(this))
             {
                 comp.BackColor = textColor;
                 comp.ForeColor = color;
                 //button.ForeColor = Color.Black;
             }
-            foreach (var comp in Descendant<CustomComponents.MaterialTabSelector>(this))
+            foreach (var comp in Descendant<WinFormsCustomComponents.MaterialRadioButton>(this))
+            {
+                comp.BackColor = textColor;
+                comp.ForeColor = color;
+                //button.ForeColor = Color.Black;
+            }
+            foreach (var comp in Descendant<WinFormsCustomComponents.MaterialTabSelector>(this))
             {
                 comp.BackColor = color;
                 //button.ForeColor = Color.Black;
@@ -159,7 +197,26 @@ namespace Rodana.ZMK
             sessionLink.EndSession(0);
         }
 
-        Session<Guid, int> sessionLink;
+        List<HopperUIClass<Guid, int>> HoppersInInterface = new();
 
+        private void CreateHoppers()
+        {
+            var hoppersList = sessionLink.HoppersHandler.Hoppers;
+
+            foreach (var item in hoppersList)
+            {
+
+
+                HoppersInInterface.Add(new HopperUIClass<Guid, int>()
+                {
+                    //Bar = bar,
+                    //Button = button,
+                    //HopperData = item.Data,
+                    //HopperLink = item.Interface,
+                    //Label = label,
+                    //PathTextBox = textBox
+                });
+            }
+        }
     }
 }

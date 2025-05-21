@@ -18,7 +18,7 @@ namespace Rodana.Core.Settings
         {
             OriginalDurationTime = 1,
             SaveOnSessionEnd = true,
-            CasheStageDurations = true,
+            CacheStageDurations = true,
         };
 
         [JsonProperty]
@@ -31,7 +31,7 @@ namespace Rodana.Core.Settings
         public int OriginalDurationTime { get; set; }
 
         [JsonProperty]
-        public bool CasheStageDurations { get; set; }
+        public bool CacheStageDurations { get; set; }
 
         [JsonProperty]
         public bool CreateKillMe { get; set; }
@@ -44,6 +44,9 @@ namespace Rodana.Core.Settings
 
         [JsonProperty]
         public bool AutoDataLoad { get; set; }
+
+        [JsonProperty]
+        public double MaxDaysBetweenPartias { get; set; }
 
         [JsonProperty]
         public FormTheme CurrentTheme { get; set; }

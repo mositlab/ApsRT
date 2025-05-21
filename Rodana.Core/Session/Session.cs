@@ -1,6 +1,5 @@
 ﻿using Rodana.Core.DataErrors;
 using Rodana.Core.Hoppers;
-using Rodana.Core.MasterData;
 using Rodana.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Rodana.Core.Session
 {
@@ -28,6 +28,8 @@ namespace Rodana.Core.Session
         public SettingsController SettingsController { get; init; }
         public HoppersHandler<InputDataType, OrderSubType> HoppersHandler { get; init; }
         public MasterDataLinks<InputDataType> MasterDataLinks { get; init; }
+
+        public ConcurrentLogger<InputDataType, OrderSubType> AssignedLogger { get; init; }
 
         public event Action OnSessionDataLoaded;
 
@@ -48,14 +50,9 @@ namespace Rodana.Core.Session
             SettingsController = new SettingsController();
             MasterDataLinks = new();
             SessionOptions = new();
-            DataErrors = new()
-            {
-                session = this
-            };
-            HoppersHandler = new()
-            {
-                session = this
-            };
+            DataErrors = new(this);
+            HoppersHandler = new(this);
+            AssignedLogger = new ConcurrentLogger<InputDataType, OrderSubType>(this);
         }
 
         static SessionOptions ParseCommandLine(string[] args)
@@ -170,7 +167,7 @@ namespace Rodana.Core.Session
 
         async public Task LoadDataAsync()
         {
-            await Task.Run(() => HoppersHandler.LoadAllHoppersAsync());
+            await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(SettingsController.CurrentSettings.HoppersPaths));
             OnSessionDataLoaded?.Invoke();
         }
 
@@ -235,7 +232,11 @@ namespace Rodana.Core.Session
 
             if (SettingsController.CurrentSettings.SaveOnSessionEnd) SettingsController.Save();
             //OnSessionEnded?.Invoke();
-            if (exitCode.HasValue) Environment.Exit(exitCode.Value);
+            if (exitCode.HasValue)
+            {
+                AssignedLogger.OnApplicationExit(exitCode.Value);
+                Environment.Exit(exitCode.Value);
+            }
         }
 
 

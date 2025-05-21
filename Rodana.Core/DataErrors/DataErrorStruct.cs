@@ -1,4 +1,4 @@
-﻿using Rodana.Core.Common;
+﻿using UniversalPack.Common;
 
 namespace Rodana.Core.DataErrors
 {

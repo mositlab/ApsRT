@@ -12,7 +12,12 @@ namespace Rodana.Core.DataErrors
     public partial class DataErrors<InputDataType, OrderSubType>
     {
 
-        public Session<InputDataType, OrderSubType> session { get; init; }
+        public DataErrors(Session<InputDataType, OrderSubType> session)
+        {
+            this.session = session;
+        }
+
+        Session<InputDataType, OrderSubType> session { get; init; }
 
 
         public string PartiasErrorsFile = "partiasErrors.csv";
@@ -38,7 +43,6 @@ namespace Rodana.Core.DataErrors
         internal bool TryOutputDataErrors()
         {
             bool HasErrors = false;
-            /*
             var sw = new StreamWriter(PartiasErrorsFile, false, Encoding.UTF8);
             var swBig = new StreamWriter(PartiasErrorsBigFile, false, Encoding.UTF8);
             var swNew = new StreamWriter(DatasErrorsFile, false, Encoding.UTF8);
@@ -70,6 +74,7 @@ namespace Rodana.Core.DataErrors
             bool yesdOP = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TechData != null);
             bool yes6 = NewDataErrors.Any(x => x.Key >= 0);
 
+            /*
             bool yes61 = NewDataErrors.Any(x => x.Key >= 0 && OperationsDataSet.ALL[x.Key].RCRoute.IsEmpty);
             bool yes62 = NewDataErrors.Any(x => x.Key >= 0 && !OperationsDataSet.ALL[x.Key].RCRoute.IsEmpty);
 
