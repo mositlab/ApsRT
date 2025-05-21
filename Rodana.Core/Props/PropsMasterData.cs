@@ -28,8 +28,10 @@ namespace Rodana.Core.Props
         1 guid
         2 string
          */
-        internal void AddProp(string key, byte itsType)
+        internal void AddProp(PropsDataLoaderModel model)
         {
+            string key = model.PropName;
+            byte itsType= model.PropType;
             switch (itsType)
             {
                 case 0: WorkWith(PropNumberToIndex, key); break;

@@ -1,39 +1,38 @@
-﻿using UniversalPack.Extensions;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace UniversalPack.Common.DataLoader
 {
-    /// <summary>
-    /// Опции загрузчика
-    /// </summary>
-    public sealed class DataLoaderOptions
+    public class DataLoaderOptions
     {
-        /// <summary>
-        /// Список имён файлов, разделённый разрывом строки
-        /// </summary>
-        [JsonIgnore]
-        public string FileNames
+
+        public SourceType SourceType { get; }
+
+        public GuidArrrangeType GuidArrrangeType { get; set; }
+
+        public DataLoaderOptions(SourceType type)
         {
-            get => Files.Join(Environment.NewLine);
-            set
-            {
-                Files.Clear();
-                Files.AddRange(value.Split('\r', '\n').Where(e => !string.IsNullOrWhiteSpace(e)));
-            }
+            SourceType = type;
         }
 
-        /// <summary>
-        /// Список файлов
-        /// </summary>
-        [JsonProperty]
-        public ICollection<string> Files { get; internal set; }
+    }
 
-        public DataLoaderOptions()
-        {
-            Files = new List<string>();
-        }
+    public enum GuidArrrangeType
+    {
+        DoNothing,
+        Endian,
+        CustomZMK
+    }
+
+    public enum SourceType
+    {
+        TXT,
+        CSV,
+        XLSX,
+        SQL,
+        ADO
     }
 }

@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack.Common.DataLoader;
 
 namespace Rodana.Core.Props
 {
@@ -33,24 +34,16 @@ namespace Rodana.Core.Props
             PropsMasterData.PropStringToIndex.Clear();
         }
 
-        void IHopperInterface<InputDataType, OrderSubType>.BeforeLoading(string filename, HopperReadOptions options)
+        void IHopperInterface<InputDataType, OrderSubType>.BeforeLoading(string filename, DataLoaderOptions options)
         {
 
         }
 
-        void IHopperInterface<InputDataType, OrderSubType>.OnLoading(int rowIndex, IDataReader data, HopperReadOptions options)
+        void IHopperInterface<InputDataType, OrderSubType>.OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            //PropsMasterData.AddProp(
-                
-            //    data["ИмяРеквизита"].ConvertToOrDefault(string.Empty),
-            //    data["Тип"].ConvertToOrDefault(string.Empty) switch
-            //    {
-            //        "Число" => 0,
-            //        "Идентификатор" => 1,
-            //        _ => 2
-            //    }
-
-            //    );
+            var model = new PropsDataLoaderModel();
+            model.LoadFromDataRecord(data, options);
+            PropsMasterData.AddProp(model);
         }
     }
 }

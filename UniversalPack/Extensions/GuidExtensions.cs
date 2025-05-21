@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack.Common.DataLoader;
 
-namespace Rodana.Core.Hoppers
+namespace UniversalPack.Extensions
 {
-    public static class HopperExtensions
+    public static class GuidExtensions
     {
 
         public static void Swap<T>(ref T var1, ref T var2)

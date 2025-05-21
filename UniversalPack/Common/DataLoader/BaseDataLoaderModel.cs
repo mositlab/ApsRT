@@ -1,6 +1,5 @@
 ﻿using UniversalPack.Attributes;
 using UniversalPack.Common;
-using UniversalPack.Common.DataLoader;
 using UniversalPack.Extensions;
 using System;
 using System.Collections.Generic;
@@ -8,8 +7,10 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using UniversalPack.Models;
+using Microsoft.Extensions.Options;
 
-namespace UniversalPack.Models.DataLoader
+namespace UniversalPack.Common.DataLoader
 {
     /// <summary>
     /// Базовая модель загрузки данных из <see cref="IDataRecord"/>
@@ -79,7 +80,7 @@ namespace UniversalPack.Models.DataLoader
                 .Select(e => new FieldConverterInfo
                 {
                     PropertyInfo = e.PropertyInfo,
-                    Converter = r => ConvertCodedObject(r, e.Attribute)
+                    Converter = (r, opts) => ConvertCodedObject(r, opts, e.Attribute)
                 });
 
             // всё соединяем и отдаём
@@ -94,9 +95,9 @@ namespace UniversalPack.Models.DataLoader
         /// <param name="record">Строка данных</param>
         /// <param name="attribute">Атрибут</param>
         /// <returns></returns>
-        private static object ConvertCodedObject(IDataRecord record, DataRecordCodedObjectColumnAttribute attribute)
+        private static object ConvertCodedObject(IDataRecord record, DataLoaderOptions options, DataRecordCodedObjectColumnAttribute attribute)
         {
-            var guidValue = (Guid)ConvertGuid(record, attribute.GuidName, attribute.DefaultIfNull);
+            var guidValue = (Guid)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull);
             var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
 
             return new CodedObject<Guid, string>(guidValue, nameValue);
@@ -106,7 +107,7 @@ namespace UniversalPack.Models.DataLoader
         /// Определить конвертер для поля
         /// </summary>
         /// <returns>Функция конвертера</returns>
-        private static Func<IDataRecord, object> DetermineConverter(PropertyInfo propertyInfo, DataRecordColumnAttribute attribute)
+        private static Func<IDataRecord, DataLoaderOptions, object> DetermineConverter(PropertyInfo propertyInfo, DataRecordColumnAttribute attribute)
         {
             switch (attribute.CustomConversionMode)
             {
@@ -115,23 +116,23 @@ namespace UniversalPack.Models.DataLoader
                     // отдельно определяем типы для парсинга
                     if (propertyInfo.PropertyType.IsAssignableFrom<DateTime>())
                     {
-                        return e => ConvertDateTime(e, attribute);
+                        return (e, opts) => ConvertDateTime(e, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<DateOnly>())
                     {
-                        return e => ConvertDateOnly(e, attribute);
+                        return (e, opts) => ConvertDateOnly(e, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<double>())
                     {
-                        return e => ConvertDouble(e, attribute);
+                        return (e, opts) => ConvertDouble(e, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<int>())
                     {
-                        return e => ConvertInt(e, attribute);
+                        return (e, opts) => ConvertInt(e, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<Guid>())
                     {
-                        return e => ConvertGuid(e, attribute);
+                        return (e, opts) => ConvertGuid(e, opts, attribute);
                     }
 
                     // иначе ищем конвертер
@@ -139,16 +140,18 @@ namespace UniversalPack.Models.DataLoader
 
                     if (converter == null)
                     {
-                        return e => CommonConvertOneField(e, propertyInfo, attribute);
+                        return (e, opts) => CommonConvertOneField(e, propertyInfo, attribute);
                     }
                     else
                     {
-                        return e => ConvertOneFieldWithConverter(e, converter, propertyInfo, attribute);
+                        return (e, opts) => ConvertOneFieldWithConverter(e, converter, propertyInfo, attribute);
                     }
 
                 // обработка кастомных правил конвертации
                 case DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes:
-                    return e => ConvertIsYesField(e, attribute);
+                    return (e, opts) => ConvertIsYesField(e, attribute);
+                case DataRecordColumnAttribute.CustomConversionModes.StringToTypeIndex:
+                    return (e, opts) => ConvertTypeIndexField(e, attribute);
                 default:
                     throw new InvalidOperationException();
             }
@@ -161,7 +164,7 @@ namespace UniversalPack.Models.DataLoader
         /// <param name="name">Имя поля в наборе данных</param>
         /// <param name="defaultIfNull"></param>
         /// <returns></returns>
-        private static object ConvertGuid(IDataRecord record, string name, bool defaultIfNull)
+        private static object ConvertGuid(IDataRecord record, DataLoaderOptions options, string name, bool defaultIfNull)
         {
             var value = record[name];
 
@@ -174,7 +177,7 @@ namespace UniversalPack.Models.DataLoader
 
             if (value.GetType().IsAssignableTo<Guid>())
             {
-                return value;
+                return value.ProcessGuid(options.GuidArrrangeType, true);
             }
 
             var strValue = (value?.ToString() ?? string.Empty).RemoveWhitespaces();
@@ -182,7 +185,7 @@ namespace UniversalPack.Models.DataLoader
 
             if (!isUnparsable && Guid.TryParse(strValue, out var parsed))
             {
-                return parsed;
+                return parsed.ProcessGuid(options.GuidArrrangeType, true);
             }
             else if (defaultIfNull)
             {
@@ -201,9 +204,9 @@ namespace UniversalPack.Models.DataLoader
         /// <param name="attribute"></param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object ConvertGuid(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertGuid(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            return ConvertGuid(record, attribute.Name, attribute.DefaultIfNull);
+            return ConvertGuid(record, options, attribute.Name, attribute.DefaultIfNull);
         }
 
         /// <summary>
@@ -310,6 +313,32 @@ namespace UniversalPack.Models.DataLoader
             var strValue = value?.ToString() ?? value?.ToString() ?? string.Empty;
 
             return strValue.IsYes();
+        }
+
+        private static object ConvertTypeIndexField(IDataRecord record, DataRecordColumnAttribute attribute)
+        {
+            var value = record[attribute.Name];
+
+            if (value is null || value == DBNull.Value)
+            {
+                return attribute.DefaultIfNull
+                    ? 2
+                    : null;
+            }
+
+            if (value is byte byteValue)
+            {
+                return byteValue;
+            }
+
+            var strValue = value?.ToString() ?? value?.ToString() ?? string.Empty;
+
+            return (byte)(strValue switch
+            {
+                "Число" => 0,
+                "Идентификатор" => 1,
+                _ => 2
+            });
         }
 
         /// <summary>
@@ -475,11 +504,11 @@ namespace UniversalPack.Models.DataLoader
             }
         }
 
-        public virtual void LoadFromDataRecord(IDataRecord record)
+        public virtual void LoadFromDataRecord(IDataRecord record, DataLoaderOptions options)
         {
             foreach (var info in FieldConverters)
             {
-                var value = info.Converter.Invoke(record);
+                var value = info.Converter.Invoke(record, options);
                 info.PropertyInfo.SetValue(this, value);
             }
         }

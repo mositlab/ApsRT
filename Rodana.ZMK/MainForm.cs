@@ -1,6 +1,11 @@
+using Rodana.Core.Hoppers;
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
+using System.Xml.Linq;
+using UniversalPack.Common.Drawing;
+using UniversalPack;
 using static UniversalPack.Common.Drawing.Colors;
+using WinFormsCustomComponents;
 
 namespace Rodana.ZMK
 {
@@ -133,6 +138,7 @@ namespace Rodana.ZMK
         void SetTheme(FormTheme theme)
         {
             Color color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
+            Color colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED_DARK : MOSITLAB_BLUE_DARK;
             Color textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
 
             Color backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64,64,64) : Color.White;
@@ -166,6 +172,8 @@ namespace Rodana.ZMK
             foreach (var comp in Descendant<Button>(this))
             {
                 comp.BackColor = color;
+                comp.FlatAppearance.MouseDownBackColor = colorDark;
+                comp.FlatAppearance.MouseOverBackColor = color;
                 //button.ForeColor = Color.Black;
             }
             foreach (var comp in Descendant<WinFormsCustomComponents.CustomProgressBar>(this))
@@ -199,24 +207,175 @@ namespace Rodana.ZMK
 
         List<HopperUIClass<Guid, int>> HoppersInInterface = new();
 
+
+        internal Font ButtonFont = new Font("Montserrat", 7f, FontStyle.Regular, GraphicsUnit.Point);
+
         private void CreateHoppers()
         {
             var hoppersList = sessionLink.HoppersHandler.Hoppers;
 
+            int top = 6;
+
             foreach (var item in hoppersList)
             {
 
+                // Кнопка
+                var butt = new System.Windows.Forms.Button
+                {
+                    BackColor = Color.FromArgb(218, 218, 218),
+                    FlatStyle = FlatStyle.Flat,
+                    Location = new Point(12, top),// 6 + ModulesList.Count * 35);
+                    Size = new Size(162, 31),
+                    Text = item.Data.Label,
+                    Font = ButtonFont,
+                    UseVisualStyleBackColor = false
+                };
+                butt.Enabled = true;
+                butt.ForeColor = Color.White;
+                butt.FlatAppearance.BorderSize = 0;
+                butt.FlatAppearance.MouseDownBackColor = Colors.MOSITLAB_RED_DARK;
+                butt.FlatAppearance.MouseOverBackColor = Colors.MOSITLAB_RED;
+                HoppersPanel.Controls.Add(butt);
 
+                // Бар
+                var bar = new CustomProgressBar
+                {
+                    Location = new Point(181, top),//6 + ModulesList.Count * 35);
+                    Size = new Size(205, 29),
+                    ForeColor = Colors.MOSITLAB_BLUE,
+                    BackColor = Color.FromArgb(218, 218, 218)
+                };
+                HoppersPanel.Controls.Add(bar);
+
+                // Галочка
+                var label = new Label
+                {
+                    AutoSize = true,
+                    Location = new Point(391, top),//6 + ModulesList.Count * 35);
+                    Margin = new Padding(2, 0, 2, 0),
+                    Size = new Size(19, 21),
+                    TabIndex = 91,
+                    Text = "..."
+                };
+                HoppersPanel.Controls.Add(label);
+
+                // Текстбокс в настройках
+                var textBox = new TextBox
+                {
+                    Location = new Point(430, top),//ModulesList.Count == 0 ? 52 : (ModulesList[^1].PathTextBox.Top + ModulesList[^1].PathTextBox.Height + 7));
+                    Margin = new Padding(2, 3, 2, 3),
+                    Size = new Size(562, item.Data.IsMultiple ? 92 : 26),
+                    Multiline = item.Data.IsMultiple
+                };
+                HoppersPanel.Controls.Add(textBox);
+
+                // Кнопка в настройках
+                var butt2 = new System.Windows.Forms.Button
+                {
+                    BackColor = Color.FromArgb(218, 218, 218),
+                    FlatStyle = FlatStyle.Flat,
+                    Location = new Point(1000, top + 1),
+                    Margin = new Padding(2, 3, 2, 3),
+                    Size = new Size(50, 25),
+                    Text = "...",
+                    UseVisualStyleBackColor = false
+                };
+                butt2.Enabled = true;
+                butt2.ForeColor = Color.White;
+                butt2.FlatAppearance.BorderSize = 0;
+                butt2.FlatAppearance.MouseDownBackColor = Colors.MOSITLAB_RED_DARK;
+                butt2.FlatAppearance.MouseOverBackColor = Colors.MOSITLAB_RED;
+
+                var mult = item.Data.IsMultiple;
+                if (item.Data.IsDirectory)
+                {
+                    butt2.Click += delegate
+                    {
+                        if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+                        {
+                            textBox.Text = folderBrowserDialog1.SelectedPath;
+                        }
+                    };
+                }
+                else
+                {
+                    butt2.Click += delegate
+                    {
+                        openFileDialog1.Multiselect = mult;
+                        if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                        {
+                            textBox.Lines = openFileDialog1.FileNames;
+                        }
+                    };
+                }
+                HoppersPanel.Controls.Add(butt2);
+
+                // кнопка открытия диалога SQL
+                var butt3 = new System.Windows.Forms.Button
+                {
+                    BackColor = Color.FromArgb(218, 218, 218),
+                    FlatStyle = FlatStyle.Flat,
+                    Location = new Point(butt2.Width + butt2.Left + butt2.Margin.Horizontal, butt2.Top),
+                    Margin = new Padding(2, 3, 2, 3),
+                    Size = new Size(50, 25),
+                    Text = "SQL",
+                    UseVisualStyleBackColor = false
+                };
+                butt3.Enabled = true;
+                butt3.ForeColor = Color.White;
+                butt3.FlatAppearance.BorderSize = 0;
+                butt3.FlatAppearance.MouseDownBackColor = Colors.MOSITLAB_RED_DARK;
+                butt3.FlatAppearance.MouseOverBackColor = Colors.MOSITLAB_RED;
+
+                butt3.Click += delegate
+                {
+                    //using (var dialog = new SqlDataSourceConfigForm(textBox.Text))
+                    //{
+                    //    if (dialog.ShowDialog() == DialogResult.OK)
+                    //    {
+                    //        textBox.Text = dialog.CrutchPath;
+                    //    }
+                    //}
+                };
+                HoppersPanel.Controls.Add(butt3);
+
+                if (item.Data.IsDirectory)
+                {
+                    butt.Click += delegate
+                    {
+                        if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+                        {
+                            sessionLink.HoppersHandler.ModuleActions(item.Data, item.Interface, new string[] { folderBrowserDialog1.SelectedPath });
+                        }
+                    };
+                }
+                else
+                {
+                    butt.Click += delegate
+                    {
+                        openFileDialog1.Multiselect = mult;
+                        if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                        {
+                            sessionLink.HoppersHandler.ModuleActions(item.Data, item.Interface, openFileDialog1.FileNames);
+                        }
+                    };
+                }
+
+                top += textBox.Height + 3;
+
+                // Финал
                 HoppersInInterface.Add(new HopperUIClass<Guid, int>()
                 {
-                    //Bar = bar,
-                    //Button = button,
-                    //HopperData = item.Data,
-                    //HopperLink = item.Interface,
-                    //Label = label,
-                    //PathTextBox = textBox
+                    Bar = bar,
+                    Button = butt,
+                    HopperData = item.Data,
+                    HopperLink = item.Interface,
+                    Label = label,
+                    PathTextBox = textBox
                 });
             }
+        
+            SetTheme(sessionLink.SettingsController.CurrentSettings.CurrentTheme);
         }
     }
 }

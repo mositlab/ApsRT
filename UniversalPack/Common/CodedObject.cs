@@ -69,6 +69,12 @@ namespace UniversalPack.Common
         {
             return _hashCode;
         }
+
+        static CodedObject<InputDataType, ValueType> _emptyObject = new CodedObject<InputDataType, ValueType>(default(InputDataType), default(ValueType));
+        public static CodedObject<InputDataType, ValueType> EmptyObject
+        {
+            get => _emptyObject;
+        }
     }
 
 }

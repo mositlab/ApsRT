@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack.Common.DataLoader;
 
 namespace Rodana.Core.Hoppers
 {
@@ -28,14 +29,14 @@ namespace Rodana.Core.Hoppers
         /// Вызывается перед началом загрузки конкретного файла.
         /// </summary>
         /// <param name="filename">Путь до файла.</param>
-        void BeforeLoading(string filename, HopperReadOptions options);
+        void BeforeLoading(string filename, DataLoaderOptions options);
 
         /// <summary>
         /// Вызывается при чтении каждой строки.
         /// </summary>
         /// <param name="rowIndex">Номер строки.</param>
         /// <param name="data">Одна строка табличных данных</param>
-        void OnLoading(int rowIndex, IDataReader data, HopperReadOptions options);
+        void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options);
 
         /// <summary>
         /// Вызывается при просмотре каждого файла в случае, если этот Хоппер занимается чтением папки.

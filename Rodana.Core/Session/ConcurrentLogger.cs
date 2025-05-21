@@ -1,8 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
-using Rodana.Core.Session;
 
-namespace Rodana.Core
+namespace Rodana.Core.Session
 {
     //[Obsolete("стоит рассмотреть отказ от такого логгирования и перейти на асинхронное логгирование в sqlite")]
     public class ConcurrentLogger<InputDataType, OrderSubType>

@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using Rodana.Core.DataErrors;
+using UniversalPack;
 
 namespace Rodana.Core.Hoppers
 {
@@ -95,7 +96,7 @@ namespace Rodana.Core.Hoppers
 
                 try
                 {
-                    //ModuleActions(module.Value, paths[module.Key]);
+                    ModuleActions(module.Data, module.Interface, Paths[module.Name]);
                 }
                 catch (Exception ex)
                 {
@@ -119,5 +120,71 @@ namespace Rodana.Core.Hoppers
             }
             return -1;
         }
+
+        public Action<HopperAttribute, IHopperInterface<InputDataType, OrderSubType>> OnStartLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface<InputDataType, OrderSubType>> OnLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface<InputDataType, OrderSubType>> OnEndLoadingEvent;
+
+        public void ModuleActions(HopperAttribute hopperData, IHopperInterface<InputDataType, OrderSubType> hopperInterface, string[] paths)
+        {
+            if (session.SessionOptions.PartOrZadel && !hopperData.LoadWhenOnlyPart) // если только партии (ну или заделы), то ничего не грузим
+            {
+                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' ignored bsc ONLY PART.\r\n");
+                hopperData.LoadedFlag = true;
+                OnEndLoadingEvent?.Invoke(hopperData, hopperInterface);
+                return;
+            }
+
+            if (hopperData.NeededHoppers != null)
+            {
+                for (var i = 0; i < hopperData.NeededHoppers.Length; i++)
+                {
+                    var name = hopperData.NeededHoppers[i];
+                    if (!ModulesList[n].LoadedFlag)
+                    {
+                        session.AssignedLogger.LogQueue.Enqueue($"Сначала загрузите модуль '{ModulesList[n].HopperData.Label}'.");
+                    }
+                }
+            }
+            hopperInterface.BeforeAllLoading(session, paths);
+
+            for (var z = 0; z < paths.Length; z++)
+            {
+                var path = paths[z];
+
+                if (hopperData.IsDirectory)
+                {
+                    // это папочная хрень
+                    var filesthere = Directory.GetFiles(path);
+                    hopper.Bar.Maximum = filesthere.Length;
+                    hopper.Bar.Minimum = 0;
+                    hopper.Bar.Value = 0;
+                    foreach (var file in filesthere)
+                    {
+                        hopperInterface.ActionFile(file);
+                        hopper.Bar.Value++;
+                    }
+                }
+                else
+                {
+                    // получение данных из SQL
+                    if (path.StartsWith("SQL:"))
+                    {
+                        // Создание подключения
+                        ModuleActionSQL(hopper, path, Show);
+                    }
+                    else
+                    {
+                        ModuleActionFile(hopper, path, Show);
+                    }
+                }
+            }
+            hopperInterface.AfterLoading();
+
+            session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' loaded.\r\n");
+            hopperData.LoadedFlag = true;
+            OnEndLoadingEvent?.Invoke(hopperData, hopperInterface);
+        }
+
     }
 }

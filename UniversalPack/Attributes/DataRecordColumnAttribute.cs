@@ -25,7 +25,12 @@ namespace UniversalPack.Attributes
             /// <summary>
             /// Конвертация строки в <see cref="bool"/> по содержащемуся в ней "да".
             /// </summary>
-            StringToBooleanIsYes
+            StringToBooleanIsYes,
+
+            /// <summary>
+            /// Конвертация в byte, где 0 - число, 1 - гуид, 2 - строка
+            /// </summary>
+            StringToTypeIndex
         }
 
         /// <summary>

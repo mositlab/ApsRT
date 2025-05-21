@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using UniversalPack.Common.DataLoader;
 
 namespace UniversalPack.Models
 {
@@ -11,6 +12,6 @@ namespace UniversalPack.Models
         /// Заполняет модель данными из <see cref="IDataRecord"/>
         /// </summary>
         /// <param name="record">Объект строки данных</param>
-        void LoadFromDataRecord(IDataRecord record);
+        void LoadFromDataRecord(IDataRecord record, DataLoaderOptions options);
     }
 }

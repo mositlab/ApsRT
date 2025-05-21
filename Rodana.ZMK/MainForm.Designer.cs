@@ -76,6 +76,8 @@ namespace Rodana.ZMK
             ToggleThemeButton = new Button();
             RadioButton1 = new MaterialRadioButton();
             materialRadioButton2 = new MaterialRadioButton();
+            folderBrowserDialog1 = new FolderBrowserDialog();
+            openFileDialog1 = new OpenFileDialog();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             PartiasTabPage.SuspendLayout();
@@ -462,7 +464,7 @@ namespace Rodana.ZMK
             HandPlanningPage.Location = new Point(4, 24);
             HandPlanningPage.Name = "HandPlanningPage";
             HandPlanningPage.Padding = new Padding(3);
-            HandPlanningPage.Size = new Size(1163, 438);
+            HandPlanningPage.Size = new Size(1163, 439);
             HandPlanningPage.TabIndex = 1;
             HandPlanningPage.Text = "Ручной анализ плана";
             HandPlanningPage.UseVisualStyleBackColor = true;
@@ -471,7 +473,7 @@ namespace Rodana.ZMK
             // 
             GraphsTabPage.Location = new Point(4, 24);
             GraphsTabPage.Name = "GraphsTabPage";
-            GraphsTabPage.Size = new Size(1163, 438);
+            GraphsTabPage.Size = new Size(1163, 439);
             GraphsTabPage.TabIndex = 2;
             GraphsTabPage.Text = "Графики эффективности";
             GraphsTabPage.UseVisualStyleBackColor = true;
@@ -506,9 +508,9 @@ namespace Rodana.ZMK
             SettingsTabPage.Controls.Add(ToggleThemeButton);
             SettingsTabPage.Controls.Add(RadioButton1);
             SettingsTabPage.Controls.Add(materialRadioButton2);
-            SettingsTabPage.Location = new Point(4, 25);
+            SettingsTabPage.Location = new Point(4, 24);
             SettingsTabPage.Name = "SettingsTabPage";
-            SettingsTabPage.Size = new Size(1171, 501);
+            SettingsTabPage.Size = new Size(1171, 502);
             SettingsTabPage.TabIndex = 3;
             SettingsTabPage.Text = "Настройки";
             // 
@@ -751,6 +753,11 @@ namespace Rodana.ZMK
             materialRadioButton2.Text = "materialRadioButton2";
             materialRadioButton2.UseVisualStyleBackColor = false;
             // 
+            // openFileDialog1
+            // 
+            openFileDialog1.FileName = "openFileDialog1";
+            openFileDialog1.Filter = "Excel-файлы|*.XLSX|CSV-таблицы|*.csv";
+            // 
             // MainForm
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -827,5 +834,7 @@ namespace Rodana.ZMK
         private MaterialCheckBox CacheDurationsCheckBox;
         private MaterialCheckBox HideConsoleCheckBox;
         private Button SaveSettingsButton;
+        private FolderBrowserDialog folderBrowserDialog1;
+        private OpenFileDialog openFileDialog1;
     }
 }

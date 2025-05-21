@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using UniversalPack.Common.DataLoader;
 
 namespace UniversalPack.Extensions
 {
@@ -182,12 +183,12 @@ namespace UniversalPack.Extensions
         /// <summary>
         /// Преобразует <see cref="IDataReader"/> в перечисление моделей <typeparamref name="TModel"/>.
         /// </summary>
-        public static IEnumerable<TModel> ToModelEnumerable<TModel>(this IDataReader reader) where TModel : IDataRecordLoadable, new()
+        public static IEnumerable<TModel> ToModelEnumerable<TModel>(this IDataReader reader, DataLoaderOptions options) where TModel : IDataRecordLoadable, new()
         {
             while (reader.Read())
             {
                 var model = new TModel();
-                model.LoadFromDataRecord(reader);
+                model.LoadFromDataRecord(reader, options);
                 yield return model;
             }
         }

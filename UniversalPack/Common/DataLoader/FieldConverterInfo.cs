@@ -17,6 +17,6 @@ namespace UniversalPack.Common.DataLoader
         /// <summary>
         /// Функция конвертера
         /// </summary>
-        public readonly Func<IDataRecord, object> Converter { get; init; }
+        public readonly Func<IDataRecord, DataLoaderOptions, object> Converter { get; init; }
     }
 }
