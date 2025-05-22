@@ -1,10 +1,13 @@
 ﻿using UniversalPack.Common;
 using UniversalPack.Extensions;
-using Microsoft.IdentityModel.Tokens;
 using Rodana.Core.Stages;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using Rodana.Core.Rechanges.MasterData;
+using Rodana.Core.Rechanges.RechangesEngine;
+using UniversalPack.Common.DataLoader;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Rechanges
 {
@@ -20,6 +23,11 @@ namespace Rodana.Core.Rechanges
         /// Ссылка на этап, к которому принадлежит этот набор параметров
         /// </summary>
         Stage StageLink;
+
+        /// <summary>
+        /// Ссылка на критерий для получения данных
+        /// </summary>
+        RechangeUniversalCriteria CriteriaProperties;
 
         #region Данные, лежат ПРИВАТНО
 
@@ -39,30 +47,29 @@ namespace Rodana.Core.Rechanges
         /// Если критерий динамичный, то он не вызывается (это просто бессмысленно, постоянно в него пихать значения), вместо этого его массивы используются движком переналадок (потому что туда данные записываются для простого хранения)
         /// </summary>
         /// <param name="masterDataLink">Ссылка на НСИ переналадок, откуда ему брать индексы диапазонов</param>
-        internal void BakeIndexDiapazons(RechangesMasterData masterDataLink, int criteriaIndex, RechangesEngineData engineData)
+        internal void BakeIndexDiapazons(int criteriaIndex, RechangesEngineData engineData)
         {
             var list = StageLink.PossibleCenters ?? new() { StageLink.OrigCenter };
+            var masterDataLink = StageLink.SessionLink.MasterDataLinks.RechangesMasterData;
             foreach (var rc in list)
             {
-                var opersList = RechangesMasterData.GetAvailableOperVids(rc);
+                var opersList = masterDataLink.GetAvailableOperVids(rc);
                 if (opersList == null) continue;
                 int length = GetValuesCount();
                 for (int i = 0; i < length; i++)
                 {
                     foreach (var operVid in opersList)
                     {
-                        SetDiapazonIndex(RechangesMasterData.RECHANGES_INDEX_FOR_DIAPAZONS, rc, operVid, i, RechangesMasterData.CalculateDiapazonIndex(rc, operVid, criteriaIndex, GetFloat(i, engineData)));
+                        SetDiapazonIndex(MasterData.RechangesMasterData.RECHANGES_INDEX_FOR_DIAPAZONS, rc, operVid, i, masterDataLink.CalculateDiapazonIndex(rc, operVid, criteriaIndex, GetFloat(i, engineData)));
                     }
-                    SetDiapazonIndex(AdditionalConditionsMasterData.ADD_CONDITIONS_INDEX_FOR_DIAPAZONS, rc, CodedObject<string>.EmptyObject, i, AdditionalConditionsMasterData.CalculateDiapazonIndex(rc, CodedObject<string>.EmptyObject, criteriaIndex, GetFloat(i, engineData)));
+                    SetDiapazonIndex(AdditionalConditionsMasterData.ADD_CONDITIONS_INDEX_FOR_DIAPAZONS, rc, Uco.EmptyObject, i, StageLink.SessionLink.MasterDataLinks.AdditionalConditionsMasterData.CalculateDiapazonIndex(rc, Uco.EmptyObject, criteriaIndex, GetFloat(i, engineData)));
                 }
             }
         }
 
-        //internal bool IndexDiapazonsAlreadyHasOperVid(CodedObject<string> OperVid) => AsDiapazonIndex.ContainsKey(OperVid);
-
         Dictionary<int, // Тип данных, для чего хранятся диапазоны (для переналадок (0) или доп. условий (1)?)
-        Dictionary<CodedObject<string>, // Вид операции
-            Dictionary<CodedObject<string>, // РЦ
+        Dictionary<Uco, // Вид операции
+            Dictionary<Uco, // РЦ
                 int?[]>>> AsDiapazonIndex; // Представление числа в качестве номера диапазона, тоже для скорости. Неотрывно связано с самим числом.
 
         /// <summary>
@@ -72,7 +79,7 @@ namespace Rodana.Core.Rechanges
         /// <param name="RC">На какой это РЦ</param>
         /// <param name="valueIndex">Какое это число из существующих в значении этапа (размер1, размер2...)</param>
         /// <param name="index">Какой у него получился индекс?</param>
-        public void SetDiapazonIndex(int DataType, CodedObject<string> RC, CodedObject<string> operVid, int valueIndex, int? index)
+        public void SetDiapazonIndex(int DataType, Uco RC, Uco operVid, int valueIndex, int? index)
         {
             if (AsDiapazonIndex == null) AsDiapazonIndex = new();
 
@@ -80,7 +87,7 @@ namespace Rodana.Core.Rechanges
 
             var asDiapazonIndex = AsDiapazonIndex[DataType];
 
-            asDiapazonIndex.TryAdd(operVid, new Dictionary<CodedObject<string>, int?[]>());
+            asDiapazonIndex.TryAdd(operVid, new Dictionary<Uco, int?[]>());
 
             var rcs = asDiapazonIndex[operVid];
 
@@ -89,18 +96,7 @@ namespace Rodana.Core.Rechanges
             rcs[RC][valueIndex] = index;
         }
 
-        /// <summary>
-        /// Получить индекс диапазона у этого этапа для этого критерия
-        /// </summary>
-        /// <param name="RC">Что за РЦ</param>
-        /// <param name="valueIndex">Какой индекс брать</param>
-        /// <returns></returns>
-        //internal int? GetDiapazonIndex(CodedObject<string> RC, int valueIndex)
-        //{
-        //    return AsDiapazonIndex == null ? null : (AsDiapazonIndex.TryGetValue(RC, out var array) ? (valueIndex >= array.Length ? null : valueIndex) : null);
-        //}
-
-        public int?[] GetDiapazonIndexes(int DataType, CodedObject<string> RC, CodedObject<string> OperVid)
+        public int?[] GetDiapazonIndexes(int DataType, Uco RC, Uco OperVid)
         {
             if (AsDiapazonIndex == null) return null;
             return AsDiapazonIndex.TryGetValue(DataType, out var operVids)
@@ -124,12 +120,11 @@ namespace Rodana.Core.Rechanges
             return _valuesCount;
         }
 
-        public Func<Operation, RechangesEngineData, Type, int, object> LinkDataObtainer;
 
         private T GetValue<T>(int valueIndex, RechangesEngineData engineData, T[] array)
         {
             if (array != null) return (valueIndex >= array.Length ? default(T) : array[valueIndex]);
-            return (T)LinkDataObtainer?.Invoke(StageLink, engineData, typeof(T), valueIndex);
+            return (T)CriteriaProperties.LinkDataObtainer?.Invoke(StageLink, engineData, typeof(T), valueIndex);
         }
 
         public override string ToString()
@@ -164,18 +159,17 @@ namespace Rodana.Core.Rechanges
         /// <param name="stageLink">Ссылка на этап, к которому принадлежит параметры</param>
         /// <param name="valuesCountObtainer">Ссылка на метод, который позволит получить количество параметров</param>
         /// <param name="dataObtainer">Ссылка на метод, который позволит получить параметры</param>
-        public StageRechangeParam(Operation stageLink,
-            Func<Operation, RechangesEngineData, Type, int, object> dataObtainer)
+        public StageRechangeParam(Stage stageLink, RechangeUniversalCriteria criteria)
         {
             StageLink = stageLink;
             AsNumber = null;
             AsDiapazonIndex = null;
             AsGuid = null;
             AsString = null;
-            LinkDataObtainer = dataObtainer;
+            CriteriaProperties = criteria;
         }
 
-        public StageRechangeParam(Operation stageLink): this(stageLink, null) { }
+        public StageRechangeParam(Stage stageLink): this(stageLink, null) { }
 
 
         /// <summary>
@@ -185,33 +179,33 @@ namespace Rodana.Core.Rechanges
         /// <param name="criteriaProperties">Свойства критерия, собственно способ хранения</param>
         /// <param name="masterDataLink">Ссылка на НСИ, пригодится при чтении диапазонов</param>
         /// <param name="readOptions">Свойства парсинга, из Хоппера Этапов, пригодятся при парсинге гуида.</param>
-        internal void SetData(IDataReader source, RechangeUniversalCriteria criteriaProperties, RechangesMasterData masterDataLink, HopperReadOptions readOptions, int ValuesCountOnLink = 0)
+        internal void SetData(IDataReader source, DataLoaderOptions readOptions)
         {
             // Вызываю функцию, либо беру из базы данных инфу, сколько тут всего значений
-            int valuesCount = criteriaProperties.IsLink ? ValuesCountOnLink : criteriaProperties.StagesTableColumnsNames.Length;
+            int valuesCount = CriteriaProperties.IsLink ? CriteriaProperties.LinkValuesCountObtainer(StageLink) : CriteriaProperties.StagesTableColumnsNames.Length;
 
             // Даже если я юзаю только диапазоны, мне все равно надо создать массив чисел, чтобы где-то хранить значение, на основании которого я выдаю потом индекс диапазона.
             // Интересно то, что если я юзаю ссылки, то мне на AsNumber плевать, потому что я не беру оттуда данные.
             // Поэтому вторым условием здесь у всего является наличие ссылки
-            if (criteriaProperties.CanBeNumber || criteriaProperties.CanBeDiapazon)
-                if (!criteriaProperties.IsLink)
+            if (CriteriaProperties.CanBeNumber || CriteriaProperties.CanBeDiapazon)
+                if (!CriteriaProperties.IsLink)
                     AsNumber = new float?[valuesCount];
 
-            if (criteriaProperties.CanBeGuid)
-                if (!criteriaProperties.IsLink)
+            if (CriteriaProperties.CanBeGuid)
+                if (!CriteriaProperties.IsLink)
                     AsGuid = new Guid?[valuesCount];
 
             // Диапазоны ВНЕ ЗАВИСИМОСТИ ОТ ССЫЛОК создаём - потому что они по этим ссылкам получают данные.
-            if (criteriaProperties.CanBeDiapazon)
-                AsDiapazonIndex = new Dictionary<int, Dictionary<CodedObject<string>, Dictionary<CodedObject<string>, int?[]>>>();
+            if (CriteriaProperties.CanBeDiapazon)
+                AsDiapazonIndex = new Dictionary<int, Dictionary<Uco, Dictionary<Uco, int?[]>>>();
 
             // Строки тожк создаём ТОЛЬКО, если это не ссылки. Потому что я точно так же смогу обращаться к ним исключительно по ссылке.
             // Доп. условий здесь нет, потому что строки часто используются для представления значения в ГУЕ.
-            if (!criteriaProperties.IsLink)
+            if (!CriteriaProperties.IsLink)
                 AsString = new string[valuesCount];
 
             // Если это ссылка, то дальнейшие действия не нужны - там берутся данные из столбцов и сохраняются там. В то время, как при работе со ссылками получение данных, строк и сортировка - ложатся на плечи кодера этих ссылок.
-            if (criteriaProperties.IsLink)
+            if (CriteriaProperties.IsLink)
             {
                 _valuesCount = valuesCount; // Задаем тут количество
                 return;
@@ -219,10 +213,10 @@ namespace Rodana.Core.Rechanges
 
             for (int i = 0; i < valuesCount; i++)
             {
-                var valueColumnName = criteriaProperties.StagesTableColumnsNames[i].ValueColumn;
+                var valueColumnName = CriteriaProperties.StagesTableColumnsNames[i].ValueColumn;
                 var rawValue = source[valueColumnName];
 
-                if (criteriaProperties.CanBeNumber || criteriaProperties.CanBeDiapazon)
+                if (CriteriaProperties.CanBeNumber || CriteriaProperties.CanBeDiapazon)
                 {
                     if (rawValue is float fl)
                     {
@@ -246,28 +240,28 @@ namespace Rodana.Core.Rechanges
                     }
                 }
 
-                if (criteriaProperties.CanBeGuid)
+                if (CriteriaProperties.CanBeGuid)
                 {
                     // Нужно задать значение, причем если я могу быть многозначным, а столбцов 1, то стоит попытаться разделить запятой
-                    if (criteriaProperties.CanBeMultiple && valuesCount == 1)
+                    if (CriteriaProperties.CanBeMultiple && valuesCount == 1)
                         AsGuid = rawValue.ConvertToOrDefault(string.Empty).Split(',', '/').Select(X => (Guid?)X.Trim().ProcessGuid(readOptions.GuidArrrangeType, true)).ToArray();
                     else
                         AsGuid[i] = rawValue.ProcessGuid(readOptions.GuidArrrangeType, true);
 
-                    var rawLabel = source[criteriaProperties.StagesTableColumnsNames[i].LabelColumn ?? valueColumnName].ConvertToOrDefault(string.Empty);
+                    var rawLabel = source[CriteriaProperties.StagesTableColumnsNames[i].LabelColumn ?? valueColumnName].ConvertToOrDefault(string.Empty);
 
                     // Нужно задать значение, причем если я могу быть многозначным, а столбцов 1, то стоит попытаться разделить запятой
-                    if (criteriaProperties.CanBeMultiple && valuesCount == 1)
+                    if (CriteriaProperties.CanBeMultiple && valuesCount == 1)
                         AsString = rawLabel.Split(',', '/').Select(X => X.Trim()).ToArray();
                     else
                         AsString[i] = rawLabel;
                 }
                 else
                 {
-                    if (criteriaProperties.CanBeString)
+                    if (CriteriaProperties.CanBeString)
                     {
                         // Нужно задать значение, причем если я могу быть многозначным, а столбцов 1, то стоит попытаться разделить запятой
-                        if (criteriaProperties.CanBeMultiple && valuesCount == 1)
+                        if (CriteriaProperties.CanBeMultiple && valuesCount == 1)
                             AsString = rawValue.ConvertToOrDefault(string.Empty).Split(',', '/').Select(X =>
                             {
                                 var x = X.Trim();
@@ -282,16 +276,16 @@ namespace Rodana.Core.Rechanges
                     else
                     {
                         // Просто задаем строковое представление для удобства
-                        AsString[i] = source[criteriaProperties.StagesTableColumnsNames[i].LabelColumn ?? valueColumnName].ConvertToOrDefault(string.Empty);
+                        AsString[i] = source[CriteriaProperties.StagesTableColumnsNames[i].LabelColumn ?? valueColumnName].ConvertToOrDefault(string.Empty);
                     }
                 }
 
 
             }
 
-            if (criteriaProperties.Sort)
+            if (CriteriaProperties.Sort)
             {
-                if (criteriaProperties.CanBeGuid)
+                if (CriteriaProperties.CanBeGuid)
                 {
                     var str = AsString;
                     var array = AsGuid.Select((x, index) => (guid: x, label: str[index])).OrderBy(x => x.guid);
@@ -300,7 +294,7 @@ namespace Rodana.Core.Rechanges
                 }
                 else
                 {
-                    if (criteriaProperties.CanBeString)
+                    if (CriteriaProperties.CanBeString)
                     {
                         AsString = AsString.OrderBy(x => x).ToArray();
                     }

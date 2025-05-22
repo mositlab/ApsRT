@@ -1,22 +1,44 @@
-﻿namespace Rodana.Core.Rechanges
+﻿using Rodana.Core.Rechanges.Hoppers;
+using Rodana.Core.Rechanges.RechangesEngine;
+using Rodana.Core.Stages;
+
+namespace Rodana.Core.Rechanges
 {
     /// <summary>
     /// Универсальный ритерий переналадки. Содержит данные о том, как с этим критерием работать
     /// </summary>
-    internal class RechangeUniversalCriteria
+    public class RechangeUniversalCriteria
     {
-        public RechangeUniversalCriteria(string name, bool canBeNumber, bool canBeDiapazon, bool canBeString, bool canBeGuid, bool canBeMultiple, bool sort, bool isLink, bool isDynamic, (string ValueColumn, string LabelColumn)[] stagesTableColumnsNames)
+        public RechangeUniversalCriteria(RechangesCriteriaDataLoaderModel model)
         {
-            Name = name;
-            CanBeNumber = canBeNumber;
-            CanBeDiapazon = canBeDiapazon;
-            CanBeString = canBeString;
-            CanBeGuid = canBeGuid;
-            CanBeMultiple = canBeMultiple;
-            Sort = sort;
-            IsLink = isLink;
-            StagesTableColumnsNames = stagesTableColumnsNames;
-            IsDynamic = isDynamic;
+            Name = model.Name;
+            CanBeNumber = model.CanBeNumber;
+            CanBeDiapazon = model.CanBeDiapazon;
+            CanBeString = model.CanBeString;
+            CanBeGuid = model.CanBeGuid;
+            CanBeMultiple = model.CanBeMultiple;
+            Sort = model.Sort;
+            IsLink = model.IsLink;
+            IsDynamic = model.IsDynamic;
+
+            if (IsLink)
+            {
+                LinkDataObtainer = CustomRechangeCriteriaMethods.MethodsArray[model.MethodLinkIndex];
+                LinkValuesCountObtainer = CustomRechangeCriteriaMethods.MethodsValuesCountArray[model.MethodLinkIndex];
+            }
+
+            (string, string)[] columnNames = null;
+            var columnValue = model.CalumnValueNames;
+            //ИменаСтолбцовТаблицыОперацийМетки
+            if (!string.IsNullOrEmpty(columnValue))
+            {
+                string[] values = columnValue.Split(',');
+                var label = model.CalumnLabelNames;
+                string[] labels = string.IsNullOrEmpty(label) ? null : label.Split(',');
+                columnNames = values.Select((x, index) => (x.Trim(), labels?[index].Trim())).ToArray();
+            }
+
+            StagesTableColumnsNames = columnNames;
         }
 
         /// <summary>
@@ -65,6 +87,13 @@
         /// Вместо хранения значений, этап хранит у себя функцию, с помощью которой выдаст объект, который придётся распаковать, и вот с ним уже можно будет работать.
         /// </summary>
         internal bool IsLink { get; }
+
+        /// <summary>
+        /// Непосредственно сама ссылка, позволяющая получить данные
+        /// </summary>
+        public Func<Stage, RechangesEngineData, Type, int, object> LinkDataObtainer;
+
+        public Func<Stage, int> LinkValuesCountObtainer;
 
         /// <summary>
         /// У него постоянно меняются значения? В таком случае наличие этого критерия заставить АПС хранить данные не в статичном, а в динамичном кэше, а так же постоянно сравнивать диаметры

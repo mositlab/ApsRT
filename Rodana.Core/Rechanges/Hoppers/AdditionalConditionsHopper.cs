@@ -5,37 +5,45 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rodana.Core.Rechanges.Hoppers;
+using Rodana.Core.Hoppers;
+using UniversalPack.Common.DataLoader;
+using Rodana.Core.Session;
+using Rodana.Core.Rechanges.MasterData;
 
-namespace InfimumMES
+namespace Rodana.Core.Rechanges.Hoppers
 {
     [Hopper(Label = "Доп условия для переналадок", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false,
         NeededHoppers = new[] {nameof(AdditionalParamsHopper) })]
     internal class AdditionalConditionsHopper : IHopperInterface
     {
-        void IHopperInterface.ActionFile(string filename)
+        AdditionalConditionsMasterData AdditionalConditionsMasterData;
+
+        public void ActionFile(string filename)
         {
 
         }
 
-        void IHopperInterface.AfterLoading()
+        public void AfterLoading()
         {
             AdditionalConditionsMasterData.BakeAdditionalConditions();
-            ;
         }
 
-        void IHopperInterface.BeforeAllLoading(string[] filenames)
+        public void BeforeAllLoading(Session.Session session, string[] filenames)
+        {
+            AdditionalConditionsMasterData = session.MasterDataLinks.AdditionalConditionsMasterData;
+        }
+
+        public void BeforeLoading(string filename, DataLoaderOptions options)
         {
 
         }
 
-        void IHopperInterface.BeforeLoading(string filename, HopperReadOptions options)
+        public void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-
-        }
-
-        void IHopperInterface.OnLoading(int rowIndex, IDataReader data, HopperReadOptions options)
-        {
-            AdditionalConditionsMasterData.AddAdditionalCondition(data["Переналадка_GUID"].ProcessGuid(options.GuidArrrangeType, true), data["Параметр"].ConvertToOrDefault(string.Empty), data["Значение"].ConvertToOrDefault(string.Empty));
+            var model = new AdditionalConditionsDataLoaderModel();
+            model.LoadFromDataRecord(data, options);
+            AdditionalConditionsMasterData.AddAdditionalCondition(model);
         }
     }
 }

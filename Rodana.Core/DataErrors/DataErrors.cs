@@ -9,15 +9,15 @@ using Rodana.Core.Settings;
 
 namespace Rodana.Core.DataErrors
 {
-    public partial class DataErrors<InputDataType, OrderSubType>
+    public partial class DataErrors
     {
 
-        public DataErrors(Session<InputDataType, OrderSubType> session)
+        public DataErrors(Session.Session session)
         {
             this.session = session;
         }
 
-        Session<InputDataType, OrderSubType> session { get; init; }
+        Session.Session session { get; init; }
 
 
         public string PartiasErrorsFile = "partiasErrors.csv";
@@ -25,10 +25,10 @@ namespace Rodana.Core.DataErrors
         public string DatasErrorsFile = "dataErrors.csv";
         public string DatasErrorsBigFile = "dataErrorsBig.csv";
 
-        public ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorStruct<InputDataType>>> NewDataErrors = new();
+        public ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorStruct>> NewDataErrors = new();
 
         object lockerHere = new();
-        public void AddNewPartiaError(int ID, NewDataErrorType error, DataErrorStruct<InputDataType> errorData)
+        public void AddNewPartiaError(int ID, NewDataErrorType error, DataErrorStruct errorData)
         {
             if (!NewDataErrors.ContainsKey(ID))
             {

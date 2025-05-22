@@ -1,4 +1,4 @@
-﻿using Rodana.Core.Session;
+﻿using Session = Rodana.Core.Session.Session;
 using Rodana.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -13,13 +13,13 @@ using UniversalPack;
 
 namespace Rodana.Core.Hoppers
 {
-    public class HoppersHandler<InputDataType, OrderSubType>
+    public class HoppersHandler 
     {
 
-        Session<InputDataType, OrderSubType> session { get; init; }
+        Session.Session session { get; init; }
 
-        public List<(string Name, HopperAttribute Data, IHopperInterface<InputDataType, OrderSubType> Interface)> Hoppers { get; init; }
-        public HoppersHandler(Session<InputDataType, OrderSubType> session)
+        public List<(string Name, HopperAttribute Data, IHopperInterface  Interface)> Hoppers { get; init; }
+        public HoppersHandler(Session.Session session)
         {
             this.session = session;
             Hoppers = new();
@@ -28,27 +28,27 @@ namespace Rodana.Core.Hoppers
 
         void FindAllHoppers()
         {
-            var asm = Assembly.GetAssembly(typeof(IHopperInterface<InputDataType, OrderSubType>));
+            var asm = Assembly.GetAssembly(typeof(IHopperInterface ));
             var hoppers = asm.GetTypes()
                 .Where(x =>
                 x.CustomAttributes.Any(y => y.AttributeType == typeof(HopperAttribute)) // ищем те типы, у кого есть нужный атрибут
                 //&&
-                //x.GetInterfaces().Any(y => y == typeof(IHopperInterface<InputDataType, OrderSubType>)) // ещё одно ограничение, чтобы он был унаследован
+                //x.GetInterfaces().Any(y => y == typeof(IHopperInterface )) // ещё одно ограничение, чтобы он был унаследован
                 )
                 .ToList();
 
-            Dictionary<string, (int pri, IHopperInterface<InputDataType, OrderSubType> intr, HopperAttribute attr)> data = new();
+            Dictionary<string, (int pri, IHopperInterface  intr, HopperAttribute attr)> data = new();
             foreach (var el in hoppers)
             {
                 var attr = el.GetCustomAttribute<HopperAttribute>();
 
                 Type t = el;
 
-                Type[] genericTypeParameters = typeof(IHopperInterface<InputDataType, OrderSubType>).GenericTypeArguments;
+                Type[] genericTypeParameters = typeof(IHopperInterface ).GenericTypeArguments;
 
                 t = t.MakeGenericType(genericTypeParameters);
 
-                var inst = Activator.CreateInstance(t) as IHopperInterface<InputDataType, OrderSubType>;
+                var inst = Activator.CreateInstance(t) as IHopperInterface ;
                 if (!data.ContainsKey(el.Name/*attr.Name*/))
                 {
                     data.Add(el.Name/*attr.Name*/, (0, inst, attr));
@@ -102,7 +102,7 @@ namespace Rodana.Core.Hoppers
                 {
                     try
                     {
-                        session.DataErrors.AddNewPartiaError(-CurrentModuleLoading - 50, DataErrors.NewDataErrorType.CorruptedDataFile, new DataErrorStruct<InputDataType>(module.Data.Label, ex.Message));
+                        session.DataErrors.AddNewPartiaError(-CurrentModuleLoading - 50, DataErrors.NewDataErrorType.CorruptedDataFile, new DataErrorStruct(module.Data.Label, ex.Message));
                         var t = new System.Diagnostics.StackTrace(true);
                         var mes =
                             $"\r\nMessage: {ex.Message}" +
@@ -121,11 +121,11 @@ namespace Rodana.Core.Hoppers
             return -1;
         }
 
-        public Action<HopperAttribute, IHopperInterface<InputDataType, OrderSubType>> OnStartLoadingEvent;
-        public Action<HopperAttribute, IHopperInterface<InputDataType, OrderSubType>> OnLoadingEvent;
-        public Action<HopperAttribute, IHopperInterface<InputDataType, OrderSubType>> OnEndLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface > OnStartLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface > OnLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface > OnEndLoadingEvent;
 
-        public void ModuleActions(HopperAttribute hopperData, IHopperInterface<InputDataType, OrderSubType> hopperInterface, string[] paths)
+        public void ModuleActions(HopperAttribute hopperData, IHopperInterface  hopperInterface, string[] paths)
         {
             if (session.SessionOptions.PartOrZadel && !hopperData.LoadWhenOnlyPart) // если только партии (ну или заделы), то ничего не грузим
             {

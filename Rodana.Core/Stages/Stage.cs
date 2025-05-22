@@ -6,14 +6,26 @@ using System.Threading.Tasks;
 using UniversalPack.Common;
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
+using InfimumMES;
+using Rodana.Core.Rechanges.RechangesEngine;
+using Rodana.Core.Rechanges;
+using Rodana.Core.Rechanges.MasterData;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Stages
 {
     /// <summary>
     /// Элементарный этап, основная единица планирования.
     /// </summary>
-    public class Stage<InputDataType, OrderSubType>
+    public class Stage
     {
+
+        public Session.Session SessionLink { get; }
+
+        public Stage(Session.Session session)
+        {
+            SessionLink = session;
+        }
 
         /// <summary>
         /// Индекс, который проще кода, используется при быстрых расчётах повсюду.
@@ -23,12 +35,34 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Уникальный идентификатор этапа.
         /// </summary>
-        public InputDataType GUID { get; init; }
+        public Guid GUID { get; init; }
 
         /// <summary>
         /// Вид операции
         /// </summary>
-        public CodedObject<InputDataType, string> OperationVid { get; set; }
+        public Uco OperationVid { get; set; }
+
+        #region Переналадки
+        internal StageRechangeParam[] RechangeParameters;
+
+        /// <summary>
+        /// Функция вызывается дважды,
+        /// один раз - когда я впервые задаю данные в хоппере операций,
+        /// во второй раз её можно вызвать после работы партий, там как минимум меняется количество мест, что тоже переналадка
+        /// </summary>
+        internal void BakeAllIndexDiapazons(RechangesEngineData engineData)
+        {
+            var rechangesMasterData = SessionLink.MasterDataLinks.RechangesMasterData;
+            for (int i = 0; i < RechangeParameters.Length; i++)
+            {
+                if (rechangesMasterData.ExistingCriterias[i].CanBeDiapazon && !rechangesMasterData.ExistingCriterias[i].IsDynamic) // Если в этом конечно есть смысл
+                {
+                    RechangeParameters[i].BakeIndexDiapazons(i, engineData);
+                }
+            }
+        }
+
+        #endregion
 
         #region Длительность
 
@@ -40,16 +74,16 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Длительность конкретно этого этапа в зависимости от РЦ
         /// </summary>
-        Dictionary<CodedObject<InputDataType, string>, int> SpecifiedDuration;
+        Dictionary<Uco, int> SpecifiedDuration;
 
 
         int? CashedDuration;
-        Dictionary<CodedObject<InputDataType, string>, int> CashedDurations;
+        Dictionary<Uco, int> CashedDurations;
 
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
         public int GetDuration() => Duration.Value;
 
-        public int GetDuration(CodedObject<InputDataType, string> RC, Session<InputDataType, OrderSubType> sessionLink)
+        public int GetDuration(Uco RC, Session.Session sessionLink)
         {
             if (Duration.HasValue) return Duration.Value;
 

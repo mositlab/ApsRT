@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Stages
 {
@@ -11,16 +12,16 @@ namespace Rodana.Core.Stages
     /// <summary>
     /// НСИ "Длительности операций"
     /// </summary>
-    public class StagesTypicalDurationsMasterData<InputDataType>
+    public class StagesTypicalDurationsMasterData
     {
-        Dictionary<CodedObject<InputDataType, string>,
-            Dictionary<CodedObject<InputDataType, string>,
+        Dictionary<Uco,
+            Dictionary<Uco,
                 int>
             > TypicalDurations;
 
         public bool AnyDurations => TypicalDurations != null;
 
-        public bool TryGetTypicalDuration(CodedObject<InputDataType, string> RC, CodedObject<InputDataType, string> OperationType, out int duration)
+        public bool TryGetTypicalDuration(Uco RC, Uco OperationType, out int duration)
         {
             if (TypicalDurations.TryGetValue(RC, out var opers))
             {
@@ -42,7 +43,7 @@ namespace Rodana.Core.Stages
             }
         }
 
-        public bool TryAddTypicalDuration(CodedObject<InputDataType, string> RC, CodedObject<InputDataType, string> OperationType, int DurationSecs)
+        public bool TryAddTypicalDuration(Uco RC, Uco OperationType, int DurationSecs)
         {
             if (TypicalDurations == null) TypicalDurations = new();
             if (!TypicalDurations.ContainsKey(RC)) TypicalDurations.Add(RC, new());

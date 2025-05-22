@@ -10,50 +10,61 @@ using System.Diagnostics.PerformanceData;
 using UniversalPack.Extensions;
 using System.Numerics;
 using System.Collections.Frozen;
+using Rodana.Core.Rechanges.RechangesEngine;
+using Rodana.Core.Session;
+using Rodana.Core.Rechanges.Hoppers;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace InfimumMES
+namespace Rodana.Core.Rechanges.MasterData
 {
 
     /// <summary>
     /// Класс-синглтон для хранения и расчёта переналадок
     /// </summary>
-    internal class RechangesMasterData
+    public class RechangesMasterData
     {
+        public Session.Session SessionLink { get; }
+
+        public RechangesMasterData(Session.Session session)
+        {
+            SessionLink = session;
+        }
 
         internal const int RECHANGES_INDEX_FOR_DIAPAZONS = 0;
 
         #region Данные и их загрузка
 
-        static Dictionary<
-            CodedObject<string>, // РЦ
-            Dictionary<CodedObject<string>, // Вид операции
+        Dictionary<
+            Uco, // РЦ
+            Dictionary<Uco, // Вид операции
                 RechangeCriteriaStorage<Rechange>[]
                 >
             > AllRechangesOnLoad = new();
 
-        static FrozenDictionary<CodedObject<string>, // РЦ
-            FrozenDictionary<CodedObject<string>, // Вид операции
+        FrozenDictionary<Uco, // РЦ
+            FrozenDictionary<Uco, // Вид операции
                 RechangeCriteriaStorage<Rechange>[]
                 >
             > AllRechanges;
 
-        internal static void AddRechangeData(
-            CodedObject<string> RC, // РЦ
-            CodedObject<string> VidOper, // Вид операции
-                string rawCriteriaName,
-                string from, Guid fromGuid,
-                string to, Guid toGuid,
-                Rechange rechange
-            )
+        internal void AddRechangeData(RechangesLoaderModel model)
         {
+            Uco RC = model.Center; // РЦ
+            Uco VidOper = model.Operation; // Вид операции
+            string rawCriteriaName = model.Criteria;
+            string from = model.From;
+            Guid fromGuid = model.FromGuid;
+            string to = model.To;
+            Guid toGuid = model.ToGuid;
+            Rechange rechange = new Rechange(model);
             var index = GetCriteriaIndexByName(rawCriteriaName);
             if (index == -1)
             {
-                ConcurrentLogger.AddToLogQueue.Enqueue($"ЗАГРУЗКА (переналадки): Неизвестный критерий '{rawCriteriaName}' переналадки.\r\n");
+                SessionLink.AssignedLogger.LogQueue.Enqueue($"ЗАГРУЗКА (переналадки): Неизвестный критерий '{rawCriteriaName}' переналадки.\r\n");
             }
             else
             {
-                var rc = CentersMasterData.CentersData[RC];
+                var rc = SessionLink.MasterDataLinks.CentersMasterData.CentersData[RC];
                 rc.PossibleRechanges ??= new();
                 rc.PossibleRechanges.SetDataBit(index, true);
                 rc.IsWithRechanges = true;
@@ -68,14 +79,14 @@ namespace InfimumMES
 
                 RechangesCashe.TryAdd(RC, new());
 
-                RechangesEngine.UniversalDataLoader<Rechange>(storage, index, from, fromGuid, to, toGuid, rechange);
+                RechangesEngine.RechangesEngine.UniversalDataLoader<Rechange>(SessionLink, storage, index, from, fromGuid, to, toGuid, rechange);
             }
         }
 
 
-        internal static int? CalculateDiapazonIndex(
-            CodedObject<string> RC, // РЦ
-            CodedObject<string> VidOper, // Вид операции
+        internal int? CalculateDiapazonIndex(
+            Uco RC, // РЦ
+            Uco VidOper, // Вид операции
             int CriteriaIndex,
             float? value
             )
@@ -90,13 +101,13 @@ namespace InfimumMES
             return array[CriteriaIndex].GetDiapazonByValue(value.Value);
         }
 
-        internal static CodedObject<string>[] GetAvailableOperVids(CodedObject<string> RC)
+        internal Uco[] GetAvailableOperVids(Uco RC)
         {
             if (AllRechanges == null || !AllRechanges.TryGetValue(RC, out var opers) || opers == null) return null;
             return opers.Keys.ToArray();
         }
 
-        static Dictionary<CodedObject<string>, // РЦ
+        Dictionary<Uco, // РЦ
             Dictionary<int, // этап 1
                 Dictionary<int, // этап 2
                     Dictionary<UniversalBinaryStorage, RechangesEngineResult> // В зависимости от условий ещё
@@ -104,23 +115,23 @@ namespace InfimumMES
                 >
             > RechangesCashe = new();
 
-        internal static void ClearRechangesInfo()
+        internal void ClearRechangesInfo()
         {
             RechangesCashe.Clear();
             AllRechangesOnLoad.Clear();
             AllRechanges = null;
         }
 
-        internal static void BakeRechangesInfo()
+        internal void BakeRechangesInfo()
         {
             AllRechanges = AllRechangesOnLoad.ToFrozenDictionary(x => x.Key, x => x.Value.ToFrozenDictionary(y => y.Key, y => y.Value));
         }
 
-        static object rechangeCashLocker = new();
+        object rechangeCashLocker = new();
 
-        internal static RechangeUniversalCriteria[] ExistingCriterias;
+        internal RechangeUniversalCriteria[] ExistingCriterias;
 
-        internal static int GetCriteriaIndexByName(string rawCriteriaName)
+        internal int GetCriteriaIndexByName(string rawCriteriaName)
         {
             if (ExistingCriterias == null) return -1;
             var index = Array.FindIndex(ExistingCriterias, x => x.Name == rawCriteriaName);
@@ -133,27 +144,30 @@ namespace InfimumMES
         /// <summary>
         /// Переналадки, которые превалируют над другими
         /// </summary>
-        static Dictionary<Guid, (int Level, HashSet<Guid> PrevailsList)> PrevailingRechangesOnLoad = new();
+        Dictionary<Guid, (int Level, HashSet<Guid> PrevailsList)> PrevailingRechangesOnLoad = new();
 
-        static FrozenDictionary<Guid, (int Level, HashSet<Guid> PrevailsList)> PrevailingRechanges;
+        FrozenDictionary<Guid, (int Level, HashSet<Guid> PrevailsList)> PrevailingRechanges;
 
         /// <summary>
         /// Максимальное количество уровней, которые позволяют располагаться переналадкам (от 0 до данного числа ИСКЛЮЧИТЕЛЬНО). Чем выше, тем больше уровней возможно, но тем медленнее будет работать движое переналадок.
         /// </summary>
-        internal static int MaxPrevailingLevel { get; set; } = 2;
+        internal int MaxPrevailingLevel { get; set; } = 2;
 
-        internal static void AddPrevailingRechange(Guid prevailing, Guid sub, int level)
+        internal void AddPrevailingRechange(PrevailingRechangesDataLoaderModel model)
         {
+            var prevailing = model.PrevailingRechange;
+            var level = model.Level;
+            var sub = model.SubRechange;
             PrevailingRechangesOnLoad.TryAdd(prevailing, (level, new()));
             PrevailingRechangesOnLoad[prevailing].PrevailsList.Add(sub);
         }
 
-        internal static void BakePrevailingRechanges()
+        internal void BakePrevailingRechanges()
         {
             PrevailingRechanges = PrevailingRechangesOnLoad.ToFrozenDictionary(y => y.Key, y => y.Value);
         }
 
-        internal static void ClearPrevailingRechanges()
+        internal void ClearPrevailingRechanges()
         {
             PrevailingRechanges = null;
             PrevailingRechangesOnLoad.Clear();
@@ -163,31 +177,34 @@ namespace InfimumMES
 
         #region Многокритериальные переналадки
 
-        static Dictionary<CodedObject<string>, // РЦ
-            Dictionary<CodedObject<string>, // Вид операции
-                Dictionary<CodedObject<string>, // Собственно сама переналадка
+        Dictionary<Uco, // РЦ
+            Dictionary<Uco, // Вид операции
+                Dictionary<Uco, // Собственно сама переналадка
                 UniversalBinaryStorage
                 >
                 >
             > RechangesMultiCriterialDataOnLoad = new();
 
-        static FrozenDictionary<CodedObject<string>, // РЦ
-            FrozenDictionary<CodedObject<string>, // Вид операции
-                FrozenDictionary<CodedObject<string>, // Собственно сама переналадка
+        FrozenDictionary<Uco, // РЦ
+            FrozenDictionary<Uco, // Вид операции
+                FrozenDictionary<Uco, // Собственно сама переналадка
                 UniversalBinaryStorage
                 >
                 >
             > RechangesMultiCriterialData;
 
-        internal static void AddMultiCriterialRechangeInfo(CodedObject<string> RC, CodedObject<string> OperVid, CodedObject<string> rechange, int NeededCriteria)
+        internal void AddMultiCriterialRechangeInfo(RechangesLoaderModel model, int NeededCriteria)
         {
+            Uco RC = model.Center;
+            Uco OperVid = model.Operation;
+            Uco rechange = model.RechangeOperation;
             RechangesMultiCriterialDataOnLoad.TryAdd(RC, new());
             RechangesMultiCriterialDataOnLoad[RC].TryAdd(OperVid, new());
             RechangesMultiCriterialDataOnLoad[RC][OperVid].TryAdd(rechange, new UniversalBinaryStorage());
             RechangesMultiCriterialDataOnLoad[RC][OperVid][rechange].SetDataBit(NeededCriteria, true);
         }
 
-        internal static void BakeMultiCriterialRechangesInfo()
+        internal void BakeMultiCriterialRechangesInfo()
         {
             RechangesMultiCriterialData = RechangesMultiCriterialDataOnLoad
                 .ToFrozenDictionary(x => x.Key,
@@ -197,7 +214,7 @@ namespace InfimumMES
                     );
         }
 
-        internal static void EraseMultiCriterialRechangesInfo()
+        internal void EraseMultiCriterialRechangesInfo()
         {
             RechangesMultiCriterialData = null;
             RechangesMultiCriterialDataOnLoad.Clear();
@@ -207,14 +224,14 @@ namespace InfimumMES
 
         #region Поиск переналадок
 
-        internal static RechangesEngineResult FindRechanges(RechangesEngineData engineData)
+        internal RechangesEngineResult FindRechanges(RechangesEngineData engineData)
         {
             if (RechangesCashe.TryGetValue(engineData.ActualRC, out var lvl10) &&
-                lvl10.TryGetValue(engineData.ObjectA.ID, out var lvl20) &&
-                lvl20.TryGetValue(engineData.ObjectB.ID, out var lvl30) &&
+                lvl10.TryGetValue(engineData.ObjectA.Index, out var lvl20) &&
+                lvl20.TryGetValue(engineData.ObjectB.Index, out var lvl30) &&
                 lvl30.TryGetValue(engineData.CenterData.AdditinalConditions, out var result0)) return result0;
 
-            InfimumMES.CentersMasterData.CentersData.TryGetValue(engineData.ActualRC, out var centerClass);
+            SessionLink.MasterDataLinks.CentersMasterData.CentersData.TryGetValue(engineData.ActualRC, out var centerClass);
 
             var hasRechanges = centerClass != null ? centerClass.IsWithRechanges : false;
 
@@ -232,8 +249,8 @@ namespace InfimumMES
 
             //SortedDictionary<int, Dictionary<Guid, Rechange>>
             RechangesEngineResult result = new(new Dictionary<Guid, Rechange>[MaxPrevailingLevel], new(), 0, false);
-            var arraysRech = AllRechanges.TryGetValue(engineData.ActualRC, out var opers) ? (opers.TryGetValue(engineData.ObjectB.OperVid, out var arrays) ? arrays :
-                (opers.TryGetValue(CodedObject<string>.EmptyObject, out var arrays2) ? arrays2 : null)
+            var arraysRech = AllRechanges.TryGetValue(engineData.ActualRC, out var opers) ? (opers.TryGetValue(engineData.ObjectB.OperationVid, out var arrays) ? arrays :
+                (opers.TryGetValue(Uco.EmptyObject, out var arrays2) ? arrays2 : null)
                 ) : null;
             for (int cr = 0; cr < ExistingCriterias.Length; cr++)
             {
@@ -260,14 +277,14 @@ namespace InfimumMES
                     // Кэшировать это бесполезно, ведь внутри класса переналадки всё равно придется хранить словарь с РЦ+видом, потому что она может на разные вставать же, у нее в зависимости от РЦ и вида разные маски. Ну и смысла 0 по факту.
                     if (RechangesMultiCriterialData.TryGetValue(engineData.ActualRC, out var operVids))
                     {
-                        if (operVids.TryGetValue(engineData.ObjectB.OperVid, out var rechanges))
+                        if (operVids.TryGetValue(engineData.ObjectB.OperationVid, out var rechanges))
                         {
                             if (rechanges.TryGetValue(rechange.Name, out var neededBinary))
                                 NeededBinary = neededBinary;
                         }
                         else
                         {
-                            if (operVids.TryGetValue(CodedObject<string>.EmptyObject, out var rechanges2))
+                            if (operVids.TryGetValue(Uco.EmptyObject, out var rechanges2))
                             {
                                 if (rechanges2.TryGetValue(rechange.Name, out var neededBinary))
                                     NeededBinary = neededBinary;
@@ -314,10 +331,10 @@ namespace InfimumMES
                 lock (rechangeCashLocker)
                 {
                     var lvl1 = RechangesCashe[engineData.ActualRC];
-                    lvl1.TryAdd(engineData.ObjectA.ID, new());
-                    var lvl2 = lvl1[engineData.ObjectA.ID];
-                    lvl2.TryAdd(engineData.ObjectB.ID, new());
-                    var lvl3 = lvl2[engineData.ObjectB.ID];
+                    lvl1.TryAdd(engineData.ObjectA.Index, new Dictionary<int, Dictionary<UniversalBinaryStorage, RechangesEngine.RechangesEngineResult>>());
+                    var lvl2 = lvl1[engineData.ObjectA.Index];
+                    lvl2.TryAdd(engineData.ObjectB.Index, new Dictionary<UniversalBinaryStorage, RechangesEngineResult>());
+                    var lvl3 = lvl2[engineData.ObjectB.Index];
                     lvl3.TryAdd(engineData.CenterData.AdditinalConditions, result);
                 }
             }
@@ -326,11 +343,11 @@ namespace InfimumMES
             return result;
         }
 
-        internal static void GetRechangesListByCriteria(RechangesEngineData engineData, int CriteriaIndex, RechangesEngineResult result, RechangeCriteriaStorage<Rechange>[] RechangesToAcquireArray = null)
+        internal void GetRechangesListByCriteria(RechangesEngineData engineData, int CriteriaIndex, RechangesEngineResult result, RechangeCriteriaStorage<Rechange>[] RechangesToAcquireArray = null)
         {
             RechangesToAcquireArray ??= AllRechanges.TryGetValue(engineData.ActualRC, out var opers) ?
-                (opers.TryGetValue(engineData.ObjectB.OperVid, out var arrays) ? arrays :
-                (opers.TryGetValue(CodedObject<string>.EmptyObject, out var arrays2) ? arrays2 : null) // Попробуем ещё пустую операцию поискать
+                (opers.TryGetValue(engineData.ObjectB.OperationVid, out var arrays) ? arrays :
+                (opers.TryGetValue(Uco.EmptyObject, out var arrays2) ? arrays2 : null) // Попробуем ещё пустую операцию поискать
                 )
                 : null;
 
@@ -348,11 +365,11 @@ namespace InfimumMES
             result.IsDynamicSolution |= GlobalParams.IsDynamic;
 
             // Обрабатывам данные согласно настройкам выбранного критерия переналадки
-            RechangesEngine.ProcessRechangeGlobalParam<Rechange, RechangesEngineResult>(CriteriaIndex, engineData, RechangesToAcquire, RECHANGES_INDEX_FOR_DIAPAZONS, result, AddRechangeWithAdditionalConditionsCheck, CalculateDiapazonIndex);
+            RechangesEngine.RechangesEngine.ProcessRechangeGlobalParam<Rechange, RechangesEngineResult>(CriteriaIndex, engineData, RechangesToAcquire, RECHANGES_INDEX_FOR_DIAPAZONS, result, AddRechangeWithAdditionalConditionsCheck, CalculateDiapazonIndex);
         }
 
 
-        static void AddRechangeWithAdditionalConditionsCheck(RechangesEngineResult whereToAdd, List<Rechange> RechangeToCheckList, RechangesEngineData engineData, int CriteriaIndex)
+        void AddRechangeWithAdditionalConditionsCheck(RechangesEngineResult whereToAdd, List<Rechange> RechangeToCheckList, RechangesEngineData engineData, int CriteriaIndex)
         {
             var centerData = engineData.CenterData;
             for (int i = 0; i < RechangeToCheckList.Count; i++)
@@ -362,9 +379,11 @@ namespace InfimumMES
                 var rechangeGuid = RechangeToCheck.Name.Code;
                 if (PrevailingRechanges != null && PrevailingRechanges.TryGetValue(rechangeGuid, out var data)) RechangeLevel = data.Level;
 
+                var addMasterData = SessionLink.MasterDataLinks.AdditionalConditionsMasterData;
+
                 if (!RechangeToCheck.HasAdditionalCondition
-                    || AdditionalConditionsMasterData.AdditionalConditions == null // Доп условие вообще пустое? ЛИБО - выполняется
-                    || !AdditionalConditionsMasterData.AdditionalConditions.TryGetValue(rechangeGuid, out var adds)
+                    || addMasterData.AdditionalConditions == null // Доп условие вообще пустое? ЛИБО - выполняется
+                    || !addMasterData.AdditionalConditions.TryGetValue(rechangeGuid, out var adds)
                     || adds.IsEmpty
                     || centerData.AdditinalConditions.IsEqualWithThis(adds))
                 //|| (centerData.AdditinalConditions.BinaryData & adds.BinaryDataMask) == adds.BinaryData)
@@ -381,7 +400,7 @@ namespace InfimumMES
                     // А теперь запаримся ещё и с многокритериальной установкой
                     if (RechangeToCheck.IsMultiCriterial)
                     {
-                        whereToAdd.MultiCriterialInfo.TryAdd(rechangeGuid, new());
+                        whereToAdd.MultiCriterialInfo.TryAdd(rechangeGuid, new UniversalBinaryStorage());
                         whereToAdd.MultiCriterialInfo[rechangeGuid].SetDataBit(CriteriaIndex, true);
                     }
                 }

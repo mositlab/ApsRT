@@ -11,22 +11,22 @@ using UniversalPack.Common.DataLoader;
 namespace Rodana.Core.Props
 {
     [Hopper(Label = "Список реквизитов", LoadWhenOnlyPart = true, IsDirectory = false, IsMultiple = true, UsesGuid = false)]
-    internal class PropsListHopper<InputDataType, OrderSubType> : IHopperInterface<InputDataType, OrderSubType>
+    internal class PropsListHopper : IHopperInterface
     {
 
         PropsMasterData PropsMasterData;
 
-        void IHopperInterface<InputDataType, OrderSubType>.ActionFile(string filename)
+        void IHopperInterface.ActionFile(string filename)
         {
 
         }
 
-        void IHopperInterface<InputDataType, OrderSubType>.AfterLoading()
+        void IHopperInterface.AfterLoading()
         {
 
         }
 
-        void IHopperInterface<InputDataType, OrderSubType>.BeforeAllLoading(Session<InputDataType, OrderSubType> session, string[] filenames)
+        void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
         {
             PropsMasterData = session.MasterDataLinks.PropsMasterData;
             PropsMasterData.PropNumberToIndex.Clear();
@@ -34,12 +34,12 @@ namespace Rodana.Core.Props
             PropsMasterData.PropStringToIndex.Clear();
         }
 
-        void IHopperInterface<InputDataType, OrderSubType>.BeforeLoading(string filename, DataLoaderOptions options)
+        void IHopperInterface.BeforeLoading(string filename, DataLoaderOptions options)
         {
 
         }
 
-        void IHopperInterface<InputDataType, OrderSubType>.OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
+        void IHopperInterface.OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
             var model = new PropsDataLoaderModel();
             model.LoadFromDataRecord(data, options);

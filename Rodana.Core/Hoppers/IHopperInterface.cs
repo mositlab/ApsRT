@@ -17,13 +17,13 @@ namespace Rodana.Core.Hoppers
     /// <br/>
     /// Механизм загрузки данных нужно отвязать от UI и использовать для этого события, а также методы из <see cref="Extensions.EventExtensions"/>
     /// </remarks>
-    public interface IHopperInterface<InputDataType, OrderSubType>
+    public interface IHopperInterface
     {
         /// <summary>
         /// Вызывается перед началом загрузки всех файлов.
         /// </summary>
         /// <param name="filenames">Список файлов к загрузке.</param>
-        void BeforeAllLoading(Session<InputDataType, OrderSubType> session, string[] filenames);
+        void BeforeAllLoading(Session.Session session, string[] filenames);
 
         /// <summary>
         /// Вызывается перед началом загрузки конкретного файла.

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rodana.Core.Centers
+namespace Rodana.Core.Centers.MasterData
 {
-    public class WorkingIntervalsMasterData
+    public class ParallelCentersVariantsMasterData
     {
     }
 }

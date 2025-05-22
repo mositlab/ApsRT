@@ -1,8 +1,9 @@
 ﻿using UniversalPack.Common;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.DataErrors
 {
-    public struct DataErrorStruct<InputDataType>
+    public struct DataErrorStruct
     {
         /*
          * Набор РЦ на текущей операции ☑
@@ -24,31 +25,31 @@ namespace Rodana.Core.DataErrors
         internal string PartiaSettings; // список настроек партий
         internal Guid? PartiaGuid;
         internal List<Guid> customEtapsGuids;
-        internal CodedObject<InputDataType, string>? customRC, customRCroute;
-        internal CodedObject<InputDataType, string>? customNomen, customProd, customVid;
-        internal List<CodedObject<InputDataType, string>> RCsOnThisEtap; // Набор РЦ на текущей операции
-        internal List<CodedObject<InputDataType, string>> TarasOnThisEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
-        internal List<(CodedObject<InputDataType, string> Tara, bool WasVspom)> NeededOtdTarasOnThisEtap; // Требуемые отдающие тары здесь - Отдающая тара на текущей операции
-        internal List<(CodedObject<InputDataType, string> Tara, double Max)> MaxNamotka; // максимальная намотка
-        internal List<CodedObject<InputDataType, string>> MaxPlusUsedTaras; // Пересечение максимальных намоток и применяемых тар - Подходящая тара с максимальной намотки
-        internal List<CodedObject<InputDataType, string>> RCsOnNextEtap; // РЦ на след уровне
-        internal List<CodedObject<InputDataType, string>> TarasOnNextEtap; // тары на след. уровне
+        internal Uco? customRC, customRCroute;
+        internal Uco? customNomen, customProd, customVid;
+        internal List<Uco> RCsOnThisEtap; // Набор РЦ на текущей операции
+        internal List<Uco> TarasOnThisEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
+        internal List<(Uco Tara, bool WasVspom)> NeededOtdTarasOnThisEtap; // Требуемые отдающие тары здесь - Отдающая тара на текущей операции
+        internal List<(Uco Tara, double Max)> MaxNamotka; // максимальная намотка
+        internal List<Uco> MaxPlusUsedTaras; // Пересечение максимальных намоток и применяемых тар - Подходящая тара с максимальной намотки
+        internal List<Uco> RCsOnNextEtap; // РЦ на след уровне
+        internal List<Uco> TarasOnNextEtap; // тары на след. уровне
 
-        internal List<CodedObject<InputDataType, string>> RCsOnPrevEtap; // Набор РЦ на текущей операции
-        internal List<CodedObject<InputDataType, string>> TarasOnPrevEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
+        internal List<Uco> RCsOnPrevEtap; // Набор РЦ на текущей операции
+        internal List<Uco> TarasOnPrevEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
 
         public DataErrorStruct(string dataToInsert) : this(dataToInsert, null, null, null, null, null, null, null, null) { }
         public DataErrorStruct(string dataToInsert, string moreData) : this(dataToInsert, null, null, null, null, null, null, null, moreData) { }
 
         public DataErrorStruct(
             string dataToInsert,
-            List<CodedObject<InputDataType, string>> rCsOnThisEtap,
-            List<CodedObject<InputDataType, string>> tarasOnThisEtap,
-            List<(CodedObject<InputDataType, string> Tara, bool WasVspom)> neededOtdTarasOnThisEtap,
-            List<(CodedObject<InputDataType, string> Tara, double Max)> maxNamotka,
-            List<CodedObject<InputDataType, string>> maxPlusUsedTaras,
-            List<CodedObject<InputDataType, string>> rCsOnNextEtap,
-            List<CodedObject<InputDataType, string>> tarasOnNextEtap,
+            List<Uco> rCsOnThisEtap,
+            List<Uco> tarasOnThisEtap,
+            List<(Uco Tara, bool WasVspom)> neededOtdTarasOnThisEtap,
+            List<(Uco Tara, double Max)> maxNamotka,
+            List<Uco> maxPlusUsedTaras,
+            List<Uco> rCsOnNextEtap,
+            List<Uco> tarasOnNextEtap,
             string moreData = null
             )
         {

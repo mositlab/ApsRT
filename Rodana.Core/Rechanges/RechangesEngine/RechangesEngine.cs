@@ -9,11 +9,13 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static Rodana.Core.Rechanges.RechangesEngine.RechangesEngineExtensions;
+using Rodana.Core.Session;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Rechanges.RechangesEngine
 {
     // Класс должен быть статичным. Сюда надо перетащить сам поиск переналадок, а так же функцию загрузки доп условий (они оч похожи по смыслу)
-    internal static class RechangesEngine<InputDataType>
+    internal static class RechangesEngine
     {
 
         internal static Vector2? TryConvert(string value)
@@ -32,7 +34,7 @@ namespace Rodana.Core.Rechanges.RechangesEngine
             return new Vector2(f1, f2);
         }
 
-        internal static void UniversalDataLoader<A>(RechangeCriteriaStorage<A> storage, int index, string from, Guid fromGuid, string to, Guid toGuid, A item)
+        internal static void UniversalDataLoader<A>(Session.Session sessionLink, RechangeCriteriaStorage<A> storage, int index, string from, Guid fromGuid, string to, Guid toGuid, A item)
         {
             // Типовые переналадки
 
@@ -72,7 +74,7 @@ namespace Rodana.Core.Rechanges.RechangesEngine
             }
 
             // А вот теперь - предметно
-            var parameters = RechangesMasterData.ExistingCriterias[index];
+            var parameters = sessionLink.MasterDataLinks.RechangesMasterData.ExistingCriterias[index];
 
             if (parameters.CanBeString)
             {
@@ -206,14 +208,16 @@ namespace Rodana.Core.Rechanges.RechangesEngine
             int DiapazionsDataIndexes,
             Result result,
             Action<Result, List<A>, RechangesEngineData, int> MethodToWrite,
-            Func<CodedObject<InputDataType, string>, CodedObject<InputDataType, string>, int, float?, int?> methodToCalcDiapazons)
+            Func<Uco, Uco, int, float?, int?> methodToCalcDiapazons)
         {
-            var GlobalParams = RechangesMasterData.ExistingCriterias[CriteriaIndex];
+            var MasterData = engineData.ObjectA.SessionLink.MasterDataLinks.RechangesMasterData;
+
+            var GlobalParams = MasterData.ExistingCriterias[CriteriaIndex];
 
             var paramsA = engineData.ObjectA.RechangeParameters[CriteriaIndex];
             var paramsB = engineData.ObjectB.RechangeParameters[CriteriaIndex];
 
-            var operToWorkWith = DiapazionsDataIndexes == RechangesMasterData.RECHANGES_INDEX_FOR_DIAPAZONS ? engineData.ObjectB.OperVid : CodedObject<InputDataType, string>.EmptyObject;
+            var operToWorkWith = DiapazionsDataIndexes == Rechanges.MasterData.RechangesMasterData.RECHANGES_INDEX_FOR_DIAPAZONS ? engineData.ObjectB.OperationVid : Uco.EmptyObject;
 
             var count1 = paramsA.GetValuesCount();
             var count2 = paramsB.GetValuesCount();

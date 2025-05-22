@@ -5,7 +5,7 @@ using UniversalPack.Common;
 
 namespace Rodana.Core.Rechanges.RechangesEngine
 {
-    internal class RechangesEngineResult<InputDataType>
+    internal class RechangesEngineResult
     {
         internal Dictionary<Guid, Rechange>[] Result { get; }
 

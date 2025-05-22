@@ -1,18 +1,24 @@
-﻿using System;
+﻿using Rodana.Core.Hoppers;
+using Rodana.Core.Rechanges;
+using Rodana.Core.Rechanges.MasterData;
+using Rodana.Core.Session;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Common;
-using UniversalPack.Common.Planning;
+using UniversalPack.Common.DataLoader;
 using UniversalPack.Extensions;
 
-namespace InfimumMES
+namespace Rodana.Core.Rechanges.Hoppers
 {
     [Hopper(Label = "Критерии переналадок", LoadWhenOnlyPart = true, IsDirectory = false, IsMultiple = false, UsesGuid = false)]
     internal class RechangesCriteriasHopper : IHopperInterface
     {
+        RechangesMasterData RechangesMasterData;
+
         public void ActionFile(string filename)
         {
 
@@ -25,40 +31,22 @@ namespace InfimumMES
 
         List<RechangeUniversalCriteria> list;
 
-        public void BeforeAllLoading(string[] filenames)
+        public void BeforeAllLoading(Session.Session session, string[] filenames)
         {
+            RechangesMasterData = session.MasterDataLinks.RechangesMasterData;
             list = new();
         }
 
-        public void BeforeLoading(string filename, HopperReadOptions options)
+        public void BeforeLoading(string filename, DataLoaderOptions options)
         {
 
         }
 
-        public void OnLoading(int rowIndex, IDataReader data, HopperReadOptions options)
+        public void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            (string, string)[] columnNames = null;
-            var columnValue = data["ИменаСтолбцовТаблицыОперацийЗначения"].ConvertToOrDefault(string.Empty);
-            //ИменаСтолбцовТаблицыОперацийМетки
-            if (!string.IsNullOrEmpty(columnValue))
-            {
-                string[] values = columnValue.Split(',');
-                var label = data["ИменаСтолбцовТаблицыОперацийМетки"].ConvertToOrDefault(string.Empty);
-                string[] labels = string.IsNullOrEmpty(label) ? null : label.Split(',');
-                columnNames = values.Select((x, index) => (x.Trim(), labels?[index].Trim())).ToArray();
-            }
-            RechangeUniversalCriteria criteria = new RechangeUniversalCriteria(
-                data["Наименование"].ConvertToOrDefault(string.Empty),
-                data["ЭтоЧисло"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["ЭтоДиапазон"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["ЭтоСтрока"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["ЭтоИдентификатор"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["Многозначный"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["Сортировать"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["ЭтоСсылка"].ConvertToOrDefault(string.Empty).IsYes(),
-                data["Динамичный"].ConvertToOrDefault(string.Empty).IsYes(),
-                columnNames
-                );
+            var model = new RechangesCriteriaDataLoaderModel();
+            model.LoadFromDataRecord(data, options);
+            var criteria = new RechangeUniversalCriteria(model);
             list.Add(criteria);
         }
     }

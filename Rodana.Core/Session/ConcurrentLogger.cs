@@ -4,12 +4,12 @@ using System.Text;
 namespace Rodana.Core.Session
 {
     //[Obsolete("стоит рассмотреть отказ от такого логгирования и перейти на асинхронное логгирование в sqlite")]
-    public class ConcurrentLogger<InputDataType, OrderSubType>
+    public class ConcurrentLogger
     {
 
-        Session<InputDataType, OrderSubType> session { get; }
+        Session session { get; }
 
-        public ConcurrentLogger(Session<InputDataType, OrderSubType> session)
+        public ConcurrentLogger(Session session)
         {
             this.session = session;
         }

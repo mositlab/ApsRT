@@ -21,15 +21,15 @@ namespace Rodana.Core.Session
     /// После того, как Родана загрузит настройки и с их помощью активирует Хопперы.
     /// Теперь, запуская алгоритмы планирования и партий, можно хавать данные из данных сессии.
     /// </summary>
-    public class Session<InputDataType, OrderSubType>
+    public class Session
     {
         public SessionOptions SessionOptions { get; init; }
-        public DataErrors<InputDataType, OrderSubType> DataErrors { get; init; }
+        public DataErrors DataErrors { get; init; }
         public SettingsController SettingsController { get; init; }
-        public HoppersHandler<InputDataType, OrderSubType> HoppersHandler { get; init; }
-        public MasterDataLinks<InputDataType> MasterDataLinks { get; init; }
+        public HoppersHandler HoppersHandler { get; init; }
+        public MasterDataLinks MasterDataLinks { get; init; }
 
-        public ConcurrentLogger<InputDataType, OrderSubType> AssignedLogger { get; init; }
+        public ConcurrentLogger AssignedLogger { get; init; }
 
         public event Action OnSessionDataLoaded;
 
@@ -48,11 +48,11 @@ namespace Rodana.Core.Session
         public Session()
         {
             SettingsController = new SettingsController();
-            MasterDataLinks = new();
+            MasterDataLinks = new(this);
             SessionOptions = new();
             DataErrors = new(this);
             HoppersHandler = new(this);
-            AssignedLogger = new ConcurrentLogger<InputDataType, OrderSubType>(this);
+            AssignedLogger = new ConcurrentLogger(this);
         }
 
         static SessionOptions ParseCommandLine(string[] args)
@@ -211,7 +211,7 @@ namespace Rodana.Core.Session
             CheckFile(DataErrors.PartiasErrorsFile, 514, true);
             CheckFile(DataErrors.PartiasErrorsBigFile, 515, true);
 
-            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, NewDataErrorType.SomeFileIsOpened, new DataErrorStruct<InputDataType>("", string.Join(", ", list)));
+            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, NewDataErrorType.SomeFileIsOpened, new DataErrorStruct("", string.Join(", ", list)));
             if (DataErrors.TryOutputDataErrors())
             {
                 EndSession(601);

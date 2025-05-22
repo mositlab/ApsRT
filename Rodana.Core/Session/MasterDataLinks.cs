@@ -7,16 +7,34 @@ using Rodana.Core.Stages;
 using Rodana.Core.Taras;
 using Rodana.Core.Centers;
 using Rodana.Core.Props;
+using Rodana.Core.Rechanges.MasterData;
+using Rodana.Core.Centers.MasterData;
 
 namespace Rodana.Core.Session
 {
-    public class MasterDataLinks<InputDataType>
+    public class MasterDataLinks
     {
-        public CentersMasterData CentersMasterData { get; set; } = new();
+        public MasterDataLinks(Session SessionLink)
+        {
+            CentersMasterData = new CentersMasterData(SessionLink);
+            RechangesMasterData = new RechangesMasterData(SessionLink);
+            AdditionalConditionsMasterData = new AdditionalConditionsMasterData(SessionLink);
+        }
+
+        public CentersMasterData CentersMasterData { get; set; }
         public ParallelCentersVariantsMasterData ParallelCentersVariantsMasterData { get; set; } = new();
         public WorkingIntervalsMasterData WorkingIntervalsMasterData { get; set; } = new();
 
-        // Переналадки
+        /// <summary>
+        /// НСИ "Переналадки"
+        /// </summary>
+        public RechangesMasterData RechangesMasterData { get; set; }
+
+        /// <summary>
+        /// НСИ "Дополнительные условия для переналадок"
+        /// </summary>
+        public AdditionalConditionsMasterData AdditionalConditionsMasterData { get; set; }
+
         // Наладочные длины
 
         /// <summary>
@@ -27,7 +45,7 @@ namespace Rodana.Core.Session
         /// <summary>
         /// НСИ "Длительности операций"
         /// </summary>
-        public StagesTypicalDurationsMasterData<InputDataType> StagesTypicalDurationsMasterData { get; init; } = new();
+        public StagesTypicalDurationsMasterData StagesTypicalDurationsMasterData { get; init; } = new();
 
         /// <summary>
         /// НСИ "Применяемая тара"

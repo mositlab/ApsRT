@@ -7,8 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rodana.Core.Rechanges.RechangesEngine;
+using Rodana.Core.Session;
+using Rodana.Core.Rechanges.Hoppers;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace InfimumMES
+namespace Rodana.Core.Rechanges.MasterData
 {
     /// <summary>
     /// Есть три важных пункта.
@@ -17,21 +21,27 @@ namespace InfimumMES
     /// Действия (Actions) - словарь с данными, который подсказывает, когда и как менять атрибут у оборудования. К примеру, когда менять малую голову на большую. Основан на том, что внутри каждого РЦ для плана есть своё бинарное хранилище, где записываются его текущие атрибуты (параметры), и после каждой установки этапа в плане вызывается функция проверки и переназначения атрибутов, в зависимости от данных. Действие представляет из себя класс, сформированный с помощью Параметров, в нем указано, что куда записывать в бинарное хранилище РЦ, это хранилище потом попросту сравнивается с бинарным хранилищем переналадки, давая ответ, нужно ли её ставить сейчас.
     /// Поиск и назначение доп. условий очень похож, и был взят с движка переналадок. Собственно, ради этих доп. условий в движке переналадок и содержатся универсальные функции загрузки и поиска.
     /// </summary>
-    internal class AdditionalConditionsMasterData
+    public class AdditionalConditionsMasterData
     {
+        public Session.Session SessionLink { get; }
+
+        public AdditionalConditionsMasterData(Session.Session session)
+        {
+            SessionLink = session;
+        }
 
         internal const int ADD_CONDITIONS_INDEX_FOR_DIAPAZONS = 1;
 
         #region Список параметров, определенных текстом (для удобства), на них зиждется всё остальное
 
-        static Dictionary<string, HashSet<string>> additionalParamsList;
+        Dictionary<string, HashSet<string>> additionalParamsList;
 
-        static Dictionary<string, (byte Index, Dictionary<string, byte> ParamsIndexes, BinaryStorageDataSize DataSize)> AdditionalParams_NameToInt;
+        Dictionary<string, (byte Index, Dictionary<string, byte> ParamsIndexes, BinaryStorageDataSize DataSize)> AdditionalParams_NameToInt;
 
         /// <summary>
         /// Очищает всё, связанное с доп. условиями
         /// </summary>
-        public static void ClearAdditionalParams()
+        public void ClearAdditionalParams()
         {
             additionalParamsList = null;
             AdditionalParams_NameToInt = null;
@@ -42,17 +52,17 @@ namespace InfimumMES
         /// </summary>
         /// <param name="param">Параметр (напр.: ГоловаЭкструдера)</param>
         /// <param name="value">Значение этого параметра (напр.: малая/большая)</param>
-        public static void AddAdditionalParam(string param, string value)
+        public void AddAdditionalParam(AdditionalParamsDataLoaderModel model)
         {
             additionalParamsList ??= new Dictionary<string, HashSet<string>>();
-            additionalParamsList.TryAdd(param, new());
-            additionalParamsList[param].Add(value);
+            additionalParamsList.TryAdd(model.Parameter, new());
+            additionalParamsList[model.Parameter].Add(model.Value);
         }
 
         /// <summary>
         /// Запекает считанные списки параметров в FrozenDictionary, делая их быстрее и только для чтения.
         /// </summary>
-        public static void BakeAdditionalParams()
+        public void BakeAdditionalParams()
         {
             if (additionalParamsList == null) return;
             AdditionalParams_NameToInt ??= new();
@@ -71,7 +81,7 @@ namespace InfimumMES
 
         }
 
-        static BinaryStorageDataSize DefineDataSize(byte count)
+        BinaryStorageDataSize DefineDataSize(byte count)
         {
             if (count < 3) return BinaryStorageDataSize.Bit;
             if (count < 5) return BinaryStorageDataSize.Quarter;
@@ -82,18 +92,21 @@ namespace InfimumMES
 
         #region Бинарные хранилища для самих переналадок, хранящие уже условия для срабатывания
 
-        public static FrozenDictionary<Guid, UniversalBinaryStorage> AdditionalConditions;
+        public FrozenDictionary<Guid, UniversalBinaryStorage> AdditionalConditions;
 
-        static Dictionary<Guid, UniversalBinaryStorage> AdditionalConditionsOnLoad;
+        Dictionary<Guid, UniversalBinaryStorage> AdditionalConditionsOnLoad;
 
-        public static void ClearAdditionalConditions()
+        public void ClearAdditionalConditions()
         {
             AdditionalConditions = null;
             AdditionalConditionsOnLoad = null;
         }
 
-        public static void AddAdditionalCondition(Guid rechangeGuid, string param, string value)
+        public void AddAdditionalCondition(AdditionalConditionsDataLoaderModel model)
         {
+            var rechangeGuid = model.Rechange;
+            var param = model.Parameter;
+            var value = model.Value;
             AdditionalConditionsOnLoad ??= new();
             AdditionalConditionsOnLoad.TryAdd(rechangeGuid, new());
             var binary = AdditionalConditionsOnLoad[rechangeGuid];
@@ -111,7 +124,7 @@ namespace InfimumMES
         /// Запекает считанные условия для доп. параметров в FrozenDictionary, делая их быстрее и только для чтения.
         /// Зависим от ранее считанных самих доп. параметров.
         /// </summary>
-        public static void BakeAdditionalConditions()
+        public void BakeAdditionalConditions()
         {
             if (AdditionalConditionsOnLoad != null)
             {
@@ -122,16 +135,16 @@ namespace InfimumMES
         #endregion
 
         #region Непосредственно действия (смена голов и прочего)
-        static Dictionary<
-           CodedObject<string>, // РЦ
+        Dictionary<
+           Uco, // РЦ
                RechangeCriteriaStorage<AdditionalAction>[] // Критерии
            > AllActionsOnLoad = new();
 
-        static FrozenDictionary<CodedObject<string>, // РЦ
+        FrozenDictionary<Uco, // РЦ
                 RechangeCriteriaStorage<AdditionalAction>[]
             > AllActions;
 
-        static Dictionary<CodedObject<string>, // РЦ
+        Dictionary<Uco, // РЦ
             Dictionary<int, // этап 1
                 Dictionary<int, // этап 2
                     Dictionary<UniversalBinaryStorage, UniversalBinaryStorage> // В зависимости от условий ещё
@@ -139,40 +152,43 @@ namespace InfimumMES
                 >
             > AdditionalActionsCashe = new();
 
-        internal static void ClearAdditionalActions()
+        internal void ClearAdditionalActions()
         {
             AdditionalActionsCashe.Clear();
             AllActionsOnLoad.Clear();
             AllActions = null;
         }
 
-        internal static void BakeAdditionalActions()
+        internal void BakeAdditionalActions()
         {
             AllActions = AllActionsOnLoad.ToFrozenDictionary(x => x.Key, x => x.Value);
         }
 
-        internal static void AddAdditionalAction(
-            CodedObject<string> RC, // РЦ
-                string rawCriteriaName,
-                string from, Guid fromGuid,
-                string to, Guid toGuid,
-                string paramName, string valueName
-            )
+        internal void AddAdditionalAction(AdditionalActionsDataLoaderModel model)
         {
-            var index = RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
+            var rawCriteriaName = model.Criteria;
+            var RC = model.Center;
+            var paramName = model.Parameter;
+            var valueName = model.Value;
+            var from = model.From;
+            var to = model.To;
+            var toGuid = model.ToGuid;
+            var fromGuid = model.FromGuid;
+            var masterDatas = SessionLink.MasterDataLinks;
+            var index = masterDatas.RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
             if (index == -1)
             {
-                ConcurrentLogger.AddToLogQueue.Enqueue($"ЗАГРУЗКА (переналадки): Неизвестный критерий '{rawCriteriaName}' переналадки.\r\n");
+                SessionLink.AssignedLogger.LogQueue.Enqueue($"ЗАГРУЗКА (переналадки): Неизвестный критерий '{rawCriteriaName}' переналадки.\r\n");
             }
             else
             {
-                var rc = CentersMasterData.CentersData[RC];
+                var rc = masterDatas.CentersMasterData.CentersData[RC];
                 rc.PossibleAdditionalActions ??= new();
                 rc.PossibleAdditionalActions.SetDataBit(index, true);
                 rc.IsWithRechanges = true;
                 rc.HasAdditionalActions = true;
 
-                AllActionsOnLoad.TryAdd(RC, new RechangeCriteriaStorage<AdditionalAction>[RechangesMasterData.ExistingCriterias.Length]);
+                AllActionsOnLoad.TryAdd(RC, new RechangeCriteriaStorage<AdditionalAction>[masterDatas.RechangesMasterData.ExistingCriterias.Length]);
                 var storages = AllActionsOnLoad[RC];
                 storages[index] ??= new RechangeCriteriaStorage<AdditionalAction>();
                 var storage = storages[index];
@@ -186,16 +202,16 @@ namespace InfimumMES
 
                         AdditionalActionsCashe.TryAdd(RC, new());
 
-                        RechangesEngine.UniversalDataLoader<AdditionalAction>(storage, index, from, fromGuid, to, toGuid, action);
+                        RechangesEngine.RechangesEngine.UniversalDataLoader<AdditionalAction>(SessionLink, storage, index, from, fromGuid, to, toGuid, action);
                     }
                 }
 
             }
         }
 
-        internal static int? CalculateDiapazonIndex(
-            CodedObject<string> RC, // РЦ
-            CodedObject<string> OperVid, // Вид операции, пока не юзается, но нужен для одинаковости методов + задел на будущее, вдруг пригодится
+        internal int? CalculateDiapazonIndex(
+            Uco RC, // РЦ
+            Uco OperVid, // Вид операции, пока не юзается, но нужен для одинаковости методов + задел на будущее, вдруг пригодится
             int CriteriaIndex,
             float? value
             )
@@ -208,20 +224,21 @@ namespace InfimumMES
             return array[CriteriaIndex].GetDiapazonByValue(value.Value);
         }
 
-        static object actionsCashLocker = new();
+        object actionsCashLocker = new();
 
-        internal static UniversalBinaryStorage UpdateAdditionalParamsOnCenter(RechangesEngineData engineData)
+        internal UniversalBinaryStorage UpdateAdditionalParamsOnCenter(RechangesEngineData engineData)
         {
             if (AdditionalActionsCashe.TryGetValue(engineData.ActualRC, out var lvl10) &&
-                lvl10.TryGetValue(engineData.ObjectA.ID, out var lvl20) &&
-                lvl20.TryGetValue(engineData.ObjectB.ID, out var lvl30) &&
+                lvl10.TryGetValue(engineData.ObjectA.Index, out var lvl20) &&
+                lvl20.TryGetValue(engineData.ObjectB.Index, out var lvl30) &&
                 lvl30.TryGetValue(engineData.CenterData.AdditinalConditions, out var result0))
             {
                 return new UniversalBinaryStorage(result0); // Возвращаем КОПИЮ, чтобы не ломалось хранилище
             }
 
+            var masterDatas = SessionLink.MasterDataLinks;
 
-            InfimumMES.CentersMasterData.CentersData.TryGetValue(engineData.ActualRC, out var centerClass);
+            masterDatas.CentersMasterData.CentersData.TryGetValue(engineData.ActualRC, out var centerClass);
 
             var hasActions = centerClass != null ? centerClass.HasAdditionalActions : false;
 
@@ -243,11 +260,11 @@ namespace InfimumMES
 
             var arraysRech = AllActions.TryGetValue(engineData.ActualRC, out var arrays) ? arrays : null;
             bool IsDynamic = false;
-            for (int cr = 0; cr < RechangesMasterData.ExistingCriterias.Length; cr++)
+            for (int cr = 0; cr < masterDatas.RechangesMasterData.ExistingCriterias.Length; cr++)
             {
                 if (mask.GetDataBit(cr))
                 {
-                    IsDynamic |= RechangesMasterData.ExistingCriterias[cr].IsDynamic;
+                    IsDynamic |= masterDatas.RechangesMasterData.ExistingCriterias[cr].IsDynamic;
                     GetAdditionalActionsByCriteria(engineData, cr, result, arraysRech);
                 }
             }
@@ -262,10 +279,10 @@ namespace InfimumMES
                 lock (actionsCashLocker)
                 {
                     var lvl1 = AdditionalActionsCashe[engineData.ActualRC];
-                    lvl1.TryAdd(engineData.ObjectA.ID, new());
-                    var lvl2 = lvl1[engineData.ObjectA.ID];
-                    lvl2.TryAdd(engineData.ObjectB.ID, new());
-                    var lvl3 = lvl2[engineData.ObjectB.ID];
+                    lvl1.TryAdd(engineData.ObjectA.Index, new Dictionary<int, Dictionary<UniversalBinaryStorage, UniversalBinaryStorage>>());
+                    var lvl2 = lvl1[engineData.ObjectA.Index];
+                    lvl2.TryAdd(engineData.ObjectB.Index, new Dictionary<UniversalBinaryStorage, UniversalBinaryStorage>());
+                    var lvl3 = lvl2[engineData.ObjectB.Index];
                     lvl3.TryAdd(copyToSave, new UniversalBinaryStorage(result)); // Сохраняем тут КОПИИ, потому что оригинал сейчас вернется центру, и тот пойдет работать дальше
                 }
             }
@@ -274,7 +291,7 @@ namespace InfimumMES
             return result;
         }
 
-        internal static void GetAdditionalActionsByCriteria(RechangesEngineData engineData, int CriteriaIndex, UniversalBinaryStorage result, RechangeCriteriaStorage<AdditionalAction>[] RechangesToAcquireArray = null)
+        void GetAdditionalActionsByCriteria(RechangesEngineData engineData, int CriteriaIndex, UniversalBinaryStorage result, RechangeCriteriaStorage< AdditionalAction>[] RechangesToAcquireArray = null)
         {
             RechangesToAcquireArray ??= AllActions.TryGetValue(engineData.ActualRC, out var arrays) ? arrays : null;
 
@@ -285,11 +302,11 @@ namespace InfimumMES
             if (RechangesToAcquire == null) return;
 
             // Обрабатывам данные согласно настройкам выбранного критерия переналадки
-            RechangesEngine.ProcessRechangeGlobalParam<AdditionalAction, UniversalBinaryStorage>(CriteriaIndex, engineData, RechangesToAcquire, ADD_CONDITIONS_INDEX_FOR_DIAPAZONS, result, AddAdditionalsFinally, CalculateDiapazonIndex);
+            RechangesEngine.RechangesEngine.ProcessRechangeGlobalParam<AdditionalAction, UniversalBinaryStorage>(CriteriaIndex, engineData, RechangesToAcquire, ADD_CONDITIONS_INDEX_FOR_DIAPAZONS, result, AddAdditionalsFinally, CalculateDiapazonIndex);
         }
 
 
-        static void AddAdditionalsFinally(UniversalBinaryStorage whereToAdd, IEnumerable<AdditionalAction> ActionsList, RechangesEngineData engineData, int CriteriaIndex)
+        void AddAdditionalsFinally(UniversalBinaryStorage whereToAdd, IEnumerable<AdditionalAction> ActionsList, RechangesEngineData engineData, int CriteriaIndex)
         {
             var centerData = engineData.CenterData;
             foreach (var action in ActionsList)

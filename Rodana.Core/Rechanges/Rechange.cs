@@ -1,13 +1,15 @@
-﻿using UniversalPack.Common;
+﻿using Rodana.Core.Rechanges.Hoppers;
+using UniversalPack.Common;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Rechanges
 {
     /// <summary>
     /// Класс переналадки, содержащий непосредственно значения
     /// </summary>
-    internal class Rechange<InputDataType>
+    internal class Rechange
     {
-        internal CodedObject<InputDataType, string> Name { get; }
+        internal Uco Name { get; }
         internal int Duration { get; }
 
         internal bool ProvokesNaladLengthLaunch { get; }
@@ -19,13 +21,22 @@ namespace Rodana.Core.Rechanges
         /// </summary>
         internal bool IsMultiCriterial { get; }
 
-        public Rechange(CodedObject<InputDataType, string> name, int duration, bool hasAdditionalCondition, bool provokesNaladLengthLaunch, bool isMultiCriterial)
+        public Rechange(Uco name, int duration, bool hasAdditionalCondition, bool provokesNaladLengthLaunch, bool isMultiCriterial)
         {
             Name = name;
             Duration = duration;
             HasAdditionalCondition = hasAdditionalCondition;
             ProvokesNaladLengthLaunch = provokesNaladLengthLaunch;
             IsMultiCriterial = isMultiCriterial;
+        }
+
+        public Rechange(RechangesLoaderModel model)
+        {
+            Name = model.RechangeOperation;
+            Duration = model.Duration;
+            HasAdditionalCondition = model.AdditionalCondition;
+            ProvokesNaladLengthLaunch = model.ProvokesLaunch;
+            IsMultiCriterial = model.MergeCriterias;
         }
 
         public override int GetHashCode() => HashCode.Combine(Name.GetHashCode(), Duration, ProvokesNaladLengthLaunch, HasAdditionalCondition);

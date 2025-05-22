@@ -5,36 +5,42 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rodana.Core.Hoppers;
+using UniversalPack.Common.DataLoader;
+using Rodana.Core.Session;
+using Rodana.Core.Rechanges.MasterData;
 
-namespace InfimumMES
+namespace Rodana.Core.Rechanges.Hoppers
 {
     [Hopper(Label = "Список доп параметров", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false)]
     internal class AdditionalParamsHopper : IHopperInterface
     {
-        void IHopperInterface.ActionFile(string filename)
+        AdditionalConditionsMasterData AdditionalConditionsMasterData;
+        public void ActionFile(string filename)
         {
 
         }
 
-        void IHopperInterface.AfterLoading()
+        public void AfterLoading()
         {
             AdditionalConditionsMasterData.BakeAdditionalParams();
-            ;
         }
 
-        void IHopperInterface.BeforeAllLoading(string[] filenames)
+        public void BeforeAllLoading(Session.Session session, string[] filenames)
         {
-
+            AdditionalConditionsMasterData = session.MasterDataLinks.AdditionalConditionsMasterData;
         }
 
-        void IHopperInterface.BeforeLoading(string filename, HopperReadOptions options)
+        public void BeforeLoading(string filename, DataLoaderOptions options)
         {
             AdditionalConditionsMasterData.ClearAdditionalParams();
         }
 
-        void IHopperInterface.OnLoading(int rowIndex, IDataReader data, HopperReadOptions options)
+        public void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            AdditionalConditionsMasterData.AddAdditionalParam(data["Параметр"].ConvertToOrDefault(string.Empty), data["Значение"].ConvertToOrDefault(string.Empty));
+            var model = new AdditionalParamsDataLoaderModel();
+            model.LoadFromDataRecord(data, options);
+            AdditionalConditionsMasterData.AddAdditionalParam(model);
         }
     }
 }

@@ -12,6 +12,6 @@ namespace Rodana.Core.Stages
     /// </summary>
     public class StagesMasterData
     {
-
+        public Dictionary<int, Stage> AllStages;
     }
 }
