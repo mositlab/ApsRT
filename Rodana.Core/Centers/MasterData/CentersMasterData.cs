@@ -19,6 +19,6 @@ namespace Rodana.Core.Centers.MasterData
             SessionLink = session;
         }
 
-        public Dictionary<Uco, CenterClass> CentersData { get; } = new();
+        public Dictionary<Uco, CenterBaseModel> CentersData { get; } = new();
     }
 }

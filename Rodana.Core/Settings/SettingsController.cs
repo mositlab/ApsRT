@@ -9,8 +9,9 @@ namespace Rodana.Core.Settings
 {
     public class SettingsController
     {
-        public string SavePath = "settings.txt";
-        public SettingsClass CurrentSettings;
+        public string SavePath { get; set; } = "settings.txt";
+        public SettingsClass CurrentSettings { get; set; } = new();
+        public SpecialSettings SpecialSettings { get; set; } = new();
         public event Action OnSettingsLoaded;
 
         /// <summary>

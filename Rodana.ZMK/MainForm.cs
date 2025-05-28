@@ -11,9 +11,9 @@ namespace Rodana.ZMK
 {
     public partial class MainForm : Form
     {
-        Session<Guid, int> sessionLink;
+        Session sessionLink;
 
-        public MainForm(Session<Guid, int> sessionLink)
+        public MainForm(Session sessionLink)
         {
             InitializeComponent();
             this.sessionLink = sessionLink;
@@ -205,7 +205,7 @@ namespace Rodana.ZMK
             sessionLink.EndSession(0);
         }
 
-        List<HopperUIClass<Guid, int>> HoppersInInterface = new();
+        List<HopperUIClass> HoppersInInterface = new();
 
 
         internal Font ButtonFont = new Font("Montserrat", 7f, FontStyle.Regular, GraphicsUnit.Point);
@@ -329,13 +329,13 @@ namespace Rodana.ZMK
 
                 butt3.Click += delegate
                 {
-                    //using (var dialog = new SqlDataSourceConfigForm(textBox.Text))
-                    //{
-                    //    if (dialog.ShowDialog() == DialogResult.OK)
-                    //    {
-                    //        textBox.Text = dialog.CrutchPath;
-                    //    }
-                    //}
+                    using (var dialog = new SqlDataSourceConfigForm(textBox.Text))
+                    {
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            textBox.Text = dialog.CrutchPath;
+                        }
+                    }
                 };
                 HoppersPanel.Controls.Add(butt3);
 
@@ -364,7 +364,7 @@ namespace Rodana.ZMK
                 top += textBox.Height + 3;
 
                 // Финал
-                HoppersInInterface.Add(new HopperUIClass<Guid, int>()
+                HoppersInInterface.Add(new HopperUIClass()
                 {
                     Bar = bar,
                     Button = butt,

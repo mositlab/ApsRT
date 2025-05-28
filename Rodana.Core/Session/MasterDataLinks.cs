@@ -9,6 +9,7 @@ using Rodana.Core.Centers;
 using Rodana.Core.Props;
 using Rodana.Core.Rechanges.MasterData;
 using Rodana.Core.Centers.MasterData;
+using Rodana.Core.Partias.MergeConditions;
 
 namespace Rodana.Core.Session
 {
@@ -20,6 +21,8 @@ namespace Rodana.Core.Session
             RechangesMasterData = new RechangesMasterData(SessionLink);
             AdditionalConditionsMasterData = new AdditionalConditionsMasterData(SessionLink);
         }
+
+        public MergeConditionsMasterData MergeConditionsMasterData { get; set; }
 
         public CentersMasterData CentersMasterData { get; set; }
         public ParallelCentersVariantsMasterData ParallelCentersVariantsMasterData { get; set; } = new();

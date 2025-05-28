@@ -19,7 +19,7 @@ namespace Rodana.Core.Stages
     /// </summary>
     public class Stage
     {
-
+        #region Основы
         public Session.Session SessionLink { get; }
 
         public Stage(Session.Session session)
@@ -37,10 +37,57 @@ namespace Rodana.Core.Stages
         /// </summary>
         public Guid GUID { get; init; }
 
+        #endregion
+
+        #region Номенклатурные данные
+
         /// <summary>
         /// Вид операции
         /// </summary>
         public Uco OperationVid { get; set; }
+        public Uco Nomenklature { get; set; }
+        public Uco Production { get; set; }
+        public Uco Subdivision { get; set; }
+        public Uco Specification { get; set; }
+        public Uco Characteristics { get; set; }
+
+        #endregion
+
+        #region Основные флаги
+        public bool Fixed { get; set; }
+        public bool VPZ { get; set; }
+        public bool IsFact { get; set; }
+        public bool IsLast { get; set; }
+        public bool IsFictive { get; set; }
+        bool NoChangeTara { get; set; }
+        bool UsesVspomTara { get; set; }
+        bool IsVspom { get; set; }
+        public bool OnOneRC { get; set; }
+        #endregion
+
+        #region Рабочие центры
+        public Uco OriginalCenter { get; set; }
+        public Uco Center { get; set; }
+        public List<Uco> PossibleCenters { get; set; }
+        public Uco RCRoute { get; set; }
+        public bool RCRouteIsRC { get; set; }
+        #endregion
+
+        #region Тара
+        public Uco EndTara { get; set; }
+        public Uco CurrentTara { get; set; }
+        public double CurrentTaraMaxCapacity { get; set; }
+        #endregion
+
+        #region Реквизиты
+        public float?[] NumberProps { get; set; }
+        public Guid?[] GuidProps { get; set; }
+        public string[] StringProps { get; set; }
+        #endregion
+
+        #region Важные данные
+
+        #endregion
 
         #region Переналадки
         internal StageRechangeParam[] RechangeParameters;

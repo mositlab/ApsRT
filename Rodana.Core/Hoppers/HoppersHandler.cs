@@ -10,6 +10,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Rodana.Core.DataErrors;
 using UniversalPack;
+using Rodana.Core.Session;
+using UniversalPack.Common.DataLoader;
+using UniversalPack.Extensions;
+using System.Data;
+using System.Data.SqlClient;
+using UniversalPack.Configuration;
+using UniversalPack.Common;
+using System.Diagnostics.Metrics;
 
 namespace Rodana.Core.Hoppers
 {
@@ -19,6 +27,7 @@ namespace Rodana.Core.Hoppers
         Session.Session session { get; init; }
 
         public List<(string Name, HopperAttribute Data, IHopperInterface  Interface)> Hoppers { get; init; }
+        Dictionary<string, int> HoppersIndexes { get; init; }
         public HoppersHandler(Session.Session session)
         {
             this.session = session;
@@ -32,8 +41,8 @@ namespace Rodana.Core.Hoppers
             var hoppers = asm.GetTypes()
                 .Where(x =>
                 x.CustomAttributes.Any(y => y.AttributeType == typeof(HopperAttribute)) // ищем те типы, у кого есть нужный атрибут
-                //&&
-                //x.GetInterfaces().Any(y => y == typeof(IHopperInterface )) // ещё одно ограничение, чтобы он был унаследован
+                &&
+                x.GetInterfaces().Any(y => y == typeof(IHopperInterface )) // ещё одно ограничение, чтобы он был унаследован
                 )
                 .ToList();
 
@@ -76,9 +85,12 @@ namespace Rodana.Core.Hoppers
                 add(key);
             }
             var data2 = data.OrderByDescending(x => x.Value.pri).ThenBy(x => x.Key).Select(x => (x.Key, x.Value.intr, x.Value.attr)).ToList();
+            int i = 0;
             foreach (var el in data2)
             {
                 Hoppers.Add((el.Key, el.attr, el.intr));
+                HoppersIndexes.Add(el.Key, i);
+                i++;
             }
         }
 
@@ -121,17 +133,17 @@ namespace Rodana.Core.Hoppers
             return -1;
         }
 
-        public Action<HopperAttribute, IHopperInterface > OnStartLoadingEvent;
-        public Action<HopperAttribute, IHopperInterface > OnLoadingEvent;
-        public Action<HopperAttribute, IHopperInterface > OnEndLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface, int> OnStartLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface, int> OnLoadingEvent;
+        public Action<HopperAttribute, IHopperInterface, int> OnEndLoadingEvent;
 
-        public void ModuleActions(HopperAttribute hopperData, IHopperInterface  hopperInterface, string[] paths)
+        public void ModuleActions(HopperAttribute hopperData, IHopperInterface hopperInterface, string[] paths)
         {
             if (session.SessionOptions.PartOrZadel && !hopperData.LoadWhenOnlyPart) // если только партии (ну или заделы), то ничего не грузим
             {
                 session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' ignored bsc ONLY PART.\r\n");
                 hopperData.LoadedFlag = true;
-                OnEndLoadingEvent?.Invoke(hopperData, hopperInterface);
+                OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, 0);
                 return;
             }
 
@@ -140,9 +152,10 @@ namespace Rodana.Core.Hoppers
                 for (var i = 0; i < hopperData.NeededHoppers.Length; i++)
                 {
                     var name = hopperData.NeededHoppers[i];
-                    if (!ModulesList[n].LoadedFlag)
+                    var index = HoppersIndexes[name];
+                    if (!Hoppers[index].Data.LoadedFlag)
                     {
-                        session.AssignedLogger.LogQueue.Enqueue($"Сначала загрузите модуль '{ModulesList[n].HopperData.Label}'.");
+                        session.AssignedLogger.LogQueue.Enqueue($"Сначала загрузите модуль '{Hoppers[index].Data.Label}'.");
                     }
                 }
             }
@@ -156,13 +169,16 @@ namespace Rodana.Core.Hoppers
                 {
                     // это папочная хрень
                     var filesthere = Directory.GetFiles(path);
-                    hopper.Bar.Maximum = filesthere.Length;
-                    hopper.Bar.Minimum = 0;
-                    hopper.Bar.Value = 0;
+                    //hopper.Bar.Maximum = filesthere.Length;
+                    //hopper.Bar.Minimum = 0;
+                    //hopper.Bar.Value = 0;
+                    OnStartLoadingEvent?.Invoke(hopperData, hopperInterface, filesthere.Length);
+                    int i = 0;
                     foreach (var file in filesthere)
                     {
                         hopperInterface.ActionFile(file);
-                        hopper.Bar.Value++;
+                        OnLoadingEvent?.Invoke(hopperData, hopperInterface, i);
+                        i++;//hopper.Bar.Value++;
                     }
                 }
                 else
@@ -171,11 +187,11 @@ namespace Rodana.Core.Hoppers
                     if (path.StartsWith("SQL:"))
                     {
                         // Создание подключения
-                        ModuleActionSQL(hopper, path, Show);
+                        ModuleActionSQL(hopperData, hopperInterface, path);
                     }
                     else
                     {
-                        ModuleActionFile(hopper, path, Show);
+                        ModuleActionFile(hopperData, hopperInterface, path);
                     }
                 }
             }
@@ -183,8 +199,144 @@ namespace Rodana.Core.Hoppers
 
             session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' loaded.\r\n");
             hopperData.LoadedFlag = true;
-            OnEndLoadingEvent?.Invoke(hopperData, hopperInterface);
+            OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, 0);
         }
 
+        public void ModuleActionFile(HopperAttribute hopperData, IHopperInterface hopperInterface, string file)
+        {
+            session.AssignedLogger.LogQueue.Enqueue("Текущий файл: " + file + "\r\n");
+            // неблокирующее чтение файла
+            using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            {
+                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}] reader creating\r\n");
+                // выбираем читалку на основе расширения файла
+                var filetype = Path.GetExtension(file).ToLower();
+
+                var options = new DataLoaderOptions(filetype switch
+                {
+                    ".xlsx" => SourceType.XLSX,
+                    ".txt" => SourceType.TXT,
+                    ".csv" => SourceType.CSV,
+                    _ => throw new NotSupportedException(file)
+                });
+
+                var reader = filetype switch
+                {
+                    ".xlsx" => stream.CreateExcelReader(false),
+                    ".txt" or ".csv" => stream.CreateCsvReader(false),
+                    _ => throw new NotSupportedException(file)
+                };
+
+
+                hopperInterface.BeforeLoading(file, options);
+
+                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}] reader ON\r\n");
+                using (reader)
+                {
+                    //if (Show)
+                    //{
+                    //    hopper.Bar.IsInfinite = reader.RecordsAffected <= 0;
+                    //    hopper.Bar.Maximum = reader.RecordsAffected;
+                    //    hopper.Bar.Minimum = 0;
+                    //    hopper.Bar.Value = 0;
+                    //}
+                    OnStartLoadingEvent?.Invoke(hopperData, hopperInterface, reader.RecordsAffected);
+
+                    var i = 1;
+                    var counter = 0;
+
+                    while (reader.Read())
+                    {
+                        hopperInterface.OnLoading(i, reader, options);
+
+                        OnLoadingEvent?.Invoke(hopperData, hopperInterface, counter);
+
+                        i++;
+
+                        counter++;
+                        //hopper.Bar.Value = i;
+
+                        if (counter % 2000 == 0) // пришлось сюда переместить - ради лога. Будь проклят, 28.05 (медленный сервак).
+                        {
+                            session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}] line: {i}\r\n");
+                        }
+
+                    }
+                    OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, i);
+                }
+            }
+        }
+
+        public void ModuleActionSQL(HopperAttribute hopperData, IHopperInterface hopperInterface, string path)
+        {
+            // поскльку выше идёт проверка на .StartsWith("SQL:")
+            // для получения имени файла срезаем 4 символа 
+            // с начала строки
+            var file = new FileInfo(path[4..].Trim());
+
+            if (!file.Exists)
+            {
+                throw new FileNotFoundException($"Не найден файл конфигурации для получания данных из SQL: \"{file.FullName}\"", file.FullName);
+            }
+
+            if (!file.TryReadAsJson<MsSqlDataSourceConfig>(out var config, out var exception))
+            {
+                throw new ApplicationException($"Не удалось прочитать файл конфигурации \"{file.FullName}\"", exception);
+            }
+
+            //if (show)
+            //{
+            //    hopper.Bar.IsInfinite = true;
+            //}
+            // счётчик строк
+            var counter = 0;
+
+            using (var connection = new SqlConnection(config.ConnectionString))
+            {
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = config.Sql;
+                    command.CommandType = CommandType.Text;
+
+                    connection.SafeOpen();
+
+                    using (var reader = command.ExecuteReader())
+                    using (var wrapper = new SqlDataReaderWrapper(reader))
+                    {
+                        var options = new DataLoaderOptions(SourceType.SQL);
+
+                        //options.ArrangeGuidBytes = true; // Почему-то это надо для АПС, чтоб биты переставлялись
+
+                        hopperInterface.BeforeLoading(file.FullName, options);
+
+
+                        OnStartLoadingEvent?.Invoke(hopperData, hopperInterface, reader.RecordsAffected);
+
+
+                        while (wrapper.Read())
+                        {
+                            hopperInterface.OnLoading(counter, wrapper, options);
+
+                            OnLoadingEvent?.Invoke(hopperData, hopperInterface, counter);
+
+                            counter++;
+
+                            //if (show)
+                            //{
+                            //    hopper.Bar.Value = rowCounter;
+                            //}
+                            if (counter % 2000 == 0) // пришлось сюда переместить - ради лога. Будь проклят, 28.05 (медленный сервак).
+                            {
+                                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}] line: {counter}\r\n");
+                            }
+                        }
+                    }
+
+                    connection.SafeClose();
+                }
+            }
+
+            OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, counter);
+        }
     }
 }

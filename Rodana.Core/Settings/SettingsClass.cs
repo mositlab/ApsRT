@@ -11,7 +11,7 @@ namespace Rodana.Core.Settings
     /// <summary>
     /// Класс настроек. В настройках содержится масса информации, как АПС должна будет работать.
     /// </summary>
-    public partial class SettingsClass
+    public class SettingsClass
     {
 
         public static SettingsClass OriginalSettings = new SettingsClass()

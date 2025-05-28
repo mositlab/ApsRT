@@ -24,7 +24,7 @@ namespace Rodana.Core.Session
     public class Session
     {
         public SessionOptions SessionOptions { get; init; }
-        public DataErrors DataErrors { get; init; }
+        public DataErrors.DataErrors DataErrors { get; init; }
         public SettingsController SettingsController { get; init; }
         public HoppersHandler HoppersHandler { get; init; }
         public MasterDataLinks MasterDataLinks { get; init; }

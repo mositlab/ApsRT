@@ -756,7 +756,7 @@ namespace Rodana.ZMK
             // openFileDialog1
             // 
             openFileDialog1.FileName = "openFileDialog1";
-            openFileDialog1.Filter = "Excel-файлы|*.XLSX|CSV-таблицы|*.csv";
+            openFileDialog1.Filter = "Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
             // 
             // MainForm
             // 

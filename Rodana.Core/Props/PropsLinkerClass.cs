@@ -10,7 +10,7 @@ namespace Rodana.Core.Props
     /// <summary>
     /// Простенький класс для хранения в настройках партий и прочем, чтоб проще обращаться с реквизитами.
     /// </summary>
-    internal class PropsLinkerClass
+    public class PropsLinkerClass
     {
         public PropsLinkerClass(string propLabel, int numberIndex, int guidIndex, int stringIndex)
         {
