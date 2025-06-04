@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Rodana.Core.Centers.MasterData;
+using Rodana.Core.Props;
+using Rodana.Core.Taras;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +12,12 @@ namespace Rodana.Core.Planning.ParallelPlanning
 {
     public class ParallelPlanningMasterData
     {
+        public Session.Session SessionLink { get; }
+
+        public ParallelPlanningMasterData(Session.Session session)
+        {
+            SessionLink = session;
+        }
 
         public void ClearAll()
         {
@@ -16,6 +25,103 @@ namespace Rodana.Core.Planning.ParallelPlanning
             GuidToCharactersList.Clear();
             CharacteristicsToParID.Clear();
             ParIDParams.Clear();
+        }
+
+        public void AddData(ParallelPlanningDataLoaderModel model)
+        {
+            var CentersMasterData = SessionLink.MasterDataLinks.CentersMasterData;
+            var PropsMasterData = SessionLink.MasterDataLinks.PropsMasterData;
+            // 1. Сначала РЦ. Если он не задан, значит это глюк таблицы - пустая строка.
+            if (!model.CenterName.IsEmpty)
+            {
+                if (!ParallelLoadingsVariants.ContainsKey(model.CenterName))
+                {
+                    ParallelLoadingsVariants.Add(model.CenterName, new Dictionary<Uco, Dictionary<int, Dictionary<Uco, ParallelPlanningTaraInfo>>>());
+                }
+
+                // 1.1 - добавляем флаг возможности параллелизма в характеристики РЦ
+                if (CentersMasterData.CentersData.TryGetValue(model.CenterName, out var cls))
+                {
+                    cls.CanBeParallel = true;
+                }
+
+                // 2. Вид операции
+                if (!ParallelLoadingsVariants[model.CenterName].ContainsKey(model.OperationVid))
+                {
+                    ParallelLoadingsVariants[model.CenterName].Add(model.OperationVid, new Dictionary<int, Dictionary<Uco, ParallelPlanningTaraInfo>>());
+                }
+
+                // 3. Идентификатор параллельной загрузки
+                if (!ParallelLoadingsVariants[model.CenterName][model.OperationVid].ContainsKey(model.ParallelID))
+                {
+                    ParallelLoadingsVariants[model.CenterName][model.OperationVid].Add(model.ParallelID, new Dictionary<Uco, ParallelPlanningTaraInfo>());
+                }
+
+                // 3.1 Дельта и "Не Повышать Тару"
+                if (!ParIDParams.ContainsKey(model.ParallelID))
+                {
+                    ParIDParams.Add(model.ParallelID, new ParallelPlanningParamClass(model.Delta, model.NotIncreaseTara));
+                }
+
+                // 4. Вариант загрузки
+                if (!ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID].ContainsKey(model.Variant))
+                {
+                    var taraInfo = new ParallelPlanningTaraInfo();
+
+                    if (SessionLink.SettingsController.CurrentSettings.UsePseudoTara)
+                    {
+                        taraInfo.List.Add(TarasMasterData.Pseudotara1, 1);
+                        taraInfo.List.Add(TarasMasterData.Pseudotara2, 1);
+                        taraInfo.List.Add(TarasMasterData.Pseudotara3, 1);
+                        taraInfo.TotalCount += 3;
+                    }
+
+                    ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID].Add(model.Variant, taraInfo);
+                }
+
+                // 5. Тара и её количество для варианта загрузки
+                var vari = ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID][model.Variant];
+                if (!vari.List.ContainsKey(model.Tara))
+                {
+                    vari.List.Add(model.Tara, model.TaraCount);
+                    vari.TotalCount += model.TaraCount;
+                    vari.MaxCapacity = model.MaxCapacity;
+                }
+                ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID][model.Variant] = vari;
+
+                // 6. Теперь набор характеристик
+                var nabor = model.CharsList;
+                var rc = model.CenterName;
+                var operVid = model.OperationVid;
+                if (!GuidToCharactersList.ContainsKey(nabor)) // Если характеристики такой нет, добавляем
+                {
+                    var chr = new CharacteristicsClass(nabor);
+                    GuidToCharactersList.Add(nabor, chr);
+
+                }
+
+                if (!CharacteristicsToParID.ContainsKey(rc))
+                {
+                    CharacteristicsToParID.Add(rc, new());
+                }
+
+                if (!CharacteristicsToParID[rc].ContainsKey(operVid))
+                {
+                    CharacteristicsToParID[rc].Add(operVid, new());
+                }
+
+                var characters = GuidToCharactersList[nabor]; // Получаем эту характеристику в любом случае - её надо заполнить
+
+                CharacteristicsToParID[rc][operVid].TryAdd(characters, model.ParallelID); // Добавляем и в этот словарь - его там точно не было.
+
+                // 7. В характеристику пихаем конкретную характеристику
+
+                // 7.1 Оставшиеся столбцы - для характеристики
+                if (!characters.ListOfChars.ContainsKey(model.Char))
+                {
+                    characters.ListOfChars.Add(model.Char, new ConcreteCharacteristic(model.Min, model.Max, PropsMasterData.GenerateLinks(model.ColumnName), model.Value, model.ValueGUID)); // Добавляем
+                }
+            }
         }
 
         /// <summary>

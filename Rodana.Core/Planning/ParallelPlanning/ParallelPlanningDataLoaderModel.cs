@@ -10,7 +10,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Planning.ParallelPlanning
 {
-    internal class ParallelPlanningDataLoaderModel: BaseDataLoaderModel
+    public class ParallelPlanningDataLoaderModel: BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 

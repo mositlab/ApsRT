@@ -24,6 +24,8 @@ namespace Rodana.Core.Session
             RechangesMasterData = new RechangesMasterData(SessionLink);
             AdditionalConditionsMasterData = new AdditionalConditionsMasterData(SessionLink);
             WorkingIntervalsMasterData = new WorkingIntervalsMasterData(SessionLink);
+            ParallelPlanningMasterData = new ParallelPlanningMasterData(SessionLink);
+            TarasMasterData = new TarasMasterData(SessionLink);
         }
 
         public OrdersMasterData OrdersMasterData { get; set; } = new();
@@ -33,7 +35,7 @@ namespace Rodana.Core.Session
         public MergeConditionsMasterData MergeConditionsMasterData { get; set; } = new();
 
         public CentersMasterData CentersMasterData { get; set; }
-        public ParallelPlanningMasterData ParallelPlanningMasterData { get; set; } = new();
+        public ParallelPlanningMasterData ParallelPlanningMasterData { get; set; }
         public WorkingIntervalsMasterData WorkingIntervalsMasterData { get; set; }
 
         /// <summary>
@@ -59,15 +61,9 @@ namespace Rodana.Core.Session
         public StagesTypicalDurationsMasterData StagesTypicalDurationsMasterData { get; init; } = new();
 
         /// <summary>
-        /// НСИ "Применяемая тара"
+        /// НСИ "Применяемая тара", "Максимальные намотки"
         /// </summary>
-        public UsedTaraMasterData UsedTaraMasterData { get; init; } = new();
-
-        /// <summary>
-        /// НСИ "Максимальные намотки"
-        /// </summary>
-        public MaxTaraCapacityMasterData MaxTaraCapacityMasterData { get; init; } = new();
-        public TaraCountMasterData TaraCountMasterData { get; init; } = new();
+        public TarasMasterData TarasMasterData { get; init; }
 
         public PropsMasterData PropsMasterData { get; init; } = new();
 

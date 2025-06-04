@@ -46,6 +46,12 @@ namespace Rodana.Core.Settings
         public bool AutoDataLoad { get; set; }
 
         [JsonProperty]
+        public bool UsePseudoTara { get; set; }
+
+        [JsonProperty]
+        public bool LogErrors { get; set; }
+
+        [JsonProperty]
         public double MaxDaysBetweenPartias { get; set; }
 
         [JsonProperty]

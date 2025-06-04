@@ -38,6 +38,12 @@ namespace Rodana.ZMK
         void PrepareSettings()
         {
             var settings = sessionLink.SettingsController.CurrentSettings;
+            LogErrorsCheckBox.Checked = settings.LogErrors;
+            LogErrorsCheckBox.CheckedChanged += (sender, args) => { settings.LogErrors = ((CheckBox)sender).Checked; };
+
+            UsePseudoTaraCheckBox.Checked = settings.UsePseudoTara;
+            UsePseudoTaraCheckBox.CheckedChanged += (sender, args) => { settings.UsePseudoTara = ((CheckBox)sender).Checked; };
+
             AutoLoadCheckBox.Checked = settings.AutoDataLoad;
             AutoLoadCheckBox.CheckedChanged += (sender, args) => { settings.AutoDataLoad = ((CheckBox)sender).Checked; };
 

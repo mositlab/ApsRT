@@ -1,6 +1,7 @@
 ﻿using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 
 namespace Rodana.Core.Partias.Leftovers
 {
@@ -45,8 +46,8 @@ namespace Rodana.Core.Partias.Leftovers
         [DataRecordCodedObjectColumn("Спецификация_GUID", "Спецификация")]
         public Uco Specification { get; set; }
 
-        [DataRecordOrderIDColumn("Заказ_GUID", "Заказ")]
-        public Orders.OrderID Order { get; set; }
+        [DataRecordCodedObjectVersionedColumn("Заказ_GUID", "Заказ")]
+        public OrderID Order { get; set; }
 
         [DataRecordColumn("ГруппаЗаменяемостиМатериалов_GUID")]
         public Guid MaterialsGroup { get; set; }

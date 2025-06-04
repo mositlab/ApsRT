@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
+using UniversalPack;
 
 namespace Rodana.Core.DataErrors
 {
@@ -74,19 +75,20 @@ namespace Rodana.Core.DataErrors
             bool yesdOP = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TechData != null);
             bool yes6 = NewDataErrors.Any(x => x.Key >= 0);
 
-            /*
-            bool yes61 = NewDataErrors.Any(x => x.Key >= 0 && OperationsDataSet.ALL[x.Key].RCRoute.IsEmpty);
-            bool yes62 = NewDataErrors.Any(x => x.Key >= 0 && !OperationsDataSet.ALL[x.Key].RCRoute.IsEmpty);
+            var allStages = session.MasterDataLinks.StagesMasterData.AllStages;
+
+            bool yes61 = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].RCRoute.IsEmpty);
+            bool yes62 = NewDataErrors.Any(x => x.Key >= 0 && !allStages[x.Key].RCRoute.IsEmpty);
 
             bool yes55 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnPrevEtap != null && x.RCsOnPrevEtap.Count > 0);
             bool yes56 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnPrevEtap != null && x.TarasOnPrevEtap.Count > 0);
 
-            bool yesPrevs = NewDataErrors.Any(x => x.Key >= 0 && OperationsDataSet.ALL[x.Key].PrevsNormCount > 0);
-            bool yesNexts = NewDataErrors.Any(x => x.Key >= 0 && OperationsDataSet.ALL[x.Key].Nexts.Count > 0);
+            bool yesPrevs = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].PrevsNormCount > 0);
+            bool yesNexts = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].Nexts.Count > 0);
 
             bool yesCount = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.Count != 0);
 
-            bool yesMod = NewDataErrors.Any(x => x.Key >= 0 && x.Value.Any(y => y.Value.Count != 0) && OperationsDataSet.ALL[x.Key].Modelling != Guid.Empty);
+            bool yesMod = NewDataErrors.Any(x => x.Key >= 0 && x.Value.Any(y => y.Value.Count != 0) && allStages[x.Key].MesModelling.Code != Guid.Empty);
 
             bool yesCProd = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customProd != null);
             bool yesCNom = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customNomen != null);
@@ -125,7 +127,8 @@ namespace Rodana.Core.DataErrors
                     {
                         var message = error.Key switch
                         {
-                            NewDataErrorType.NoProduction => (OperationsDataSet.ALL[element.Key].UsedCalcMethod == DimensionUnit.m ? "По данной продукции не найдена максимальная намотка с методом расчета по метражу." : "По данной номенклатуре и тех. операции не найдена максимальная намотка с методом расчёта по весу."),
+            
+                            NewDataErrorType.NoProduction => (allStages[element.Key].UsedCalcMethod == DimensionUnit.m ? "По данной продукции не найдена максимальная намотка с методом расчета по метражу." : "По данной номенклатуре и тех. операции не найдена максимальная намотка с методом расчёта по весу."),
                             NewDataErrorType.NoNomenklature => "По данной продукции не найдена максимальная намотка по указанной номенклатуре.",
                             NewDataErrorType.NoVidOper => "По данной продукции и номенклатуре не найдена максимальная намотка по виду операции.",
 
@@ -164,7 +167,9 @@ namespace Rodana.Core.DataErrors
                             NewDataErrorType.NoPriemNOtdIntersectionNoChange => "Нарущение цепочки 'приемная-отдающая' тара по основной таре с учетом РЦ  с признаком \"Не менять тару\".",
 
                             NewDataErrorType.NoPriemOrigTara => "Для барабана ГП '{0}' не найден РЦ с данной применяемой приёмной тарой.",
-                            NewDataErrorType.NoOtdOrigTara => "Для барабана ГП '{0}' не найден РЦ с данной применяемой отдающей тарой.",
+                            NewDataErrorType.NoOtdOrigTara => "На следующей стадии для барабана ГП '{0}' не найден РЦ с данной применяемой отдающей тарой.",
+                            NewDataErrorType.NoPriemOrigTaraOnNextEtap => "На следующей стадии для барабана ГП '{0}' не найден РЦ с данной применяемой приёмной тарой.",
+                            //NewDataErrorType.NoOtdOrigTara => "Для барабана ГП '{0}' не найден РЦ с данной применяемой отдающей тарой.",
 
                             NewDataErrorType.WasNotAbleToMerge => "На 1м уровне не выполняются настройки формирования партий.",
 
@@ -179,6 +184,7 @@ namespace Rodana.Core.DataErrors
                             NewDataErrorType.NoAllNeededOtdTarasWithCheck => "У этапа нет ни одного РЦ, у которого есть все перечисленные требуемые отдающие тары (deep-check).",
 
                             _ => "Необработанная ошибка. Обратитесь в ОАУП."
+
                         };
 
                         message = string.Format(message, error.Value.DataToInsert ?? "");
@@ -196,24 +202,24 @@ namespace Rodana.Core.DataErrors
 
                         string listCOL = ""; if (error.Value.customEtapsGuids != null) listCOL = string.Join(", ", error.Value.customEtapsGuids);
 
-                        var op = element.Key < 0 ? null : OperationsDataSet.ALL[element.Key];
+                        var op = element.Key < 0 ? null : allStages[element.Key];
 
-                        Guid? partiaGuid = op == null ? error.Value.PartiaGuid : (op.CustomPartiaGuid ?? (op.OrderN.OrderName.Label.Length > 0 ? (Orders.GlobalOrders[op.OrderN].PartiaPF ?? Guid.Empty) : Guid.Empty));
+                        Guid? partiaGuid = op == null ? error.Value.PartiaGuid : (op.CustomPartiaGuid ?? (op.OrderLink.OrderID.Object.Label.Length > 0 ? (op.OrderLink.PartiaPF ?? Guid.Empty) : Guid.Empty));
 
                         swNew.WriteLine(
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
                             $"{(string.IsNullOrEmpty(listCOL) ? op?.GUID : listCOL)};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => OperationsDataSet.ALL[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => OperationsDataSet.ALL[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
-                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklatura.Code)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Code : op?.OperVid.Code)};" +
+                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Code : op?.OperationVid.Code)};" +
                             $"{(error.Value.customRC.HasValue ? error.Value.customRC.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? op.Center.Code : "")))};" +
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Code)))};" +
-                            $"{op?.OrderN.OrderName.Code};{op?.OrderN.NumberGP};" +
+                            $"{op?.OrderLink.OrderID.Object.Code};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +
                             $"{(error.Value.Count == 0 ? "" : error.Value.Count)};" +
-                            $"{(error.Value.Count == 0 || op == null ? "" : (op.Modelling == Guid.Empty ? "" : op.Modelling))};" +
+                            $"{(error.Value.Count == 0 || op == null ? "" : (op.MesModelling.Code == Guid.Empty ? "" : op.MesModelling.Code))};" +
                             $"{message};{error.Value.TechData}"
                             );
 
@@ -221,17 +227,17 @@ namespace Rodana.Core.DataErrors
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
                             $"{(string.IsNullOrEmpty(listCOL) ? (op?.Registrator + " " + op?.GUID) : listCOL)};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => OperationsDataSet.ALL[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => OperationsDataSet.ALL[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
-                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklatura.Label)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Label : op?.OperVid.Label)};" +
+                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklature.Label)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Label : op?.OperationVid.Label)};" +
                             //$"{op?.RCRoute.Label};" +
                             $"{(error.Value.customRC.HasValue ? error.Value.customRC.Value.Label : (op == null ? "" : (op.RCRoute.IsEmpty ? op.Center.Label : "")))};" +
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Label : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Label)))};" +
-                            $"{op?.OrderN.OrderName.Label};{op?.OrderN.NumberGP};" +
+                            $"{op?.OrderLink.OrderID.Object.Label};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +
                             $"{(error.Value.Count == 0 ? "" : error.Value.Count)};" +
-                            $"{(error.Value.Count == 0 || op == null ? "" : (op.Modelling == Guid.Empty ? "" : op.Modelling))};" +
+                            $"{(error.Value.Count == 0 || op == null ? "" : (op.MesModelling.Code == Guid.Empty ? "" : op.MesModelling))};" +
                             $"{message};{error.Value.TechData}"
                             );
                     }
@@ -244,7 +250,6 @@ namespace Rodana.Core.DataErrors
             swNew.Close();
             swNewBig?.Close();
 
-            */
             return HasErrors;
         }
     }

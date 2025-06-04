@@ -83,9 +83,35 @@ namespace UniversalPack.Common.DataLoader
                     Converter = (r, opts) => ConvertCodedObject(r, opts, e.Attribute)
                 });
 
+            // конвертеры для получения CodedObjectVersioned
+            var codedObjectVersionedConverters = typeof(TDataLoaderModel)
+
+                // получаем свойства
+                .GetProperties()
+
+                // у которых есть атрибут
+                .Where(e => e.CustomAttributes.Any(f => f.AttributeType.IsAssignableTo<DataRecordCodedObjectVersionedColumnAttribute>()))
+
+                // промеуточные данные: сопоставление поля и атрибута
+                .Select(e => new
+                {
+                    PropertyInfo = e,
+                    Attribute = e.CustomAttributes
+                        .FirstOrDefault(f => f.AttributeType.IsAssignableTo<DataRecordCodedObjectVersionedColumnAttribute>())?
+                        .ToAttributeInstance<DataRecordCodedObjectVersionedColumnAttribute>()
+                })
+
+                // конечные данные: связь поля и конвертера
+                .Select(e => new FieldConverterInfo
+                {
+                    PropertyInfo = e.PropertyInfo,
+                    Converter = (r, opts) => ConvertCodedObjectVersioned(r, opts, e.Attribute)
+                });
+
             // всё соединяем и отдаём
             return simpleConverters
                 .Concat(codedObjectConverters)
+                .Concat(codedObjectVersionedConverters)
                 .ToList();
         }
 
@@ -103,6 +129,20 @@ namespace UniversalPack.Common.DataLoader
             return new CodedObject<Guid, string>(guidValue, nameValue);
         }
 
+        /// <summary>
+        /// Сконвертировать <see cref="IDataRecord"/> в <see cref="CodedObjectVersioned"/>
+        /// </summary>
+        /// <param name="record">Строка данных</param>
+        /// <param name="attribute">Атрибут</param>
+        /// <returns></returns>
+        private static object ConvertCodedObjectVersioned(IDataRecord record, DataLoaderOptions options, DataRecordCodedObjectVersionedColumnAttribute attribute)
+        {
+            var guidValue = (Guid)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull);
+            var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
+            var versionValue = record[attribute.VersionName].ConvertToOrDefault(string.Empty);
+
+            return new CodedObjectVersioned<Guid, string, string>(new CodedObject<Guid, string>(guidValue, nameValue), versionValue);
+        }
         /// <summary>
         /// Определить конвертер для поля
         /// </summary>

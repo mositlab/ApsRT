@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 
 namespace Rodana.Core.Orders
 {
@@ -20,7 +21,7 @@ namespace Rodana.Core.Orders
 
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
 
-        [DataRecordOrderIDColumn("Заказ_GUID", "Заказ", "ПартияГП")]
+        [DataRecordCodedObjectVersionedColumn("Заказ_GUID", "Заказ", "ПартияГП")]
         public OrderID OrderID { get; set; }
 
         [DataRecordColumn("ДатаИсполненияПоЗаказу")]

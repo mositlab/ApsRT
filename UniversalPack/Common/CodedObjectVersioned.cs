@@ -1,15 +1,14 @@
 ﻿using UniversalPack.Common;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace Rodana.Core.Orders
+namespace UniversalPack.Common
 {
-    public struct OrderID
+    public struct CodedObjectVersioned<InputDataTupe, LabelType, VersionType>
     {
-        private Uco _part1;
-        private string _part2;
+        private CodedObject<InputDataTupe, LabelType> _part1;
+        private VersionType _part2;
         private int _hashCode;
 
-        public Uco OrderName
+        public CodedObject<InputDataTupe, LabelType> Object
         {
             readonly get => _part1;
             set
@@ -19,7 +18,7 @@ namespace Rodana.Core.Orders
             }
         }
 
-        public string Version
+        public VersionType Version
         {
             readonly get => _part2;
             set
@@ -29,7 +28,7 @@ namespace Rodana.Core.Orders
             }
         }
 
-        public OrderID(Uco part1, string part2)
+        public CodedObjectVersioned(CodedObject<InputDataTupe, LabelType> part1, VersionType part2)
         {
             _part1 = part1;
             _part2 = part2;
@@ -48,22 +47,22 @@ namespace Rodana.Core.Orders
 
         public override readonly string ToString()
         {
-            if (OrderName.IsEmpty)
+            if (Object.IsEmpty)
             {
                 return string.Empty;
             }
             else
             {
-                return $"{OrderName}, версия {Version}";
+                return $"{Object}, версия {Version}";
             }
         }
 
-        public static bool operator ==(OrderID left, OrderID right)
+        public static bool operator ==(CodedObjectVersioned<InputDataTupe, LabelType, VersionType> left, CodedObjectVersioned<InputDataTupe, LabelType, VersionType> right)
         {
             return left._hashCode == right._hashCode;
         }
 
-        public static bool operator !=(OrderID left, OrderID right)
+        public static bool operator !=(CodedObjectVersioned<InputDataTupe, LabelType, VersionType> left, CodedObjectVersioned<InputDataTupe, LabelType, VersionType> right)
         {
             return left._hashCode != right._hashCode;
         }
@@ -72,7 +71,7 @@ namespace Rodana.Core.Orders
 
         public override readonly bool Equals(object obj)
         {
-            return obj is OrderID orderId && _hashCode == orderId._hashCode;
+            return obj is CodedObjectVersioned<InputDataTupe, LabelType, VersionType> orderId && _hashCode == orderId._hashCode;
         }
 
         public override readonly int GetHashCode()
@@ -80,10 +79,10 @@ namespace Rodana.Core.Orders
             return _hashCode;
         }
 
-        static OrderID _emptyOrder = new OrderID(Uco.EmptyObject, "");
-        public static OrderID EmptyOrder
+        static CodedObjectVersioned<InputDataTupe, LabelType, VersionType> _emptyObject = new CodedObjectVersioned<InputDataTupe, LabelType, VersionType>(CodedObject<InputDataTupe, LabelType>.EmptyObject, default(VersionType));
+        public static CodedObjectVersioned<InputDataTupe, LabelType, VersionType> EmptyObject
         {
-            get => _emptyOrder;
+            get => _emptyObject;
         }
     }
 }

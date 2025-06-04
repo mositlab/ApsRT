@@ -78,6 +78,8 @@ namespace Rodana.ZMK
             materialRadioButton2 = new MaterialRadioButton();
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
+            UsePseudoTaraCheckBox = new MaterialCheckBox();
+            LogErrorsCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             PartiasTabPage.SuspendLayout();
@@ -407,7 +409,7 @@ namespace Rodana.ZMK
             HandPartiasTabControl.Location = new Point(4, 24);
             HandPartiasTabControl.Name = "HandPartiasTabControl";
             HandPartiasTabControl.Padding = new Padding(3);
-            HandPartiasTabControl.Size = new Size(1163, 438);
+            HandPartiasTabControl.Size = new Size(1163, 439);
             HandPartiasTabControl.TabIndex = 1;
             HandPartiasTabControl.Text = "Поштучное объединение";
             HandPartiasTabControl.UseVisualStyleBackColor = true;
@@ -493,6 +495,8 @@ namespace Rodana.ZMK
             // SettingsTabPage
             // 
             SettingsTabPage.BackColor = Color.White;
+            SettingsTabPage.Controls.Add(LogErrorsCheckBox);
+            SettingsTabPage.Controls.Add(UsePseudoTaraCheckBox);
             SettingsTabPage.Controls.Add(SaveSettingsButton);
             SettingsTabPage.Controls.Add(HideConsoleCheckBox);
             SettingsTabPage.Controls.Add(CacheDurationsCheckBox);
@@ -508,9 +512,9 @@ namespace Rodana.ZMK
             SettingsTabPage.Controls.Add(ToggleThemeButton);
             SettingsTabPage.Controls.Add(RadioButton1);
             SettingsTabPage.Controls.Add(materialRadioButton2);
-            SettingsTabPage.Location = new Point(4, 24);
+            SettingsTabPage.Location = new Point(4, 25);
             SettingsTabPage.Name = "SettingsTabPage";
-            SettingsTabPage.Size = new Size(1171, 502);
+            SettingsTabPage.Size = new Size(1171, 501);
             SettingsTabPage.TabIndex = 3;
             SettingsTabPage.Text = "Настройки";
             // 
@@ -758,6 +762,42 @@ namespace Rodana.ZMK
             openFileDialog1.FileName = "openFileDialog1";
             openFileDialog1.Filter = "Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
             // 
+            // UsePseudoTaraCheckBox
+            // 
+            UsePseudoTaraCheckBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            UsePseudoTaraCheckBox.AutoSize = true;
+            UsePseudoTaraCheckBox.BackColor = Color.Black;
+            UsePseudoTaraCheckBox.Depth = 0;
+            UsePseudoTaraCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UsePseudoTaraCheckBox.ForeColor = Color.CornflowerBlue;
+            UsePseudoTaraCheckBox.Location = new Point(750, 238);
+            UsePseudoTaraCheckBox.Margin = new Padding(0);
+            UsePseudoTaraCheckBox.MouseLocation = new Point(-1, -1);
+            UsePseudoTaraCheckBox.Name = "UsePseudoTaraCheckBox";
+            UsePseudoTaraCheckBox.Ripple = true;
+            UsePseudoTaraCheckBox.Size = new Size(168, 30);
+            UsePseudoTaraCheckBox.TabIndex = 35;
+            UsePseudoTaraCheckBox.Text = "Внедрять псевдотару";
+            UsePseudoTaraCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // LogErrorsCheckBox
+            // 
+            LogErrorsCheckBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            LogErrorsCheckBox.AutoSize = true;
+            LogErrorsCheckBox.BackColor = Color.Black;
+            LogErrorsCheckBox.Depth = 0;
+            LogErrorsCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            LogErrorsCheckBox.ForeColor = Color.CornflowerBlue;
+            LogErrorsCheckBox.Location = new Point(941, 238);
+            LogErrorsCheckBox.Margin = new Padding(0);
+            LogErrorsCheckBox.MouseLocation = new Point(-1, -1);
+            LogErrorsCheckBox.Name = "LogErrorsCheckBox";
+            LogErrorsCheckBox.Ripple = true;
+            LogErrorsCheckBox.Size = new Size(168, 30);
+            LogErrorsCheckBox.TabIndex = 36;
+            LogErrorsCheckBox.Text = "Внедрять псевдотару";
+            LogErrorsCheckBox.UseVisualStyleBackColor = false;
+            // 
             // MainForm
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -836,5 +876,7 @@ namespace Rodana.ZMK
         private Button SaveSettingsButton;
         private FolderBrowserDialog folderBrowserDialog1;
         private OpenFileDialog openFileDialog1;
+        private MaterialCheckBox UsePseudoTaraCheckBox;
+        private MaterialCheckBox LogErrorsCheckBox;
     }
 }

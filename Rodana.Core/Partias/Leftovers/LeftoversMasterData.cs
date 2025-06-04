@@ -86,22 +86,22 @@ namespace Rodana.Core.Partias.Leftovers
                 dicAll.AddRange(dic6.Where(comparer));
 
             // ХОО
-            var key2 = (OrderID.EmptyOrder, op.Nomenklature, op.Specification);
+            var key2 = (OrderID.EmptyObject, op.Nomenklature, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key2, out var dic2))
                 dicAll.AddRange(dic2.Where(comparer));
 
             // ХОХ
-            var key4 = (OrderID.EmptyOrder, op.Nomenklature, Uco.EmptyObject);
+            var key4 = (OrderID.EmptyObject, op.Nomenklature, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key4, out var dic4))
                 dicAll.AddRange(dic4.Where(comparer));
 
             // ХХО
-            var key3 = (OrderID.EmptyOrder, Uco.EmptyObject, op.Specification);
+            var key3 = (OrderID.EmptyObject, Uco.EmptyObject, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key3, out var dic3))
                 dicAll.AddRange(dic3.Where(comparer));
 
             // ХХХ
-            var key5 = (OrderID.EmptyOrder, Uco.EmptyObject, Uco.EmptyObject);
+            var key5 = (OrderID.EmptyObject, Uco.EmptyObject, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key5, out var dic5))
                 dicAll.AddRange(dic5.Where(comparer));
 

@@ -155,10 +155,23 @@ namespace Rodana.Core.Stages
         public bool RCRouteIsRC { get; set; }
         #endregion
 
-        #region Тара
+        #region Тара и намотка
         public Uco EndTara { get; set; }
         public Uco CurrentTara { get; set; }
         public double CurrentTaraMaxCapacity { get; set; }
+        private bool? noCheckNamotka;
+
+        internal bool NoCheckNamotka
+        {
+            get
+            {
+                if (!noCheckNamotka.HasValue)
+                {
+                    noCheckNamotka = SessionLink.MasterDataLinks.TarasMasterData.NotCheckNamotka(this);
+                }
+                return noCheckNamotka.Value;
+            }
+        }
         #endregion
 
         #region Реквизиты
@@ -170,7 +183,7 @@ namespace Rodana.Core.Stages
         #region Важные Гуиды и их получение
         public Guid GetOrderOrPartiaCode()
         {
-            return GetPartiaCode() ?? OrderLink.OrderID.OrderName.Code;
+            return GetPartiaCode() ?? OrderLink.OrderID.Object.Code;
         }
 
         public Guid? GetPartiaCode()
