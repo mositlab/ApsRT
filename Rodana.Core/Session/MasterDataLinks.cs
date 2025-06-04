@@ -33,7 +33,7 @@ namespace Rodana.Core.Session
         public MergeConditionsMasterData MergeConditionsMasterData { get; set; } = new();
 
         public CentersMasterData CentersMasterData { get; set; }
-        public ParallelCentersVariantsMasterData ParallelCentersVariantsMasterData { get; set; } = new();
+        public ParallelPlanningMasterData ParallelPlanningMasterData { get; set; } = new();
         public WorkingIntervalsMasterData WorkingIntervalsMasterData { get; set; }
 
         /// <summary>

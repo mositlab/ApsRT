@@ -1,15 +1,26 @@
-﻿using System;
+﻿using Rodana.Core.Stages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Attributes;
+using UniversalPack.Common.DataLoader;
 
 namespace Rodana.Core.Orders
 {
-    public class OrderBaseModel
+    public class OrderBaseModel: BaseDataLoaderModel
     {
-        //Заказ, ПартияГП
+        private static readonly ICollection<FieldConverterInfo> _fieldConverters;
+
+        static OrderBaseModel()
+        {
+            _fieldConverters = DefineFieldConverters<OrderBaseModel>();
+        }
+
+        protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
+
+        [DataRecordOrderIDColumn("Заказ_GUID", "Заказ", "ПартияГП")]
         public OrderID OrderID { get; set; }
 
         [DataRecordColumn("ДатаИсполненияПоЗаказу")]

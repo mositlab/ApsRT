@@ -18,6 +18,11 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UniversalPack.Common.Drawing;
 using System.Data;
 using UniversalPack.Common.DataLoader;
+using Google.OrTools.ConstraintSolver;
+using Rodana.Core.Stages.Hoppers;
+using System.Numerics;
+using Rodana.Core.Props;
+using UniversalPack.Extensions;
 
 namespace Rodana.Core.Stages.MasterData
 {
@@ -87,6 +92,7 @@ namespace Rodana.Core.Stages.MasterData
             var session = stage.SessionLink;
             var masterDatas = session.MasterDataLinks;
             var centersMasterData = masterDatas.CentersMasterData;
+            var parrMasterData = masterDatas.ParallelPlanningMasterData;
             #region Назначаем РЦ
             if (stage.RCRouteIsRC)
             {
@@ -124,20 +130,80 @@ namespace Rodana.Core.Stages.MasterData
             {
                 foreach (var rc in stage.PossibleCenters)
                 {
-                    stage.ParallelPlanningIDs.Add(rc, ParallelPlanningHelper.GetParPlanID(rc, stage.OperVid, stage.RawData));
+                    stage.ParallelPlanningIDs.Add(rc, parrMasterData.GetParPlanID(rc, stage.OperationVid, stage));
                 }
             }
             else
             {
-                stage.ParallelPlanningIDs.Add(stage.Center, ParallelPlanningHelper.GetParPlanID(stage.Center, stage.OperVid, stage.RawData));
+                stage.ParallelPlanningIDs.Add(stage.Center, parrMasterData.GetParPlanID(stage.Center, stage.OperationVid, stage));
             }
             #endregion
+        }
+
+        public void AddDependenciesConnection(DependencyDataLoaderModel model)
+        {
+            var guid = model.ThisGuid;
+            var guidNext = model.NextGuid;
+            if (guid != Guid.Empty && guidNext != Guid.Empty)
+            {
+                bool thisYes = model.ThisIsInPlan;
+                bool nextYes = model.NextIsInPlan;
+                int places = model.PlacesCount;
+
+                if (GUIDToIndex.TryGetValue(guid, out var PrevID) &&
+                    GUIDToIndex.TryGetValue(guidNext, out var ID) &&
+                    AllStages.ContainsKey(PrevID) &&
+                    AllStages.ContainsKey(ID))
+                {
+                    AllStages[ID].Prevs.Add(PrevID);
+
+                    // Если этот предок не вспомогательный, то прибавляем счетчик норм детей
+                    if (!AllStages[PrevID].IsVspom) AllStages[ID].PrevsNormCount++;
+
+                    AllStages[PrevID].Nexts.Add(ID);
+                }
+
+
+                if (!thisYes && nextYes)
+                {
+                    if (GUIDToIndex.TryGetValue(guidNext, out var nID) && AllStages.ContainsKey(nID))
+                    {
+                        if (model.VspomTara)
+                            AllStages[nID].GhostVspomPrevsPlacesCount += places;
+                        else
+                            AllStages[nID].GhostNormPrevsPlacesCount += places;
+                    }
+                }
+            }
+        }
+
+        public void FixVPZDependencies()
+        {
+
+            Queue<(int id, bool vpz, bool fact)> toCheck = new();
+
+            foreach (var op in AllStages)
+            {
+                if (!op.Value.Fixed && (op.Value.VPZ || op.Value.IsFact)) toCheck.Enqueue((op.Value.Index, op.Value.VPZ, op.Value.IsFact));
+            }
+
+            while (toCheck.Count > 0)
+            {
+                var el = toCheck.Dequeue();
+                AllStages[el.id].VPZ |= el.vpz;
+                AllStages[el.id].IsFact |= el.fact;
+                foreach (var prev in AllStages[el.id].Prevs)
+                {
+                    if (!AllStages[prev].Fixed) toCheck.Enqueue((prev, el.vpz, el.fact));
+                }
+            }
         }
 
         public void AddNewStage(Stage stage, OrderBaseModel orderModel, IDataReader data, DataLoaderOptions options)
         {
             var session = stage.SessionLink;
             var masterDatas = session.MasterDataLinks;
+            var PropsMasterData = masterDatas.PropsMasterData;
             #region Проверка на дубликат
             if (GUIDToIndex.ContainsKey(stage.GUID))
             {
@@ -148,6 +214,18 @@ namespace Rodana.Core.Stages.MasterData
 
             stage.Index = GUIDToIndex.Count;
             GUIDToIndex.Add(stage.GUID, stage.Index);
+
+            #region Реквизиты, или ПРОПСЫ
+
+            stage.NumberProps = new float?[PropsMasterData.PropNumberToIndex.Count];
+            foreach (var prop in PropsMasterData.PropNumberToIndex) stage.NumberProps[prop.Value] = data[prop.Key].ConvertToFloatByAnyCost();
+
+            stage.GuidProps = new Guid?[PropsMasterData.PropGuidToIndex.Count];
+            foreach (var prop in PropsMasterData.PropGuidToIndex) stage.GuidProps[prop.Value] = data[prop.Key].ProcessGuid(options.GuidArrrangeType, true);
+
+            stage.StringProps = new string[PropsMasterData.PropStringToIndex.Count];
+            foreach (var prop in PropsMasterData.PropStringToIndex) stage.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
+            #endregion
 
             ProcessRCData(stage);
 
@@ -201,6 +279,7 @@ namespace Rodana.Core.Stages.MasterData
                 stage.RechangeParameters[i] = new StageRechangeParam(stage, masterDatas.RechangesMasterData.ExistingCriterias[i]);
                 stage.RechangeParameters[i].SetData(data, options);
             }
+
 
             stage.Color = Colors.NewRandomColor();
         }

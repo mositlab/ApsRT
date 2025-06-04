@@ -345,6 +345,31 @@ namespace Rodana.Core.Stages
         }
         #endregion
 
+        #region Данные зависимостей
+        /// <summary>
+        /// Количество мест у предыдущих этапов, не попавших в план, но имевших информацию в таблице зависимостей (основная тара)
+        /// </summary>
+        internal int GhostNormPrevsPlacesCount;
+        /// <summary>
+        /// Количество мест у предыдущих этапов, не попавших в план, но имевших информацию в таблице зависимостей (вспомогательная тара тара)
+        /// </summary>
+        internal int GhostVspomPrevsPlacesCount;
+        /// <summary>
+        /// список пред этапов
+        /// </summary>
+        internal List<int> Prevs;
+
+        /// <summary>
+        /// Список предков, которые НЕ вспомогательные. Этот счётчик заполняется при загрузке и выручает при вычислении партий
+        /// </summary>
+        internal int PrevsNormCount;
+
+        /// <summary>
+        /// список дочерних этапов
+        /// </summary>
+        internal List<int> Nexts;
+        #endregion
+
         #region Наладочные длины
         [DataRecordColumn("НаладочнаяДлина", defaultIfFail: true)]
         public float NeededNaladLengthTableValue { get; set; }
@@ -352,6 +377,13 @@ namespace Rodana.Core.Stages
         public bool NeededNaladIsFirstInLaunch { get; set; }
 
         public (NaladLengthValue Length, bool IsFirst)? NeededNaladLength { get; set; }
+        #endregion
+
+        #region Параллельное планирование
+        /// <summary>
+        /// ID параллельного планирования, нужный для разделения операций
+        /// </summary>
+        internal Dictionary<Uco, int> ParallelPlanningIDs;
         #endregion
     }
 

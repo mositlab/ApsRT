@@ -1,7 +1,9 @@
 ﻿using InfimumMES.Rechanges.Hoppers;
 using Rodana.Core.Centers.Hoppers;
 using Rodana.Core.Hoppers;
+using Rodana.Core.Orders;
 using Rodana.Core.Partias.Leftovers;
+using Rodana.Core.Planning.ParallelPlanning;
 using Rodana.Core.Stages.MasterData;
 using System;
 using System.Data;
@@ -34,10 +36,12 @@ namespace Rodana.Core.Stages.Hoppers
         void IHopperInterface.OnLoading(int RowIndex, IDataReader data, DataLoaderOptions options)
         {
             var model = new Stage(sessionLink);
+            var modelo = new OrderBaseModel();
 
             model.LoadFromDataRecord(data, options);
+            modelo.LoadFromDataRecord(data, options);
 
-            StagesMasterData.AddNewStage(model);
+            StagesMasterData.AddNewStage(model, modelo, data, options);
         }
 
         void IHopperInterface.ActionFile(string filename)

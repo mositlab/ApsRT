@@ -45,8 +45,8 @@ namespace Rodana.Core.Partias.Leftovers
         [DataRecordCodedObjectColumn("Спецификация_GUID", "Спецификация")]
         public Uco Specification { get; set; }
 
-        [DataRecordCodedObjectColumn("Заказ_GUID", "Заказ")]
-        public Uco Order { get; set; }
+        [DataRecordOrderIDColumn("Заказ_GUID", "Заказ")]
+        public Orders.OrderID Order { get; set; }
 
         [DataRecordColumn("ГруппаЗаменяемостиМатериалов_GUID")]
         public Guid MaterialsGroup { get; set; }

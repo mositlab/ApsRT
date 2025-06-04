@@ -12,6 +12,7 @@ using System.Collections.Frozen;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using Google.OrTools.Sat;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Rodana.Core.Orders;
 
 namespace Rodana.Core.Partias.Leftovers
 {
@@ -51,7 +52,7 @@ namespace Rodana.Core.Partias.Leftovers
 
         internal void AddLeftoversGroupsInfo(LeftoverGroupDataLoaderModel model)
         {
-            (Orders.OrderID Order, Uco Nomenklature, Uco Specification) key = (new Orders.OrderID(new Uco(model.Order.Code, model.Order.Label), 1), model.Nomenklature, model.Specification);
+            (Orders.OrderID Order, Uco Nomenklature, Uco Specification) key = (model.Order, model.Nomenklature, model.Specification);
             LeftoversGroupsInfo.TryAdd(key, new());
             LeftoversGroupsInfo[key].TryAdd(model.MaterialsGroup, new());
             LeftoversGroupsInfo[key][model.MaterialsGroup].Add(new LeftoverReplacementInfo(model));
@@ -65,42 +66,42 @@ namespace Rodana.Core.Partias.Leftovers
             // Найдем группу заменяемости по полным данным
 
             // ООО
-            var key1 = (op.OrderN, op.Nomenklature, op.Specification);
+            var key1 = (op.OrderLink.OrderID, op.Nomenklature, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key1, out var dic1))
                 dicAll.AddRange(dic1.Where(comparer));
 
             // ООХ
-            var key8 = (op.OrderN, op.Nomenklature, Uco.EmptyObject);
+            var key8 = (op.OrderLink.OrderID, op.Nomenklature, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key8, out var dic8))
                 dicAll.AddRange(dic8.Where(comparer));
 
             // ОХО
-            var key7 = (op.OrderN, Uco.EmptyObject, op.Specification);
+            var key7 = (op.OrderLink.OrderID, Uco.EmptyObject, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key7, out var dic7))
                 dicAll.AddRange(dic7.Where(comparer));
 
             // ОХХ
-            var key6 = (op.OrderN, Uco.EmptyObject, Uco.EmptyObject);
+            var key6 = (op.OrderLink.OrderID, Uco.EmptyObject, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key6, out var dic6))
                 dicAll.AddRange(dic6.Where(comparer));
 
             // ХОО
-            var key2 = (new Orders.OrderID(Uco.EmptyObject, 1), op.Nomenklature, op.Specification);
+            var key2 = (OrderID.EmptyOrder, op.Nomenklature, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key2, out var dic2))
                 dicAll.AddRange(dic2.Where(comparer));
 
             // ХОХ
-            var key4 = (new Orders.OrderID(Uco.EmptyObject, 1), op.Nomenklature, Uco.EmptyObject);
+            var key4 = (OrderID.EmptyOrder, op.Nomenklature, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key4, out var dic4))
                 dicAll.AddRange(dic4.Where(comparer));
 
             // ХХО
-            var key3 = (new Orders.OrderID(Uco.EmptyObject, 1), Uco.EmptyObject, op.Specification);
+            var key3 = (OrderID.EmptyOrder, Uco.EmptyObject, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key3, out var dic3))
                 dicAll.AddRange(dic3.Where(comparer));
 
             // ХХХ
-            var key5 = (new Orders.OrderID(Uco.EmptyObject, 1), Uco.EmptyObject, Uco.EmptyObject);
+            var key5 = (OrderID.EmptyOrder, Uco.EmptyObject, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key5, out var dic5))
                 dicAll.AddRange(dic5.Where(comparer));
 

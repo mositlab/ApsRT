@@ -20,6 +20,11 @@ namespace Rodana.Core.Props
             PropLabel = propLabel;
         }
 
+        public override string ToString()
+        {
+            return $"{PropLabel} [{NumberIndex},{GuidIndex},{StringIndex}]";
+        }
+
         internal string PropLabel { get; }
 
         internal int NumberIndex { get; } = -1;
