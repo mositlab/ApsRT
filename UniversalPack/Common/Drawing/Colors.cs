@@ -8,5 +8,11 @@ namespace UniversalPack.Common.Drawing
         public static Color MOSITLAB_BLUE_DARK { get; } = Color.FromArgb(5, 95, 103);
         public static Color MOSITLAB_RED { get; } = Color.FromArgb(234, 84, 84);
         public static Color MOSITLAB_RED_DARK { get; } = Color.FromArgb(180, 60, 61);
+
+        public static Color NewRandomColor()
+        {
+            var r = Random.Shared;
+            return Color.FromArgb(r.Next(100, 256), r.Next(100, 256), r.Next(100, 256));
+        }
     }
 }

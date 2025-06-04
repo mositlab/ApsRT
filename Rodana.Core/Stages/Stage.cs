@@ -11,14 +11,33 @@ using Rodana.Core.Rechanges.RechangesEngine;
 using Rodana.Core.Rechanges;
 using Rodana.Core.Rechanges.MasterData;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
+using Rodana.Core.Partias.Materials;
+using UniversalPack.Common.DataLoader;
+using UniversalPack.Attributes;
+using UniversalPack;
+using Rodana.Core.Orders;
+using Rodana.Core.NaladLengths;
+using System.Drawing;
 
 namespace Rodana.Core.Stages
 {
     /// <summary>
     /// Элементарный этап, основная единица планирования.
     /// </summary>
-    public class Stage
+    public class Stage: BaseDataLoaderModel
     {
+        #region Код от BaseLoader
+        private static readonly ICollection<FieldConverterInfo> _fieldConverters;
+
+        static Stage()
+        {
+            _fieldConverters = DefineFieldConverters<Stage>();
+        }
+
+        protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
+        #endregion
+
         #region Основы
         public Session.Session SessionLink { get; }
 
@@ -27,15 +46,27 @@ namespace Rodana.Core.Stages
             SessionLink = session;
         }
 
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Index, CurrentTara.GetHashCode());
+        }
+
+        public override string ToString()
+        {
+            return $"Оп. {(EasyFlag.HasValue ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{GUID}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
+        }
+
         /// <summary>
         /// Индекс, который проще кода, используется при быстрых расчётах повсюду.
         /// </summary>
-        public int Index { get; init; }
+        public int Index { get; set; }
 
         /// <summary>
         /// Уникальный идентификатор этапа.
         /// </summary>
-        public Guid GUID { get; init; }
+
+        [DataRecordColumn("ИдентификаторОперации")]
+        public Guid GUID { get; set; }
 
         #endregion
 
@@ -44,24 +75,71 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Вид операции
         /// </summary>
+        [DataRecordCodedObjectColumn("ВидТехнологическойОперации_GUID", "ВидТехнологическойОперации")]
         public Uco OperationVid { get; set; }
+
+        /// <summary>
+        /// Номенклатура
+        /// </summary>
+        [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
+
+        /// <summary>
+        /// Продукция
+        /// </summary>
+        [DataRecordCodedObjectColumn("Продукция_GUID", "Продукция")]
         public Uco Production { get; set; }
+
+        /// <summary>
+        /// Подразделение
+        /// </summary>
+        [DataRecordCodedObjectColumn("Подразделение_GUID", "Подразделение")]
         public Uco Subdivision { get; set; }
+
+        /// <summary>
+        /// Спецификация
+        /// </summary>
+        [DataRecordCodedObjectColumn("Спецификация_GUID", "Спецификация")]
         public Uco Specification { get; set; }
+
+        /// <summary>
+        /// Характеристика
+        /// </summary>
+        [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика", true)]
         public Uco Characteristics { get; set; }
 
         #endregion
 
         #region Основные флаги
+
+        [DataRecordColumn("НеПерепланировать", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool Fixed { get; set; }
+
+        [DataRecordColumn("ВключенаВПЗ", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool VPZ { get; set; }
+
+        [DataRecordColumn("ОтражениеФакта", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsFact { get; set; }
+
+        [DataRecordColumn("РучноеФормированиеПартииПФ", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool IsUserHandled { get; set; }
+
+        [DataRecordColumn("НеОбъединять", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsLast { get; set; }
+
+        [DataRecordColumn("ФиктивнаяОперация", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsFictive { get; set; }
-        bool NoChangeTara { get; set; }
-        bool UsesVspomTara { get; set; }
-        bool IsVspom { get; set; }
+
+        [DataRecordColumn("НеМенятьТару", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool NoChangeTara { get; set; }
+
+        [DataRecordColumn("НаВспомогательнуюТару", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool UsesVspomTara { get; set; }
+
+        [DataRecordColumn("ВспомогательнаяОперация", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool IsVspom { get; set; }
+
+        [DataRecordColumn("НаОдномРЦ", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool OnOneRC { get; set; }
         #endregion
 
@@ -69,7 +147,11 @@ namespace Rodana.Core.Stages
         public Uco OriginalCenter { get; set; }
         public Uco Center { get; set; }
         public List<Uco> PossibleCenters { get; set; }
+
+        [DataRecordCodedObjectColumn("РабочийЦентрМаршрута_GUID", "РабочийЦентрМаршрута")]
         public Uco RCRoute { get; set; }
+
+        [DataRecordColumn("ЭтоРЦ", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool RCRouteIsRC { get; set; }
         #endregion
 
@@ -85,8 +167,91 @@ namespace Rodana.Core.Stages
         public string[] StringProps { get; set; }
         #endregion
 
+        #region Важные Гуиды и их получение
+        public Guid GetOrderOrPartiaCode()
+        {
+            return GetPartiaCode() ?? OrderLink.OrderID.OrderName.Code;
+        }
+
+        public Guid? GetPartiaCode()
+        {
+            return CustomPartiaGuid ?? PartiaPF;
+        }
+        public Guid? PartiaPF => OrderLink?.PartiaPF ?? null;
+        /// <summary>
+        /// Это тоже флаг для вывода - общий этап, для упрощения. В вычислении не используется
+        /// </summary>
+        internal Guid? CustomPartiaGuid;
+
+
+        internal bool IsCustomModelling; // Если да - то будет юзать номер партии и моделирования ниже
+                                   // а так как схлопнуться может что угодно с чем угодно, то у каждой операции есть эти поля
+        internal Guid CustomModelling;
+        /// <summary>
+        /// гуид моделирования, он из меса приходит
+        /// </summary>
+        [DataRecordCodedObjectColumn("ИдентификаторОбъединенияПФ", "ОбъединениеПФ", defaultIfFail: true)]
+        public Uco MesModelling { get; set; }
+
+        /// <summary>
+        /// Этот общий флаг пришёл из МЕСа?
+        /// </summary>
+        internal bool EasyFlagIsFromMes;
+
+        /// <summary>
+        /// Это флаг для вывода - общий этап, для упрощения.
+        /// </summary>
+        public Guid? EasyFlag { get; set; }
+
+        /// <summary>
+        /// А это бекап флага на случай стирания всего и вся
+        /// </summary>
+        [DataRecordColumn("ИдентификаторОбщегоЭтапа")]
+        public Guid? EasyFlagOriginal { get; set; }
+
+        #endregion
+
         #region Важные данные
 
+        public Color Color { get; set; }
+
+        public OrderBaseModel OrderLink { get; set; }
+
+        /// <summary>
+        /// Ссылка на материал - отдельный класс, нужен только в партиях
+        /// </summary>
+        public StageMaterialsInfo StageMaterialsInfo { get; set; }
+
+        [DataRecordColumn("Регистратор")]
+        public string Registrator { get; set; }
+
+        //ЕдиницаИзмеренияКлассификатор_GUID
+        public UcoDU EdIzmClassificator { get; set; }
+
+        // Уровень
+        public int Level { get; set; }
+
+        // НомерПовива
+        public int Poviv { get; set; }
+
+        //ВремяНачалаФакт
+        public DateTime? StartTimeFact { get; set; }
+
+        //ПовивыОбъединены
+        public bool PovivsMerged { get; set; }
+
+        //КоличествоМест
+        public int PlacesCount { get; set; }
+
+        #endregion
+
+        #region Информация из предыдущего плана
+
+        //ДатаНачалаПлан - предыдущая дата из предыдущего расчёта
+        public DateTime? PrevDateTime { get; set; }
+
+        //РабочийЦентрПлан_GUID
+        public Uco? RecommendedRC { get; set; }
         #endregion
 
         #region Переналадки
@@ -97,7 +262,7 @@ namespace Rodana.Core.Stages
         /// один раз - когда я впервые задаю данные в хоппере операций,
         /// во второй раз её можно вызвать после работы партий, там как минимум меняется количество мест, что тоже переналадка
         /// </summary>
-        internal void BakeAllIndexDiapazons(RechangesEngineData engineData)
+        public void BakeAllIndexDiapazons(RechangesEngineData engineData)
         {
             var rechangesMasterData = SessionLink.MasterDataLinks.RechangesMasterData;
             for (int i = 0; i < RechangeParameters.Length; i++)
@@ -111,7 +276,28 @@ namespace Rodana.Core.Stages
 
         #endregion
 
+        #region Количество этапа и ед. изм.
+
+        //Количество
+        public double CountMES { get; set; }
+
+        //КоличествоИсходногоЭтапа
+        public double Count { get; set; }
+
+        //ЕдиницаИзмерения
+        public DimensionUnit EdIzm { get; set; }
+
+        //МетодРасчетаНамоток
+        public DimensionUnit UsedCalcMethod { get; set; }
+
+        //ВесКгКм
+        public double? KgKm { get; set; }
+        #endregion
+
         #region Длительность
+
+        //ДлительностьВыполненияНорма
+        public float DurationNorm { get; set; }
 
         /// <summary>
         /// Длительность этого этапа вне зависимости от РЦ
@@ -128,9 +314,9 @@ namespace Rodana.Core.Stages
         Dictionary<Uco, int> CashedDurations;
 
         [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
-        public int GetDuration() => Duration.Value;
+        public int GetDuration() => Duration.HasValue ? Duration.Value : SessionLink.SettingsController.CurrentSettings.OriginalDurationTime;
 
-        public int GetDuration(Uco RC, Session.Session sessionLink)
+        public int GetDuration(Uco RC)
         {
             if (Duration.HasValue) return Duration.Value;
 
@@ -141,10 +327,10 @@ namespace Rodana.Core.Stages
 
             if (CashedDurations != null && CashedDurations.TryGetValue(RC, out specifiedDuration)) return specifiedDuration;
 
-            var currSets = sessionLink.SettingsController.CurrentSettings;
+            var currSets = SessionLink.SettingsController.CurrentSettings;
 
             // Если нет информации там, ищу в базах данных
-            if (sessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.AnyDurations && sessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.TryGetTypicalDuration(RC, OperationVid, out var time))
+            if (SessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.AnyDurations && SessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.TryGetTypicalDuration(RC, OperationVid, out var time))
             {
                 if (currSets.CacheStageDurations)
                 {
@@ -157,6 +343,15 @@ namespace Rodana.Core.Stages
             if (currSets.CacheStageDurations) CashedDuration = currSets.OriginalDurationTime;
             return currSets.OriginalDurationTime;
         }
+        #endregion
+
+        #region Наладочные длины
+        [DataRecordColumn("НаладочнаяДлина", defaultIfFail: true)]
+        public float NeededNaladLengthTableValue { get; set; }
+        //ПервыйВЗапуске
+        public bool NeededNaladIsFirstInLaunch { get; set; }
+
+        public (NaladLengthValue Length, bool IsFirst)? NeededNaladLength { get; set; }
         #endregion
     }
 

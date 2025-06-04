@@ -10,11 +10,12 @@ using UniversalPack.Common;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using Rodana.Core.Rechanges.MasterData;
 using Rodana.Core.Rechanges;
+using Rodana.Core.Centers.Hoppers;
 
 namespace InfimumMES.Rechanges.Hoppers
 {
     [Hopper(Label = "Переналадки", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = true, UsesGuid = false,
-        NeededHoppers = new[] { nameof(CharsRCHopper), nameof(RechangesCriteriasHopper)/*"CharsRC", "Opers", "AltRCs"*/ })]
+        NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesCriteriasHopper)/*"CharsRC", "Opers", "AltRCs"*/ })]
     internal class RechangesHopper : IHopperInterface
     {
 

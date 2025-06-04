@@ -8,11 +8,12 @@ using UniversalPack.Common.DataLoader;
 using Rodana.Core.Session;
 using Newtonsoft.Json.Linq;
 using Rodana.Core.Rechanges.MasterData;
+using Rodana.Core.Centers.Hoppers;
 
 namespace Rodana.Core.Rechanges.Hoppers
 {
     [Hopper(Label = "Доп действия", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = true, UsesGuid = false,
-        NeededHoppers = new[] { nameof(CharsRCHopper), nameof(RechangesCriteriasHopper), nameof(AdditionalParamsHopper) })]
+        NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesCriteriasHopper), nameof(AdditionalParamsHopper) })]
     internal class AdditionalActionsHopper : IHopperInterface
     {
         AdditionalConditionsMasterData AdditionalConditionsMasterData;

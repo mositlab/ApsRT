@@ -49,7 +49,7 @@ namespace Rodana.Core.Rechanges
         /// <param name="masterDataLink">Ссылка на НСИ переналадок, откуда ему брать индексы диапазонов</param>
         internal void BakeIndexDiapazons(int criteriaIndex, RechangesEngineData engineData)
         {
-            var list = StageLink.PossibleCenters ?? new() { StageLink.OrigCenter };
+            var list = StageLink.PossibleCenters ?? new() { StageLink.OriginalCenter };
             var masterDataLink = StageLink.SessionLink.MasterDataLinks.RechangesMasterData;
             foreach (var rc in list)
             {

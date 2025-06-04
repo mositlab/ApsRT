@@ -31,7 +31,7 @@ namespace Rodana.Core.Session
 
         public ConcurrentLogger AssignedLogger { get; init; }
 
-        public event Action OnSessionDataLoaded;
+        public event Action<Session> OnSessionDataLoaded;
 
         Stopper KillMe;
         Stopper StopMe;
@@ -168,7 +168,11 @@ namespace Rodana.Core.Session
         async public Task LoadDataAsync()
         {
             await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(SettingsController.CurrentSettings.HoppersPaths));
-            OnSessionDataLoaded?.Invoke();
+
+            // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
+            foreach (var op in MasterDataLinks.StagesMasterData.AllStages) op.Value.BakeAllIndexDiapazons(null);
+
+            OnSessionDataLoaded?.Invoke(this);
         }
 
         void CheckFiles()

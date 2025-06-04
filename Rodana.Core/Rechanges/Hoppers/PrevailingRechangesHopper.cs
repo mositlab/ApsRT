@@ -8,11 +8,12 @@ using Rodana.Core.Hoppers;
 using UniversalPack.Common.DataLoader;
 using Rodana.Core.Session;
 using Rodana.Core.Rechanges.MasterData;
+using Rodana.Core.Centers.Hoppers;
 
 namespace Rodana.Core.Rechanges.Hoppers
 {
     [Hopper(Label = "Превалирующие переналадки", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false,
-        NeededHoppers = new[] { nameof(CharsRCHopper), nameof(RechangesHopper)/*"CharsRC", "Opers", "AltRCs"*/ })]
+        NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesHopper)/*"CharsRC", "Opers", "AltRCs"*/ })]
     internal class PrevailingRechangesHopper : IHopperInterface
     {
         RechangesMasterData RechangesMasterData;
@@ -39,7 +40,7 @@ namespace Rodana.Core.Rechanges.Hoppers
 
         public void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            var model = new PrevailingRechangesDataLoaderModel<Guid>();
+            var model = new PrevailingRechangesDataLoaderModel();
             model.LoadFromDataRecord(data, options);
             RechangesMasterData.AddPrevailingRechange(model);
         }

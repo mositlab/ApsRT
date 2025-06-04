@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Rodana.Core.Props;
 using Rodana.Core.Stages;
+using System.Linq;
 using System.Text;
+using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.MergeConditions
@@ -260,14 +262,14 @@ namespace Rodana.Core.Partias.MergeConditions
             }
 
             // проверка материалов
-            if (op1.MaterialLink == null)
+            if (op1.StageMaterialsInfo == null)
             {
                 reasonBuilder.Append($"у {op1.Index} пустой материал");
                 reason = reasonBuilder.ToString();
                 smallreason = "пустой материал";
                 return false;
             }
-            if (op2.MaterialLink == null)
+            if (op2.StageMaterialsInfo == null)
             {
                 reasonBuilder.Append($"у {op2.Index} пустой материал");
                 reason = reasonBuilder.ToString();
@@ -276,9 +278,13 @@ namespace Rodana.Core.Partias.MergeConditions
             }
 
             // сравнение материалов
-            if (condition.CheckMaterials && !op1.MaterialLink.IsEqualTo(op2.MaterialLink))
+            if (condition.CheckMaterials && !op1.StageMaterialsInfo.IsEqualTo(op2.StageMaterialsInfo))
             {
-                reasonBuilder.Append($"разные материалы - {op1.MaterialLink.Datas.Select(x => $"'{x.Material}' (хар. {x.Charac})").Join("; ")} и {op2.MaterialLink.Datas.Select(x => $"'{x.Material}' (хар. {x.Charac})").Join("; ")}");
+                //reasonBuilder.Append($"разные материалы - {op1.MaterialLink.Datas.Select(x => $"'{x.Material}' (хар. {x.Charac})").Join("; ")} и {op2.MaterialLink.Datas.Select(x => $"'{x.Material}' (хар. {x.Charac})").Join("; ")}");
+                //reason = reasonBuilder.ToString();
+                //smallreason = "разные материалы";
+
+                reasonBuilder.Append($"разные материалы - {op1.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")} и {op2.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")}");
                 reason = reasonBuilder.ToString();
                 smallreason = "разные материалы";
                 return false;

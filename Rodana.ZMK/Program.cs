@@ -7,6 +7,7 @@ using Rodana.Core;
 using System.Configuration;
 using System.Data;
 using System.Windows;
+using Rodana.Core.Session;
 
 namespace Rodana.ZMK
 {
@@ -46,9 +47,18 @@ namespace Rodana.ZMK
         }
 
 
-        private static void On_ZMK_DataLoaded()
+        private static void On_ZMK_DataLoaded(Session session)
         {
-
+            var options = session.SessionOptions;
+            var allStages = session.MasterDataLinks.StagesMasterData.AllStages;
+            if (allStages.Count == 0)
+            {
+                if (!options.IsSilent)
+                {
+                    MessageBox.Show("АПС не может продолжать работу - таблица операций пуста.", "Пустая таблица операций", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                if (options.IsSilent) session.EndSession(600); // Пустая табличка операций!
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace Rodana.Core.Stages
+namespace Rodana.Core.Stages.MasterData
 {
 
     /// <summary>

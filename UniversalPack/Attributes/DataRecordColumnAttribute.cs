@@ -30,7 +30,12 @@ namespace UniversalPack.Attributes
             /// <summary>
             /// Конвертация в byte, где 0 - число, 1 - гуид, 2 - строка
             /// </summary>
-            StringToTypeIndex
+            StringToTypeIndex,
+
+            /// <summary>
+            /// Конвертация в int, где 0 - Высокий, 1 - Средний, иначе - низкий
+            /// </summary>
+            StringToPriority
         }
 
         /// <summary>

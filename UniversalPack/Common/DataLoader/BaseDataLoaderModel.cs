@@ -152,6 +152,8 @@ namespace UniversalPack.Common.DataLoader
                     return (e, opts) => ConvertIsYesField(e, attribute);
                 case DataRecordColumnAttribute.CustomConversionModes.StringToTypeIndex:
                     return (e, opts) => ConvertTypeIndexField(e, attribute);
+                case DataRecordColumnAttribute.CustomConversionModes.StringToPriority:
+                    return (e, opts) => ConvertPriorityField(e, attribute);
                 default:
                     throw new InvalidOperationException();
             }
@@ -337,6 +339,32 @@ namespace UniversalPack.Common.DataLoader
             {
                 "Число" => 0,
                 "Идентификатор" => 1,
+                _ => 2
+            });
+        }
+
+        private static object ConvertPriorityField(IDataRecord record, DataRecordColumnAttribute attribute)
+        {
+            var value = record[attribute.Name];
+
+            if (value is null || value == DBNull.Value)
+            {
+                return attribute.DefaultIfNull
+                    ? 2
+                    : null;
+            }
+
+            if (value is int byteValue)
+            {
+                return byteValue;
+            }
+
+            var strValue = value?.ToString() ?? value?.ToString() ?? string.Empty;
+
+            return (int)(strValue switch
+            {
+                "Высокий" => 0,
+                "Средний" => 1,
                 _ => 2
             });
         }

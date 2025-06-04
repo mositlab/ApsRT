@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Rodana.Core.Stages;
 using Rodana.Core.Taras;
 using Rodana.Core.Centers;
 using Rodana.Core.Props;
 using Rodana.Core.Rechanges.MasterData;
 using Rodana.Core.Centers.MasterData;
 using Rodana.Core.Partias.MergeConditions;
+using Rodana.Core.Partias.Leftovers;
+using Rodana.Core.Stages.MasterData;
+using Rodana.Core.Planning.ParallelPlanning;
+using Rodana.Core.Orders;
 
 namespace Rodana.Core.Session
 {
@@ -20,13 +23,18 @@ namespace Rodana.Core.Session
             CentersMasterData = new CentersMasterData(SessionLink);
             RechangesMasterData = new RechangesMasterData(SessionLink);
             AdditionalConditionsMasterData = new AdditionalConditionsMasterData(SessionLink);
+            WorkingIntervalsMasterData = new WorkingIntervalsMasterData(SessionLink);
         }
 
-        public MergeConditionsMasterData MergeConditionsMasterData { get; set; }
+        public OrdersMasterData OrdersMasterData { get; set; } = new();
+
+        public LeftoversMasterData LeftoversMasterData { get; set; } = new();
+
+        public MergeConditionsMasterData MergeConditionsMasterData { get; set; } = new();
 
         public CentersMasterData CentersMasterData { get; set; }
         public ParallelCentersVariantsMasterData ParallelCentersVariantsMasterData { get; set; } = new();
-        public WorkingIntervalsMasterData WorkingIntervalsMasterData { get; set; } = new();
+        public WorkingIntervalsMasterData WorkingIntervalsMasterData { get; set; }
 
         /// <summary>
         /// НСИ "Переналадки"

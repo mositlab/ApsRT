@@ -15,7 +15,6 @@ namespace Rodana.Core.Partias.MergeConditions
     {
 
         MergeConditionsMasterData MergeConditionsMasterData;
-        PropsMasterData PropsMasterData;
 
         public void ActionFile(string filename) { }
 
@@ -27,7 +26,6 @@ namespace Rodana.Core.Partias.MergeConditions
         public void BeforeAllLoading(Session.Session session, string[] filenames)
         {
             MergeConditionsMasterData = session.MasterDataLinks.MergeConditionsMasterData;
-            PropsMasterData = session.MasterDataLinks.PropsMasterData;
             MergeConditionsMasterData.ClearMergeConditions();
         }
 
