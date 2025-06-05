@@ -10,9 +10,11 @@ using Google.OrTools.LinearSolver;
 using System.Reflection.PortableExecutable;
 using System.Collections.Frozen;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Google.OrTools.Sat;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Rodana.Core.Orders;
+using Rodana.Core.Partias.PartiasClasses;
 
 namespace Rodana.Core.Partias.Leftovers
 {
@@ -46,13 +48,13 @@ namespace Rodana.Core.Partias.Leftovers
             LeftoversArrivalInfo = null;
         }
 
-        internal Dictionary<(Orders.OrderID Order, Uco Nomenklature, Uco Specification),
+        internal Dictionary<(OrderID Order, Uco Nomenklature, Uco Specification),
             Dictionary<Guid, List<LeftoverReplacementInfo>>
             > LeftoversGroupsInfo { get; private set; } = new();
 
         internal void AddLeftoversGroupsInfo(LeftoverGroupDataLoaderModel model)
         {
-            (Orders.OrderID Order, Uco Nomenklature, Uco Specification) key = (model.Order, model.Nomenklature, model.Specification);
+            (OrderID Order, Uco Nomenklature, Uco Specification) key = (model.Order, model.Nomenklature, model.Specification);
             LeftoversGroupsInfo.TryAdd(key, new());
             LeftoversGroupsInfo[key].TryAdd(model.MaterialsGroup, new());
             LeftoversGroupsInfo[key][model.MaterialsGroup].Add(new LeftoverReplacementInfo(model));
@@ -138,8 +140,10 @@ namespace Rodana.Core.Partias.Leftovers
             // Создадим решатель
             CpModel model = new CpModel();
 
+            var SessionLink = partias[0].OpersHere[0][0].Opers[0].SessionLink;
+
             // TO DO: А что делать с моделированиями из МЕС??? там же 2+ этапчика
-            var allItems = partias.SelectMany(x => PartiaConnectorEngine.SeeSdvigsAsList(x.OpersHere)) // Возьмём этапы со всех партий
+            var allItems = partias.SelectMany(x => PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(x.OpersHere)) // Возьмём этапы со всех партий
                 .SelectMany(sdvig =>
 
                 sdvig.Opers[0].StageMaterialsInfo.UsedMaterials.Select(
@@ -379,7 +383,7 @@ namespace Rodana.Core.Partias.Leftovers
             var dt1 = DateTime.Now;
             var delta = dt1 - dt0;
             Console.WriteLine($"total time wasted on cpSolver is {delta}");
-            ConcurrentLogger.AddToMakarovTextBoxQueue.Enqueue($"total time wasted on cpSolver is {delta}");
+            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"total time wasted on cpSolver is {delta}");
             if (status == CpSolverStatus.Optimal || status == CpSolverStatus.Feasible)
             {
                 for (int i = 0; i < allItems.Count; i++)
@@ -413,7 +417,7 @@ namespace Rodana.Core.Partias.Leftovers
             sw.WriteLine($"GUID;Материал_GUID;Количество;ОригМатериал_GUID;ОригКоличество;ДатаПланирования");
             swBig.WriteLine($"GUID;Материал_GUID;Материал;Количество;ОригМатериал_GUID;ОригМатериал;ОригКоличество;ДатаПланирования");
 
-            var sdvigs = partias.SelectMany(x => PartiaConnectorEngine.SeeSdvigsAsList(x.OpersHere));
+            var sdvigs = partias.SelectMany(x => PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(x.OpersHere));
 
             foreach (var sdvig in sdvigs)
             {

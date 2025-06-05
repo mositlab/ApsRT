@@ -11,5 +11,11 @@ namespace Rodana.Core.Settings
     /// </summary>
     public class SpecialSettings
     {
+        public bool CalculateBestSubdivisionInPartias { get; set; }
+
+        public string NaladLengthsCriteriaName { get; set; }
+
+        public string LivensteinCodesCriteriaName { get; set; }
+
     }
 }

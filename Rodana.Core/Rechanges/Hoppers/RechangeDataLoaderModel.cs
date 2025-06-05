@@ -9,13 +9,13 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Rechanges.Hoppers
 {
-    public class RechangesLoaderModel : BaseDataLoaderModel
+    public class RechangeDataLoaderModel : BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 
-        static RechangesLoaderModel()
+        static RechangeDataLoaderModel()
         {
-            _fieldConverters = DefineFieldConverters<RechangesLoaderModel>();
+            _fieldConverters = DefineFieldConverters<RechangeDataLoaderModel>();
         }
 
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
@@ -27,13 +27,13 @@ namespace Rodana.Core.Rechanges.Hoppers
         public string From { get; set; }
 
         [DataRecordColumn("ПереходС_GUID")]
-        public Guid FromGuid { get; set; }
+        public Guid? FromGuid { get; set; }
 
         [DataRecordColumn("ПереходНа")]
         public string To { get; set; }
 
         [DataRecordColumn("ПереходНа_GUID")]
-        public Guid ToGuid { get; set; }
+        public Guid? ToGuid { get; set; }
 
         [DataRecordCodedObjectColumn("РабочийЦентр_GUID", "РабочийЦентр")]
         public Uco Center { get; set; }

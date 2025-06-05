@@ -235,7 +235,8 @@ namespace UniversalPack.Common.DataLoader
             }
             else
             {
-                throw new DataLoaderException($"Недопустимое значение GUID '{value}' для поля '{name}'", record, record.GetValues());
+                return (Guid?)null;
+                //throw new DataLoaderException($"Недопустимое значение GUID '{value}' для поля '{name}'", record, record.GetValues());
             }
         }
 
@@ -286,6 +287,7 @@ namespace UniversalPack.Common.DataLoader
             }
             else
             {
+                return (int?)null;
                 throw new DataLoaderException($"Недопустимое значение целого числа '{value}' для поля '{attribute.Name}'", record, record.GetValues());
             }
         }
@@ -325,7 +327,8 @@ namespace UniversalPack.Common.DataLoader
             }
             else
             {
-                throw new DataLoaderException($"Недопустимое значение дробного числа '{value}' для поля '{attribute.Name}'", record, record.GetValues());
+                return (double?)null;
+                //throw new DataLoaderException($"Недопустимое значение дробного числа '{value}' для поля '{attribute.Name}'", record, record.GetValues());
             }
         }
 
@@ -576,8 +579,15 @@ namespace UniversalPack.Common.DataLoader
         {
             foreach (var info in FieldConverters)
             {
-                var value = info.Converter.Invoke(record, options);
-                info.PropertyInfo.SetValue(this, value);
+                try
+                {
+                    var value = info.Converter.Invoke(record, options);
+                    info.PropertyInfo.SetValue(this, value);
+                }
+                catch (Exception ex)
+                {
+                    ;
+                }
             }
         }
     }

@@ -15,6 +15,60 @@ namespace Rodana.Core.Partias.TaraSearchEngine
 {
     internal class TaraSearchEngine
     {
+        /// <summary>
+        /// "Метод поиска проверенного РЦ". Эта функция нужна в паре моментов, чтобы найти какой-нибудь РЦ на случай, если известна тара у предков (с 05.06 - известна приемная тара), а запустить полный алгоритм поиска по каким-то причинам затратно. Эта функция позволит найти какой-нибудь РЦ, среди отдающих тар которого есть все, что были назначены у предков + имеется нужная тара в списке приемной (если не пуста). На данный момент используется после объединения (когда для вывода в Result.csv приходилось устанавливать РЦ, даже если не нашлась тара) - чтобы цепочка приёмно-отдающей тары не нарушалась (например, hsr 630 поставил вместо 560-й, хотя у него нет 630-й в отдающей, а тару вообще не нашёл). Введён после замечания Алёны, 30.05. Дополнен 05.06, теперь позволяет отфильтровать РЦ ещё и по приемной таре, которая у него должна быть. Это пригодится для конечных тар - они назначены извне, а РЦ нужно подобрать самим. А ещё юзается в G, когда нужно получить список РЦ, на который влезет вся
+        /// </summary>
+        /// <param name="CurrentOpers">Текущий сдвиг / моделирование для анализа</param>
+        /// <param name="IDToTara">словарь с тарами предков</param>
+        /// <param name="thisRC">РЦ, который заполняется, как выходной параметр. Этот рц содержит в списке отдающей тары все нужные тары, и может подойти нам.</param>
+        /// <param name="TaraNeedsToBeHere">Тары, которая должны у него быть в списке приёмной.</param>
+        /// <returns>Ответ: нашёл рц или нет?</returns>
+        internal static bool FindSomeCentersBecauseOfPrevs(IAbleForTaraCalcInterface CurrentOpers, List<Uco> possibleCenters, Dictionary<int, Uco> IDToTara, List<Uco> TaraNeedsToBeHere, out Uco thisRC, out List<Uco> rcs, out List<Uco> otdTara, bool returnFirst)
+        {
+            thisRC = Uco.EmptyObject;
+
+            var sessionLink = CurrentOpers.FirstOperLink.SessionLink;
+            var ALL = sessionLink.MasterDataLinks.StagesMasterData.AllStages;
+            var TaraDataSet = sessionLink.MasterDataLinks.TarasMasterData;
+
+            var prevs = CurrentOpers.AllOpers.SelectMany(x => x.Prevs).Distinct(); // находим предков
+            var possibleTara = prevs
+                .Where(x => IDToTara.TryGetValue(x, out var tar) && !tar.IsEmpty) // выбираем тех, про кого есть инфа в словаре о предках
+                .Select(x => (isVspom: ALL[x].UsesVspomTara, tara: IDToTara[x])) // выбираем тару из них
+                .Distinct();
+            possibleCenters ??= CurrentOpers.FirstOperLink.PossibleCenters ?? new List<Uco>() { CurrentOpers.FirstOperLink.Center }; // Если этого списка не пришло, Формируем список рц, взяв его из первой попавшейся операции в этом сдвиге / моделировании
+
+            // РЦ должен содержать ВСЕ тары в отдающих.
+
+            //bool VspomTara = CurrentOpers.FirstOperLink.Prevs.Count > 0 && ALL[CurrentOpers.FirstOperLink.Prevs[0]].UsesVspomTara;
+
+            if (returnFirst)
+                rcs = possibleCenters;
+            else
+                rcs = new List<Uco>();
+            otdTara = possibleTara.Select(x => x.tara).ToList();
+            foreach (var center in possibleCenters.Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)))
+            {
+                if (
+                    (!possibleTara.Any() || possibleTara.All(tara => TaraDataSet.GetNeededTaras(center, CurrentOpers.FirstOperLink.OperationVid, tara.isVspom).otd.TryGetValue(tara.isVspom, out var has) && has.Contains(tara.tara))) // первое условие: все тары в списке предков есть (если эти предки вообще существуют, и есть тара для этого)
+                    &&
+                    (
+                        (TaraNeedsToBeHere == null || TaraNeedsToBeHere.Count == 0)
+                        ||
+                        TaraDataSet.GetNeededTaras(center, CurrentOpers.FirstOperLink.OperationVid, null).priem.TryGetValue(false, out var has) && TaraNeedsToBeHere.All(x => x.IsEmpty || has.Contains(x))
+                    ) // второе условие: тара, которую надо чекнуть, не пустая, и есть в списке приемных
+
+                    )
+                {
+                    thisRC = center;
+                    if (returnFirst)
+                        return true; // Збс, нашёл, уходим
+                    else
+                        rcs.Add(center); // Если нужны все, то продолжаем запись
+                }
+            }
+            return returnFirst ? false : rcs.Count > 0;
+        }
 
         /// <summary>
         /// Получаем список РЦ и тары, которая может встать для них
@@ -833,12 +887,6 @@ namespace Rodana.Core.Partias.TaraSearchEngine
             out Uco TaraName, out Uco FinalRC, out double Max, out DimensionUnit used_format, out bool notChangeTara, //bool withUI/*, bool CheckChildren*/,
             out TemporaryTaraSearchData searchData,
             SumIsPossibleOptions options
-            //Dictionary<int, CodedObject<string>> PrevsInfo = null, // в такой структуре он нуждается только из-за "НеМенятьТару" - напрашивается рефакторинг.
-            //CodedObject<string>? RCMustBeThis = null, // ограничение, что РЦ должен быть именно этот
-            //CodedObject<string>? TaraMustBeThis = null, // ограничение, что тара должна быть именно эта
-            //HashSet<CodedObject<string>> ExceptTheseTaras = null, // ограничение, что вот эти тары юзать нельзя
-            //HashSet<CodedObject<string>> NextRCsMustBeThese = null,// ограничение, что у детей должны быть только эти РЦ
-            //bool logSomeErros = true
             )
         {
             TaraName = new(Guid.Empty, "");

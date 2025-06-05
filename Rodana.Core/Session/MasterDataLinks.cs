@@ -13,6 +13,8 @@ using Rodana.Core.Partias.Leftovers;
 using Rodana.Core.Stages.MasterData;
 using Rodana.Core.Planning.ParallelPlanning;
 using Rodana.Core.Orders;
+using Rodana.Core.Partias.SubdivisionsTransfers;
+using Rodana.Core.Partias.Zadels;
 
 namespace Rodana.Core.Session
 {
@@ -26,7 +28,13 @@ namespace Rodana.Core.Session
             WorkingIntervalsMasterData = new WorkingIntervalsMasterData(SessionLink);
             ParallelPlanningMasterData = new ParallelPlanningMasterData(SessionLink);
             TarasMasterData = new TarasMasterData(SessionLink);
+            StagesMasterData = new StagesMasterData(SessionLink);
+            ZadelsMasterData = new ZadelsMasterData(SessionLink);
         }
+
+        public ZadelsMasterData ZadelsMasterData { get; set; }
+
+        public SubdivisionsTransfersMasterData SubdivisionsTransfersMasterData { get; set; } = new();
 
         public OrdersMasterData OrdersMasterData { get; set; } = new();
 
@@ -53,7 +61,7 @@ namespace Rodana.Core.Session
         /// <summary>
         /// НСИ "Операции" (к формированию партий и планированию)
         /// </summary>
-        public StagesMasterData StagesMasterData { get; init; } = new();
+        public StagesMasterData StagesMasterData { get; init; }
 
         /// <summary>
         /// НСИ "Длительности операций"

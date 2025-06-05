@@ -46,7 +46,7 @@ namespace InfimumMES.Rechanges.Hoppers
 
         public void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            var model = new RechangesLoaderModel();
+            var model = new RechangeDataLoaderModel();
             model.LoadFromDataRecord(data, options);
 
             // Добавляем данные по переналадке в список условий

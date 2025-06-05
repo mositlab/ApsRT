@@ -47,15 +47,15 @@ namespace Rodana.Core.Rechanges.MasterData
                 >
             > AllRechanges;
 
-        internal void AddRechangeData(RechangesLoaderModel model)
+        internal void AddRechangeData(RechangeDataLoaderModel model)
         {
             Uco RC = model.Center; // РЦ
             Uco VidOper = model.Operation; // Вид операции
             string rawCriteriaName = model.Criteria;
             string from = model.From;
-            Guid fromGuid = model.FromGuid;
+            Guid? fromGuid = model.FromGuid;
             string to = model.To;
-            Guid toGuid = model.ToGuid;
+            Guid? toGuid = model.ToGuid;
             Rechange rechange = new Rechange(model);
             var index = GetCriteriaIndexByName(rawCriteriaName);
             if (index == -1)
@@ -193,7 +193,7 @@ namespace Rodana.Core.Rechanges.MasterData
                 >
             > RechangesMultiCriterialData;
 
-        internal void AddMultiCriterialRechangeInfo(RechangesLoaderModel model, int NeededCriteria)
+        internal void AddMultiCriterialRechangeInfo(RechangeDataLoaderModel model, int NeededCriteria)
         {
             Uco RC = model.Center;
             Uco OperVid = model.Operation;

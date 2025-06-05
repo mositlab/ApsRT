@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Rodana.Core.Orders.OrderBaseModel;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 
 namespace Rodana.Core.Orders
 {

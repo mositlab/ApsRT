@@ -170,7 +170,7 @@ namespace Rodana.Core.Session
             await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(SettingsController.CurrentSettings.HoppersPaths));
 
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
-            ЛИВЕНШТЕЙН;
+            MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
 
             // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
             foreach (var op in MasterDataLinks.StagesMasterData.AllStages) op.Value.BakeAllIndexDiapazons(null);

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using Rodana.Core.PlanningClasses;
+using Rodana.Core.Planning.PoolClasses;
 
 namespace Rodana.Core.Rechanges.RechangesEngine
 {
@@ -13,7 +15,7 @@ namespace Rodana.Core.Rechanges.RechangesEngine
     /// </summary>
     public class RechangesEngineData
     {
-        public RechangesEngineData(CenterInPlanData centerData, DatesDataClass prostoiData, Stages.Stage operationA, Stages.Stage operationB, Uco actualRC)
+        public RechangesEngineData(CenterInPlanData centerData, DatesPoolClass prostoiData, Stages.Stage operationA, Stages.Stage operationB, Uco actualRC)
         {
             CenterData = centerData;
             ProstoiData = prostoiData;
@@ -23,7 +25,7 @@ namespace Rodana.Core.Rechanges.RechangesEngine
         }
 
         public CenterInPlanData CenterData { get; }
-        public DatesDataClass ProstoiData { get; }
+        public DatesPoolClass ProstoiData { get; }
         public Stages.Stage ObjectA { get; }
         public Stages.Stage ObjectB { get; }
         public Uco ActualRC { get; }

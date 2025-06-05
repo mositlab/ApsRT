@@ -34,7 +34,7 @@ namespace Rodana.Core.Rechanges.RechangesEngine
             return new Vector2(f1, f2);
         }
 
-        internal static void UniversalDataLoader<A>(Session.Session sessionLink, RechangeCriteriaStorage<A> storage, int index, string from, Guid fromGuid, string to, Guid toGuid, A item)
+        internal static void UniversalDataLoader<A>(Session.Session sessionLink, RechangeCriteriaStorage<A> storage, int index, string from, Guid? fromGuid, string to, Guid? toGuid, A item)
         {
             // Типовые переналадки
 

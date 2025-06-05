@@ -16,8 +16,4 @@
     <ProjectReference Include="..\UniversalPack\UniversalPack.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Planning\PlanningClasses\" />
-  </ItemGroup>
-
 </Project>

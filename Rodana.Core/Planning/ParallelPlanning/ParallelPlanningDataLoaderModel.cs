@@ -43,7 +43,7 @@ namespace Rodana.Core.Planning.ParallelPlanning
         public Uco Tara { get; set; }
 
         [DataRecordColumn("КоличествоТарыШт")]
-        public int TaraCount { get; set; }
+        public int? TaraCount { get; set; }
 
         [DataRecordColumn("МаксКоличество", defaultIfFail: true)]
         public int MaxCapacity { get; set; }

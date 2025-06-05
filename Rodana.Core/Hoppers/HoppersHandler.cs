@@ -32,6 +32,7 @@ namespace Rodana.Core.Hoppers
         {
             this.session = session;
             Hoppers = new();
+            HoppersIndexes = new();
             FindAllHoppers();
         }
 
@@ -50,14 +51,7 @@ namespace Rodana.Core.Hoppers
             foreach (var el in hoppers)
             {
                 var attr = el.GetCustomAttribute<HopperAttribute>();
-
-                Type t = el;
-
-                Type[] genericTypeParameters = typeof(IHopperInterface ).GenericTypeArguments;
-
-                t = t.MakeGenericType(genericTypeParameters);
-
-                var inst = Activator.CreateInstance(t) as IHopperInterface ;
+                var inst = Activator.CreateInstance(el) as IHopperInterface;
                 if (!data.ContainsKey(el.Name/*attr.Name*/))
                 {
                     data.Add(el.Name/*attr.Name*/, (0, inst, attr));

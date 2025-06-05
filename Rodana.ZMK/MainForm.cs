@@ -33,7 +33,11 @@ namespace Rodana.ZMK
             PrepareSettings();
         }
 
-        private void SaveSettingsButton_Click(object? sender, EventArgs e) => sessionLink.SettingsController.Save();
+        private void SaveSettingsButton_Click(object? sender, EventArgs e)
+        {
+            sessionLink.SettingsController.CurrentSettings.HoppersPaths = HoppersGetPaths();
+            sessionLink.SettingsController.Save();
+        }
 
         void PrepareSettings()
         {
@@ -208,10 +212,21 @@ namespace Rodana.ZMK
 
         private void MainForm_FormClosed(object? sender, FormClosedEventArgs e)
         {
+            if (sessionLink.SettingsController.CurrentSettings.SaveOnSessionEnd)
+            {
+                sessionLink.SettingsController.CurrentSettings.HoppersPaths = HoppersGetPaths();
+            }
             sessionLink.EndSession(0);
         }
 
         List<HopperUIClass> HoppersInInterface = new();
+
+        Dictionary<string, string[]> HoppersGetPaths()
+        {
+            return HoppersInInterface
+                .Select((hopp, index) => (Key: sessionLink.HoppersHandler.Hoppers[index].Name, Paths: hopp.PathTextBox.Lines.ToArray()))
+                .ToDictionary(x => x.Key, x => x.Paths);
+        }
 
 
         internal Font ButtonFont = new Font("Montserrat", 7f, FontStyle.Regular, GraphicsUnit.Point);
@@ -222,19 +237,20 @@ namespace Rodana.ZMK
 
             int top = 6;
 
-            foreach (var item in hoppersList)
+            for (int i = 0; i < hoppersList.Count; i++)
             {
-
+                var item = hoppersList[i];
                 // Кнопка
                 var butt = new System.Windows.Forms.Button
                 {
                     BackColor = Color.FromArgb(218, 218, 218),
                     FlatStyle = FlatStyle.Flat,
                     Location = new Point(12, top),// 6 + ModulesList.Count * 35);
-                    Size = new Size(162, 31),
+                    Size = new Size(200, 31),
                     Text = item.Data.Label,
                     Font = ButtonFont,
-                    UseVisualStyleBackColor = false
+                    UseVisualStyleBackColor = false,
+                    UseCompatibleTextRendering = true
                 };
                 butt.Enabled = true;
                 butt.ForeColor = Color.White;
@@ -246,7 +262,7 @@ namespace Rodana.ZMK
                 // Бар
                 var bar = new CustomProgressBar
                 {
-                    Location = new Point(181, top),//6 + ModulesList.Count * 35);
+                    Location = new Point(butt.Width + butt.Left + butt.Margin.Horizontal, top),//6 + ModulesList.Count * 35);
                     Size = new Size(205, 29),
                     ForeColor = Colors.MOSITLAB_BLUE,
                     BackColor = Color.FromArgb(218, 218, 218)
@@ -257,7 +273,7 @@ namespace Rodana.ZMK
                 var label = new Label
                 {
                     AutoSize = true,
-                    Location = new Point(391, top),//6 + ModulesList.Count * 35);
+                    Location = new Point(bar.Width + bar.Left + bar.Margin.Horizontal, top),//6 + ModulesList.Count * 35);
                     Margin = new Padding(2, 0, 2, 0),
                     Size = new Size(19, 21),
                     TabIndex = 91,
@@ -268,11 +284,16 @@ namespace Rodana.ZMK
                 // Текстбокс в настройках
                 var textBox = new TextBox
                 {
-                    Location = new Point(430, top),//ModulesList.Count == 0 ? 52 : (ModulesList[^1].PathTextBox.Top + ModulesList[^1].PathTextBox.Height + 7));
+                    Location = new Point(label.Width + label.Left + 10, top),//ModulesList.Count == 0 ? 52 : (ModulesList[^1].PathTextBox.Top + ModulesList[^1].PathTextBox.Height + 7));
                     Margin = new Padding(2, 3, 2, 3),
                     Size = new Size(562, item.Data.IsMultiple ? 92 : 26),
                     Multiline = item.Data.IsMultiple
                 };
+                var paths = sessionLink.SettingsController.CurrentSettings.HoppersPaths;
+                if (paths != null && paths.TryGetValue(sessionLink.HoppersHandler.Hoppers[i].Name, out var lines))
+                {
+                    textBox.Lines = lines;
+                }
                 HoppersPanel.Controls.Add(textBox);
 
                 // Кнопка в настройках
@@ -280,7 +301,7 @@ namespace Rodana.ZMK
                 {
                     BackColor = Color.FromArgb(218, 218, 218),
                     FlatStyle = FlatStyle.Flat,
-                    Location = new Point(1000, top + 1),
+                    Location = new Point(textBox.Width + textBox.Left + textBox.Margin.Horizontal, top + 1),
                     Margin = new Padding(2, 3, 2, 3),
                     Size = new Size(50, 25),
                     Text = "...",
@@ -323,7 +344,7 @@ namespace Rodana.ZMK
                     FlatStyle = FlatStyle.Flat,
                     Location = new Point(butt2.Width + butt2.Left + butt2.Margin.Horizontal, butt2.Top),
                     Margin = new Padding(2, 3, 2, 3),
-                    Size = new Size(50, 25),
+                    Size = new Size(60, 25),
                     Text = "SQL",
                     UseVisualStyleBackColor = false
                 };
@@ -367,7 +388,7 @@ namespace Rodana.ZMK
                     };
                 }
 
-                top += textBox.Height + 3;
+                top += textBox.Height + 11;
 
                 // Финал
                 HoppersInInterface.Add(new HopperUIClass()

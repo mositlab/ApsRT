@@ -81,10 +81,10 @@ namespace Rodana.Core.Planning.ParallelPlanning
 
                 // 5. Тара и её количество для варианта загрузки
                 var vari = ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID][model.Variant];
-                if (!vari.List.ContainsKey(model.Tara))
+                if (!vari.List.ContainsKey(model.Tara) && model.TaraCount.HasValue)
                 {
-                    vari.List.Add(model.Tara, model.TaraCount);
-                    vari.TotalCount += model.TaraCount;
+                    vari.List.Add(model.Tara, model.TaraCount.Value);
+                    vari.TotalCount += model.TaraCount.Value;
                     vari.MaxCapacity = model.MaxCapacity;
                 }
                 ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID][model.Variant] = vari;

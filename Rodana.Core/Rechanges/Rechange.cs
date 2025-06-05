@@ -30,7 +30,7 @@ namespace Rodana.Core.Rechanges
             IsMultiCriterial = isMultiCriterial;
         }
 
-        public Rechange(RechangesLoaderModel model)
+        public Rechange(RechangeDataLoaderModel model)
         {
             Name = model.RechangeOperation;
             Duration = model.Duration;

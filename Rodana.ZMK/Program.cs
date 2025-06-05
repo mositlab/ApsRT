@@ -22,6 +22,9 @@ namespace Rodana.ZMK
             var sessionLink = new Rodana.Core.Session.Session(Environment.GetCommandLineArgs());
 
             sessionLink.Start();
+            sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = false;
+            sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "Сечение";
+            sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
             sessionLink.OnSessionDataLoaded += On_ZMK_DataLoaded;
 
 

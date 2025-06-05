@@ -23,6 +23,8 @@ using Rodana.Core.Stages.Hoppers;
 using System.Numerics;
 using Rodana.Core.Props;
 using UniversalPack.Extensions;
+using Azure;
+using System.Collections;
 
 namespace Rodana.Core.Stages.MasterData
 {
@@ -32,6 +34,15 @@ namespace Rodana.Core.Stages.MasterData
     /// </summary>
     public class StagesMasterData
     {
+
+        public Session.Session SessionLink { get; }
+
+        public StagesMasterData(Session.Session session)
+        {
+            SessionLink = session;
+        }
+
+
         public Dictionary<int, Stage> AllStages { get; private set; } = new();
 
         public Dictionary<Guid, int> GUIDToIndex { get; private set; } = new();
@@ -41,6 +52,12 @@ namespace Rodana.Core.Stages.MasterData
             AllStages.Clear();
             GUIDToIndex.Clear();
             MesModellingsInfo.Clear();
+            MIN_DATE_TIME_AFTER_FIX = DateTime.MaxValue;
+            FIXED_START_TIME = null;
+            PrevTimeDelta = null;
+            MinAcceptableDate = DateTime.Now;
+
+            SavedOpersLivenCode.Clear();
         }
 
         public Dictionary<Guid, (Color Color, List<int> RelatedOpers)> MesModellingsInfo = new();
@@ -201,13 +218,12 @@ namespace Rodana.Core.Stages.MasterData
 
         public void AddNewStage(Stage stage, OrderBaseModel orderModel, IDataReader data, DataLoaderOptions options)
         {
-            var session = stage.SessionLink;
-            var masterDatas = session.MasterDataLinks;
+            var masterDatas = SessionLink.MasterDataLinks;
             var PropsMasterData = masterDatas.PropsMasterData;
             #region Проверка на дубликат
             if (GUIDToIndex.ContainsKey(stage.GUID))
             {
-                session.AssignedLogger.LogQueue.Enqueue($"{stage.GUID} уже есть в списке этапов!");
+                SessionLink.AssignedLogger.LogQueue.Enqueue($"{stage.GUID} уже есть в списке этапов!");
                 return;
             }
             #endregion
@@ -283,5 +299,134 @@ namespace Rodana.Core.Stages.MasterData
 
             stage.Color = Colors.NewRandomColor();
         }
+
+
+        internal int LivensteinRechangeParam = 0; // В ЗМК-версии это напряжение
+        internal Dictionary<int, string> SavedOpersLivenCode = new();
+        internal void SetLivenCodes(string rawCriteriaName)
+        {
+            LivensteinRechangeParam = SessionLink.MasterDataLinks.RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
+
+            LevenshteinDistanceCashChecked = new System.Collections.BitArray[AllStages.Count];
+            for (var i = 0; i < AllStages.Count; i++)
+            {
+                LevenshteinDistanceCashChecked[i] = new System.Collections.BitArray(AllStages.Count);
+            }
+
+            LevenshteinDistanceCash = new byte[AllStages.Count][];
+            for (var i = 0; i < AllStages.Count; i++)
+            {
+                LevenshteinDistanceCash[i] = new byte[AllStages.Count];
+            }
+
+            SavedOpersLivenCode = new(AllStages.Count);
+
+
+            var keys = AllStages.Where(x => x.Value.Prevs.Count > 0 && x.Value.Nexts.Count == 0);
+
+            Dictionary<string, int> locConv = new(50);
+            var curr = 0;
+
+            foreach (var key in keys)
+            {
+                if (SavedOpersLivenCode.ContainsKey(key.Key))
+                {
+                    continue;
+                }
+
+                var code = "";
+                var op = AllStages[key.Key];
+                goPrev(op, code);
+            }
+
+            void goPrev(Stage oper, string currCode)
+            {
+                var s = oper.Nomenklature + ";" + (LivensteinRechangeParam == -1 ? "" : oper.RechangeParameters[LivensteinRechangeParam].GetString(0)) + ";" + (oper.StageMaterialsInfo?.AsLongString() ?? "");//oper.MaterialLink?.AsLongString() ?? "";
+
+                if (!locConv.ContainsKey(s))
+                {
+                    locConv.Add(s, curr);
+                    curr++;
+                }
+                currCode += (char)locConv[s];//Merger.SYMBOLS[locConv[s]];
+                SavedOpersLivenCode.Add(oper.Index, currCode);
+                foreach (var prev in oper.Prevs)
+                {
+                    goPrev(AllStages[prev], currCode);
+                }
+            }
+        }
+
+        static int Minimum(int a, int b, int c) => (a = a < b ? a : b) < c ? a : c;
+        internal byte[][] LevenshteinDistanceCash;
+        internal BitArray[] LevenshteinDistanceCashChecked;
+        internal byte LevenshteinDistance(int index1, int index2, int id1, int id2, bool WithUI)
+        {
+            if (LevenshteinDistanceCashChecked[index1][index2])
+            {
+                return LevenshteinDistanceCash[index1][index2];
+            }
+
+            if (LevenshteinDistanceCashChecked[index2][index1])
+            {
+                return LevenshteinDistanceCash[index2][index1];
+            }
+
+            if (SavedOpersLivenCode.TryGetValue(id1, out var code1))
+            {
+                if (SavedOpersLivenCode.TryGetValue(id2, out var code2))
+                {
+                    var res = (byte)LevenshteinDistanceMain(code1, code2);
+                    LevenshteinDistanceCashChecked[index1][index2] = true;
+                    LevenshteinDistanceCashChecked[index2][index1] = true;
+                    LevenshteinDistanceCash[index1][index2] = res;
+                    LevenshteinDistanceCash[index2][index1] = res;
+                    return res;
+                }
+                if (WithUI)
+                {
+                    SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"{AllStages[id2]} не содержит Кода Ливенштейна.\r\n");
+                }
+
+                return 255;
+            }
+            if (WithUI)
+            {
+                SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"{AllStages[id1]} не содержит Кода Ливенштейна.\r\n");
+            }
+
+            return 255;
+        }
+        internal static byte LevenshteinDistanceMain(string firstWord, string secondWord)
+        {
+
+            var n = firstWord.Length + 1;
+            var m = secondWord.Length + 1;
+            var matrixD = new int[n, m];
+            const int deletionCost = 1;
+            const int insertionCost = 1;
+            for (var i = 0; i < n; i++)
+            {
+                matrixD[i, 0] = i;
+            }
+
+            for (var j = 0; j < m; j++)
+            {
+                matrixD[0, j] = j;
+            }
+
+            for (var i = 1; i < n; i++)
+            {
+                for (var j = 1; j < m; j++)
+                {
+                    var substitutionCost = firstWord[i - 1] == secondWord[j - 1] ? 0 : 1;
+                    matrixD[i, j] = Minimum(matrixD[i - 1, j] + deletionCost,          // удаление
+                                            matrixD[i, j - 1] + insertionCost,         // вставка
+                                            matrixD[i - 1, j - 1] + substitutionCost); // замена
+                }
+            }
+            return (byte)(matrixD[n - 1, m - 1]);
+        }
+
     }
 }

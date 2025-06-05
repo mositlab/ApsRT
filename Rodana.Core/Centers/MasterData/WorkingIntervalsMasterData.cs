@@ -199,7 +199,7 @@ namespace Rodana.Core.Centers.MasterData
         internal void PrepareCentersForMinDataTime(IEnumerable<Uco> centers_choosen)
         {
             PreparedRCFixingData.Clear();
-            var TM = Orders.MinAcceptableDate;//FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
+            var TM = SessionLink.MasterDataLinks.StagesMasterData.MinAcceptableDate;//FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
             foreach (var center in centers_choosen)
             {
                 PreparedRCFixingData[center] = CheckIfCatchedNonWorkingIntervalCached(center, TM, 0);
