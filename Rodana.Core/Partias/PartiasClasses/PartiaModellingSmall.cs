@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.Partias.PartiasClasses
 {
-    internal class PartiaModellingSmall : IAbleForTaraCalcInterface
+    public class PartiaModellingSmall : IAbleForTaraCalcInterface
     {
-        internal List<Stages.Stage> Opers; // Внутри сдвига - моделирование (несколько операций может быть
+        public List<Stages.Stage> Opers; // Внутри сдвига - моделирование (несколько операций может быть
 
         Stages.Stage IAbleForTaraCalcInterface.FirstOperLink => Opers[0];
 
@@ -29,12 +29,12 @@ namespace Rodana.Core.Partias.PartiasClasses
         /// Число задела.
         /// 0 = пустые заделы. В остальном это нечто вроде хэш кода для сравнения, хранения и ограничения.
         /// </summary>
-        internal int ZadelCode = 0;
+        public int ZadelCode = 0;
 
         /// <summary>
         /// Гуид задела. Сравниваются и схлопываются только сдвиги с одинаковым гуидом
         /// </summary>
-        internal List<Guid> ZadelsGUIDs = new();
+        public List<Guid> ZadelsGUIDs = new();
 
         public PartiaModellingSmall(List<Stages.Stage> opers)
         {

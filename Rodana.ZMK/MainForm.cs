@@ -1,4 +1,4 @@
-using Rodana.Core.Hoppers;
+Ôªøusing Rodana.Core.Hoppers;
 using Rodana.Core.Session;
 using Rodana.Core.Settings;
 using System.Xml.Linq;
@@ -6,6 +6,8 @@ using UniversalPack.Common.Drawing;
 using UniversalPack;
 using static UniversalPack.Common.Drawing.Colors;
 using WinFormsCustomComponents;
+using static UniversalPack.Extensions.EventExtensions;
+using RodanaCustomComponents;
 
 namespace Rodana.ZMK
 {
@@ -27,6 +29,18 @@ namespace Rodana.ZMK
             OpenHandPlanButton.Click += OpenHandPlanButton_Click;
             OpenGraphsButton.Click += OpenGraphsButton_Click;
             SaveSettingsButton.Click += SaveSettingsButton_Click;
+
+            sessionLink.OnSessionDataLoaded += delegate
+            {
+                StartAlgorithmPButton.Enabled = true;
+                PartiasProgressLabel.Text = "...";
+            };
+
+            sessionLink.HoppersHandler.OnStartLoadingEvent += HoppersStartLoad;
+            sessionLink.HoppersHandler.OnLoadingEvent += HoppersOnLoad;
+            sessionLink.HoppersHandler.OnEndLoadingEvent += HoppersEndLoad;
+
+            CustomTreeViewOnPPanel.SessionLink = sessionLink;
 
             CreateHoppers();
 
@@ -158,6 +172,12 @@ namespace Rodana.ZMK
 
             BackColor = backColor;
 
+            foreach (var comp in Descendant<CustomTreeView>(this))
+            {
+                comp.BackColor = Color.White;
+                //button.ForeColor = Color.Black;
+            }
+
             foreach (var comp in Descendant<NumericUpDown>(this))
             {
                 comp.BackColor = color;
@@ -240,7 +260,7 @@ namespace Rodana.ZMK
             for (int i = 0; i < hoppersList.Count; i++)
             {
                 var item = hoppersList[i];
-                //  ÌÓÔÍ‡
+                // –ö–Ω–æ–ø–∫–∞
                 var butt = new System.Windows.Forms.Button
                 {
                     BackColor = Color.FromArgb(218, 218, 218),
@@ -259,7 +279,7 @@ namespace Rodana.ZMK
                 butt.FlatAppearance.MouseOverBackColor = Colors.MOSITLAB_RED;
                 HoppersPanel.Controls.Add(butt);
 
-                // ¡‡
+                // –ë–∞—Ä
                 var bar = new CustomProgressBar
                 {
                     Location = new Point(butt.Width + butt.Left + butt.Margin.Horizontal, top),//6 + ModulesList.Count * 35);
@@ -269,7 +289,7 @@ namespace Rodana.ZMK
                 };
                 HoppersPanel.Controls.Add(bar);
 
-                // √‡ÎÓ˜Í‡
+                // –ì–∞–ª–æ—á–∫–∞
                 var label = new Label
                 {
                     AutoSize = true,
@@ -281,7 +301,7 @@ namespace Rodana.ZMK
                 };
                 HoppersPanel.Controls.Add(label);
 
-                // “ÂÍÒÚ·ÓÍÒ ‚ Ì‡ÒÚÓÈÍ‡ı
+                // –¢–µ–∫—Å—Ç–±–æ–∫—Å –≤ –Ω–∞—Å—Ç—Ä–æ–π–∫–∞—Ö
                 var textBox = new TextBox
                 {
                     Location = new Point(label.Width + label.Left + 10, top),//ModulesList.Count == 0 ? 52 : (ModulesList[^1].PathTextBox.Top + ModulesList[^1].PathTextBox.Height + 7));
@@ -296,7 +316,7 @@ namespace Rodana.ZMK
                 }
                 HoppersPanel.Controls.Add(textBox);
 
-                //  ÌÓÔÍ‡ ‚ Ì‡ÒÚÓÈÍ‡ı
+                // –ö–Ω–æ–ø–∫–∞ –≤ –Ω–∞—Å—Ç—Ä–æ–π–∫–∞—Ö
                 var butt2 = new System.Windows.Forms.Button
                 {
                     BackColor = Color.FromArgb(218, 218, 218),
@@ -337,7 +357,7 @@ namespace Rodana.ZMK
                 }
                 HoppersPanel.Controls.Add(butt2);
 
-                // ÍÌÓÔÍ‡ ÓÚÍ˚ÚËˇ ‰Ë‡ÎÓ„‡ SQL
+                // –∫–Ω–æ–ø–∫–∞ –æ—Ç–∫—Ä—ã—Ç–∏—è –¥–∏–∞–ª–æ–≥–∞ SQL
                 var butt3 = new System.Windows.Forms.Button
                 {
                     BackColor = Color.FromArgb(218, 218, 218),
@@ -390,7 +410,7 @@ namespace Rodana.ZMK
 
                 top += textBox.Height + 11;
 
-                // ‘ËÌ‡Î
+                // –§–∏–Ω–∞–ª
                 HoppersInInterface.Add(new HopperUIClass()
                 {
                     Bar = bar,
@@ -403,6 +423,50 @@ namespace Rodana.ZMK
             }
         
             SetTheme(sessionLink.SettingsController.CurrentSettings.CurrentTheme);
+        }
+
+
+        private void HoppersStartLoad(HopperAttribute attribute, IHopperInterface @interface, int arg3)
+        {
+            var uiClass = HoppersInInterface[attribute.HopperIndex];
+            uiClass.Label.BeginInvoke(new Action(() =>
+            {
+                // –ï—Å–ª–∏ —Ö—Ä–µ–Ω—å –ø–∞–ø–æ—á–Ω–∞—è:
+                if (attribute.IsDirectory)
+                {
+                    uiClass.Bar.Maximum = arg3;
+                    uiClass.Bar.Minimum = 0;
+                    uiClass.Bar.Value = 0;
+                    uiClass.Bar.IsInfinite = false;
+                }
+                else
+                {
+                    // –ò–Ω–∞—á–µ:
+                    uiClass.Bar.IsInfinite = arg3 <= 0;
+                    uiClass.Bar.Maximum = arg3;
+                    uiClass.Bar.Minimum = 0;
+                    uiClass.Bar.Value = 0;
+                }
+            }));
+        }
+
+        private void HoppersOnLoad(HopperAttribute attribute, IHopperInterface @interface, int arg3)
+        {
+            var uiClass = HoppersInInterface[attribute.HopperIndex];
+            uiClass.Label.BeginInvoke(new Action(() =>
+            {
+                uiClass.Bar.Value++;
+            }));
+        }
+
+        private void HoppersEndLoad(HopperAttribute attribute, IHopperInterface @interface, int arg3)
+        {
+            var uiClass = HoppersInInterface[attribute.HopperIndex];
+            uiClass.Label.BeginInvoke(new Action(() =>
+            {
+                uiClass.Label.Text = "‚úî";
+                if (!uiClass.Bar.IsInfinite) uiClass.Bar.Value = uiClass.Bar.Maximum;
+            }));
         }
     }
 }

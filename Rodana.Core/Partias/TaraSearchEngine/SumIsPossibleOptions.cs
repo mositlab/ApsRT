@@ -8,20 +8,20 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.TaraSearchEngine
 {
-    internal class SumIsPossibleOptions
+    public class SumIsPossibleOptions
     {
-        internal bool WithLog; // в лог писать ли (текстовик для меня)
-        internal Dictionary<int, Uco> PrevsInfo = null; // в такой структуре он нуждается из-за поиска РЦ с отдающей тарой
-        internal HashSet<Uco> NextRCsMustBeThese = null; // ограничение, что у детей должны быть только эти РЦ, пришлось юзать тут
-        internal bool NextRCsExcludeNoChangeTara = false;// если да, то в NextRCsMustBeThese не должно быть с признаком не менять тару
-        internal Uco? RCMustBeThis = null; // ограничение, что РЦ должен быть именно этот (для V)
-        internal Uco? TaraMustBeThis = null; // ограничение, что тара по велению V должна быть именно эта
-        internal Uco? RecommendedSubdivision = null; // ограничение что рекомендуется тот или иной цех при подборе РЦ
-        internal HashSet<Uco> ExceptTheseTaras = null; // ограничение, что вот эти тары юзать нельзя (в G исползьовалось)
-        internal bool LogSomeErrors = true;
-        internal float NaladLength = 0;
-        internal bool SearchForMaxTara = false;
-        internal ConcurrentDictionary<int, TemporaryTaraSearchData> ModToTaraInfoLink;
+        public bool WithLog; // в лог писать ли (текстовик для меня)
+        public Dictionary<int, Uco> PrevsInfo = null; // в такой структуре он нуждается из-за поиска РЦ с отдающей тарой
+        public HashSet<Uco> NextRCsMustBeThese = null; // ограничение, что у детей должны быть только эти РЦ, пришлось юзать тут
+        public bool NextRCsExcludeNoChangeTara = false;// если да, то в NextRCsMustBeThese не должно быть с признаком не менять тару
+        public Uco? RCMustBeThis = null; // ограничение, что РЦ должен быть именно этот (для V)
+        public Uco? TaraMustBeThis = null; // ограничение, что тара по велению V должна быть именно эта
+        public Uco? RecommendedSubdivision = null; // ограничение что рекомендуется тот или иной цех при подборе РЦ
+        public HashSet<Uco> ExceptTheseTaras = null; // ограничение, что вот эти тары юзать нельзя (в G исползьовалось)
+        public bool LogSomeErrors = true;
+        public float NaladLength = 0;
+        public bool SearchForMaxTara = false;
+        public ConcurrentDictionary<int, TemporaryTaraSearchData> ModToTaraInfoLink;
 
         public SumIsPossibleOptions(bool WithLog)
         {

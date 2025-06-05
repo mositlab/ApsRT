@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsCustomComponents", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversalPack", "UniversalPack\UniversalPack.csproj", "{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RodanaCustomComponents", "RodanaCustomComponents\RodanaCustomComponents.csproj", "{14773554-B9B9-47EF-A32A-908F139648A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63524C75-D9C5-4126-98D6-00A2BF5FB1E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14773554-B9B9-47EF-A32A-908F139648A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14773554-B9B9-47EF-A32A-908F139648A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14773554-B9B9-47EF-A32A-908F139648A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14773554-B9B9-47EF-A32A-908F139648A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

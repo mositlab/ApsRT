@@ -8,7 +8,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace Rodana.Core.Props
 {
-    internal class PropsDataLoaderModel: BaseDataLoaderModel
+    public class PropsDataLoaderModel: BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 

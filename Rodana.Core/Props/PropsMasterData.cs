@@ -8,13 +8,13 @@ namespace Rodana.Core.Props
 {
     public class PropsMasterData
     {
-        internal Dictionary<string, int> PropStringToIndex = new();
+        public Dictionary<string, int> PropStringToIndex = new();
 
-        internal Dictionary<string, int> PropNumberToIndex = new();
+        public Dictionary<string, int> PropNumberToIndex = new();
 
-        internal Dictionary<string, int> PropGuidToIndex = new();
+        public Dictionary<string, int> PropGuidToIndex = new();
 
-        internal PropsLinkerClass GenerateLinks(string name)
+        public PropsLinkerClass GenerateLinks(string name)
         {
             var valI = PropNumberToIndex.TryGetValue(name, out var i) ? i : -1;
             var valG = PropGuidToIndex.TryGetValue(name, out var g) ? g : -1;
@@ -28,7 +28,7 @@ namespace Rodana.Core.Props
         1 guid
         2 string
          */
-        internal void AddProp(PropsDataLoaderModel model)
+        public void AddProp(PropsDataLoaderModel model)
         {
             string key = model.PropName;
             byte itsType= model.PropType;

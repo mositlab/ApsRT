@@ -8,15 +8,15 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 namespace Rodana.Core.Planning.PlanningClasses
 {
 
-    internal class OpersBlock
+    public class OpersBlock
     {
-        internal List<PlanningModelling> Lists;
-        internal Uco ActualRC;
+        public List<PlanningModelling> Lists;
+        public Uco ActualRC;
 
         TimeSpan _maxTime;
         int lastCount = 0;
 
-        internal TimeSpan MaxTime
+        public TimeSpan MaxTime
         {
             get
             {
@@ -59,19 +59,19 @@ namespace Rodana.Core.Planning.PlanningClasses
         /// <summary>
         /// Какие тут тары и в каком количестве есть.
         /// </summary>
-        internal Dictionary<Uco, int> ExistingTaraHere = new();
+        public Dictionary<Uco, int> ExistingTaraHere = new();
 
         /// <summary>
         /// Насколько заполнен блок. От 0 до 1.
         /// -1 значит, что этот блок в принципе не поддерживает параллелизм, бладаря этому лезть в словарь рабочих центров не надо - микрооптимизация.
         /// </summary>
-        internal float FillKoeff = -1;
+        public float FillKoeff = -1;
 
         /// <summary>
         /// Сколько ещё тар можно вместить.
         /// Понадобится для небольшой оптимизации - если количество моделирований (оно же количество тар в блоке) больше свободного места тут, то блок просто не будет предложен.
         /// </summary>
-        internal int HowMuchPlaceHere = 0;
+        public int HowMuchPlaceHere = 0;
 
         // TODO: для моделирований списки детей и предков есть. Теперь не мешало бы устроить оптимизацию и поблочно.
     }

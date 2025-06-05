@@ -64,15 +64,15 @@ namespace Rodana.Core.Stages.MasterData
 
         // А это доп. дата, которая была введена для того, чтобы апс разграничила выполнение Fixed-операций и других
         // Благодаря этой сохраненной дате АПС даёт простою
-        internal DateTime? FIXED_START_TIME { get; private set; }
+        public DateTime? FIXED_START_TIME { get; private set; }
 
-        internal DateTime MIN_DATE_TIME_AFTER_FIX { get; set; } = DateTime.MaxValue; //  Это всегда было временем начала
+        public DateTime MIN_DATE_TIME_AFTER_FIX { get; set; } = DateTime.MaxValue; //  Это всегда было временем начала
 
-        internal TimeSpan OneDay { get; private set; } = TimeSpan.FromDays(1);
+        public TimeSpan OneDay { get; private set; } = TimeSpan.FromDays(1);
 
-        internal DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
+        public DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
 
-        internal DateTime? PrevTimeDelta { get; private set; }
+        public DateTime? PrevTimeDelta { get; private set; }
 
         void ProcessTimeData(Stage stage)
         {
@@ -230,6 +230,9 @@ namespace Rodana.Core.Stages.MasterData
 
             stage.Index = GUIDToIndex.Count;
             GUIDToIndex.Add(stage.GUID, stage.Index);
+            AllStages.Add(stage.Index, stage);
+            stage.Prevs = new();
+            stage.Nexts = new();
 
             #region Реквизиты, или ПРОПСЫ
 
@@ -301,9 +304,9 @@ namespace Rodana.Core.Stages.MasterData
         }
 
 
-        internal int LivensteinRechangeParam = 0; // В ЗМК-версии это напряжение
-        internal Dictionary<int, string> SavedOpersLivenCode = new();
-        internal void SetLivenCodes(string rawCriteriaName)
+        public int LivensteinRechangeParam = 0; // В ЗМК-версии это напряжение
+        public Dictionary<int, string> SavedOpersLivenCode = new();
+        public void SetLivenCodes(string rawCriteriaName)
         {
             LivensteinRechangeParam = SessionLink.MasterDataLinks.RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
 
@@ -358,9 +361,9 @@ namespace Rodana.Core.Stages.MasterData
         }
 
         static int Minimum(int a, int b, int c) => (a = a < b ? a : b) < c ? a : c;
-        internal byte[][] LevenshteinDistanceCash;
-        internal BitArray[] LevenshteinDistanceCashChecked;
-        internal byte LevenshteinDistance(int index1, int index2, int id1, int id2, bool WithUI)
+        public byte[][] LevenshteinDistanceCash;
+        public BitArray[] LevenshteinDistanceCashChecked;
+        public byte LevenshteinDistance(int index1, int index2, int id1, int id2, bool WithUI)
         {
             if (LevenshteinDistanceCashChecked[index1][index2])
             {
@@ -397,7 +400,7 @@ namespace Rodana.Core.Stages.MasterData
 
             return 255;
         }
-        internal static byte LevenshteinDistanceMain(string firstWord, string secondWord)
+        public static byte LevenshteinDistanceMain(string firstWord, string secondWord)
         {
 
             var n = firstWord.Length + 1;

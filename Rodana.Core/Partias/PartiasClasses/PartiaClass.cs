@@ -10,9 +10,9 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.PartiasClasses
 {
-    internal class APSPartiaClass
+    public class PartiaClass
     {
-        internal List< // СНАЧАЛА стадия
+        public List< // СНАЧАЛА стадия
             List< // потом на каждой стадии могут быть разные этапы (например, на одном этапе по три жилы разных цветов)
                 PartiaModelling // но так как они могут быть объединены, то это тоже является списком, и у каждого списка своя тара
                 >> OpersHere;
@@ -27,19 +27,19 @@ namespace Rodana.Core.Partias.PartiasClasses
         //    }
         //}
 
-        //internal List<int> ModelsHere;
-        //internal List<string> OrdersHere;
-        internal DateTime PossibleDeadline;
-        internal bool IsRestricted;
-        internal bool IsElementar = true;
-        internal int MergeFlag = 0;
-        internal Guid? MyGuid; // гуид для партии пф
+        //public List<int> ModelsHere;
+        //public List<string> OrdersHere;
+        public DateTime PossibleDeadline;
+        public bool IsRestricted;
+        public bool IsElementar = true;
+        public int MergeFlag = 0;
+        public Guid? MyGuid; // гуид для партии пф
 
-        internal float LastK = 0;
+        public float LastK = 0;
 
-        internal int GPsCountNow = 1;
+        public int GPsCountNow = 1;
 
-        internal (List<Stages.Stage> Modelling, int LevelIndex) GetLongestOpers()
+        public (List<Stages.Stage> Modelling, int LevelIndex) GetLongestOpers()
         {
             List<Stages.Stage> best = null;
             int time = -1;
@@ -62,13 +62,13 @@ namespace Rodana.Core.Partias.PartiasClasses
             return (best == null ? null : new(best), besti);
         }
 
-        internal Dictionary<int, PartiaModelling> SeeSdvigsAsDic() => PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsDic(OpersHere);
+        public Dictionary<int, PartiaModelling> SeeSdvigsAsDic() => PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsDic(OpersHere);
         //{
         //    var list = OpersHere.SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.ID, y))));
         //    return list.ToDictionary(x => x.ID, x => x.y);
         //}
 
-        internal void GetDataFromOtherPartia(APSPartiaClass what)
+        public void GetDataFromOtherPartia(PartiaClass what)
         {
             OpersHere = what.OpersHere;
             PossibleDeadline = what.PossibleDeadline;
@@ -80,7 +80,7 @@ namespace Rodana.Core.Partias.PartiasClasses
             GPsCountNow = what.GPsCountNow;
         }
 
-        public APSPartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid? pfGuid, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
+        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid? pfGuid, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
         {
             OpersHere = opersHere;
             //ModelsHere = modelsHere;
@@ -102,7 +102,7 @@ namespace Rodana.Core.Partias.PartiasClasses
             return error + String.Format(" #{0:X} ({1} шт.) - {2}", GetHashCode(), ids.Count(), OpersHere[0][0].Opers[0].OrderLink.OrderID);// + ": " + string.Join("; ", OrdersHere);
         }
 
-        internal void Sort()
+        public void Sort()
         {
             Dictionary<int, int> IDToGroup = new();
 
@@ -208,7 +208,7 @@ namespace Rodana.Core.Partias.PartiasClasses
             }
         }
 
-        internal void SubdivisiosOptimizer(PartiasConnectorEngineResult previousData)
+        public void SubdivisiosOptimizer(PartiasConnectorEngineResult previousData)
         {
             var dics = SeeSdvigsAsDic();
             for (var CurrentLevel = 0; CurrentLevel < OpersHere.Count; CurrentLevel++)

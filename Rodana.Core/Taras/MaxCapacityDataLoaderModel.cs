@@ -34,7 +34,7 @@ namespace Rodana.Core.Taras
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]
         public Uco TaraType { get; set; }
 
-        [DataRecordColumn("ЕдиницаИзмерения", defaultIfFail: true)]
+        [DataRecordColumn("ЕдиницаХраненияОстатков", defaultIfFail: true)]
         public DimensionUnit DimensionUnit { get; set; }
 
         [DataRecordColumn("ВеличинаНамотки")]

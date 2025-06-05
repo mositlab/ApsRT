@@ -519,7 +519,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
         }
 
 
-        static float FindFilledK(APSPartiaClass firstPartia, APSPartiaClass secondPartia, bool withHerself, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, PartiasConnectorEngineResult resultToFill)
+        static float FindFilledK(PartiaClass firstPartia, PartiaClass secondPartia, bool withHerself, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, PartiasConnectorEngineResult resultToFill)
         {
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
             var options = SessionLink.SessionOptions;
@@ -593,7 +593,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             return filledK;
         }
 
-        static void FinalConnectorChecks(APSPartiaClass firstPartia, APSPartiaClass secondPartia, bool withHerself, bool withUI, PartiasConnectorEngineResult resultToFill)
+        static void FinalConnectorChecks(PartiaClass firstPartia, PartiaClass secondPartia, bool withHerself, bool withUI, PartiasConnectorEngineResult resultToFill)
         {
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
             if (resultToFill.mergedNorm > 0 || withHerself)
@@ -666,7 +666,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             }
         }
 
-        internal static PartiasConnectorEngineResult Connect(APSPartiaClass firstPartia, APSPartiaClass secondPartia, bool withUI, bool withHerself)
+        internal static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withUI, bool withHerself)
         {
             if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
             {

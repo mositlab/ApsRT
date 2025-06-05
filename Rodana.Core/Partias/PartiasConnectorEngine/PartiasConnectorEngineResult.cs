@@ -7,31 +7,31 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.PartiasConnectorEngine
 {
-    internal class PartiasConnectorEngineResult
+    public class PartiasConnectorEngineResult
     {
-        internal int Total;
-        internal float FilledK;
-        internal int Diff;
-        internal int LongestModsMaxCount;
+        public int Total;
+        public float FilledK;
+        public int Diff;
+        public int LongestModsMaxCount;
 
-        internal int mergedVspom = 0;
-        internal int mergedNorm = 0;
+        public int mergedVspom = 0;
+        public int mergedNorm = 0;
 
-        internal int LastLevel = 0;
+        public int LastLevel = 0;
 
-        internal Dictionary<int, Uco> IDToTara;
+        public Dictionary<int, Uco> IDToTara;
 
-        internal Dictionary<int, int> IDmergedPrevs;
+        public Dictionary<int, int> IDmergedPrevs;
 
-        internal Dictionary<int, int> IDmergedGroups;
+        public Dictionary<int, int> IDmergedGroups;
 
-        internal Uco? RecommendedSubdivision;
+        public Uco? RecommendedSubdivision;
 
-        internal Dictionary<int, int> ForOneRCGroups;
+        public Dictionary<int, int> ForOneRCGroups;
 
-        internal Dictionary<int, Uco?> ForOneRCGroupAlreadyUsed;
+        public Dictionary<int, Uco?> ForOneRCGroupAlreadyUsed;
 
-        internal Dictionary<int, List<Uco>> PossibleCentersForOneRCGroups;
+        public Dictionary<int, List<Uco>> PossibleCentersForOneRCGroups;
 
         public PartiasConnectorEngineResult(int Total, float K, int Diff, int LongestModsMaxCount)
         {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Common;
 
-namespace Rodana.Core.PlanningClasses
+namespace Rodana.Core.Planning.PlanningClasses
 {
     /// <summary>
     /// РЦ, который уже в плане считается, это данные для него

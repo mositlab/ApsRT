@@ -20,7 +20,7 @@ namespace Rodana.Core.Partias.Materials
             return $"Исх. комплектующие: {string.Join(",\r\n", UsedMaterials.Select(x => x.ToString()))}";
         }
 
-        public string AsLongString() => string.Join(";", UsedMaterials/*.Where(x => x.WorkType == "Производство")*/.Select(x => x.Nomenklature).OrderBy(x => x));
+        public string AsLongString() => string.Join(";", UsedMaterials/*.Where(x => x.WorkType == "Производство")*/.Select(x => x.Nomenklature).OrderBy(x => x.Code));
         //public IEnumerable<string> AsShortStrings() => UsedMaterials.Select(x => x.Nomenklature).OrderBy(x => x);
 
         public bool IsEqualTo(StageMaterialsInfo other)

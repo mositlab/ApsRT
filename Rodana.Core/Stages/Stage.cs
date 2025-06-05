@@ -75,7 +75,7 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Вид операции
         /// </summary>
-        [DataRecordCodedObjectColumn("ВидТехнологическойОперации_GUID", "ВидТехнологическойОперации")]
+        [DataRecordCodedObjectColumn("ВидОперации_GUID", "ВидОперации")]
         public Uco OperationVid { get; set; }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace Rodana.Core.Stages
         public double CurrentTaraMaxCapacity { get; set; }
         private bool? noCheckNamotka;
 
-        internal bool NoCheckNamotka
+        public bool NoCheckNamotka
         {
             get
             {
@@ -194,12 +194,12 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Это тоже флаг для вывода - общий этап, для упрощения. В вычислении не используется
         /// </summary>
-        internal Guid? CustomPartiaGuid;
+        public Guid? CustomPartiaGuid;
 
 
-        internal bool IsCustomModelling; // Если да - то будет юзать номер партии и моделирования ниже
+        public bool IsCustomModelling; // Если да - то будет юзать номер партии и моделирования ниже
                                    // а так как схлопнуться может что угодно с чем угодно, то у каждой операции есть эти поля
-        internal Guid CustomModelling;
+        public Guid CustomModelling;
         /// <summary>
         /// гуид моделирования, он из меса приходит
         /// </summary>
@@ -209,7 +209,7 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Этот общий флаг пришёл из МЕСа?
         /// </summary>
-        internal bool EasyFlagIsFromMes;
+        public bool EasyFlagIsFromMes;
 
         /// <summary>
         /// Это флаг для вывода - общий этап, для упрощения.
@@ -268,7 +268,7 @@ namespace Rodana.Core.Stages
         #endregion
 
         #region Переналадки
-        internal StageRechangeParam[] RechangeParameters;
+        public StageRechangeParam[] RechangeParameters;
 
         /// <summary>
         /// Функция вызывается дважды,
@@ -362,25 +362,25 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Количество мест у предыдущих этапов, не попавших в план, но имевших информацию в таблице зависимостей (основная тара)
         /// </summary>
-        internal int GhostNormPrevsPlacesCount;
+        public int GhostNormPrevsPlacesCount;
         /// <summary>
         /// Количество мест у предыдущих этапов, не попавших в план, но имевших информацию в таблице зависимостей (вспомогательная тара тара)
         /// </summary>
-        internal int GhostVspomPrevsPlacesCount;
+        public int GhostVspomPrevsPlacesCount;
         /// <summary>
         /// список пред этапов
         /// </summary>
-        internal List<int> Prevs;
+        public List<int> Prevs;
 
         /// <summary>
         /// Список предков, которые НЕ вспомогательные. Этот счётчик заполняется при загрузке и выручает при вычислении партий
         /// </summary>
-        internal int PrevsNormCount;
+        public int PrevsNormCount;
 
         /// <summary>
         /// список дочерних этапов
         /// </summary>
-        internal List<int> Nexts;
+        public List<int> Nexts;
         #endregion
 
         #region Наладочные длины
@@ -396,7 +396,7 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// ID параллельного планирования, нужный для разделения операций
         /// </summary>
-        internal Dictionary<Uco, int> ParallelPlanningIDs;
+        public Dictionary<Uco, int> ParallelPlanningIDs;
         #endregion
     }
 

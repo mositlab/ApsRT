@@ -13,7 +13,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.TaraSearchEngine
 {
-    internal class TaraSearchEngine
+    public class TaraSearchEngine
     {
         /// <summary>
         /// "Метод поиска проверенного РЦ". Эта функция нужна в паре моментов, чтобы найти какой-нибудь РЦ на случай, если известна тара у предков (с 05.06 - известна приемная тара), а запустить полный алгоритм поиска по каким-то причинам затратно. Эта функция позволит найти какой-нибудь РЦ, среди отдающих тар которого есть все, что были назначены у предков + имеется нужная тара в списке приемной (если не пуста). На данный момент используется после объединения (когда для вывода в Result.csv приходилось устанавливать РЦ, даже если не нашлась тара) - чтобы цепочка приёмно-отдающей тары не нарушалась (например, hsr 630 поставил вместо 560-й, хотя у него нет 630-й в отдающей, а тару вообще не нашёл). Введён после замечания Алёны, 30.05. Дополнен 05.06, теперь позволяет отфильтровать РЦ ещё и по приемной таре, которая у него должна быть. Это пригодится для конечных тар - они назначены извне, а РЦ нужно подобрать самим. А ещё юзается в G, когда нужно получить список РЦ, на который влезет вся
@@ -23,7 +23,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
         /// <param name="thisRC">РЦ, который заполняется, как выходной параметр. Этот рц содержит в списке отдающей тары все нужные тары, и может подойти нам.</param>
         /// <param name="TaraNeedsToBeHere">Тары, которая должны у него быть в списке приёмной.</param>
         /// <returns>Ответ: нашёл рц или нет?</returns>
-        internal static bool FindSomeCentersBecauseOfPrevs(IAbleForTaraCalcInterface CurrentOpers, List<Uco> possibleCenters, Dictionary<int, Uco> IDToTara, List<Uco> TaraNeedsToBeHere, out Uco thisRC, out List<Uco> rcs, out List<Uco> otdTara, bool returnFirst)
+        public static bool FindSomeCentersBecauseOfPrevs(IAbleForTaraCalcInterface CurrentOpers, List<Uco> possibleCenters, Dictionary<int, Uco> IDToTara, List<Uco> TaraNeedsToBeHere, out Uco thisRC, out List<Uco> rcs, out List<Uco> otdTara, bool returnFirst)
         {
             thisRC = Uco.EmptyObject;
 
@@ -73,7 +73,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
         /// <summary>
         /// Получаем список РЦ и тары, которая может встать для них
         /// </summary>
-        internal static bool GetAllVariantsForThese(IAbleForTaraCalcInterface allOpers, out TemporaryTaraSearchData searchData, SumIsPossibleOptions options)
+        public static bool GetAllVariantsForThese(IAbleForTaraCalcInterface allOpers, out TemporaryTaraSearchData searchData, SumIsPossibleOptions options)
         {
             var SessionLink = allOpers.FirstOperLink.SessionLink;
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
@@ -657,7 +657,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
             return true;
         }
 
-        internal static bool FilterAllVariants(IAbleForTaraCalcInterface someOpers, TemporaryTaraSearchData searchData,
+        public static bool FilterAllVariants(IAbleForTaraCalcInterface someOpers, TemporaryTaraSearchData searchData,
             out Uco TaraName, out Uco FinalRC, out double Max, out DimensionUnit used_format, out bool notChangeTara,
             SumIsPossibleOptions options)
         {
@@ -883,7 +883,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
             return false;
         }
 
-        internal static bool SumIsPossible(IAbleForTaraCalcInterface allOpers,//, float addNaladLength,// object allOpersObject,
+        public static bool SumIsPossible(IAbleForTaraCalcInterface allOpers,//, float addNaladLength,// object allOpersObject,
             out Uco TaraName, out Uco FinalRC, out double Max, out DimensionUnit used_format, out bool notChangeTara, //bool withUI/*, bool CheckChildren*/,
             out TemporaryTaraSearchData searchData,
             SumIsPossibleOptions options

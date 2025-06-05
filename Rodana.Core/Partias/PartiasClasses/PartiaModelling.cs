@@ -9,13 +9,13 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.PartiasClasses
 {
-    internal class PartiaModelling : PartiaModellingSmall
+    public class PartiaModelling : PartiaModellingSmall
     {
-        internal Uco Tara; // И информация
-        internal double Max;
-        internal DimensionUnit Format;
-        internal Uco RC;
-        internal bool RCIsChecked = false; // TODO: тестовая хрень, которая из-за ошибок в НСИ себя проявляет
+        public Uco Tara; // И информация
+        public double Max;
+        public DimensionUnit Format;
+        public Uco RC;
+        public bool RCIsChecked = false; // TODO: тестовая хрень, которая из-за ошибок в НСИ себя проявляет
 
         public PartiaModelling(List<Stages.Stage> opers, Uco tara, double max, DimensionUnit format, Uco rC, int zadelCode, List<Guid> zadelGuids) : base(opers, zadelCode, zadelGuids)
         {

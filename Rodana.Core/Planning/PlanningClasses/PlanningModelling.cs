@@ -10,18 +10,18 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Planning.PlanningClasses
 {
-    internal class PlanningModelling : IAbleForTaraCalcInterface
+    public class PlanningModelling : IAbleForTaraCalcInterface
     {
-        internal List<Stage> OpersList;
-        internal TimeSpan AllTime;
-        //internal TimeSpan MaxTime;
-        internal double TimeK;
-        internal double Count; // Тут эта фигня нужна ДЛЯ: а) расчёта тары в Вишке (пригодится для макс намоток) и б) в будущем пригодится, тк 04.06.2024: количество для модов, пришедших из меса, уже задано, как сумма всех исходных этапов.
-        internal ModellingType ModType;
+        public List<Stage> OpersList;
+        public TimeSpan AllTime;
+        //public TimeSpan MaxTime;
+        public double TimeK;
+        public double Count; // Тут эта фигня нужна ДЛЯ: а) расчёта тары в Вишке (пригодится для макс намоток) и б) в будущем пригодится, тк 04.06.2024: количество для модов, пришедших из меса, уже задано, как сумма всех исходных этапов.
+        public ModellingType ModType;
 
-        internal List<Uco> PossibleRCsHere; // иногда РЦ могут немного отличаться у того или иного этапа, ибо нет проверки на совпадение маршрутов РЦ. Поэтому создан отдельный список, чтоб можно было чекнуть.
+        public List<Uco> PossibleRCsHere; // иногда РЦ могут немного отличаться у того или иного этапа, ибо нет проверки на совпадение маршрутов РЦ. Поэтому создан отдельный список, чтоб можно было чекнуть.
 
-        internal Stage FirstOper;
+        public Stage FirstOper;
 
         Stage IAbleForTaraCalcInterface.FirstOperLink => FirstOper;
 
@@ -33,11 +33,11 @@ namespace Rodana.Core.Planning.PlanningClasses
 
         int IAbleForTaraCalcInterface.ZadelCode => 0;
 
-        internal Dictionary<Guid, (Stage FirstOper, int Count, double Sum)> ObshEtapData;
+        public Dictionary<Guid, (Stage FirstOper, int Count, double Sum)> ObshEtapData;
 
-        internal int ModID; // чисто номер мода. Попытка оптимизации
-        internal List<int> NextMods = new();
-        internal List<int> PrevMods = new();
+        public int ModID; // чисто номер мода. Попытка оптимизации
+        public List<int> NextMods = new();
+        public List<int> PrevMods = new();
 
         public PlanningModelling(List<Stage> list, bool parrRC, ModellingType type, int modId,
             List<int> prevs, List<int> nexts)

@@ -121,7 +121,7 @@ namespace Rodana.Core.Rechanges
             return link.OperationVid.Code;
         }
 
-        // Получит вид операции
+        // Получит количество мест
         static object GetPlacesCount(Stage which, RechangesEngineData engineData, Type type, int valueIndex)
         {
             if (type == typeof(Guid?)) return null;

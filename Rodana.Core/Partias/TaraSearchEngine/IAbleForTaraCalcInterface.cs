@@ -7,25 +7,25 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.Partias.TaraSearchEngine
 {
-    internal interface IAbleForTaraCalcInterface
+    public interface IAbleForTaraCalcInterface
     {
         /// <summary>
         /// Первая операция
         /// </summary>
-        internal Stages.Stage FirstOperLink { get; }
+        public Stages.Stage FirstOperLink { get; }
 
         /// <summary>
         /// ИД моделирования
         /// </summary>
-        internal int ModId { get; }
+        public int ModId { get; }
 
         /// <summary>
         /// Все операции объединения
         /// </summary>
-        internal List<Stages.Stage> AllOpers { get; }
+        public List<Stages.Stage> AllOpers { get; }
 
-        internal double Sum { get; }
+        public double Sum { get; }
 
-        internal int ZadelCode { get; }
+        public int ZadelCode { get; }
     }
 }

@@ -20,6 +20,7 @@ namespace Rodana.Core.Hoppers
         public bool IsDirectory { get; set; }
         public bool UsesGuid { get; set; }
         public string[] NeededHoppers { get; set; }
-        internal bool LoadedFlag { get; set; }
+        public bool LoadedFlag { get; set; }
+        public int HopperIndex { get; set; }
     }
 }

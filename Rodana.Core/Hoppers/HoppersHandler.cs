@@ -82,6 +82,7 @@ namespace Rodana.Core.Hoppers
             int i = 0;
             foreach (var el in data2)
             {
+                el.attr.HopperIndex = i;
                 Hoppers.Add((el.Key, el.attr, el.intr));
                 HoppersIndexes.Add(el.Key, i);
                 i++;
@@ -127,12 +128,14 @@ namespace Rodana.Core.Hoppers
             return -1;
         }
 
-        public Action<HopperAttribute, IHopperInterface, int> OnStartLoadingEvent;
-        public Action<HopperAttribute, IHopperInterface, int> OnLoadingEvent;
-        public Action<HopperAttribute, IHopperInterface, int> OnEndLoadingEvent;
+        public event Action<HopperAttribute, IHopperInterface, int> OnStartLoadingEvent;
+        public event Action<HopperAttribute, IHopperInterface, int> OnLoadingEvent;
+        public event Action<HopperAttribute, IHopperInterface, int> OnEndLoadingEvent;
 
         public void ModuleActions(HopperAttribute hopperData, IHopperInterface hopperInterface, string[] paths)
         {
+            hopperData.LoadedFlag = false;
+
             if (session.SessionOptions.PartOrZadel && !hopperData.LoadWhenOnlyPart) // если только партии (ну или заделы), то ничего не грузим
             {
                 session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' ignored bsc ONLY PART.\r\n");
@@ -163,9 +166,6 @@ namespace Rodana.Core.Hoppers
                 {
                     // это папочная хрень
                     var filesthere = Directory.GetFiles(path);
-                    //hopper.Bar.Maximum = filesthere.Length;
-                    //hopper.Bar.Minimum = 0;
-                    //hopper.Bar.Value = 0;
                     OnStartLoadingEvent?.Invoke(hopperData, hopperInterface, filesthere.Length);
                     int i = 0;
                     foreach (var file in filesthere)
@@ -227,13 +227,6 @@ namespace Rodana.Core.Hoppers
                 session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}] reader ON\r\n");
                 using (reader)
                 {
-                    //if (Show)
-                    //{
-                    //    hopper.Bar.IsInfinite = reader.RecordsAffected <= 0;
-                    //    hopper.Bar.Maximum = reader.RecordsAffected;
-                    //    hopper.Bar.Minimum = 0;
-                    //    hopper.Bar.Value = 0;
-                    //}
                     OnStartLoadingEvent?.Invoke(hopperData, hopperInterface, reader.RecordsAffected);
 
                     var i = 1;
@@ -278,10 +271,6 @@ namespace Rodana.Core.Hoppers
                 throw new ApplicationException($"Не удалось прочитать файл конфигурации \"{file.FullName}\"", exception);
             }
 
-            //if (show)
-            //{
-            //    hopper.Bar.IsInfinite = true;
-            //}
             // счётчик строк
             var counter = 0;
 

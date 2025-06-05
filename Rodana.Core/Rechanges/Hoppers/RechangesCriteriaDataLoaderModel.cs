@@ -21,40 +21,40 @@ namespace Rodana.Core.Rechanges.Hoppers
 
 
         [DataRecordColumn("Наименование")]
-        internal string Name { get; set; }
+        public string Name { get; set; }
 
         [DataRecordColumn("ЭтоЧисло", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool CanBeNumber { get; set; }
+        public bool CanBeNumber { get; set; }
 
         [DataRecordColumn("ЭтоДиапазон", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool CanBeDiapazon { get; set; }
+        public bool CanBeDiapazon { get; set; }
 
         [DataRecordColumn("ЭтоСтрока", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool CanBeString { get; set; }
+        public bool CanBeString { get; set; }
 
         [DataRecordColumn("ЭтоИдентификатор", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool CanBeGuid { get; set; }
+        public bool CanBeGuid { get; set; }
 
         [DataRecordColumn("Многозначный", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool CanBeMultiple { get; set; }
+        public bool CanBeMultiple { get; set; }
 
         [DataRecordColumn("Сортировать", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool Sort { get; set; }
+        public bool Sort { get; set; }
 
         [DataRecordColumn("ЭтоСсылка", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool IsLink { get; set; }
+        public bool IsLink { get; set; }
 
         [DataRecordColumn("Динамичный", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        internal bool IsDynamic { get; set; }
+        public bool IsDynamic { get; set; }
 
         [DataRecordColumn("ИндексМетода")]
-        internal int MethodLinkIndex { get; set; }
+        public int MethodLinkIndex { get; set; }
 
         [DataRecordColumn("ИменаСтолбцовТаблицыОперацийЗначения")]
-        internal string CalumnValueNames { get; set; }
+        public string CalumnValueNames { get; set; }
 
         [DataRecordColumn("ИменаСтолбцовТаблицыОперацийМетки")]
-        internal string CalumnLabelNames { get; set; }
+        public string CalumnLabelNames { get; set; }
 
     }
 }

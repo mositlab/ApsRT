@@ -133,7 +133,7 @@ namespace Rodana.Core.Partias.Leftovers
         //}
         //sw.Close();
 
-        internal void PreparePartiasForLeftovers(List<APSPartiaClass> partias)
+        internal void PreparePartiasForLeftovers(List<PartiaClass> partias)
         {
             if (CurrentLeftoversCount == null) return;
 
@@ -409,7 +409,7 @@ namespace Rodana.Core.Partias.Leftovers
 
         }
 
-        internal void OutputLeftovers(List<APSPartiaClass> partias)
+        internal void OutputLeftovers(List<PartiaClass> partias)
         {
             var sw = new StreamWriter("leftoversUsed.csv", false, Encoding.UTF8);
             var swBig = new StreamWriter("leftoversUsedBig.csv", false, Encoding.UTF8);

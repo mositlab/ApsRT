@@ -1,4 +1,5 @@
 ﻿using WinFormsCustomComponents;
+using RodanaCustomComponents;
 
 namespace Rodana.ZMK
 {
@@ -46,12 +47,16 @@ namespace Rodana.ZMK
             PartiasTabControl = new MaterialTabControl();
             AllPartiasTabControl = new TabPage();
             splitContainer1 = new SplitContainer();
+            textBox1 = new TextBox();
             label2 = new Label();
             PartiasProgressLabel = new Label();
-            button5 = new Button();
+            StartAlgorithmPButton = new Button();
             materialCheckBox3 = new MaterialCheckBox();
             materialCheckBox2 = new MaterialCheckBox();
             customProgressBar3 = new CustomProgressBar();
+            splitContainer3 = new SplitContainer();
+            CustomTreeViewOnPPanel = new CustomTreeView();
+            dataGridView1 = new DataGridView();
             HandPartiasTabControl = new TabPage();
             materialTabSelector2 = new MaterialTabSelector();
             PlanningTabPage = new TabPage();
@@ -88,7 +93,13 @@ namespace Rodana.ZMK
             AllPartiasTabControl.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer3).BeginInit();
+            splitContainer3.Panel1.SuspendLayout();
+            splitContainer3.Panel2.SuspendLayout();
+            splitContainer3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             PlanningTabPage.SuspendLayout();
             PlanningTabControl.SuspendLayout();
             SettingsTabPage.SuspendLayout();
@@ -313,16 +324,31 @@ namespace Rodana.ZMK
             // 
             // splitContainer1.Panel1
             // 
+            splitContainer1.Panel1.Controls.Add(textBox1);
             splitContainer1.Panel1.Controls.Add(label2);
             splitContainer1.Panel1.Controls.Add(PartiasProgressLabel);
-            splitContainer1.Panel1.Controls.Add(button5);
+            splitContainer1.Panel1.Controls.Add(StartAlgorithmPButton);
             splitContainer1.Panel1.Controls.Add(materialCheckBox3);
             splitContainer1.Panel1.Controls.Add(materialCheckBox2);
             splitContainer1.Panel1.Controls.Add(customProgressBar3);
             splitContainer1.Panel1MinSize = 400;
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(splitContainer3);
             splitContainer1.Size = new Size(1157, 423);
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
+            // 
+            // textBox1
+            // 
+            textBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            textBox1.Location = new Point(0, 177);
+            textBox1.Multiline = true;
+            textBox1.Name = "textBox1";
+            textBox1.ScrollBars = ScrollBars.Both;
+            textBox1.Size = new Size(398, 244);
+            textBox1.TabIndex = 27;
             // 
             // label2
             // 
@@ -342,22 +368,22 @@ namespace Rodana.ZMK
             PartiasProgressLabel.TabIndex = 25;
             PartiasProgressLabel.Text = "Расчёт недоступен без данных.";
             // 
-            // button5
+            // StartAlgorithmPButton
             // 
-            button5.BackColor = Color.CornflowerBlue;
-            button5.BackgroundImageLayout = ImageLayout.Zoom;
-            button5.Cursor = Cursors.Hand;
-            button5.Enabled = false;
-            button5.FlatAppearance.BorderSize = 0;
-            button5.FlatStyle = FlatStyle.Flat;
-            button5.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button5.ForeColor = Color.White;
-            button5.Location = new Point(3, 3);
-            button5.Name = "button5";
-            button5.Size = new Size(297, 51);
-            button5.TabIndex = 21;
-            button5.Text = "Расчёт";
-            button5.UseVisualStyleBackColor = false;
+            StartAlgorithmPButton.BackColor = Color.CornflowerBlue;
+            StartAlgorithmPButton.BackgroundImageLayout = ImageLayout.Zoom;
+            StartAlgorithmPButton.Cursor = Cursors.Hand;
+            StartAlgorithmPButton.Enabled = false;
+            StartAlgorithmPButton.FlatAppearance.BorderSize = 0;
+            StartAlgorithmPButton.FlatStyle = FlatStyle.Flat;
+            StartAlgorithmPButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            StartAlgorithmPButton.ForeColor = Color.White;
+            StartAlgorithmPButton.Location = new Point(3, 3);
+            StartAlgorithmPButton.Name = "StartAlgorithmPButton";
+            StartAlgorithmPButton.Size = new Size(297, 51);
+            StartAlgorithmPButton.TabIndex = 21;
+            StartAlgorithmPButton.Text = "Расчёт";
+            StartAlgorithmPButton.UseVisualStyleBackColor = false;
             // 
             // materialCheckBox3
             // 
@@ -408,6 +434,42 @@ namespace Rodana.ZMK
             customProgressBar3.TabIndex = 16;
             customProgressBar3.Text = "customProgressBar3";
             customProgressBar3.Value = 6;
+            // 
+            // splitContainer3
+            // 
+            splitContainer3.Dock = DockStyle.Fill;
+            splitContainer3.Location = new Point(0, 0);
+            splitContainer3.Name = "splitContainer3";
+            splitContainer3.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer3.Panel1
+            // 
+            splitContainer3.Panel1.Controls.Add(CustomTreeViewOnPPanel);
+            // 
+            // splitContainer3.Panel2
+            // 
+            splitContainer3.Panel2.Controls.Add(dataGridView1);
+            splitContainer3.Size = new Size(751, 421);
+            splitContainer3.SplitterDistance = 250;
+            splitContainer3.TabIndex = 0;
+            // 
+            // CustomTreeViewOnPPanel
+            // 
+            CustomTreeViewOnPPanel.Dock = DockStyle.Fill;
+            CustomTreeViewOnPPanel.Location = new Point(0, 0);
+            CustomTreeViewOnPPanel.Name = "CustomTreeViewOnPPanel";
+            CustomTreeViewOnPPanel.Size = new Size(751, 250);
+            CustomTreeViewOnPPanel.TabIndex = 1;
+            // 
+            // dataGridView1
+            // 
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Dock = DockStyle.Fill;
+            dataGridView1.Location = new Point(0, 0);
+            dataGridView1.Name = "dataGridView1";
+            dataGridView1.RowHeadersWidth = 51;
+            dataGridView1.Size = new Size(751, 167);
+            dataGridView1.TabIndex = 0;
             // 
             // HandPartiasTabControl
             // 
@@ -828,8 +890,14 @@ namespace Rodana.ZMK
             AllPartiasTabControl.ResumeLayout(false);
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel1.PerformLayout();
+            splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
+            splitContainer3.Panel1.ResumeLayout(false);
+            splitContainer3.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
+            splitContainer3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             PlanningTabPage.ResumeLayout(false);
             PlanningTabControl.ResumeLayout(false);
             SettingsTabPage.ResumeLayout(false);
@@ -865,7 +933,7 @@ namespace Rodana.ZMK
         private TabPage AllPartiasTabControl;
         private TabPage HandPartiasTabControl;
         private WinFormsCustomComponents.MaterialCheckBox materialCheckBox3;
-        private Button button5;
+        private Button StartAlgorithmPButton;
         private WinFormsCustomComponents.MaterialRadioButton RadioButton1;
         private WinFormsCustomComponents.MaterialRadioButton materialRadioButton2;
         private Button ToggleThemeButton;
@@ -894,5 +962,9 @@ namespace Rodana.ZMK
         private MaterialCheckBox UsePseudoTaraCheckBox;
         private MaterialCheckBox LogErrorsCheckBox;
         private SplitContainer splitContainer2;
+        private TextBox textBox1;
+        private SplitContainer splitContainer3;
+        private DataGridView dataGridView1;
+        private CustomTreeView CustomTreeViewOnPPanel;
     }
 }

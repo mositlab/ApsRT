@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Rodana.Core\Rodana.Core.csproj" />
+    <ProjectReference Include="..\RodanaCustomComponents\RodanaCustomComponents.csproj" />
     <ProjectReference Include="..\WinFormsCustomComponents\WinFormsCustomComponents.csproj" />
   </ItemGroup>
 
