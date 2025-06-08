@@ -3,6 +3,7 @@ using Rodana.Core.Partias.PartiasConnectorEngine;
 using Rodana.Core.Partias.TaraSearchEngine;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace Rodana.Core.Partias.PartiasClasses
 {
     public class PartiaClass
     {
+        #region Основное
         public List< // СНАЧАЛА стадия
             List< // потом на каждой стадии могут быть разные этапы (например, на одном этапе по три жилы разных цветов)
                 PartiaModelling // но так как они могут быть объединены, то это тоже является списком, и у каждого списка своя тара
@@ -27,13 +29,11 @@ namespace Rodana.Core.Partias.PartiasClasses
         //    }
         //}
 
-        //public List<int> ModelsHere;
-        //public List<string> OrdersHere;
         public DateTime PossibleDeadline;
         public bool IsRestricted;
         public bool IsElementar = true;
         public int MergeFlag = 0;
-        public Guid? MyGuid; // гуид для партии пф
+        public Guid MyGuid; // гуид для партии пф
 
         public float LastK = 0;
 
@@ -50,7 +50,7 @@ namespace Rodana.Core.Partias.PartiasClasses
                 {
                     var y = OpersHere[i][j];
                     if (y.Opers[0].UsesVspomTara || y.ZadelCode != 0 || y.Opers[0].IsVspom || y.Opers[0].IsLast) continue;
-                    var maxT = y.Opers.Max(x => x.Duration.Value);
+                    var maxT = y.Opers.Max(x => x.GetDuration());
                     if (maxT > time)
                     {
                         best = y.Opers;
@@ -80,7 +80,7 @@ namespace Rodana.Core.Partias.PartiasClasses
             GPsCountNow = what.GPsCountNow;
         }
 
-        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid? pfGuid, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
+        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid pfGuid, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
         {
             OpersHere = opersHere;
             //ModelsHere = modelsHere;
@@ -136,8 +136,9 @@ namespace Rodana.Core.Partias.PartiasClasses
                 OpersHere[i] = OpersHere[i].OrderBy(x => IDToGroup.TryGetValue(x.Opers[0].Index, out var gr) ? gr : -1).ToList();
             }
         }
+        #endregion
 
-
+        #region Оптимизатор подразделений
         void OptimizeGroupSubdivision(PartiaModelling[] sdvigs, PartiaModelling[][] PossibleDatas, PartiasConnectorEngineResult previousData)
         {
             HashSet<int> ignoredSdvigs = new HashSet<int>(sdvigs.Length);
@@ -253,5 +254,7 @@ namespace Rodana.Core.Partias.PartiasClasses
                 }
             }
         }
+        #endregion
+
     }
 }

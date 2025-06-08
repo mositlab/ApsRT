@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic;
+﻿using Azure;
+using Microsoft.VisualBasic;
 using Rodana.Core.Partias.PartiasClasses;
 using Rodana.Core.Partias.TaraSearchEngine;
 using System;
@@ -13,6 +14,28 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
 {
     internal class PartiasConnectorEngine
     {
+
+        internal static List<List<PartiaModelling>> DeepCopy(List<List<PartiaModelling>> original)
+        {
+            var copied = new List<List<PartiaModelling>>();
+            foreach (var list0 in original)
+            {
+                var listhere = new List<PartiaModelling>();
+                foreach (var list1 in list0)
+                {
+                    var listhere2 = new PartiaModelling(new List<Stages.Stage>(), list1.Tara, list1.Max, list1.Format, list1.RC, list1.ZadelCode,
+                        list1.ZadelsGUIDs != null ? new(list1.ZadelsGUIDs) : null);
+                    //listhere2.RCIsChecked = list1.RCIsChecked;
+                    foreach (var list2 in list1.Opers)
+                    {
+                        listhere2.Opers.Add(list2);
+                    }
+                    listhere.Add(listhere2);
+                }
+                copied.Add(listhere);
+            }
+            return copied;
+        }
 
         internal static Dictionary<int, PartiaModelling> SeeSdvigsAsDic(List<List<PartiaModelling>> opers)
         {
@@ -86,7 +109,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             }
         }
 
-        static bool AbleToMergeLevel(List<PartiaModelling> here1, List<PartiaModelling> here2, int CurrLevel, bool isFirstLevel, bool withHerself, bool withUI, PartiasConnectorEngineResult resultToFill)
+        static bool AbleToMergeLevel(List<PartiaModelling> here1, List<PartiaModelling> here2, int CurrLevel, bool isFirstLevel, bool withHerself, bool withLog, PartiasConnectorEngineResult resultToFill)
         {
             if (withHerself)
             {
@@ -101,7 +124,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                             break;
                         }
 
-                        res = AbleToMerge(here1[i], here2, CurrLevel, false, withHerself, withUI, resultToFill); // false - внутри себя никаких проверок внутри себя уже делать НЕ НАДО, поэтому имитирую, что это НЕ первый уровень
+                        res = AbleToMerge(here1[i], here2, CurrLevel, false, withHerself, withLog, resultToFill); // false - внутри себя никаких проверок внутри себя уже делать НЕ НАДО, поэтому имитирую, что это НЕ первый уровень
                         for (var j = 0; j < here2.Count; j++)
                         {
                             if (here2[j].Opers.Count == 0)
@@ -133,7 +156,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                 for (var i = 0; i < here1.Count; i++)
                 {
                     var h = here1[i];
-                    var res = AbleToMerge(h, here2, CurrLevel, isFirstLevel, withHerself, withUI, resultToFill);
+                    var res = AbleToMerge(h, here2, CurrLevel, isFirstLevel, withHerself, withLog, resultToFill);
                     //Debugger.NextDebugTime("connect " + CurrLevel);
                     /*
                     0 ничего
@@ -181,7 +204,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
 
         static byte AbleToMerge(PartiaModelling here1, // один сдвиг
             List<PartiaModelling> here2, // все остальные тут
-            int currentLevel, bool isFirstLevel, bool withHerself, bool withUI, PartiasConnectorEngineResult resultToFill)
+            int currentLevel, bool isFirstLevel, bool withHerself, bool withLog, PartiasConnectorEngineResult resultToFill)
         {
             var SessionLink = here1.Opers[0].SessionLink;
             var options = SessionLink.SessionOptions;
@@ -246,7 +269,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                     }
                     else
                     {
-                        if (withUI)
+                        if (withLog)
                         {
                             SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"Уровень: {currentLevel + 1} - у операций {(string.Join(", ", x.Opers.Select(x => x.Index)))} не схлопнуты предки.\r\n");
                         }
@@ -257,7 +280,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                 }
                 else
                 {
-                    if (withUI)
+                    if (withLog)
                     {
                         SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"Уровень: {currentLevel + 1} - Нельзя схлопнуть операции: {here1.Opers[0]}, {x.Opers[0]} ({reason})\r\n");
                     }
@@ -282,7 +305,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                     && here2[i].Opers[0].UsesVspomTara == here1.Opers[0].UsesVspomTara // Вспомогательные тары только друг с другом
                     && check(here2[i], id1, ids1))
                 {
-                    int liv = stagesMasterData.LevenshteinDistance(here1.Opers[0].Index, here2[i].Opers[0].Index, here1.Opers[0].Index, here2[i].Opers[0].Index, withUI);
+                    int liv = stagesMasterData.LevenshteinDistance(here1.Opers[0].Index, here2[i].Opers[0].Index, here1.Opers[0].Index, here2[i].Opers[0].Index, withLog);
                     if (!possibleISList.ContainsKey(liv))
                     {
                         possibleISList.Add(liv, new(here2.Count));
@@ -332,7 +355,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                         //gr1 != gr2
                         )
                     {
-                        if (withUI)
+                        if (withLog)
                         {
                             SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"Уровень: {currentLevel + 1} - Нельзя схлопнуть операции: {here1.Opers[0]}, {here2[i].Opers[0]} (схлоп. группы разные)\r\n");//{gr1} и {gr2}
                         }
@@ -422,9 +445,9 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
 
                     if (!isVspom && !isZadel)
                     {
-                        sum = TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withUI) { PrevsInfo = resultToFill.IDToTara })
+                        sum = TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })
                             &&
-                            TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out gotTara, out gotRc, out gotMax, out use_format, out _, new SumIsPossibleOptions(withUI)
+                            TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out gotTara, out gotRc, out gotMax, out use_format, out _, new SumIsPossibleOptions(withLog)
                             {
                                 PrevsInfo = resultToFill.IDToTara,
 
@@ -593,7 +616,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             return filledK;
         }
 
-        static void FinalConnectorChecks(PartiaClass firstPartia, PartiaClass secondPartia, bool withHerself, bool withUI, PartiasConnectorEngineResult resultToFill)
+        static void FinalConnectorChecks(PartiaClass firstPartia, PartiaClass secondPartia, bool withHerself, bool withLog, PartiasConnectorEngineResult resultToFill)
         {
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
             if (resultToFill.mergedNorm > 0 || withHerself)
@@ -613,7 +636,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                             {
                                 // Ищем по старинке
 
-                                if (TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withUI) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara })) // ошибки - только если она сама с собой, на последнем этапе
+                                if (TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, newTara, newRC, newMax, newUnit, resultToFill);
                                     //sdvig.RC = RC;
@@ -666,7 +689,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             }
         }
 
-        internal static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withUI, bool withHerself)
+        internal static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself)
         {
             if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
             {
@@ -740,7 +763,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             {
                 if (isMerging)
                 {
-                    if (firstPartia.OpersHere.Count - 1 < CurrentLevel || secondPartia.OpersHere.Count - 1 < CurrentLevel || !AbleToMergeLevel(firstPartia.OpersHere[CurrentLevel], secondPartia.OpersHere[CurrentLevel], CurrentLevel, CurrentLevel == 0, withHerself, withUI, finalResult))
+                    if (firstPartia.OpersHere.Count - 1 < CurrentLevel || secondPartia.OpersHere.Count - 1 < CurrentLevel || !AbleToMergeLevel(firstPartia.OpersHere[CurrentLevel], secondPartia.OpersHere[CurrentLevel], CurrentLevel, CurrentLevel == 0, withHerself, withLog, finalResult))
                     {
                         if (CurrentLevel == 0) firstLevelBad = true;//merged = 0; // Если я даже на первом уровне не смог объединить что-то, то считаю, что вообще ничего не смог
                         isMerging = false;
@@ -771,7 +794,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             float filledK = FindFilledK(firstPartia, secondPartia, withHerself, wannaMergeOps1, wannaMergeOps2, finalResult);
 
             // После всего: проходим по всем уровням, по всем РЦ, и смотрим - кому РЦ не задался, тому пытаемся задать с учётом отдающей тары, чтоб он в выходной таблице норм был.
-            FinalConnectorChecks(firstPartia, secondPartia, withHerself, withUI, finalResult);
+            FinalConnectorChecks(firstPartia, secondPartia, withHerself, withLog, finalResult);
 
             if (finalResult.mergedNorm > 0 && secondPartia.PossibleDeadline > firstPartia.PossibleDeadline)
             {

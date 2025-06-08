@@ -8,6 +8,7 @@ using static UniversalPack.Common.Drawing.Colors;
 using WinFormsCustomComponents;
 using static UniversalPack.Extensions.EventExtensions;
 using RodanaCustomComponents;
+using Rodana.Core.Partias.PartiasAlgorithm;
 
 namespace Rodana.ZMK
 {
@@ -43,6 +44,8 @@ namespace Rodana.ZMK
             CustomTreeViewOnPPanel.SessionLink = sessionLink;
 
             CreateHoppers();
+
+            HoppersBarsThread = Task.Run(HoppersBarsThreadMethod);
 
             PrepareSettings();
         }
@@ -165,7 +168,7 @@ namespace Rodana.ZMK
             Color colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED_DARK : MOSITLAB_BLUE_DARK;
             Color textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
 
-            Color backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64,64,64) : Color.White;
+            Color backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64, 64, 64) : Color.White;
 
             PanelNearMainLabel.BackColor = textColor;
             //mainlabel.ForeColor = textColor;
@@ -240,6 +243,7 @@ namespace Rodana.ZMK
         }
 
         List<HopperUIClass> HoppersInInterface = new();
+        List<int> HoppersCurrentValues = new();
 
         Dictionary<string, string[]> HoppersGetPaths()
         {
@@ -420,14 +424,30 @@ namespace Rodana.ZMK
                     Label = label,
                     PathTextBox = textBox
                 });
+                HoppersCurrentValues.Add(0);
             }
-        
+
             SetTheme(sessionLink.SettingsController.CurrentSettings.CurrentTheme);
         }
 
 
+        Task HoppersBarsThread;
+
+        void HoppersBarsThreadMethod()
+        {
+            while (!IsDisposed)
+            {
+                for (int i = 0; i < HoppersCurrentValues.Count; i++)
+                {
+                    HoppersInInterface[i].Bar.Value = HoppersCurrentValues[i];
+                }
+                Thread.Sleep(250);
+            }
+        }
+
         private void HoppersStartLoad(HopperAttribute attribute, IHopperInterface @interface, int arg3)
         {
+            HoppersCurrentValues[attribute.HopperIndex] = 0;
             var uiClass = HoppersInInterface[attribute.HopperIndex];
             uiClass.Label.BeginInvoke(new Action(() =>
             {
@@ -452,11 +472,22 @@ namespace Rodana.ZMK
 
         private void HoppersOnLoad(HopperAttribute attribute, IHopperInterface @interface, int arg3)
         {
-            var uiClass = HoppersInInterface[attribute.HopperIndex];
-            uiClass.Label.BeginInvoke(new Action(() =>
-            {
-                uiClass.Bar.Value++;
-            }));
+            HoppersCurrentValues[attribute.HopperIndex] = arg3;
+            //var uiClass = HoppersInInterface[attribute.HopperIndex];
+            //uiClass.Label.BeginInvoke(new Action(() =>
+            //{
+            //    uiClass.Bar.Value = arg3;
+            //}));
+
+            //if (arg3 % 2000 == 0)
+            //{
+            //    var uiClass = HoppersInInterface[attribute.HopperIndex];
+            //    uiClass.Label.BeginInvoke(new Action(() =>
+            //    {
+            //        uiClass.Bar.Value = arg3;
+            //    }));
+            //}
+
         }
 
         private void HoppersEndLoad(HopperAttribute attribute, IHopperInterface @interface, int arg3)
@@ -465,8 +496,79 @@ namespace Rodana.ZMK
             uiClass.Label.BeginInvoke(new Action(() =>
             {
                 uiClass.Label.Text = "✔";
-                if (!uiClass.Bar.IsInfinite) uiClass.Bar.Value = uiClass.Bar.Maximum;
+                if (!uiClass.Bar.IsInfinite)
+                {
+                    HoppersCurrentValues[attribute.HopperIndex] = uiClass.Bar.Maximum;
+                    uiClass.Bar.Value = uiClass.Bar.Maximum;
+                }
             }));
+        }
+
+        Task partiasAlgroithm;
+        private void StartAlgorithmPButton_Click(object sender, EventArgs e)
+        {
+            if (sessionLink.TryCreateNewPartiasAlgorithmInstance(out var algorithm))
+            {
+                StartAlgorithmPButton.Enabled = false;
+
+                partiasAlgroithm = Task.Run(() => PartiasAlgorithm(algorithm));
+            }
+        }
+
+        private void Algorithm_CurrentStageChanged(PartiasAlgorithmStage arg1, int arg2)
+        {
+            PartiasProgressLabel.Invoke(delegate
+            {
+                PartiasProgressLabel.Text = arg1 switch
+                {
+                    PartiasAlgorithmStage.None => "...",
+                    PartiasAlgorithmStage.PreparingSession => "1. Подготовка сессии",
+                    PartiasAlgorithmStage.PreparingPartias => "2. Подготовка партий",
+                    PartiasAlgorithmStage.PreparingLeftovers => "4. Подготовка остатков",
+                    PartiasAlgorithmStage.FillingDeepTables => "5. Заполнение таблиц глубин",
+                    PartiasAlgorithmStage.FiilingDeadlineTables => "6. Заполнение таблиц дедлайнов",
+                    PartiasAlgorithmStage.Searching => "7. Поиск",
+                    PartiasAlgorithmStage.AfterSearchErrorsCheck => "8. Проверка ошибок",
+                    PartiasAlgorithmStage.InsidePartiasOptimization => "9. Объединение внутри партий",
+                    PartiasAlgorithmStage.FormingEasyFlags => "11. Формирование общих этапов",
+                    PartiasAlgorithmStage.Output => "12. Вывод",
+                    PartiasAlgorithmStage.Complete => "13. Завершено",
+                    PartiasAlgorithmStage.Failed => "14. Ошибка"
+                };
+                PartiasProgressBar.Maximum = arg2;
+            });
+        }
+
+        void PartiasAlgorithm(PartiasAlgorithm algorithm)
+        {
+            algorithm.CurrentStageChanged += Algorithm_CurrentStageChanged;
+            algorithm.AlgorithmCallback += Algorithm_AlgorithmCallback;
+
+            int N = 0;
+
+            if (algorithm.Start(LogPartiasCheckBox.Checked))
+            {
+                while (!algorithm.Process.IsCompleted)
+                {
+                    PartiasProgressBar.Invoke(delegate { PartiasProgressBar.Value = N; });
+                    Thread.Sleep(250);
+                }
+            }
+
+            void Algorithm_AlgorithmCallback(PartiasAlgorithmStage arg1, int arg2)
+                => N = arg2;
+
+            algorithm.CurrentStageChanged -= Algorithm_CurrentStageChanged;
+            algorithm.AlgorithmCallback -= Algorithm_AlgorithmCallback;
+
+            StartAlgorithmPButton.Invoke(delegate
+            {
+                StartAlgorithmPButton.Enabled = true;
+                if (algorithm.CurrentStage == PartiasAlgorithmStage.Complete)
+                {
+                    PartiasProgressBar.Value = PartiasProgressBar.Maximum;
+                }
+            });
         }
     }
 }

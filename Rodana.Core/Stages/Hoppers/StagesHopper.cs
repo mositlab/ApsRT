@@ -4,6 +4,7 @@ using Rodana.Core.Hoppers;
 using Rodana.Core.Orders;
 using Rodana.Core.Partias.Leftovers;
 using Rodana.Core.Planning.ParallelPlanning;
+using Rodana.Core.Props;
 using Rodana.Core.Stages.MasterData;
 using System;
 using System.Data;
@@ -15,7 +16,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 namespace Rodana.Core.Stages.Hoppers
 {
     [Hopper(Label = "Операции", IsDirectory = false, IsMultiple = false, UsesGuid = true,
-        NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesHopper), nameof(ParallelPlanningHopper), nameof(AlternativeCentersHopper) })]
+        NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesHopper), nameof(ParallelPlanningHopper), nameof(AlternativeCentersHopper), nameof(PropsListHopper) })]
     public class StagesHopper : IHopperInterface
     {
         Session.Session sessionLink;

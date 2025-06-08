@@ -53,7 +53,7 @@ namespace Rodana.ZMK
             StartAlgorithmPButton = new Button();
             materialCheckBox3 = new MaterialCheckBox();
             materialCheckBox2 = new MaterialCheckBox();
-            customProgressBar3 = new CustomProgressBar();
+            PartiasProgressBar = new CustomProgressBar();
             splitContainer3 = new SplitContainer();
             CustomTreeViewOnPPanel = new CustomTreeView();
             dataGridView1 = new DataGridView();
@@ -86,6 +86,7 @@ namespace Rodana.ZMK
             PartiasMaxDaysNumericUpDown = new NumericUpDown();
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
+            LogPartiasCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             PartiasTabPage.SuspendLayout();
@@ -324,13 +325,14 @@ namespace Rodana.ZMK
             // 
             // splitContainer1.Panel1
             // 
+            splitContainer1.Panel1.Controls.Add(LogPartiasCheckBox);
             splitContainer1.Panel1.Controls.Add(textBox1);
             splitContainer1.Panel1.Controls.Add(label2);
             splitContainer1.Panel1.Controls.Add(PartiasProgressLabel);
             splitContainer1.Panel1.Controls.Add(StartAlgorithmPButton);
             splitContainer1.Panel1.Controls.Add(materialCheckBox3);
             splitContainer1.Panel1.Controls.Add(materialCheckBox2);
-            splitContainer1.Panel1.Controls.Add(customProgressBar3);
+            splitContainer1.Panel1.Controls.Add(PartiasProgressBar);
             splitContainer1.Panel1MinSize = 400;
             // 
             // splitContainer1.Panel2
@@ -384,6 +386,7 @@ namespace Rodana.ZMK
             StartAlgorithmPButton.TabIndex = 21;
             StartAlgorithmPButton.Text = "Расчёт";
             StartAlgorithmPButton.UseVisualStyleBackColor = false;
+            StartAlgorithmPButton.Click += StartAlgorithmPButton_Click;
             // 
             // materialCheckBox3
             // 
@@ -419,21 +422,21 @@ namespace Rodana.ZMK
             materialCheckBox2.Text = "Part";
             materialCheckBox2.UseVisualStyleBackColor = false;
             // 
-            // customProgressBar3
+            // PartiasProgressBar
             // 
-            customProgressBar3.BackColor = SystemColors.ControlLight;
-            customProgressBar3.BarPadding = new Padding(0);
-            customProgressBar3.Font = new Font("Microsoft Sans Serif", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
-            customProgressBar3.ForeColor = Color.CornflowerBlue;
-            customProgressBar3.IsInfinite = false;
-            customProgressBar3.Location = new Point(3, 60);
-            customProgressBar3.Maximum = 100;
-            customProgressBar3.Minimum = 0;
-            customProgressBar3.Name = "customProgressBar3";
-            customProgressBar3.Size = new Size(273, 26);
-            customProgressBar3.TabIndex = 16;
-            customProgressBar3.Text = "customProgressBar3";
-            customProgressBar3.Value = 6;
+            PartiasProgressBar.BackColor = SystemColors.ControlLight;
+            PartiasProgressBar.BarPadding = new Padding(0);
+            PartiasProgressBar.Font = new Font("Microsoft Sans Serif", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
+            PartiasProgressBar.ForeColor = Color.CornflowerBlue;
+            PartiasProgressBar.IsInfinite = false;
+            PartiasProgressBar.Location = new Point(3, 60);
+            PartiasProgressBar.Maximum = 100;
+            PartiasProgressBar.Minimum = 0;
+            PartiasProgressBar.Name = "PartiasProgressBar";
+            PartiasProgressBar.Size = new Size(297, 26);
+            PartiasProgressBar.TabIndex = 16;
+            PartiasProgressBar.Text = "PartiasProgressBar";
+            PartiasProgressBar.Value = 6;
             // 
             // splitContainer3
             // 
@@ -871,6 +874,23 @@ namespace Rodana.ZMK
             openFileDialog1.FileName = "openFileDialog1";
             openFileDialog1.Filter = "Текстовые таблицы (TXT)|*.txt|Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
             // 
+            // LogPartiasCheckBox
+            // 
+            LogPartiasCheckBox.AutoSize = true;
+            LogPartiasCheckBox.BackColor = Color.Black;
+            LogPartiasCheckBox.Depth = 0;
+            LogPartiasCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            LogPartiasCheckBox.ForeColor = Color.CornflowerBlue;
+            LogPartiasCheckBox.Location = new Point(303, 63);
+            LogPartiasCheckBox.Margin = new Padding(0);
+            LogPartiasCheckBox.MouseLocation = new Point(-1, -1);
+            LogPartiasCheckBox.Name = "LogPartiasCheckBox";
+            LogPartiasCheckBox.Ripple = true;
+            LogPartiasCheckBox.Size = new Size(60, 30);
+            LogPartiasCheckBox.TabIndex = 28;
+            LogPartiasCheckBox.Text = "Log";
+            LogPartiasCheckBox.UseVisualStyleBackColor = false;
+            // 
             // MainForm
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -922,7 +942,7 @@ namespace Rodana.ZMK
         private TabPage SettingsTabPage;
         private Label mainlabel;
         private WinFormsCustomComponents.MaterialCheckBox materialCheckBox2;
-        private WinFormsCustomComponents.CustomProgressBar customProgressBar3;
+        private WinFormsCustomComponents.CustomProgressBar PartiasProgressBar;
         public Button OpenGraphsButton;
         public Button OpenHandPlanButton;
         private Button OpenHandPartiasButton;
@@ -966,5 +986,6 @@ namespace Rodana.ZMK
         private SplitContainer splitContainer3;
         private DataGridView dataGridView1;
         private CustomTreeView CustomTreeViewOnPPanel;
+        private MaterialCheckBox LogPartiasCheckBox;
     }
 }

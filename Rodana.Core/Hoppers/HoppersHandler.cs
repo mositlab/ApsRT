@@ -134,6 +134,9 @@ namespace Rodana.Core.Hoppers
 
         public void ModuleActions(HopperAttribute hopperData, IHopperInterface hopperInterface, string[] paths)
         {
+            var dt0 = DateTime.Now;
+            Console.WriteLine($"hopper: {hopperData.Label}, {dt0}");
+
             hopperData.LoadedFlag = false;
 
             if (session.SessionOptions.PartOrZadel && !hopperData.LoadWhenOnlyPart) // если только партии (ну или заделы), то ничего не грузим
@@ -194,6 +197,10 @@ namespace Rodana.Core.Hoppers
             session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' loaded.\r\n");
             hopperData.LoadedFlag = true;
             OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, 0);
+
+            var dt1 = DateTime.Now;
+            Console.WriteLine($"hopper: {hopperData.Label}, {dt1}");
+            Console.WriteLine($"total time = {dt1-dt0}");
         }
 
         public void ModuleActionFile(HopperAttribute hopperData, IHopperInterface hopperInterface, string file)

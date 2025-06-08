@@ -20,7 +20,7 @@ namespace Rodana.Core.Session
 
         internal void OnApplicationExit(int exitCode)
         {
-            StreamWriter exitLogSW = new StreamWriter(session.SessionOptions.ExitLogFile, false, Encoding.UTF8);
+            StreamWriter exitLogSW = new StreamWriter(session.SessionOutputEngine.ExitLogFile, false, Encoding.UTF8);
             exitLogSW.WriteLine($"exit code: {exitCode}");
 
             try
@@ -79,7 +79,7 @@ namespace Rodana.Core.Session
                 {
                     if (LogQueue.TryDequeue(out var str))
                     {
-                        File.AppendAllText(session.SessionOptions.LogFile, str);//fs.WriteLine(str);
+                        File.AppendAllText(session.SessionOutputEngine.LogFile, str);//fs.WriteLine(str);
                     }
                 }
 
@@ -87,7 +87,7 @@ namespace Rodana.Core.Session
                 {
                     if (PartiasLogQueue.TryDequeue(out var str))
                     {
-                        File.AppendAllText(session.SessionOptions.PartiiLogFile, str);//fs.WriteLine(str);
+                        File.AppendAllText(session.SessionOutputEngine.PartiiLogFile, str);//fs.WriteLine(str);
                     }
                 }
             }

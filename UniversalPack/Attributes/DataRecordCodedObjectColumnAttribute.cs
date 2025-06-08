@@ -28,6 +28,11 @@ namespace UniversalPack.Attributes
         public bool DefaultIfNull { get; }
 
         /// <summary>
+        /// Немного другой тип - единица измерения, а не строка
+        /// </summary>
+        public bool IsDimensionUnit { get; }
+
+        /// <summary>
         /// <inheritdoc cref="DataRecordCodedObjectColumnAttribute"/>
         /// </summary>
         /// <param name="guidName">Имя поля с GUID в <see cref="IDataRecord"/></param>
@@ -36,11 +41,12 @@ namespace UniversalPack.Attributes
         /// <remarks>
         /// <inheritdoc cref="DataRecordCodedObjectColumnAttribute"/>
         /// </remarks>
-        public DataRecordCodedObjectColumnAttribute(string guidName, string valueName, bool defaultIfFail = false)
+        public DataRecordCodedObjectColumnAttribute(string guidName, string valueName, bool defaultIfFail = false, bool isDimensionUnit = false)
         {
             GuidName = guidName;
             ValueName = valueName;
             DefaultIfNull = defaultIfFail;
+            IsDimensionUnit = isDimensionUnit;
         }
 
         public override string ToString()

@@ -13,6 +13,8 @@ namespace Rodana.Core.Settings
     {
         public bool CalculateBestSubdivisionInPartias { get; set; }
 
+        public bool OptimizeSubdivisionsInPartias { get; set; }
+
         public string NaladLengthsCriteriaName { get; set; }
 
         public string LivensteinCodesCriteriaName { get; set; }

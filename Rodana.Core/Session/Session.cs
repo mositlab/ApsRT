@@ -1,8 +1,11 @@
-﻿using Rodana.Core.DataErrors;
+﻿using Google.Protobuf.Compiler;
+using Rodana.Core.DataErrors;
 using Rodana.Core.Hoppers;
+using Rodana.Core.Partias.PartiasAlgorithm;
 using Rodana.Core.Settings;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.ExceptionServices;
@@ -23,19 +26,32 @@ namespace Rodana.Core.Session
     /// </summary>
     public class Session
     {
+        public PartiasAlgorithm AssignedPartiasAlgorithm { get; private set; }
+        public bool TryCreateNewPartiasAlgorithmInstance(out PartiasAlgorithm algorithm)
+        {
+            if (AssignedPartiasAlgorithm == null || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.None || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.Complete || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.Failed)
+            {
+                AssignedPartiasAlgorithm = new PartiasAlgorithm(this);
+                algorithm = AssignedPartiasAlgorithm;
+                return true;
+            }
+            algorithm = AssignedPartiasAlgorithm;
+            return false;
+        }
+
         public SessionOptions SessionOptions { get; init; }
         public DataErrors.DataErrors DataErrors { get; init; }
         public SettingsController SettingsController { get; init; }
         public HoppersHandler HoppersHandler { get; init; }
         public MasterDataLinks MasterDataLinks { get; init; }
-
         public ConcurrentLogger AssignedLogger { get; init; }
+
+        public SessionOutputEngine SessionOutputEngine { get; init; }
 
         public event Action<Session> OnSessionDataLoaded;
 
         Stopper KillMe;
         Stopper StopMe;
-
 
         static bool FirstInvoked = false;
         static void StaticStart()
@@ -53,6 +69,7 @@ namespace Rodana.Core.Session
             DataErrors = new(this);
             HoppersHandler = new(this);
             AssignedLogger = new ConcurrentLogger(this);
+            SessionOutputEngine = new SessionOutputEngine(this);
         }
 
         static SessionOptions ParseCommandLine(string[] args)
@@ -135,13 +152,6 @@ namespace Rodana.Core.Session
         public Session(SessionOptions options) : this()
         {
             SessionOptions = options;
-            if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
-            options.LogFile = "logs/log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".txt";
-            options.PartiiLogFile = "logs/partii_log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".txt";
-            options.ExitLogFile = "logs/exit_log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".txt";
-            options.OutputFile = $"Result_{(options.IsSilent ? "" : "see")}{(options.LaunchZadel ? "part_zadel" : "")}{(options.LaunchPartia ? "part" : "")}{(options.LaunchPlan ? "plan" : "")}" +
-    //$"{(string.IsNullOrEmpty(key) ? "" : "_" + key)}" +
-    $".csv";
         }
 
         /// <summary>
@@ -155,17 +165,22 @@ namespace Rodana.Core.Session
 
             StaticStart();
 
+            // Запускаем логгер
+            Task.Run(AssignedLogger.LogThread);
+            var process = Process.GetCurrentProcess();
+            AssignedLogger.LogQueue.Enqueue($"process ID: {process.Id} [session ID {process.SessionId}]\r\n");
+
             SettingsController.Load(data);
 
             // Проверяем все файлы
-            CheckFiles();
+            SessionOutputEngine.CheckFiles();
 
             // Если с ними всё в порядке, то можно и начинать
             if (SettingsController.CurrentSettings.CreateKillMe) KillMe = new Stopper("killme", 100, x => EndSession(x));
             if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper("stopme", 0, x => EndSession(x));
         }
 
-        async public Task LoadDataAsync()
+        async public Task LoadDataAndProcessAsync()
         {
             await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(SettingsController.CurrentSettings.HoppersPaths));
 
@@ -176,54 +191,39 @@ namespace Rodana.Core.Session
             foreach (var op in MasterDataLinks.StagesMasterData.AllStages) op.Value.BakeAllIndexDiapazons(null);
 
             OnSessionDataLoaded?.Invoke(this);
-        }
 
-        void CheckFiles()
-        {
-            List<string> list = new List<string>();
-
-            // Чекаем файлики, можно ли их открыть потом
-            void CheckFile(string filename, int code, bool willClose = false)
+            var allStages = MasterDataLinks.StagesMasterData.AllStages;
+            if (allStages.Count == 0)
             {
-                if (File.Exists(filename))
+                if (SessionOptions.IsSilent) EndSession(600); // Пустая табличка операций!
+            }
+
+            if (SessionOptions.IsSilent)
+            {
+                // Если она тихая. то ПРИСТУПАЕМ
+                if (TryCreateNewPartiasAlgorithmInstance(out var newPartiasAlgorithmInstance)
+                    && newPartiasAlgorithmInstance.Start(false))
                 {
-                    try
+                    bool result = await newPartiasAlgorithmInstance.Process;
+
+
+
+                    if (result)
                     {
-                        var f = File.OpenRead(filename);
-                        f.Close();
+                        // Начинаем планирование
                     }
-                    catch
+                    else
                     {
-                        list.Add(filename);
-                        if (willClose) // если это dataErrors, то выходим
-                            EndSession(code);
+                        EndSession(14);
                     }
                 }
-            }
-
-            CheckFile("ranges manual.csv", 500);
-            CheckFile("ranges manual old.csv", 501);
-            CheckFile("mods.csv", 502);
-            CheckFile("mods_old.csv", 503);
-            CheckFile("naladLengths.csv", 504);
-            CheckFile("orders.csv", 505);
-            CheckFile("orders_old.csv", 506);
-            CheckFile(DataErrors.DatasErrorsFile, 507, true);
-            //CheckFile("dataErrorsBig.csv", 508);
-            CheckFile("rechanges.csv", 509);
-            CheckFile(SessionOptions.OutputFile, 510);
-            CheckFile(SessionOptions.OutputFile.Substring(0, SessionOptions.OutputFile.Length - 4) + "_old.csv", 511);
-            CheckFile("used_zadels.csv", 512);
-            CheckFile("rechanges_old.csv", 513);
-            CheckFile(DataErrors.PartiasErrorsFile, 514, true);
-            CheckFile(DataErrors.PartiasErrorsBigFile, 515, true);
-
-            if (list.Count > 0) DataErrors.AddNewPartiaError(-1, NewDataErrorType.SomeFileIsOpened, new DataErrorStruct("", string.Join(", ", list)));
-            if (DataErrors.TryOutputDataErrors())
-            {
-                EndSession(601);
+                else
+                {
+                    EndSession(14);
+                }
             }
         }
+
 
         /// <summary>
         /// Закрыть сессию. В эти моменты обычно можно выполнить что-нибудь - сохранить настройки, или вовсе попросить выйти с определенным кодом.

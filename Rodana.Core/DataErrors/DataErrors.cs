@@ -21,8 +21,8 @@ namespace Rodana.Core.DataErrors
         Session.Session session { get; init; }
 
 
-        public string PartiasErrorsFile = "partiasErrors.csv";
-        public string PartiasErrorsBigFile = "partiasErrorsBig.csv";
+        //public string PartiasErrorsFile = "partiasErrors.csv";
+        //public string PartiasErrorsBigFile = "partiasErrorsBig.csv";
         public string DatasErrorsFile = "dataErrors.csv";
         public string DatasErrorsBigFile = "dataErrorsBig.csv";
 
@@ -44,8 +44,8 @@ namespace Rodana.Core.DataErrors
         internal bool TryOutputDataErrors()
         {
             bool HasErrors = false;
-            var sw = new StreamWriter(PartiasErrorsFile, false, Encoding.UTF8);
-            var swBig = new StreamWriter(PartiasErrorsBigFile, false, Encoding.UTF8);
+            //var sw = new StreamWriter(PartiasErrorsFile, false, Encoding.UTF8);
+            //var swBig = new StreamWriter(PartiasErrorsBigFile, false, Encoding.UTF8);
             var swNew = new StreamWriter(DatasErrorsFile, false, Encoding.UTF8);
             StreamWriter swNewBig = null;
             try
@@ -55,8 +55,8 @@ namespace Rodana.Core.DataErrors
             catch
             {
             }
-            sw.WriteLine("Заказ;ГП;ИдентификаторПартииПФ;Этап;Причина");
-            swBig.WriteLine("Заказ;ГП;ИдентификаторПартииПФ;Этап;Номенклатура;Вид;Продукция;Причина");
+            //sw.WriteLine("Заказ;ГП;ИдентификаторПартииПФ;Этап;Причина");
+            //swBig.WriteLine("Заказ;ГП;ИдентификаторПартииПФ;Этап;Номенклатура;Вид;Продукция;Причина");
 
             string BtoS(bool b) => b ? "ДА" : "НЕТ";
 
@@ -244,8 +244,8 @@ namespace Rodana.Core.DataErrors
                 }
             }
 
-            sw.Close();
-            swBig.Close();
+            //sw.Close();
+            //swBig.Close();
 
             swNew.Close();
             swNewBig?.Close();

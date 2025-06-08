@@ -118,42 +118,5 @@ namespace Rodana.Core.Partias.Zadels
             ZadelsData.Clear();
             LinearZadelsDictionary.Clear();
         }
-        
-        string ZadelToString(ZadelStatus x) => x switch
-        {
-            ZadelStatus.CannotBeFound => "Не найдены подходящие этапы для вставки.",
-            ZadelStatus.SussesfullyUsed => "Успешно использовано.",
-            ZadelStatus.NotEnoughCount => "Недостаточно длины.",
-            ZadelStatus.AnotherUsed => "Потребность закрыта другим заделом.",
-            ZadelStatus.HigherZadelUsed => "Использован вышестоящий задел.",
-        };
-
-        //"used_zadels.csv"
-        internal void OutputZadelsToFile(string Filename)
-        {
-            var sw = new StreamWriter(Filename, false, Encoding.UTF8);
-            //GUID (исходного этапа имеется в виду) и ИдентификаторОбщегоЭтапа
-            sw.WriteLine("ИдентификаторЗадела;GUID;НомерМоделирования;ИдентификаторОбщегоЭтапа;КоличествоИспользовано;Причина");
-            foreach (var zadel in LinearZadelsDictionary)
-            {
-                if (zadel.Value.WhereIsUsed.Count > 0)
-                {
-                    foreach (var etap in zadel.Value.WhereIsUsed)
-                    {
-                        var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
-                        var modGuid = opLink.IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
-                        sw.WriteLine($"{zadel.Key};{opLink.GUID};{modGuid};{(opLink.EasyFlag.HasValue ? opLink.EasyFlag.Value : Guid.Empty)};{etap.count};"); // последняя скобка это пустота
-                    }
-                }
-                else
-                {
-                    foreach (var etap in zadel.Value.WhereCanUsed)
-                    {
-                        sw.WriteLine($"{zadel.Key};{etap.Key};{Guid.Empty};{Guid.Empty};0;{ZadelToString(zadel.Value.ZadelStatus)}");
-                    }
-                }
-            }
-            sw.Close();
-        }
     }
 }

@@ -55,7 +55,7 @@ namespace Rodana.Core.Stages.MasterData
             MIN_DATE_TIME_AFTER_FIX = DateTime.MaxValue;
             FIXED_START_TIME = null;
             PrevTimeDelta = null;
-            MinAcceptableDate = DateTime.Now;
+            //MinAcceptableDate = DateTime.Now;
 
             SavedOpersLivenCode.Clear();
         }
@@ -69,8 +69,6 @@ namespace Rodana.Core.Stages.MasterData
         public DateTime MIN_DATE_TIME_AFTER_FIX { get; set; } = DateTime.MaxValue; //  Это всегда было временем начала
 
         public TimeSpan OneDay { get; private set; } = TimeSpan.FromDays(1);
-
-        public DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
 
         public DateTime? PrevTimeDelta { get; private set; }
 
@@ -287,7 +285,7 @@ namespace Rodana.Core.Stages.MasterData
             // Общий этап
             if (stage.EasyFlagOriginal.HasValue)
             {
-                stage.EasyFlagIsFromMes = true;
+                //stage.EasyFlagIsFromMes = true;
                 stage.EasyFlag = stage.EasyFlagOriginal;
             }
 

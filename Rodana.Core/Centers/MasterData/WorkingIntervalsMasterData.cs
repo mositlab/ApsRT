@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rodana.Core.Planning.PlanningClasses;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -196,10 +197,10 @@ namespace Rodana.Core.Centers.MasterData
             }
         }
 
-        internal void PrepareCentersForMinDataTime(IEnumerable<Uco> centers_choosen)
+        internal void PrepareCentersForMinDataTime(IEnumerable<Uco> centers_choosen, DateTime MinAcceptableDate)
         {
             PreparedRCFixingData.Clear();
-            var TM = SessionLink.MasterDataLinks.StagesMasterData.MinAcceptableDate;//FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
+            var TM = /*SessionLink.MasterDataLinks.StagesMasterData.*/MinAcceptableDate;//FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
             foreach (var center in centers_choosen)
             {
                 PreparedRCFixingData[center] = CheckIfCatchedNonWorkingIntervalCached(center, TM, 0);

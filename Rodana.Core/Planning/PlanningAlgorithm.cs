@@ -10,5 +10,7 @@ namespace Rodana.Core.Planning
 {
     public class PlanningAlgorithm
     {
+
+        public DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
     }
 }

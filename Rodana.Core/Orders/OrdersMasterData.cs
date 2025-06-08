@@ -51,6 +51,8 @@ namespace Rodana.Core.Orders
                 partia.RelatedGPs.Add(orderModel.OrderID); // Добавляем эту ГПшку в список тех, к кому он относится
             }
 
+            finalOrderModel.RelatedOpers.Add(stage.Index);
+
             return finalOrderModel;
         }
 

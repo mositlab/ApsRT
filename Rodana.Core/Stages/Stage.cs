@@ -156,6 +156,7 @@ namespace Rodana.Core.Stages
         #endregion
 
         #region Тара и намотка
+        [DataRecordCodedObjectColumn("КонечнаяТара_GUID", "КонечнаяТара")]
         public Uco EndTara { get; set; }
         public Uco CurrentTara { get; set; }
         public double CurrentTaraMaxCapacity { get; set; }
@@ -209,7 +210,7 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Этот общий флаг пришёл из МЕСа?
         /// </summary>
-        public bool EasyFlagIsFromMes;
+        //public bool EasyFlagIsFromMes;
 
         /// <summary>
         /// Это флаг для вывода - общий этап, для упрощения.
@@ -238,22 +239,28 @@ namespace Rodana.Core.Stages
         [DataRecordColumn("Регистратор")]
         public string Registrator { get; set; }
 
-        //ЕдиницаИзмеренияКлассификатор_GUID
+        //
+        [DataRecordCodedObjectColumn("ЕдиницаИзмеренияКлассификатор_GUID", "ЕдиницаИзмеренияКлассификатор", isDimensionUnit: true)]
         public UcoDU EdIzmClassificator { get; set; }
 
-        // Уровень
+        // 
+        [DataRecordColumn("Уровень")]
         public int Level { get; set; }
 
-        // НомерПовива
+        // 
+        [DataRecordColumn("НомерПовива")]
         public int Poviv { get; set; }
 
-        //ВремяНачалаФакт
+        //
+        [DataRecordColumn("ВремяНачалаФакт")]
         public DateTime? StartTimeFact { get; set; }
 
-        //ПовивыОбъединены
+        //
+        [DataRecordColumn("ПовивыОбъединены", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool PovivsMerged { get; set; }
 
-        //КоличествоМест
+        //
+        [DataRecordColumn("КоличествоМест")]
         public int PlacesCount { get; set; }
 
         #endregion
@@ -261,9 +268,10 @@ namespace Rodana.Core.Stages
         #region Информация из предыдущего плана
 
         //ДатаНачалаПлан - предыдущая дата из предыдущего расчёта
+        [DataRecordColumn("ДатаНачалаПлан", defaultIfFail: true)]
         public DateTime? PrevDateTime { get; set; }
 
-        //РабочийЦентрПлан_GUID
+        [DataRecordCodedObjectColumn("РабочийЦентрПлан_GUID", "РабочийЦентрПлан", defaultIfFail: true)]
         public Uco? RecommendedRC { get; set; }
         #endregion
 
@@ -291,25 +299,25 @@ namespace Rodana.Core.Stages
 
         #region Количество этапа и ед. изм.
 
-        //Количество
+        [DataRecordColumn("Количество")]
         public double CountMES { get; set; }
 
-        //КоличествоИсходногоЭтапа
+        [DataRecordColumn("КоличествоИсходногоЭтапа")]
         public double Count { get; set; }
 
-        //ЕдиницаИзмерения
+        [DataRecordColumn("ЕдиницаИзмерения")]
         public DimensionUnit EdIzm { get; set; }
 
-        //МетодРасчетаНамоток
+        [DataRecordColumn("МетодРасчетаНамоток")]
         public DimensionUnit UsedCalcMethod { get; set; }
 
-        //ВесКгКм
+        [DataRecordColumn("ВесКгКм", defaultIfFail: true)]
         public double? KgKm { get; set; }
         #endregion
 
         #region Длительность
 
-        //ДлительностьВыполненияНорма
+        [DataRecordColumn("ДлительностьВыполненияНорма", defaultIfFail: true)]
         public float DurationNorm { get; set; }
 
         /// <summary>
@@ -386,7 +394,8 @@ namespace Rodana.Core.Stages
         #region Наладочные длины
         [DataRecordColumn("НаладочнаяДлина", defaultIfFail: true)]
         public float NeededNaladLengthTableValue { get; set; }
-        //ПервыйВЗапуске
+
+        [DataRecordColumn("ПервыйВЗапуске", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, defaultIfFail: true)]
         public bool NeededNaladIsFirstInLaunch { get; set; }
 
         public (NaladLengthValue Length, bool IsFirst)? NeededNaladLength { get; set; }

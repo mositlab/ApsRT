@@ -20,9 +20,10 @@ namespace Rodana.ZMK
         static void Main()
         {
             var sessionLink = new Rodana.Core.Session.Session(Environment.GetCommandLineArgs());
-
+            sessionLink.SessionOutputEngine.ClassicSettingsByOptions(sessionLink.SessionOptions);
             sessionLink.Start();
             sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = false;
+            sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = false;
             sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "Сечение";
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
             sessionLink.OnSessionDataLoaded += On_ZMK_DataLoaded;
@@ -35,7 +36,7 @@ namespace Rodana.ZMK
                 form = new MainForm(sessionLink); // Подписываем тут все события
             }
 
-            if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAsync();
+            if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();
 
             if (sessionLink.SessionOptions.IsSilent)
             {
@@ -60,7 +61,6 @@ namespace Rodana.ZMK
                 {
                     MessageBox.Show("АПС не может продолжать работу - таблица операций пуста.", "Пустая таблица операций", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                if (options.IsSilent) session.EndSession(600); // Пустая табличка операций!
             }
         }
     }

@@ -9,6 +9,8 @@ using System.Linq;
 using System.Reflection;
 using UniversalPack.Models;
 using Microsoft.Extensions.Options;
+using static UniversalPack.Extensions.EnumExtensions;
+using Newtonsoft.Json.Linq;
 
 namespace UniversalPack.Common.DataLoader
 {
@@ -124,9 +126,22 @@ namespace UniversalPack.Common.DataLoader
         private static object ConvertCodedObject(IDataRecord record, DataLoaderOptions options, DataRecordCodedObjectColumnAttribute attribute)
         {
             var guidValue = (Guid)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull);
-            var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
 
-            return new CodedObject<Guid, string>(guidValue, nameValue);
+            if (attribute.IsDimensionUnit)
+            {
+                var nameValue = (record[attribute.ValueName]?.ToString() ?? string.Empty)
+                    .ParseDimensionUnit();
+
+                return new CodedObject<Guid, DimensionUnit>(guidValue, nameValue);
+            }
+
+            else
+            {
+                var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
+
+                return new CodedObject<Guid, string>(guidValue, nameValue);
+            }
+
         }
 
         /// <summary>
