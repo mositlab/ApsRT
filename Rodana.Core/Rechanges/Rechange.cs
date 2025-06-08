@@ -7,19 +7,19 @@ namespace Rodana.Core.Rechanges
     /// <summary>
     /// Класс переналадки, содержащий непосредственно значения
     /// </summary>
-    internal class Rechange
+    public class Rechange
     {
-        internal Uco Name { get; }
-        internal int Duration { get; }
+        public Uco Name { get; }
+        public int Duration { get; }
 
-        internal bool ProvokesNaladLengthLaunch { get; }
+        public bool ProvokesNaladLengthLaunch { get; }
 
-        internal bool HasAdditionalCondition { get; }
+        public bool HasAdditionalCondition { get; }
 
         /// <summary>
         /// Многокритериальная переналадка после формирования словаря изучает маску многокритериальности, и если совпали не все критерии (каких-то нет), то она не ставится
         /// </summary>
-        internal bool IsMultiCriterial { get; }
+        public bool IsMultiCriterial { get; }
 
         public Rechange(Uco name, int duration, bool hasAdditionalCondition, bool provokesNaladLengthLaunch, bool isMultiCriterial)
         {

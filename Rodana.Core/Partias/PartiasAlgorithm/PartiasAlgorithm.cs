@@ -27,6 +27,7 @@ using UniversalPack.Common;
 using Rodana.Core.Planning.PlanningClasses;
 using System.Data;
 using UniversalPack.Extensions;
+using Rodana.Core.Planning.PlanningAlgorithm;
 
 namespace Rodana.Core.Partias.PartiasAlgorithm
 {
@@ -53,9 +54,17 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
         {
             if (CurrentStage == PartiasAlgorithmStage.None)
             {
-                // Да, можно.
-                Process = Task.Run(() => AlgorithmProcess(WithLog));
-                return true;
+                if (SessionLink.PlanningAlgorithmIsNotRunning)
+                {
+                    // Да, можно.
+                    Process = Task.Run(() => AlgorithmProcess(WithLog));
+                    return true;
+                }
+                else
+                {
+                    // Нельзя. Выведи что-нибудь
+                    return false;
+                }
             }
             else
             {

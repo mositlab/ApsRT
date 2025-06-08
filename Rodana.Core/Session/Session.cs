@@ -2,6 +2,7 @@
 using Rodana.Core.DataErrors;
 using Rodana.Core.Hoppers;
 using Rodana.Core.Partias.PartiasAlgorithm;
+using Rodana.Core.Planning.PlanningAlgorithm;
 using Rodana.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -27,15 +28,36 @@ namespace Rodana.Core.Session
     public class Session
     {
         public PartiasAlgorithm AssignedPartiasAlgorithm { get; private set; }
+        public bool PartiasAlgorithmIsNotRunning => AssignedPartiasAlgorithm == null || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.None
+                || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.Complete
+                || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.Failed;
         public bool TryCreateNewPartiasAlgorithmInstance(out PartiasAlgorithm algorithm)
         {
-            if (AssignedPartiasAlgorithm == null || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.None || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.Complete || AssignedPartiasAlgorithm.CurrentStage == PartiasAlgorithmStage.Failed)
+            if (PartiasAlgorithmIsNotRunning)
             {
                 AssignedPartiasAlgorithm = new PartiasAlgorithm(this);
                 algorithm = AssignedPartiasAlgorithm;
                 return true;
             }
             algorithm = AssignedPartiasAlgorithm;
+            return false;
+        }
+
+        public PlanningAlgorithm AssignedPlanningAlgorithm { get; private set; }
+        public bool PlanningAlgorithmIsNotRunning => AssignedPlanningAlgorithm == null
+                || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.None
+                || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Prepared
+                || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Complete
+                || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Failed;
+        public bool TryCreateNewPlanningAlgorithmInstance(out PlanningAlgorithm algorithm)
+        {
+            if (PlanningAlgorithmIsNotRunning)
+            {
+                AssignedPlanningAlgorithm = new PlanningAlgorithm(this);
+                algorithm = AssignedPlanningAlgorithm;
+                return true;
+            }
+            algorithm = AssignedPlanningAlgorithm;
             return false;
         }
 

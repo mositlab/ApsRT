@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Rodana.Core.Orders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,28 @@ namespace Rodana.Core.Settings
             OriginalDurationTime = 1,
             SaveOnSessionEnd = true,
             CacheStageDurations = true,
+            MaxDaysBetweenPartias = 30,
+            OrderCoeffs = new OrderFunctionData[3]
+            {
+                new OrderFunctionData()
+                {
+                    Level1 = new OrderFunctionLevelData(0, 1, 1, 1),
+                    Level2 = new OrderFunctionLevelData(1, 2, 1, 1),
+                    Level3 = new OrderFunctionLevelData(2, 1, 1, 1),
+                },
+                new OrderFunctionData()
+                {
+                    Level1 = new OrderFunctionLevelData(0, 1, 1, 1),
+                    Level2 = new OrderFunctionLevelData(1, 2, 1, 1),
+                    Level3 = new OrderFunctionLevelData(2, 1, 1, 1),
+                },
+                new OrderFunctionData()
+                {
+                    Level1 = new OrderFunctionLevelData(0, 1, 1, 1),
+                    Level2 = new OrderFunctionLevelData(1, 2, 1, 1),
+                    Level3 = new OrderFunctionLevelData(2, 1, 1, 1),
+                }
+            }
         };
 
         [JsonProperty]
@@ -56,5 +79,8 @@ namespace Rodana.Core.Settings
 
         [JsonProperty]
         public FormTheme CurrentTheme { get; set; }
+
+        [JsonProperty]
+        public OrderFunctionData[] OrderCoeffs { get; set; }
     }
 }

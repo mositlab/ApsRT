@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rodana.Core.Planning.PoolClasses
+namespace Rodana.Core.Planning.PlanningClasses.PoolClasses
 {
     public class DatesPoolClass
     {

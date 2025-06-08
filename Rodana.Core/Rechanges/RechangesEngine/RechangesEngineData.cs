@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using Rodana.Core.Planning.PlanningClasses;
-using Rodana.Core.Planning.PoolClasses;
+using Rodana.Core.Planning.PlanningClasses.PoolClasses;
 
 namespace Rodana.Core.Rechanges.RechangesEngine
 {

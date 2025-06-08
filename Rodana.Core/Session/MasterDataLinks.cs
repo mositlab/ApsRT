@@ -15,6 +15,7 @@ using Rodana.Core.Planning.ParallelPlanning;
 using Rodana.Core.Orders;
 using Rodana.Core.Partias.SubdivisionsTransfers;
 using Rodana.Core.Partias.Zadels;
+using Rodana.Core.NaladLengths;
 
 namespace Rodana.Core.Session
 {
@@ -30,13 +31,16 @@ namespace Rodana.Core.Session
             TarasMasterData = new TarasMasterData(SessionLink);
             StagesMasterData = new StagesMasterData(SessionLink);
             ZadelsMasterData = new ZadelsMasterData(SessionLink);
+            OrdersMasterData = new OrdersMasterData(SessionLink);
         }
+
+        public NaladLengthsMasterData NaladLengthsMasterData { get; set; }
 
         public ZadelsMasterData ZadelsMasterData { get; set; }
 
         public SubdivisionsTransfersMasterData SubdivisionsTransfersMasterData { get; set; } = new();
 
-        public OrdersMasterData OrdersMasterData { get; set; } = new();
+        public OrdersMasterData OrdersMasterData { get; set; }
 
         public LeftoversMasterData LeftoversMasterData { get; set; } = new();
 

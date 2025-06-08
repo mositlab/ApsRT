@@ -22,7 +22,7 @@ namespace Rodana.Core.Settings
         {
             if (!File.Exists(SavePath))
             {
-                privateSave(new SettingsClass());
+                privateSave(SettingsClass.OriginalSettings);
             }
 
             CurrentSettings = settings ?? JsonConvert.DeserializeObject<SettingsClass>(File.ReadAllText(SavePath, Encoding.UTF8));

@@ -28,7 +28,9 @@ namespace Rodana.Core.Planning.PlanningClasses
 
         internal int LocalFlag;
 
-        internal TimeSpan TotalTime, RechangesTime, ProstoiTime;
+        internal TimeSpan OpersTime, RechangesTime, ProstoiTime;
+
+        internal TimeSpan TotalTime => OpersTime + RechangesTime + ProstoiTime;
 
         internal CenterInPlanData Copy() // Копируем структуру. При подсчёте это нужно
         {
@@ -43,7 +45,7 @@ namespace Rodana.Core.Planning.PlanningClasses
                 //Params = this.Params == null ? null : new(this.Params),
                 Flag = this.Flag,
                 LocalFlag = this.LocalFlag,
-                TotalTime = this.TotalTime,
+                OpersTime = this.OpersTime,
                 RechangesTime = this.RechangesTime,
                 ProstoiTime = this.ProstoiTime,
                 AdditinalConditions = new UniversalBinaryStorage(this.AdditinalConditions)

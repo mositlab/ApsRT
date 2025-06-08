@@ -19,6 +19,7 @@ using UniversalPack;
 using Rodana.Core.Orders;
 using Rodana.Core.NaladLengths;
 using System.Drawing;
+using System.Collections.Frozen;
 
 namespace Rodana.Core.Stages
 {
@@ -312,7 +313,7 @@ namespace Rodana.Core.Stages
         public DimensionUnit UsedCalcMethod { get; set; }
 
         [DataRecordColumn("ВесКгКм", defaultIfFail: true)]
-        public double? KgKm { get; set; }
+        public float? KgKm { get; set; }
         #endregion
 
         #region Длительность
@@ -399,6 +400,71 @@ namespace Rodana.Core.Stages
         public bool NeededNaladIsFirstInLaunch { get; set; }
 
         public (NaladLengthValue Length, bool IsFirst)? NeededNaladLength { get; set; }
+
+        FrozenDictionary<Uco,
+            FrozenDictionary<
+            RequiredNaladCondition, NaladLengthValue
+                >
+            > NaladLengthsCache;
+
+
+        Dictionary<Uco,
+            Dictionary<
+            RequiredNaladCondition, NaladLengthValue
+                >
+            > NaladLengthsCacheLocal = new();
+
+        internal void ClearNaladLengths()
+        {
+            NaladLengthsCache = null;
+            NaladLengthsCacheLocal.Clear();
+        }
+
+
+        internal void CacheNaladLengths()
+        {
+            if (PossibleCenters != null)
+            {
+                foreach (var rc in PossibleCenters) CacheNaladLengthsRc(rc);
+            }
+            CacheNaladLengthsRc(Center);
+
+            NaladLengthsCache = NaladLengthsCacheLocal.ToFrozenDictionary(x => x.Key, x => x.Value.ToFrozenDictionary(y => y.Key, y => y.Value));
+
+            //var _items = Enumerable
+            //    .Range(0, 100)
+            //    .Select(_ => new KeyValuePair<string, int>(Guid.NewGuid().ToString(), 0))
+            //    .ToArray();
+
+            //var _keys = _items.Select(k => k.Key).ToArray();
+
+            //var _dictionary = new Dictionary<string, int>(_items);
+            //var _readOnlyDictionary = new ReadOnlyDictionary<string, int>(_items.ToDictionary(i => i.Key, i => i.Value));
+            //var _immutableDictionary = ImmutableDictionary.ToImmutableDictionary(_items);
+            //var _frozenDictionary = FrozenDictionary.ToFrozenDictionary(_items, false);
+            //var _frozenDictionaryReadOptimized = FrozenDictionary.ToFrozenDictionary(_items, true); //optimizedForReads
+
+        }
+
+        void CacheNaladLengthsRc(Uco rc)
+        {
+            NaladLengthsCacheLocal.TryAdd(rc, new());
+            foreach (var whichCondition in Enum.GetValues(typeof(RequiredNaladCondition)))
+            {
+                var cond = (RequiredNaladCondition)whichCondition;
+                NaladLengthsCacheLocal[rc].TryAdd(cond,
+                    SessionLink.MasterDataLinks.NaladLengthsMasterData.NaladLengthsConverted(
+                        SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthFromMasterData(this, rc, cond), EdIzmClassificator, KgKm) // Заодно и конвертируем здесь же
+                    );
+            }
+        }
+
+        internal NaladLengthValue GetNaladLengthFromCache(Uco chosenRC, RequiredNaladCondition whichCondition)
+        {
+            //var key = (chosenRC.Code, whichCondition);
+            //if (!NaladLengthsCash.ContainsKey(key)) NaladLengthsCash.TryAdd(key, GetNaladLengthByData(this, chosenRC, whichCondition));
+            return NaladLengthsCache[chosenRC][whichCondition];
+        }
         #endregion
 
         #region Параллельное планирование

@@ -17,7 +17,7 @@ namespace Rodana.Core.Planning.PlanningClasses
         //public TimeSpan MaxTime;
         public double TimeK;
         public double Count; // Тут эта фигня нужна ДЛЯ: а) расчёта тары в Вишке (пригодится для макс намоток) и б) в будущем пригодится, тк 04.06.2024: количество для модов, пришедших из меса, уже задано, как сумма всех исходных этапов.
-        public ModellingType ModType;
+        public PlanningModellingType ModType;
 
         public List<Uco> PossibleRCsHere; // иногда РЦ могут немного отличаться у того или иного этапа, ибо нет проверки на совпадение маршрутов РЦ. Поэтому создан отдельный список, чтоб можно было чекнуть.
 
@@ -39,10 +39,10 @@ namespace Rodana.Core.Planning.PlanningClasses
         public List<int> NextMods = new();
         public List<int> PrevMods = new();
 
-        public PlanningModelling(List<Stage> list, bool parrRC, ModellingType type, int modId,
+        public PlanningModelling(List<Stage> list, bool parrRC, PlanningModellingType type, int modId,
             List<int> prevs, List<int> nexts)
         {
-            if (type == ModellingType.Obch_ETAP_FromMES || type == ModellingType.Obch_ETAP_AfterPartii)
+            if (type == PlanningModellingType.EasyFlagFromMES || type == PlanningModellingType.EasyFlagAfterPartias)
             {
                 // если это общий этап, то стоит отсортировать операции, чтобы в выходной таблице они не перемешивались (моделирования перемешивались до 04.06)
                 list = list.OrderBy(x => x.EasyFlag).ThenBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code).ToList();
@@ -79,7 +79,7 @@ namespace Rodana.Core.Planning.PlanningClasses
             switch (type)
             {
                 // Исходный этап
-                case ModellingType.Elementar: // Это исходный этапчик
+                case PlanningModellingType.Elementar: // Это исходный этапчик
                     {
                         AllTime = TimeSpan.FromSeconds(FirstOper.GetDuration());
                         TimeK = 1;
@@ -88,24 +88,24 @@ namespace Rodana.Core.Planning.PlanningClasses
                     }
 
                 // Обработка модов, сформированных АПС-кой
-                case ModellingType.AfterPartii:
+                case PlanningModellingType.AfterPartias:
                     {
                         classic();
                         break;
                     }
-                case ModellingType.Obch_ETAP_AfterPartii: // что общий этап, что моделирования - после партий суммируются по старинке
+                case PlanningModellingType.EasyFlagAfterPartias: // что общий этап, что моделирования - после партий суммируются по старинке
                     {
                         classic();
                         break;
                     }
 
                 // Обработка моделирований из меса
-                case ModellingType.FromMES:
+                case PlanningModellingType.FromMES:
                     {
                         justSum();
                         break;
                     }
-                case ModellingType.Obch_ETAP_FromMES:
+                case PlanningModellingType.EasyFlagFromMES:
                     {
                         justSum();
                         break;

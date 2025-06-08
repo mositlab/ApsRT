@@ -1,5 +1,8 @@
 ﻿using Rodana.Core.DataErrors;
 using Rodana.Core.Partias.Zadels;
+using Rodana.Core.Planning.PlanningCalculatorEngine;
+using Rodana.Core.Planning.PlanningClasses;
+using Rodana.Core.Planning.PlanningClasses.PoolClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,10 +88,8 @@ namespace Rodana.Core.Session
             }
         }
 
-        public void Output()
+        public (PlanningCalculatorEngineResult result, OpersPool copy) Output(bool asOld = false)
         {
-            // Вывод вообще всего
-
             // Вызов вывода заделов
             if (SessionLink.SessionOptions.LaunchZadel)
             {
@@ -100,6 +101,30 @@ namespace Rodana.Core.Session
                 {
                     Console.WriteLine($"Что-то не то с выводом заделов: {e.Message}");
                 }
+            }
+
+            // Вывод всего
+            SessionLink.TryCreateNewPlanningAlgorithmInstance(out var algorithm); // Сначала просто получим текущий алгоритм планирования, потому что именно там хранится всё, что нам надо для вывода
+            if (algorithm.BestBlocksList == null)
+            {
+                // Значит, алгоритм не работает. Подготовить его
+                algorithm.PrepareEverything();
+            }
+
+            List<OpersBlock> blocksToCopy = algorithm.BestBlocksList;
+
+            var localCopy = new OpersPool(blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
+
+            //lock (locker)
+            {
+
+                var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);
+
+                PlanningCalculatorEngine.CalculatePlan(localCopy, algorithm.MinAcceptableDate, result);
+
+                //OutputAllToFiles(localCopy, result, files);
+
+                return (result, localCopy);
             }
         }
 

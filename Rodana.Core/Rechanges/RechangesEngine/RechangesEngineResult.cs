@@ -5,24 +5,24 @@ using UniversalPack.Common;
 
 namespace Rodana.Core.Rechanges.RechangesEngine
 {
-    internal class RechangesEngineResult
+    public class RechangesEngineResult
     {
-        internal Dictionary<Guid, Rechange>[] Result { get; }
+        public Dictionary<Guid, Rechange>[] Result { get; }
 
-        internal Dictionary<Guid, UniversalBinaryStorage> MultiCriterialInfo { get; }
+        public Dictionary<Guid, UniversalBinaryStorage> MultiCriterialInfo { get; }
 
-        internal int Duration { get; private set; }
-        internal bool ProvokesNaladLengthLaunch { get; private set; }
+        public int Duration { get; private set; }
+        public bool ProvokesNaladLengthLaunch { get; private set; }
 
-        internal bool IsDynamicSolution { get; set; }
+        public bool IsDynamicSolution { get; set; }
 
-        internal Dictionary<Guid, Rechange> ToLinearDictionary()
+        public Dictionary<Guid, Rechange> ToLinearDictionary()
         {
             if (Result == null) return null;
             return Result.SelectMany(x => x != null ? (x ?? new()) : new()).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        internal void UpdateFields()
+        public void UpdateFields()
         {
             if (Result == null)
             {
