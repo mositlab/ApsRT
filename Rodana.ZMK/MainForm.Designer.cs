@@ -60,7 +60,12 @@ namespace Rodana.ZMK
             PartiasProgressBar = new CustomProgressBar();
             splitContainer3 = new SplitContainer();
             CustomTreeViewOnPPanel = new CustomTreeView();
-            dataGridView1 = new DataGridView();
+            PartiasDataTable = new DataGridView();
+            Column1 = new DataGridViewTextBoxColumn();
+            Column2 = new DataGridViewTextBoxColumn();
+            Column3 = new DataGridViewTextBoxColumn();
+            Column4 = new DataGridViewTextBoxColumn();
+            Column5 = new DataGridViewTextBoxColumn();
             HandPartiasTabControl = new TabPage();
             InGPCheckBox = new MaterialCheckBox();
             splitContainer4 = new SplitContainer();
@@ -91,13 +96,17 @@ namespace Rodana.ZMK
             TyrantTabPage = new TabPage();
             splitContainer5 = new SplitContainer();
             splitContainer7 = new SplitContainer();
-            button3 = new Button();
-            button2 = new Button();
-            label9 = new Label();
-            button1 = new Button();
-            customProgressBar1 = new CustomProgressBar();
+            StopPlanningButton = new Button();
+            OutputButton = new Button();
+            PlanningProcessLabel = new Label();
+            LaunchPlanningButton = new Button();
+            PlanningProcessBar = new CustomProgressBar();
             splitContainer8 = new SplitContainer();
-            dataGridView2 = new DataGridView();
+            PlanningDataTable = new DataGridView();
+            Column6 = new DataGridViewTextBoxColumn();
+            Column7 = new DataGridViewTextBoxColumn();
+            Column8 = new DataGridViewTextBoxColumn();
+            Column9 = new DataGridViewTextBoxColumn();
             BarDescTextBox = new TextBox();
             splitContainer6 = new SplitContainer();
             ganttOLD = new GanttChart();
@@ -148,7 +157,7 @@ namespace Rodana.ZMK
             splitContainer3.Panel1.SuspendLayout();
             splitContainer3.Panel2.SuspendLayout();
             splitContainer3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)PartiasDataTable).BeginInit();
             HandPartiasTabControl.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
             splitContainer4.Panel1.SuspendLayout();
@@ -173,7 +182,7 @@ namespace Rodana.ZMK
             splitContainer8.Panel1.SuspendLayout();
             splitContainer8.Panel2.SuspendLayout();
             splitContainer8.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)PlanningDataTable).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitContainer6).BeginInit();
             splitContainer6.Panel1.SuspendLayout();
             splitContainer6.Panel2.SuspendLayout();
@@ -582,7 +591,7 @@ namespace Rodana.ZMK
             // 
             // splitContainer3.Panel2
             // 
-            splitContainer3.Panel2.Controls.Add(dataGridView1);
+            splitContainer3.Panel2.Controls.Add(PartiasDataTable);
             splitContainer3.Size = new Size(751, 421);
             splitContainer3.SplitterDistance = 250;
             splitContainer3.TabIndex = 0;
@@ -595,15 +604,53 @@ namespace Rodana.ZMK
             CustomTreeViewOnPPanel.Size = new Size(751, 250);
             CustomTreeViewOnPPanel.TabIndex = 1;
             // 
-            // dataGridView1
+            // PartiasDataTable
             // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Dock = DockStyle.Fill;
-            dataGridView1.Location = new Point(0, 0);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new Size(751, 167);
-            dataGridView1.TabIndex = 0;
+            PartiasDataTable.AllowUserToAddRows = false;
+            PartiasDataTable.AllowUserToDeleteRows = false;
+            PartiasDataTable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            PartiasDataTable.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2, Column3, Column4, Column5 });
+            PartiasDataTable.Dock = DockStyle.Fill;
+            PartiasDataTable.Location = new Point(0, 0);
+            PartiasDataTable.Name = "PartiasDataTable";
+            PartiasDataTable.RowHeadersWidth = 51;
+            PartiasDataTable.Size = new Size(751, 167);
+            PartiasDataTable.TabIndex = 0;
+            // 
+            // Column1
+            // 
+            Column1.HeaderText = "Заказ";
+            Column1.MinimumWidth = 6;
+            Column1.Name = "Column1";
+            Column1.Width = 125;
+            // 
+            // Column2
+            // 
+            Column2.HeaderText = "ГП";
+            Column2.MinimumWidth = 6;
+            Column2.Name = "Column2";
+            Column2.Width = 125;
+            // 
+            // Column3
+            // 
+            Column3.HeaderText = "Продукция";
+            Column3.MinimumWidth = 6;
+            Column3.Name = "Column3";
+            Column3.Width = 125;
+            // 
+            // Column4
+            // 
+            Column4.HeaderText = "Количество";
+            Column4.MinimumWidth = 6;
+            Column4.Name = "Column4";
+            Column4.Width = 125;
+            // 
+            // Column5
+            // 
+            Column5.HeaderText = "Дата выполнения";
+            Column5.MinimumWidth = 6;
+            Column5.Name = "Column5";
+            Column5.Width = 125;
             // 
             // HandPartiasTabControl
             // 
@@ -926,6 +973,7 @@ namespace Rodana.ZMK
             // splitContainer5.Panel1
             // 
             splitContainer5.Panel1.Controls.Add(splitContainer7);
+            splitContainer5.Panel1MinSize = 370;
             // 
             // splitContainer5.Panel2
             // 
@@ -944,11 +992,11 @@ namespace Rodana.ZMK
             // 
             // splitContainer7.Panel1
             // 
-            splitContainer7.Panel1.Controls.Add(button3);
-            splitContainer7.Panel1.Controls.Add(button2);
-            splitContainer7.Panel1.Controls.Add(label9);
-            splitContainer7.Panel1.Controls.Add(button1);
-            splitContainer7.Panel1.Controls.Add(customProgressBar1);
+            splitContainer7.Panel1.Controls.Add(StopPlanningButton);
+            splitContainer7.Panel1.Controls.Add(OutputButton);
+            splitContainer7.Panel1.Controls.Add(PlanningProcessLabel);
+            splitContainer7.Panel1.Controls.Add(LaunchPlanningButton);
+            splitContainer7.Panel1.Controls.Add(PlanningProcessBar);
             // 
             // splitContainer7.Panel2
             // 
@@ -957,85 +1005,85 @@ namespace Rodana.ZMK
             splitContainer7.SplitterDistance = 112;
             splitContainer7.TabIndex = 0;
             // 
-            // button3
+            // StopPlanningButton
             // 
-            button3.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button3.BackColor = Color.CornflowerBlue;
-            button3.BackgroundImageLayout = ImageLayout.Zoom;
-            button3.Cursor = Cursors.Hand;
-            button3.Enabled = false;
-            button3.FlatAppearance.BorderSize = 0;
-            button3.FlatStyle = FlatStyle.Flat;
-            button3.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button3.ForeColor = Color.White;
-            button3.Location = new Point(261, 3);
-            button3.Name = "button3";
-            button3.Size = new Size(121, 51);
-            button3.TabIndex = 30;
-            button3.Text = "Стоп";
-            button3.UseVisualStyleBackColor = false;
+            StopPlanningButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            StopPlanningButton.BackColor = Color.CornflowerBlue;
+            StopPlanningButton.BackgroundImageLayout = ImageLayout.Zoom;
+            StopPlanningButton.Cursor = Cursors.Hand;
+            StopPlanningButton.Enabled = false;
+            StopPlanningButton.FlatAppearance.BorderSize = 0;
+            StopPlanningButton.FlatStyle = FlatStyle.Flat;
+            StopPlanningButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            StopPlanningButton.ForeColor = Color.White;
+            StopPlanningButton.Location = new Point(261, 3);
+            StopPlanningButton.Name = "StopPlanningButton";
+            StopPlanningButton.Size = new Size(121, 51);
+            StopPlanningButton.TabIndex = 30;
+            StopPlanningButton.Text = "Стоп";
+            StopPlanningButton.UseVisualStyleBackColor = false;
             // 
-            // button2
+            // OutputButton
             // 
-            button2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button2.BackColor = Color.CornflowerBlue;
-            button2.BackgroundImageLayout = ImageLayout.Zoom;
-            button2.Cursor = Cursors.Hand;
-            button2.Enabled = false;
-            button2.FlatAppearance.BorderSize = 0;
-            button2.FlatStyle = FlatStyle.Flat;
-            button2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button2.ForeColor = Color.White;
-            button2.Location = new Point(130, 3);
-            button2.Name = "button2";
-            button2.Size = new Size(125, 51);
-            button2.TabIndex = 29;
-            button2.Text = "Вывод";
-            button2.UseVisualStyleBackColor = false;
+            OutputButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            OutputButton.BackColor = Color.CornflowerBlue;
+            OutputButton.BackgroundImageLayout = ImageLayout.Zoom;
+            OutputButton.Cursor = Cursors.Hand;
+            OutputButton.Enabled = false;
+            OutputButton.FlatAppearance.BorderSize = 0;
+            OutputButton.FlatStyle = FlatStyle.Flat;
+            OutputButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            OutputButton.ForeColor = Color.White;
+            OutputButton.Location = new Point(130, 3);
+            OutputButton.Name = "OutputButton";
+            OutputButton.Size = new Size(125, 51);
+            OutputButton.TabIndex = 29;
+            OutputButton.Text = "Вывод";
+            OutputButton.UseVisualStyleBackColor = false;
             // 
-            // label9
+            // PlanningProcessLabel
             // 
-            label9.AutoSize = true;
-            label9.Location = new Point(3, 89);
-            label9.Name = "label9";
-            label9.Size = new Size(278, 20);
-            label9.TabIndex = 28;
-            label9.Text = "Расчёт недоступен без данных.";
+            PlanningProcessLabel.AutoSize = true;
+            PlanningProcessLabel.Location = new Point(3, 89);
+            PlanningProcessLabel.Name = "PlanningProcessLabel";
+            PlanningProcessLabel.Size = new Size(278, 20);
+            PlanningProcessLabel.TabIndex = 28;
+            PlanningProcessLabel.Text = "Расчёт недоступен без данных.";
             // 
-            // button1
+            // LaunchPlanningButton
             // 
-            button1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            button1.BackColor = Color.CornflowerBlue;
-            button1.BackgroundImageLayout = ImageLayout.Zoom;
-            button1.Cursor = Cursors.Hand;
-            button1.Enabled = false;
-            button1.FlatAppearance.BorderSize = 0;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button1.ForeColor = Color.White;
-            button1.Location = new Point(3, 3);
-            button1.Name = "button1";
-            button1.Size = new Size(121, 51);
-            button1.TabIndex = 27;
-            button1.Text = "Расчёт";
-            button1.UseVisualStyleBackColor = false;
+            LaunchPlanningButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            LaunchPlanningButton.BackColor = Color.CornflowerBlue;
+            LaunchPlanningButton.BackgroundImageLayout = ImageLayout.Zoom;
+            LaunchPlanningButton.Cursor = Cursors.Hand;
+            LaunchPlanningButton.Enabled = false;
+            LaunchPlanningButton.FlatAppearance.BorderSize = 0;
+            LaunchPlanningButton.FlatStyle = FlatStyle.Flat;
+            LaunchPlanningButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            LaunchPlanningButton.ForeColor = Color.White;
+            LaunchPlanningButton.Location = new Point(3, 3);
+            LaunchPlanningButton.Name = "LaunchPlanningButton";
+            LaunchPlanningButton.Size = new Size(121, 51);
+            LaunchPlanningButton.TabIndex = 27;
+            LaunchPlanningButton.Text = "Расчёт";
+            LaunchPlanningButton.UseVisualStyleBackColor = false;
             // 
-            // customProgressBar1
+            // PlanningProcessBar
             // 
-            customProgressBar1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            customProgressBar1.BackColor = SystemColors.ControlLight;
-            customProgressBar1.BarPadding = new Padding(0);
-            customProgressBar1.Font = new Font("Microsoft Sans Serif", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
-            customProgressBar1.ForeColor = Color.CornflowerBlue;
-            customProgressBar1.IsInfinite = false;
-            customProgressBar1.Location = new Point(3, 60);
-            customProgressBar1.Maximum = 100;
-            customProgressBar1.Minimum = 0;
-            customProgressBar1.Name = "customProgressBar1";
-            customProgressBar1.Size = new Size(379, 26);
-            customProgressBar1.TabIndex = 26;
-            customProgressBar1.Text = "customProgressBar1";
-            customProgressBar1.Value = 0;
+            PlanningProcessBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            PlanningProcessBar.BackColor = SystemColors.ControlLight;
+            PlanningProcessBar.BarPadding = new Padding(0);
+            PlanningProcessBar.Font = new Font("Microsoft Sans Serif", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
+            PlanningProcessBar.ForeColor = Color.CornflowerBlue;
+            PlanningProcessBar.IsInfinite = false;
+            PlanningProcessBar.Location = new Point(3, 60);
+            PlanningProcessBar.Maximum = 100;
+            PlanningProcessBar.Minimum = 0;
+            PlanningProcessBar.Name = "PlanningProcessBar";
+            PlanningProcessBar.Size = new Size(379, 26);
+            PlanningProcessBar.TabIndex = 26;
+            PlanningProcessBar.Text = "customProgressBar1";
+            PlanningProcessBar.Value = 0;
             // 
             // splitContainer8
             // 
@@ -1046,7 +1094,7 @@ namespace Rodana.ZMK
             // 
             // splitContainer8.Panel1
             // 
-            splitContainer8.Panel1.Controls.Add(dataGridView2);
+            splitContainer8.Panel1.Controls.Add(PlanningDataTable);
             // 
             // splitContainer8.Panel2
             // 
@@ -1055,15 +1103,44 @@ namespace Rodana.ZMK
             splitContainer8.SplitterDistance = 135;
             splitContainer8.TabIndex = 0;
             // 
-            // dataGridView2
+            // PlanningDataTable
             // 
-            dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView2.Dock = DockStyle.Fill;
-            dataGridView2.Location = new Point(0, 0);
-            dataGridView2.Name = "dataGridView2";
-            dataGridView2.RowHeadersWidth = 51;
-            dataGridView2.Size = new Size(385, 135);
-            dataGridView2.TabIndex = 0;
+            PlanningDataTable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            PlanningDataTable.Columns.AddRange(new DataGridViewColumn[] { Column6, Column7, Column8, Column9 });
+            PlanningDataTable.Dock = DockStyle.Fill;
+            PlanningDataTable.Location = new Point(0, 0);
+            PlanningDataTable.Name = "PlanningDataTable";
+            PlanningDataTable.RowHeadersWidth = 51;
+            PlanningDataTable.Size = new Size(385, 135);
+            PlanningDataTable.TabIndex = 0;
+            // 
+            // Column6
+            // 
+            Column6.HeaderText = "Критерий";
+            Column6.MinimumWidth = 6;
+            Column6.Name = "Column6";
+            Column6.Width = 125;
+            // 
+            // Column7
+            // 
+            Column7.HeaderText = "Ориг. знач.";
+            Column7.MinimumWidth = 6;
+            Column7.Name = "Column7";
+            Column7.Width = 125;
+            // 
+            // Column8
+            // 
+            Column8.HeaderText = "Лучш. знач.";
+            Column8.MinimumWidth = 6;
+            Column8.Name = "Column8";
+            Column8.Width = 125;
+            // 
+            // Column9
+            // 
+            Column9.HeaderText = "%";
+            Column9.MinimumWidth = 6;
+            Column9.Name = "Column9";
+            Column9.Width = 125;
             // 
             // BarDescTextBox
             // 
@@ -1085,11 +1162,13 @@ namespace Rodana.ZMK
             // 
             splitContainer6.Panel1.Controls.Add(ganttOLD);
             splitContainer6.Panel1.Controls.Add(vScrollBarOLD);
+            splitContainer6.Panel1MinSize = 10;
             // 
             // splitContainer6.Panel2
             // 
             splitContainer6.Panel2.Controls.Add(ganttNEW);
             splitContainer6.Panel2.Controls.Add(vScrollBarNEW);
+            splitContainer6.Panel2MinSize = 10;
             splitContainer6.Size = new Size(768, 393);
             splitContainer6.SplitterDistance = 219;
             splitContainer6.TabIndex = 1;
@@ -1590,7 +1669,7 @@ namespace Rodana.ZMK
             splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
             splitContainer3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)PartiasDataTable).EndInit();
             HandPartiasTabControl.ResumeLayout(false);
             HandPartiasTabControl.PerformLayout();
             splitContainer4.Panel1.ResumeLayout(false);
@@ -1619,7 +1698,7 @@ namespace Rodana.ZMK
             splitContainer8.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer8).EndInit();
             splitContainer8.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)PlanningDataTable).EndInit();
             splitContainer6.Panel1.ResumeLayout(false);
             splitContainer6.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer6).EndInit();
@@ -1690,7 +1769,7 @@ namespace Rodana.ZMK
         private SplitContainer splitContainer2;
         private TextBox AllForAllTextBox;
         private SplitContainer splitContainer3;
-        private DataGridView dataGridView1;
+        private DataGridView PartiasDataTable;
         private CustomTreeView CustomTreeViewOnPPanel;
         private MaterialCheckBox LogPartiasCheckBox;
         private Button HandSessionPostDataProcessButton;
@@ -1727,12 +1806,12 @@ namespace Rodana.ZMK
         private SplitContainer splitContainer7;
         private SplitContainer splitContainer8;
         private TextBox BarDescTextBox;
-        private DataGridView dataGridView2;
-        private Label label9;
-        private Button button1;
-        private CustomProgressBar customProgressBar1;
-        private Button button3;
-        private Button button2;
+        private DataGridView PlanningDataTable;
+        private Label PlanningProcessLabel;
+        private Button LaunchPlanningButton;
+        private CustomProgressBar PlanningProcessBar;
+        private Button StopPlanningButton;
+        private Button OutputButton;
         private GanttChart ganttOLD;
         private GanttChart ganttNEW;
         private VScrollBar vScrollBarOLD;
@@ -1741,5 +1820,14 @@ namespace Rodana.ZMK
         private Label label11;
         private DateTimePicker dateTimePickerTo;
         private Label label10;
+        private DataGridViewTextBoxColumn Column1;
+        private DataGridViewTextBoxColumn Column2;
+        private DataGridViewTextBoxColumn Column3;
+        private DataGridViewTextBoxColumn Column4;
+        private DataGridViewTextBoxColumn Column5;
+        private DataGridViewTextBoxColumn Column6;
+        private DataGridViewTextBoxColumn Column7;
+        private DataGridViewTextBoxColumn Column8;
+        private DataGridViewTextBoxColumn Column9;
     }
 }

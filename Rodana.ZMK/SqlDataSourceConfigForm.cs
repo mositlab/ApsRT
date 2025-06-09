@@ -243,10 +243,10 @@ namespace Rodana.ZMK
                 highlight,
                 e => e.Text.Length > 0);
 
-            isValid &= ValidateControl(
-                TextBoxFile,
-                highlight,
-               e => _validPathRegex.IsMatch(e.Text));
+            //isValid &= ValidateControl(
+            //    TextBoxFile,
+            //    highlight,
+            //   e => _validPathRegex.IsMatch(e.Text));
 
             ButtonSubmit.Enabled = isValid;
             ButtonCheck.Enabled = isValid;
@@ -289,6 +289,14 @@ namespace Rodana.ZMK
 
             try
             {
+                if (TextBoxFile.TextLength == 0 || !File.Exists(TextBoxFile.Text))
+                {
+                    if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                    {
+                        TextBoxFile.Text = saveFileDialog1.FileName;
+                    }
+                    else return;
+                }
                 var file = new FileInfo(TextBoxFile.Text);
                 var config = CreateConfig();
                 if (config != null)
@@ -438,6 +446,11 @@ namespace Rodana.ZMK
             }
 
             Enabled = true;
+        }
+
+        private void SaveAsButton_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

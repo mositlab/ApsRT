@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Common;
 
-namespace Rodana.ZMK
+namespace RodanaCustomComponents
 {
     public class CodedObjectInGui
     {

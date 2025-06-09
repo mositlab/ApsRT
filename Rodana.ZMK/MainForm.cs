@@ -20,6 +20,7 @@ using UniversalPack.Common;
 using static Google.Protobuf.WellKnownTypes.Field.Types;
 using System;
 using System.Windows.Forms;
+using static RodanaCustomComponents.FormsExtensions;
 
 namespace Rodana.ZMK
 {
@@ -239,99 +240,18 @@ namespace Rodana.ZMK
             SetTheme(sessionLink.SettingsController.CurrentSettings.CurrentTheme);
         }
 
-        IEnumerable<T> Descendant<T>(Control control) where T : class
-        {
-            foreach (Control child in control.Controls)
-            {
-                if (child is T thisControl)
-                {
-                    yield return (T)thisControl;
-                }
-
-                if (child.HasChildren)
-                {
-                    foreach (T descendant in Descendant<T>(child))
-                    {
-                        yield return descendant;
-                    }
-                }
-            }
-        }
-
+        Color color, colorDark, textColor, backColor;
         void SetTheme(FormTheme theme)
         {
-            Color color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
-            Color colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED_DARK : MOSITLAB_BLUE_DARK;
-            Color textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
-
-            Color backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64, 64, 64) : Color.White;
+            color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
+            colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED_DARK : MOSITLAB_BLUE_DARK;
+            textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
+            backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64, 64, 64) : Color.White;
 
             PanelNearMainLabel.BackColor = textColor;
             //mainlabel.ForeColor = textColor;
 
-            BackColor = backColor;
-
-            foreach (var comp in Descendant<CustomTreeView>(this))
-            {
-                comp.BackColor = Color.White;
-                //button.ForeColor = Color.Black;
-            }
-
-            foreach (var comp in Descendant<NumericUpDown>(this))
-            {
-                comp.BackColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<Label>(this))
-            {
-                comp.ForeColor = textColor;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<TabPage>(this))
-            {
-                comp.BackColor = backColor;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<SplitContainer>(this))
-            {
-                comp.BackColor = backColor;
-                //button.ForeColor = Color.Black;
-            }
-
-            foreach (var comp in Descendant<Button>(this))
-            {
-                comp.BackColor = color;
-                comp.FlatAppearance.MouseDownBackColor = colorDark;
-                comp.FlatAppearance.MouseOverBackColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<WinFormsCustomComponents.CustomProgressBar>(this))
-            {
-                comp.ForeColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<WinFormsCustomComponents.MaterialCheckBox>(this))
-            {
-                comp.BackColor = textColor;
-                comp.ForeColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<WinFormsCustomComponents.MaterialRadioButton>(this))
-            {
-                comp.BackColor = textColor;
-                comp.ForeColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<WinFormsCustomComponents.MaterialTabSelector>(this))
-            {
-                comp.BackColor = color;
-                //button.ForeColor = Color.Black;
-            }
-            foreach (var comp in Descendant<RodanaCustomComponents.CustomTreeView>(this))
-            {
-                comp.CurrentTheme = color;
-                //button.ForeColor = Color.Black;
-            }
+            this.SetFormStyle(color, colorDark, textColor, backColor);
         }
 
         private void MainForm_FormClosed(object? sender, FormClosedEventArgs e)
@@ -483,6 +403,7 @@ namespace Rodana.ZMK
                 {
                     using (var dialog = new SqlDataSourceConfigForm(textBox.Text))
                     {
+                        dialog.SetFormStyle(color, colorDark, textColor, backColor);
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
                             textBox.Text = dialog.CrutchPath;
@@ -685,6 +606,9 @@ namespace Rodana.ZMK
             TwoPartiasStartButton.Enabled = true;
             PartiasProgressLabel.Text = "...";
 
+            LaunchPlanningButton.Enabled = true;
+            PlanningProcessLabel.Text = "...";
+
             var orders = sessionLink.MasterDataLinks.OrdersMasterData.AllOrders.Select(x => x.Key);
 
             var groups = orders.GroupBy(x => x.Object);
@@ -744,6 +668,26 @@ namespace Rodana.ZMK
                 var aps = new PartiaClass(PartiasGeneratorEngine.DeepCopy(partiasAlgorithm.SavedPartiasTrees[partia].List), DateTime.Now, false, 0, partia, partiasAlgorithm.SavedPartiasTrees[partia].GPsCount);
                 aps.LastK = partiasAlgorithm.SavedPartiasTrees[partia].K;
                 aps.Sort();
+
+                PartiasDataTable.Rows.Clear();
+                var ALL = sessionLink.MasterDataLinks.StagesMasterData.AllStages;
+                var allOrdersHere = partiasAlgorithm.SavedPartias[partia].Select(index => ALL[index].OrderLink.OrderID).Distinct().ToList();
+                foreach ( var order in allOrdersHere)
+                {
+                    var bestStage = partiasAlgorithm.SavedPartias[partia]
+                        .Where(index => ALL[index].OrderLink.OrderID == order)
+                        .MinBy(index => ALL[index].Count);
+
+                    var stage = ALL[bestStage];
+
+                    PartiasDataTable.Rows.Add(
+                        order.Object,
+                        order.Version,
+                        stage.Production,
+                        stage.Count,
+                        sessionLink.MasterDataLinks.OrdersMasterData.AllOrders[order].Deadline
+                        );
+                }
 
                 CustomTreeViewOnPPanel.SetThisTree(aps);
             }
