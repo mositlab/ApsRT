@@ -7,18 +7,18 @@ using Rodana.Core.Partias.TaraSearchEngine;
 using Rodana.Core.Planning.PlanningClasses;
 using static UniversalPack.Extensions.EnumExtensions;
 
-namespace InfimumMES
+namespace RodanaCustomComponents
 {
 
-    internal class GanttChart : Panel
+    public class GanttChart : Panel
     {
 
-        internal struct DoubleID
+        public struct DoubleID
         {
-            internal Uco Part1;
-            internal int Part2;
+            public Uco Part1;
+            public int Part2;
 
-            internal DoubleID(Uco part1, int part2)
+            public DoubleID(Uco part1, int part2)
             {
                 Part1 = part1;
                 Part2 = part2;
@@ -43,7 +43,7 @@ namespace InfimumMES
         /// <summary>
         /// Конструктор.
         /// </summary>
-        internal GanttChart()
+        public GanttChart()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.DoubleBuffer, value: true);
         }
@@ -52,20 +52,20 @@ namespace InfimumMES
         /// <summary>
         /// Дата начала.
         /// </summary>
-        internal DateTime From;
+        public DateTime From;
 
         /// <summary>
         /// Дата конца.
         /// </summary>
-        internal DateTime To;
+        public DateTime To;
 
-        internal Action<DateTime, DateTime> ChangedDatesDelegate;
+        public Action<DateTime, DateTime> ChangedDatesDelegate;
 
         private int timelineHeight = 50;
         /// <summary>
         /// Высота полей с датами.
         /// </summary>
-        internal int TimelineHeight
+        public int TimelineHeight
         {
             get => timelineHeight;
             set
@@ -78,32 +78,32 @@ namespace InfimumMES
         /// <summary>
         /// Высота полей с датами
         /// </summary>
-        internal int DateTimeOffset = 5;
+        public int DateTimeOffset = 5;
 
         /// <summary>
         /// Высота полей с временем
         /// </summary>
-        internal int TimeOffset = 30;
+        public int TimeOffset = 30;
 
         /// <summary>
         /// Стандартный шрифт для отображения даты.
         /// </summary>
-        internal Font StandartDateTimeFont = new Font("Montserrat", 9f, FontStyle.Bold, GraphicsUnit.Point);
+        public Font StandartDateTimeFont = new Font("Montserrat", 9f, FontStyle.Bold, GraphicsUnit.Point);
 
         /// <summary>
         /// Стандартный шрифт для отображения времени.
         /// </summary>
-        internal Font StandartTimeFont = new Font("Montserrat", 9f, FontStyle.Regular, GraphicsUnit.Point);
+        public Font StandartTimeFont = new Font("Montserrat", 9f, FontStyle.Regular, GraphicsUnit.Point);
 
         /// <summary>
         /// Стандартный шрифт для отображения мелочей.
         /// </summary>
-        internal Font VerySmallFont = new Font("Montserrat", 5f, FontStyle.Regular, GraphicsUnit.Point);
+        public Font VerySmallFont = new Font("Montserrat", 5f, FontStyle.Regular, GraphicsUnit.Point);
 
         /// <summary>
         /// Отрисовать временную линию.
         /// </summary>
-        internal void DrawTimeline()
+        public void DrawTimeline()
         {
             var bbrush = new SolidBrush(BackColor);
             var fbrush = new SolidBrush(ForeColor);
@@ -213,7 +213,7 @@ namespace InfimumMES
         /// <summary>
         /// Устанавливает значение ширины для тайтлов. -1 означает требование найти автоматически нужную ширину.
         /// </summary>
-        internal int TitleRowWidth
+        public int TitleRowWidth
         {
             get => titleRowWidth;
             set
@@ -230,7 +230,7 @@ namespace InfimumMES
         /// <summary>
         /// Устанавливает значение высоты для тайтлов. -1 означает требование найти автоматически нужную высоту.
         /// </summary>
-        internal int TitleRowHeight
+        public int TitleRowHeight
         {
             get => titleRowHeight;
             set
@@ -271,10 +271,10 @@ namespace InfimumMES
         /// </summary>
         private Point RowTitleSize = Point.Empty;
 
-        internal class RowTitle
+        public class RowTitle
         {
-            internal TextInfo[] Texts;
-            internal Uco CenterID;//DoubleID
+            public TextInfo[] Texts;
+            public Uco CenterID;//DoubleID
 
             public RowTitle(TextInfo[] texts, Uco centerID)
             {
@@ -286,14 +286,14 @@ namespace InfimumMES
         /// <summary>
         /// В этой структуре содержится информация о тексте для тайтла строки - где расположен текст, и какой у него шрифт.
         /// </summary>
-        internal struct TextInfo
+        public struct TextInfo
         {
-            internal string Text;
-            internal Point LocalPosition;
-            internal Font UsedFont; // Каким шрифтом это писать?
-            internal Color Color;
+            public string Text;
+            public Point LocalPosition;
+            public Font UsedFont; // Каким шрифтом это писать?
+            public Color Color;
 
-            internal TextInfo(string text, Font usedFont = null)
+            public TextInfo(string text, Font usedFont = null)
             {
                 Text = text;
                 LocalPosition = new Point(0, 0);
@@ -301,12 +301,12 @@ namespace InfimumMES
                 Color = Color.Black;
             }
 
-            internal TextInfo(string text, Point localPosition, Font usedFont = null) : this(text, usedFont)
+            public TextInfo(string text, Point localPosition, Font usedFont = null) : this(text, usedFont)
             {
                 LocalPosition = localPosition;
             }
 
-            internal TextInfo(string text, Point localPosition, Font usedFont, Color color) : this(text, localPosition, usedFont)
+            public TextInfo(string text, Point localPosition, Font usedFont, Color color) : this(text, localPosition, usedFont)
             {
                 Color = color;
             }
@@ -323,7 +323,7 @@ namespace InfimumMES
         /// Обновляет список тайтлов.
         /// </summary>
         /// <param name="rowTitles">Список.</param>
-        internal void SetRowTitles(List<RowTitle> rowTitles)
+        public void SetRowTitles(List<RowTitle> rowTitles)
         {
             SavedRowTitles = rowTitles;
             RowTitles = new(SavedRowTitles);
@@ -334,12 +334,12 @@ namespace InfimumMES
         /// <summary>
         /// Стандартный шрифт для отображения тайтла.
         /// </summary>
-        internal Font StandartRowTitleFont = new Font("Montserrat", 9f, FontStyle.Regular, GraphicsUnit.Point);
+        public Font StandartRowTitleFont = new Font("Montserrat", 9f, FontStyle.Regular, GraphicsUnit.Point);
 
         /// <summary>
         /// Рисует наименования.
         /// </summary>
-        internal void DrawRowTitles()
+        public void DrawRowTitles()
         {
             if (RowTitles.Count == 0)
             {
@@ -365,7 +365,7 @@ namespace InfimumMES
         /// Получает максимальную требуемую ширину и высоту для текста на строке.
         /// </summary>
         /// <returns>Размер прямоугольника, способного вместить все требуемые тексты.</returns>
-        internal Point GetMaxNeededLengthForTitles()
+        public Point GetMaxNeededLengthForTitles()
         {
             if (SavedRowTitles.Count == 0)
             {
@@ -402,66 +402,66 @@ namespace InfimumMES
         /// <summary>
         /// Класс для собственно бара.
         /// </summary>
-        internal class Bar
+        public class Bar
         {
             /// <summary>
             /// Дата начала.
             /// </summary>
-            internal DateTime From;
+            public DateTime From;
 
             /// <summary>
             /// Дата конца.
             /// </summary>
-            internal DateTime To;
+            public DateTime To;
 
             /// <summary>
             /// Цвет бара.
             /// </summary>
-            internal Color Color;
+            public Color Color;
 
             /// <summary>
             /// Цвет при наведении на бар.
             /// </summary>
-            internal Color HoverColor;
+            public Color HoverColor;
 
             /// <summary>
             /// Дополнительные цвета бара.
             /// </summary>
-            internal Color? SubColor1, SubColor2, SubColor3, SubColor4, SubColor5, SubColor6;
+            public Color? SubColor1, SubColor2, SubColor3, SubColor4, SubColor5, SubColor6;
 
             /// <summary>
             /// Информация, появляющаяся при наведении на бар.
             /// </summary>
-            internal string Description;
+            public string Description;
 
             /// <summary>
             /// На какой строке его рендерить.
             /// </summary>
-            internal int RowIndex;
+            public int RowIndex;
 
             /// <summary>
             /// Индекс операции, имеющей отношение к тому бару. Если -1, то это не операция.
             /// </summary>
-            internal int OperID;
+            public int OperID;
 
             /// <summary>
             /// Смещение по Y
             /// </summary>
-            internal float OffsetK;
+            public float OffsetK;
 
             /// <summary>
             /// Размер по Y
             /// </summary>
-            internal float SizeK;
+            public float SizeK;
 
             /// <summary>
             /// Наладочная длина
             /// </summary>
-            internal float NaladLength;
+            public float NaladLength;
 
-            internal List<(DateTime, DateTime)> fixingBars;
+            public List<(DateTime, DateTime)> fixingBars;
 
-            internal Bar(DateTime from, DateTime to, Color color, Color hoverColor, string description, int rowIndex, float offset, float size, int operId, float firstNaladLength, Color? subColor1 = null, Color? subColor2 = null, Color? subColor3 = null, Color? subColor4 = null, Color? subColor5 = null, Color? subColor6 = null)
+            public Bar(DateTime from, DateTime to, Color color, Color hoverColor, string description, int rowIndex, float offset, float size, int operId, float firstNaladLength, Color? subColor1 = null, Color? subColor2 = null, Color? subColor3 = null, Color? subColor4 = null, Color? subColor5 = null, Color? subColor6 = null)
             {
                 From = from;
                 To = to;
@@ -487,15 +487,15 @@ namespace InfimumMES
         /// </summary>
         List<Bar> Bars = new List<Bar>();
 
-        internal Dictionary<int, Bar> IndexToBar = new(); // мелкая копия для быстрого поиска
+        public Dictionary<int, Bar> IndexToBar = new(); // мелкая копия для быстрого поиска
 
-        internal void ClearBars()
+        public void ClearBars()
         {
             Bars.Clear();
             IndexToBar.Clear();
         }
 
-        internal void AddBar(Bar bar, int operN = -1)
+        public void AddBar(Bar bar, int operN = -1)
         {
             if (operN > -1)
             {
@@ -524,12 +524,12 @@ namespace InfimumMES
         /// <summary>
         /// На сколько уменьшать верхние границы баров.
         /// </summary>
-        internal int BarBorderMinus = 8;
+        public int BarBorderMinus = 8;
 
         /// <summary>
         /// Текущий наведённый бар
         /// </summary>
-        internal int CurrentHoveredBar = -1;
+        public int CurrentHoveredBar = -1;
 
         /// <summary>
         /// Рисует бары.
@@ -756,7 +756,7 @@ namespace InfimumMES
             }
         }
 
-        internal void AssignScrollBar(VScrollBar bar)
+        public void AssignScrollBar(VScrollBar bar)
         {
             AssignedScrollBar = bar;
             bar.Minimum = 0;
@@ -794,12 +794,12 @@ namespace InfimumMES
         /// <summary>
         /// Может ли двигать операции вместо сокрытия лишних
         /// </summary>
-        internal bool CanMoveOperations = false;
+        public bool CanMoveOperations = false;
 
         /// <summary>
         /// Сохранённый список операций конкретно этой диаграммы. Его можно заюзать 
         /// </summary>
-        internal List<OpersBlock> SavedOpersLink;
+        public List<OpersBlock> SavedOpersLink;
 
         List<int> PossibleOpersForClicked;
 
@@ -821,12 +821,12 @@ namespace InfimumMES
         /// <summary>
         /// Дата-пак для выбора.
         /// </summary>
-        internal Dictionary<int, (List<int> prevs, List<int> nexts, Uco cent, List<Uco> possibleCents)> assignedDataPack;
+        public Dictionary<int, (List<int> prevs, List<int> nexts, Uco cent, List<Uco> possibleCents)> assignedDataPack;
 
         /// <summary>
         /// Выбрать какую-то операцию.
         /// </summary>
-        internal void FindAllPrevsHere(int SelectedOperID, bool ShowAltRcs, bool SelectWithBar = false)
+        public void FindAllPrevsHere(int SelectedOperID, bool ShowAltRcs, bool SelectWithBar = false)
         {
             MainOper = -1;
             if (SelectedOperID == -10) // я тыкнул мимо графика
@@ -969,12 +969,12 @@ namespace InfimumMES
         /// <summary>
         /// Цвет решётки.
         /// </summary>
-        internal Pen GridPen = new Pen(Color.Gray);
+        public Pen GridPen = new Pen(Color.Gray);
 
         /// <summary>
         /// Отрисовать весь график.
         /// </summary>
-        internal void DrawChart() => Invalidate();
+        public void DrawChart() => Invalidate();
 
         /// <summary>
         /// Рисовать ли цвета операций.
@@ -1000,7 +1000,7 @@ namespace InfimumMES
         /// <summary>
         /// Перерисовать график с учётом настроек цветов.
         /// </summary>
-        internal void UpdateColorsInfoAndPaint(bool moreOpColors, bool moreModColors, bool Fixed, bool Free, bool altRC)
+        public void UpdateColorsInfoAndPaint(bool moreOpColors, bool moreModColors, bool Fixed, bool Free, bool altRC)
         {
             DrawMoreOperColors = moreOpColors;
             DrawMoreModColors = moreModColors;
@@ -1154,7 +1154,7 @@ namespace InfimumMES
         /// <summary>
         /// Ссылка на текстбокс для информации.
         /// </summary>
-        internal TextBox AssignedTextBox;
+        public TextBox AssignedTextBox;
 
         /// <summary>
         /// Текущий нажатый бар.

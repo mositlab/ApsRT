@@ -26,7 +26,6 @@ namespace Rodana.ZMK
             sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = false;
             sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "Сечение";
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
-            sessionLink.OnSessionDataLoaded += On_ZMK_DataLoaded;
 
 
             MainForm form = null;
@@ -50,18 +49,5 @@ namespace Rodana.ZMK
 
         }
 
-
-        private static void On_ZMK_DataLoaded(Session session)
-        {
-            var options = session.SessionOptions;
-            var allStages = session.MasterDataLinks.StagesMasterData.AllStages;
-            if (allStages.Count == 0)
-            {
-                if (!options.IsSilent)
-                {
-                    MessageBox.Show("АПС не может продолжать работу - таблица операций пуста.", "Пустая таблица операций", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
     }
 }

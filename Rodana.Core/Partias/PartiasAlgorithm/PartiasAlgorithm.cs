@@ -140,6 +140,8 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 if (fin.Length == 0 | (SessionLink.SettingsController.CurrentSettings.LogErrors && SessionLink.DataErrors.TryOutputDataErrors())) // если логи велись, и я что-то вывел...
                 {
                     // То выходим с кодом 200. В партиях ошибки, и построить правильный план не выйдет.
+                    CurrentStage = PartiasAlgorithmStage.Failed;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
                     if (SessionLink.SessionOptions.IsSilent)
                         SessionLink.EndSession(200); // TODO: а что если я только партии формирую то что тогда?
                     return true;
@@ -185,6 +187,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
 
         public Dictionary<Guid, bool> PartiaHasErrors { get; private set; } = new(); // пока оставил словарь, вдруг что-то ещё понадобится
 
+        public Dictionary<Guid, (List<List<PartiaModelling>> List, int GPsCount, float K)> SavedPartiasTrees = new();
         public Dictionary<Guid, HashSet<int>> SavedPartias { get; private set; } = new();
 
         SortedList<double, List<(PartiaClass from, PartiaClass to)>> DEAD = new();
@@ -424,8 +427,8 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                     var prt1 = orderToPartia[allGPToCheckNow[i]];
                     var prt2 = orderToPartia[allGPToCheckNow[j]];
 
-                    var partiaClass1 = new PartiaClass(PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.MergeFlag, prt1.MyGuid);
-                    var partiaClass2 = new PartiaClass(PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid);
+                    var partiaClass1 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.MergeFlag, prt1.MyGuid);
+                    var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid);
 
 
                     var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(partiaClass1, partiaClass2, WithLog, false);
@@ -532,8 +535,8 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 var partia2 = localDEEP.First().Value.Last().Value.Last().Value[0].to;
 
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
-                var partia1C = new PartiaClass(PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
-                var partia2C = new PartiaClass(PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
+                var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
+                var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
                 var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(partia1C, partia2C, WithLog, false);
                 var finalDead = partia1C.PossibleDeadline;
                 if (final.Total > 0) // И в случае успеха, мы ссылку на partia1 юзаем и копируем туда полученные данные
@@ -608,7 +611,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                     //}
 
                     //openedPartii.Add(partia1);
-                    var thisCopy = PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(partia1.OpersHere);
+                    var thisCopy = PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere);
 
                     var remains = PartiiList.Where(x => x.OpersHere[0].Count > 0).ToList();
                     //var remains = remains0.Distinct().ToList(); // плюс ещё partia1, которая сейчас объединена
@@ -625,8 +628,8 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                             return;
                         }
 
-                        var partia = new PartiaClass(PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(thisCopy), finalDead, /*new List<int>() { 0 }, new(partia1.OrdersHere),*/ partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/); // копия
-                        var partiaLocal = new PartiaClass(PartiasConnectorEngine.PartiasConnectorEngine.DeepCopy(remain.OpersHere), remain.PossibleDeadline, /*new List<int>() { 1 }, new(remain.OrdersHere), */remain.IsRestricted, remain.MergeFlag, remain.MyGuid, remain.GPsCountNow/*, remain.LongestModsMaxCount*/);
+                        var partia = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(thisCopy), finalDead, /*new List<int>() { 0 }, new(partia1.OrdersHere),*/ partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/); // копия
+                        var partiaLocal = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(remain.OpersHere), remain.PossibleDeadline, /*new List<int>() { 1 }, new(remain.OrdersHere), */remain.IsRestricted, remain.MergeFlag, remain.MyGuid, remain.GPsCountNow/*, remain.LongestModsMaxCount*/);
 
                         //var perc = FoundSecondsAndWin(
                         //    new PartiaClass(DeepCopy(thisCopy), finalDead, new List<int>() { 0 }),
@@ -883,9 +886,9 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 Dictionary<int, PartiaModelling> IDtoSdvig = res.OpersHere.SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.Index, y)))).ToDictionary(x => x.Index, x => x.y);
 
                 var opsForEasyLife = res.OpersHere.SelectMany(x => x).ToList();//res.OpersHere.SelectMany(x => x.SelectMany(y => y.Opers.Select(z => z.ID))).ToList();
-                IDtoGroup = new Dictionary<int, Guid>(opsForEasyLife.Count);
+                IDtoGroup = result.TryGetValue(res.MyGuid, out var dic) ? dic : new Dictionary<int, Guid>(opsForEasyLife.Count);
 
-                result.Add(res.MyGuid, IDtoGroup);
+                result.TryAdd(res.MyGuid, IDtoGroup);
 
                 while (opsForEasyLife.Count > 0)
                 {
@@ -1000,7 +1003,9 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
 
                 var IDtoGroup = EasyFlagsInfo == null ? null : (EasyFlagsInfo.TryGetValue(chosenPartiaGuid, out var l) ? l : null);
 
-                SavedPartias.Add(chosenPartiaGuid, new());
+                SavedPartias.TryAdd(chosenPartiaGuid, new());
+
+                SavedPartiasTrees.TryAdd(chosenPartiaGuid, (res.OpersHere, res.GPsCountNow, res.LastK));
 
                 foreach (var lvl1 in res.OpersHere)
                 {

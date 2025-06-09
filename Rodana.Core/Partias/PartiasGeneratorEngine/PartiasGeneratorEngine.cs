@@ -17,6 +17,29 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
 {
     public static class PartiasGeneratorEngine
     {
+
+        public static List<List<PartiaModelling>> DeepCopy(List<List<PartiaModelling>> original)
+        {
+            var copied = new List<List<PartiaModelling>>();
+            foreach (var list0 in original)
+            {
+                var listhere = new List<PartiaModelling>();
+                foreach (var list1 in list0)
+                {
+                    var listhere2 = new PartiaModelling(new List<Stages.Stage>(), list1.Tara, list1.Max, list1.Format, list1.RC, list1.ZadelCode,
+                        list1.ZadelsGUIDs != null ? new(list1.ZadelsGUIDs) : null);
+                    //listhere2.RCIsChecked = list1.RCIsChecked;
+                    foreach (var list2 in list1.Opers)
+                    {
+                        listhere2.Opers.Add(list2);
+                    }
+                    listhere.Add(listhere2);
+                }
+                copied.Add(listhere);
+            }
+            return copied;
+        }
+
         static IEnumerable<PartiaModelling> selectSdvigs(IGrouping<Guid, Stage> group)
         {
             if (group.Key == Guid.Empty)
@@ -54,6 +77,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             var RestrictionsVia74110 = engineData.RestrictionsVia74110;
             var OpersToSdvigs = engineData.OpersToSdvigs;
             var prevs = engineData.prevs;
+            engineData.Color = col;
 
 
             var Level = 1;
@@ -155,10 +179,11 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             var OpersToSdvigs = engineData.OpersToSdvigs;
             var prevs = engineData.prevs;
             var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
+            var col = engineData.Color;
 
             var opers = sdvigWas.Opers;
             // TODO: если уж так нужен флаг будет, то добавить его можно будет где-то здесь.
-            //foreach (var op in opers) op.Color = col;
+            foreach (var op in opers) op.Color = col;
 
             var x = opers[0];
 

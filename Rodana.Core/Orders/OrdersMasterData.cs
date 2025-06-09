@@ -19,9 +19,9 @@ namespace Rodana.Core.Orders
             SessionLink = sessionLink;
         }
 
-        internal Dictionary<Guid, PartiaPFFlags> PFPartiasData = new();
+        public Dictionary<Guid, PartiaPFFlags> PFPartiasData = new();
 
-        internal Dictionary<OrderID, OrderBaseModel> AllOrders = new Dictionary<OrderID, OrderBaseModel>();
+        public Dictionary<OrderID, OrderBaseModel> AllOrders = new Dictionary<OrderID, OrderBaseModel>();
 
         public OrderBaseModel ProcessOrderData(Stages.Stage stage, OrderBaseModel orderModel)
         {

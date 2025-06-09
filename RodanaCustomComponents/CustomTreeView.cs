@@ -42,7 +42,7 @@ namespace RodanaCustomComponents
         internal float K = 0;
         internal float GPsNow = 0;
 
-        internal void SetThisTree(params PartiaClass[] partiaClasses)
+        public void SetThisTree(params PartiaClass[] partiaClasses)
         {
             RemoveAll();
             BarabanasCount = partiaClasses.Sum(x => x.OpersHere.Sum(y => y.Count));
@@ -260,6 +260,8 @@ namespace RodanaCustomComponents
         Point last;
         Node choosenNode = null;
         public TextBox AssignedTextBox = null;
+
+        public Color CurrentTheme;
 
         public void CenterIt()
         {
@@ -545,10 +547,13 @@ namespace RodanaCustomComponents
                         var h = (float)(CellHeight * (size / max));
                         var rect = new RectangleF(X, YNow + offset, CellWidth, h);
 
-                        brush.Color = SelectedBold ? Color.LightCoral : col;
-                        graphics.FillRoundedRectangle(brush, rect, 8);
-                        pen.Color = Selected ? Color.LightCoral : (hover ? Color.RoyalBlue : Color.Black);
-                        graphics.DrawRoundedRectangle(pen, rect, 8);
+                        brush.Color = SelectedBold ? CurrentTheme : col;
+                        graphics.FillRoundedRectangle(brush, rect, 0);
+
+                        pen.Color = Selected ? CurrentTheme : (hover ? Color.RoyalBlue : 
+                        (brush.Color == Color.White ? Color.Black : Color.FromArgb((int)(col.R * 0.75f), (int)(col.G * 0.75f), (int)(col.B * 0.75f)))
+                        );
+                        graphics.DrawRoundedRectangle(pen, rect, 0);
 
                         brush.Color = labelColor;
                         graphics.DrawString(label, StandartFont, brush,
@@ -607,7 +612,7 @@ namespace RodanaCustomComponents
 
                         if (Nodes[key][j].ZadelsColors != null)
                         {
-                            pen.Color = Selected ? Color.LightCoral : (hover ? Color.RoyalBlue : Color.Black);
+                            pen.Color = Selected ? CurrentTheme : (hover ? Color.RoyalBlue : Color.Black);
                             var sizeX = (float)CellWidth / Nodes[key][j].ZadelsColors.Length;
                             for (int i = 0; i < Nodes[key][j].ZadelsColors.Length; i++)
                             {
@@ -633,7 +638,7 @@ namespace RodanaCustomComponents
                         foreach (var val in prevs.Value)
                         {
                             var b = ChosenOps.Any(x => val.IDs.Contains(x.Item1) && !x.Item2);
-                            pen.Color = b ? Color.LightCoral : Color.Black;
+                            pen.Color = b ? CurrentTheme : Color.Black;
                             pen.Width = (b ? 3f : 1f) / scl;
                             var pos2 = nodesPositions[val];
                             pos2.X += CellWidth / 2;

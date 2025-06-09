@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using System.Drawing;
 
 namespace Rodana.Core.Partias.PartiasGeneratorEngine
 {
@@ -13,6 +14,8 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
     {
 
         public List<Stages.Stage> Stages;
+
+        public Color Color;
 
         public Session.Session Session;
 

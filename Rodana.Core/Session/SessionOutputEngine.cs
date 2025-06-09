@@ -113,6 +113,11 @@ namespace Rodana.Core.Session
 
             List<OpersBlock> blocksToCopy = algorithm.BestBlocksList;
 
+            if (blocksToCopy == null)
+            {
+                return (null, null);
+            }
+
             var localCopy = new OpersPool(blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
 
             //lock (locker)

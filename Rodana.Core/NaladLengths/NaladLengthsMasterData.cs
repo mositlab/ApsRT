@@ -18,7 +18,14 @@ namespace Rodana.Core.NaladLengths
     public class NaladLengthsMasterData
     {
 
-        internal static Dictionary<Uco, // рц
+        public Session.Session SessionLink { get; }
+
+        public NaladLengthsMasterData(Session.Session sessionLink)
+        {
+            SessionLink = sessionLink;
+        }
+
+        internal Dictionary<Uco, // рц
             Dictionary<Uco, // тех операция
                 Dictionary<Uco, // номенклатура
                     Dictionary<RequiredNaladCondition, // В зависимости от запуска
@@ -29,9 +36,16 @@ namespace Rodana.Core.NaladLengths
             > AllNaladLengths = new();
 
 
+        int criteriaIndex = -1;
+
+        public void SetNeededParamName(string rawCriteriaName)
+        {
+            criteriaIndex = SessionLink.MasterDataLinks.RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
+        }
+
         internal NaladLengthValue GetNaladLengthFromMasterData(Stage op, Uco chosenRC, RequiredNaladCondition whichCondition)
         {
-            var emptyNomen = new Uco(Guid.Empty, "");
+            var emptyNomen = Uco.EmptyObject;
 
             NaladLengthValue tryIt(Dictionary<RequiredNaladCondition, // В зависимости от запуска
                         Dictionary<Vector2, NaladLengthValue> // и ещё по сечению смотрим
@@ -39,10 +53,10 @@ namespace Rodana.Core.NaladLengths
             {
                 if (conds.TryGetValue(whichCondition, out var sechs))
                 {
-                    var mySech = op.RechangeParameters[2].GetFloat(0) ?? 0; // получаем сечение
+                    var myParam = criteriaIndex == -1 ? 0 : (op.RechangeParameters[criteriaIndex].GetFloat(0) ?? 0); // получаем сечение (или любое другое что нам надо)
                     foreach (var sech in sechs)
                     {
-                        if (mySech >= sech.Key.X && mySech <= sech.Key.Y)
+                        if (myParam >= sech.Key.X && myParam <= sech.Key.Y)
                         {
                             return sech.Value;
                         }

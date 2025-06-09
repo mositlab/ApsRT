@@ -47,27 +47,76 @@ namespace Rodana.ZMK
             PartiasTabControl = new MaterialTabControl();
             AllPartiasTabControl = new TabPage();
             splitContainer1 = new SplitContainer();
-            textBox1 = new TextBox();
+            AllForAllPartiasGuidComboBox = new ComboBox();
+            AllForAllOrdersComboBox = new ComboBox();
+            label1 = new Label();
+            LogPartiasCheckBox = new MaterialCheckBox();
+            AllForAllTextBox = new TextBox();
             label2 = new Label();
             PartiasProgressLabel = new Label();
             StartAlgorithmPButton = new Button();
-            materialCheckBox3 = new MaterialCheckBox();
-            materialCheckBox2 = new MaterialCheckBox();
+            ZadelCheckBox = new MaterialCheckBox();
+            PartCheckBox = new MaterialCheckBox();
             PartiasProgressBar = new CustomProgressBar();
             splitContainer3 = new SplitContainer();
             CustomTreeViewOnPPanel = new CustomTreeView();
             dataGridView1 = new DataGridView();
             HandPartiasTabControl = new TabPage();
+            InGPCheckBox = new MaterialCheckBox();
+            splitContainer4 = new SplitContainer();
+            TwoPartiasTextBox = new TextBox();
+            tabControl1 = new TabControl();
+            tabPage1 = new TabPage();
+            TwoPartiasPartia1View = new CustomTreeView();
+            tabPage2 = new TabPage();
+            TwoPartiasPartia2View = new CustomTreeView();
+            tabPage3 = new TabPage();
+            TwoPartiasPartiaResView = new CustomTreeView();
+            label8 = new Label();
+            label7 = new Label();
+            label6 = new Label();
+            label5 = new Label();
+            label4 = new Label();
+            label3 = new Label();
+            TwoPartiasGP2ComboBox = new ComboBox();
+            TwoPartiasGP1ComboBox = new ComboBox();
+            TwoPartiasOrder2ComboBox = new ComboBox();
+            TwoPartiasOrder1ComboBox = new ComboBox();
+            TwoPartiasPartia2ComboBox = new ComboBox();
+            TwoPartiasStartButton = new Button();
+            TwoPartiasPartia1ComboBox = new ComboBox();
             materialTabSelector2 = new MaterialTabSelector();
             PlanningTabPage = new TabPage();
             PlanningTabControl = new MaterialTabControl();
             TyrantTabPage = new TabPage();
+            splitContainer5 = new SplitContainer();
+            splitContainer7 = new SplitContainer();
+            button3 = new Button();
+            button2 = new Button();
+            label9 = new Label();
+            button1 = new Button();
+            customProgressBar1 = new CustomProgressBar();
+            splitContainer8 = new SplitContainer();
+            dataGridView2 = new DataGridView();
+            BarDescTextBox = new TextBox();
+            splitContainer6 = new SplitContainer();
+            ganttOLD = new GanttChart();
+            vScrollBarOLD = new VScrollBar();
+            ganttNEW = new GanttChart();
+            vScrollBarNEW = new VScrollBar();
+            panel1 = new Panel();
+            label11 = new Label();
+            dateTimePickerTo = new DateTimePicker();
+            label10 = new Label();
+            dateTimePickerFrom = new DateTimePicker();
             HandPlanningPage = new TabPage();
             GraphsTabPage = new TabPage();
             materialTabSelector3 = new MaterialTabSelector();
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
+            ClearAllSessionErrorsButton = new Button();
+            HandSessionPostDataProcessButton = new Button();
             SaveSettingsButton = new Button();
             LogErrorsCheckBox = new MaterialCheckBox();
             materialRadioButton2 = new MaterialRadioButton();
@@ -86,7 +135,6 @@ namespace Rodana.ZMK
             PartiasMaxDaysNumericUpDown = new NumericUpDown();
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
-            LogPartiasCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             PartiasTabPage.SuspendLayout();
@@ -101,8 +149,36 @@ namespace Rodana.ZMK
             splitContainer3.Panel2.SuspendLayout();
             splitContainer3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            HandPartiasTabControl.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
+            splitContainer4.Panel1.SuspendLayout();
+            splitContainer4.Panel2.SuspendLayout();
+            splitContainer4.SuspendLayout();
+            tabControl1.SuspendLayout();
+            tabPage1.SuspendLayout();
+            tabPage2.SuspendLayout();
+            tabPage3.SuspendLayout();
             PlanningTabPage.SuspendLayout();
             PlanningTabControl.SuspendLayout();
+            TyrantTabPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer5).BeginInit();
+            splitContainer5.Panel1.SuspendLayout();
+            splitContainer5.Panel2.SuspendLayout();
+            splitContainer5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer7).BeginInit();
+            splitContainer7.Panel1.SuspendLayout();
+            splitContainer7.Panel2.SuspendLayout();
+            splitContainer7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer8).BeginInit();
+            splitContainer8.Panel1.SuspendLayout();
+            splitContainer8.Panel2.SuspendLayout();
+            splitContainer8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)splitContainer6).BeginInit();
+            splitContainer6.Panel1.SuspendLayout();
+            splitContainer6.Panel2.SuspendLayout();
+            splitContainer6.SuspendLayout();
+            panel1.SuspendLayout();
             SettingsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
@@ -325,13 +401,16 @@ namespace Rodana.ZMK
             // 
             // splitContainer1.Panel1
             // 
+            splitContainer1.Panel1.Controls.Add(AllForAllPartiasGuidComboBox);
+            splitContainer1.Panel1.Controls.Add(AllForAllOrdersComboBox);
+            splitContainer1.Panel1.Controls.Add(label1);
             splitContainer1.Panel1.Controls.Add(LogPartiasCheckBox);
-            splitContainer1.Panel1.Controls.Add(textBox1);
+            splitContainer1.Panel1.Controls.Add(AllForAllTextBox);
             splitContainer1.Panel1.Controls.Add(label2);
             splitContainer1.Panel1.Controls.Add(PartiasProgressLabel);
             splitContainer1.Panel1.Controls.Add(StartAlgorithmPButton);
-            splitContainer1.Panel1.Controls.Add(materialCheckBox3);
-            splitContainer1.Panel1.Controls.Add(materialCheckBox2);
+            splitContainer1.Panel1.Controls.Add(ZadelCheckBox);
+            splitContainer1.Panel1.Controls.Add(PartCheckBox);
             splitContainer1.Panel1.Controls.Add(PartiasProgressBar);
             splitContainer1.Panel1MinSize = 400;
             // 
@@ -342,20 +421,68 @@ namespace Rodana.ZMK
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
             // 
-            // textBox1
+            // AllForAllPartiasGuidComboBox
             // 
-            textBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            textBox1.Location = new Point(0, 177);
-            textBox1.Multiline = true;
-            textBox1.Name = "textBox1";
-            textBox1.ScrollBars = ScrollBars.Both;
-            textBox1.Size = new Size(398, 244);
-            textBox1.TabIndex = 27;
+            AllForAllPartiasGuidComboBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            AllForAllPartiasGuidComboBox.FormattingEnabled = true;
+            AllForAllPartiasGuidComboBox.Location = new Point(130, 143);
+            AllForAllPartiasGuidComboBox.Name = "AllForAllPartiasGuidComboBox";
+            AllForAllPartiasGuidComboBox.Size = new Size(265, 28);
+            AllForAllPartiasGuidComboBox.TabIndex = 31;
+            AllForAllPartiasGuidComboBox.SelectedIndexChanged += AllForAllPartiasGuidComboBox_SelectedIndexChanged;
+            // 
+            // AllForAllOrdersComboBox
+            // 
+            AllForAllOrdersComboBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            AllForAllOrdersComboBox.FormattingEnabled = true;
+            AllForAllOrdersComboBox.Location = new Point(91, 112);
+            AllForAllOrdersComboBox.Name = "AllForAllOrdersComboBox";
+            AllForAllOrdersComboBox.Size = new Size(304, 28);
+            AllForAllOrdersComboBox.TabIndex = 30;
+            AllForAllOrdersComboBox.SelectedIndexChanged += AllForAllOrdersComboBox_SelectedIndexChanged;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(5, 115);
+            label1.Name = "label1";
+            label1.Size = new Size(80, 20);
+            label1.TabIndex = 29;
+            label1.Text = "Фильтр:";
+            // 
+            // LogPartiasCheckBox
+            // 
+            LogPartiasCheckBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            LogPartiasCheckBox.AutoSize = true;
+            LogPartiasCheckBox.BackColor = Color.Black;
+            LogPartiasCheckBox.Depth = 0;
+            LogPartiasCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            LogPartiasCheckBox.ForeColor = Color.CornflowerBlue;
+            LogPartiasCheckBox.Location = new Point(303, 63);
+            LogPartiasCheckBox.Margin = new Padding(0);
+            LogPartiasCheckBox.MouseLocation = new Point(-1, -1);
+            LogPartiasCheckBox.Name = "LogPartiasCheckBox";
+            LogPartiasCheckBox.Ripple = true;
+            LogPartiasCheckBox.Size = new Size(60, 30);
+            LogPartiasCheckBox.TabIndex = 28;
+            LogPartiasCheckBox.Text = "Log";
+            LogPartiasCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // AllForAllTextBox
+            // 
+            AllForAllTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            AllForAllTextBox.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            AllForAllTextBox.Location = new Point(0, 177);
+            AllForAllTextBox.Multiline = true;
+            AllForAllTextBox.Name = "AllForAllTextBox";
+            AllForAllTextBox.ScrollBars = ScrollBars.Both;
+            AllForAllTextBox.Size = new Size(398, 244);
+            AllForAllTextBox.TabIndex = 27;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(3, 123);
+            label2.Location = new Point(3, 146);
             label2.Name = "label2";
             label2.Size = new Size(121, 20);
             label2.TabIndex = 26;
@@ -372,6 +499,7 @@ namespace Rodana.ZMK
             // 
             // StartAlgorithmPButton
             // 
+            StartAlgorithmPButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             StartAlgorithmPButton.BackColor = Color.CornflowerBlue;
             StartAlgorithmPButton.BackgroundImageLayout = ImageLayout.Zoom;
             StartAlgorithmPButton.Cursor = Cursors.Hand;
@@ -388,42 +516,45 @@ namespace Rodana.ZMK
             StartAlgorithmPButton.UseVisualStyleBackColor = false;
             StartAlgorithmPButton.Click += StartAlgorithmPButton_Click;
             // 
-            // materialCheckBox3
+            // ZadelCheckBox
             // 
-            materialCheckBox3.AutoSize = true;
-            materialCheckBox3.BackColor = Color.Black;
-            materialCheckBox3.Depth = 0;
-            materialCheckBox3.Font = new Font("Microsoft Sans Serif", 10F);
-            materialCheckBox3.ForeColor = Color.CornflowerBlue;
-            materialCheckBox3.Location = new Point(303, 33);
-            materialCheckBox3.Margin = new Padding(0);
-            materialCheckBox3.MouseLocation = new Point(-1, -1);
-            materialCheckBox3.Name = "materialCheckBox3";
-            materialCheckBox3.Ripple = true;
-            materialCheckBox3.Size = new Size(74, 30);
-            materialCheckBox3.TabIndex = 22;
-            materialCheckBox3.Text = "Zadel";
-            materialCheckBox3.UseVisualStyleBackColor = false;
+            ZadelCheckBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            ZadelCheckBox.AutoSize = true;
+            ZadelCheckBox.BackColor = Color.Black;
+            ZadelCheckBox.Depth = 0;
+            ZadelCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            ZadelCheckBox.ForeColor = Color.CornflowerBlue;
+            ZadelCheckBox.Location = new Point(303, 33);
+            ZadelCheckBox.Margin = new Padding(0);
+            ZadelCheckBox.MouseLocation = new Point(-1, -1);
+            ZadelCheckBox.Name = "ZadelCheckBox";
+            ZadelCheckBox.Ripple = true;
+            ZadelCheckBox.Size = new Size(74, 30);
+            ZadelCheckBox.TabIndex = 22;
+            ZadelCheckBox.Text = "Zadel";
+            ZadelCheckBox.UseVisualStyleBackColor = false;
             // 
-            // materialCheckBox2
+            // PartCheckBox
             // 
-            materialCheckBox2.AutoSize = true;
-            materialCheckBox2.BackColor = Color.Black;
-            materialCheckBox2.Depth = 0;
-            materialCheckBox2.Font = new Font("Microsoft Sans Serif", 10F);
-            materialCheckBox2.ForeColor = Color.CornflowerBlue;
-            materialCheckBox2.Location = new Point(303, 3);
-            materialCheckBox2.Margin = new Padding(0);
-            materialCheckBox2.MouseLocation = new Point(-1, -1);
-            materialCheckBox2.Name = "materialCheckBox2";
-            materialCheckBox2.Ripple = true;
-            materialCheckBox2.Size = new Size(63, 30);
-            materialCheckBox2.TabIndex = 20;
-            materialCheckBox2.Text = "Part";
-            materialCheckBox2.UseVisualStyleBackColor = false;
+            PartCheckBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            PartCheckBox.AutoSize = true;
+            PartCheckBox.BackColor = Color.Black;
+            PartCheckBox.Depth = 0;
+            PartCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            PartCheckBox.ForeColor = Color.CornflowerBlue;
+            PartCheckBox.Location = new Point(303, 3);
+            PartCheckBox.Margin = new Padding(0);
+            PartCheckBox.MouseLocation = new Point(-1, -1);
+            PartCheckBox.Name = "PartCheckBox";
+            PartCheckBox.Ripple = true;
+            PartCheckBox.Size = new Size(63, 30);
+            PartCheckBox.TabIndex = 20;
+            PartCheckBox.Text = "Part";
+            PartCheckBox.UseVisualStyleBackColor = false;
             // 
             // PartiasProgressBar
             // 
+            PartiasProgressBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             PartiasProgressBar.BackColor = SystemColors.ControlLight;
             PartiasProgressBar.BarPadding = new Padding(0);
             PartiasProgressBar.Font = new Font("Microsoft Sans Serif", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
@@ -436,7 +567,7 @@ namespace Rodana.ZMK
             PartiasProgressBar.Size = new Size(297, 26);
             PartiasProgressBar.TabIndex = 16;
             PartiasProgressBar.Text = "PartiasProgressBar";
-            PartiasProgressBar.Value = 6;
+            PartiasProgressBar.Value = 0;
             // 
             // splitContainer3
             // 
@@ -476,13 +607,267 @@ namespace Rodana.ZMK
             // 
             // HandPartiasTabControl
             // 
+            HandPartiasTabControl.BackColor = Color.White;
+            HandPartiasTabControl.Controls.Add(InGPCheckBox);
+            HandPartiasTabControl.Controls.Add(splitContainer4);
+            HandPartiasTabControl.Controls.Add(label8);
+            HandPartiasTabControl.Controls.Add(label7);
+            HandPartiasTabControl.Controls.Add(label6);
+            HandPartiasTabControl.Controls.Add(label5);
+            HandPartiasTabControl.Controls.Add(label4);
+            HandPartiasTabControl.Controls.Add(label3);
+            HandPartiasTabControl.Controls.Add(TwoPartiasGP2ComboBox);
+            HandPartiasTabControl.Controls.Add(TwoPartiasGP1ComboBox);
+            HandPartiasTabControl.Controls.Add(TwoPartiasOrder2ComboBox);
+            HandPartiasTabControl.Controls.Add(TwoPartiasOrder1ComboBox);
+            HandPartiasTabControl.Controls.Add(TwoPartiasPartia2ComboBox);
+            HandPartiasTabControl.Controls.Add(TwoPartiasStartButton);
+            HandPartiasTabControl.Controls.Add(TwoPartiasPartia1ComboBox);
             HandPartiasTabControl.Location = new Point(4, 29);
             HandPartiasTabControl.Name = "HandPartiasTabControl";
             HandPartiasTabControl.Padding = new Padding(3);
             HandPartiasTabControl.Size = new Size(1163, 429);
             HandPartiasTabControl.TabIndex = 1;
             HandPartiasTabControl.Text = "Поштучное объединение";
-            HandPartiasTabControl.UseVisualStyleBackColor = true;
+            // 
+            // InGPCheckBox
+            // 
+            InGPCheckBox.AutoSize = true;
+            InGPCheckBox.BackColor = Color.Black;
+            InGPCheckBox.Depth = 0;
+            InGPCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            InGPCheckBox.ForeColor = Color.CornflowerBlue;
+            InGPCheckBox.Location = new Point(1018, 41);
+            InGPCheckBox.Margin = new Padding(0);
+            InGPCheckBox.MouseLocation = new Point(-1, -1);
+            InGPCheckBox.Name = "InGPCheckBox";
+            InGPCheckBox.Ripple = true;
+            InGPCheckBox.Size = new Size(114, 30);
+            InGPCheckBox.TabIndex = 45;
+            InGPCheckBox.Text = "Внутри ГП";
+            InGPCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // splitContainer4
+            // 
+            splitContainer4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainer4.Location = new Point(3, 74);
+            splitContainer4.Name = "splitContainer4";
+            // 
+            // splitContainer4.Panel1
+            // 
+            splitContainer4.Panel1.Controls.Add(TwoPartiasTextBox);
+            // 
+            // splitContainer4.Panel2
+            // 
+            splitContainer4.Panel2.Controls.Add(tabControl1);
+            splitContainer4.Size = new Size(1157, 352);
+            splitContainer4.SplitterDistance = 385;
+            splitContainer4.TabIndex = 44;
+            // 
+            // TwoPartiasTextBox
+            // 
+            TwoPartiasTextBox.Dock = DockStyle.Fill;
+            TwoPartiasTextBox.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            TwoPartiasTextBox.Location = new Point(0, 0);
+            TwoPartiasTextBox.Multiline = true;
+            TwoPartiasTextBox.Name = "TwoPartiasTextBox";
+            TwoPartiasTextBox.ScrollBars = ScrollBars.Both;
+            TwoPartiasTextBox.Size = new Size(385, 352);
+            TwoPartiasTextBox.TabIndex = 28;
+            // 
+            // tabControl1
+            // 
+            tabControl1.Controls.Add(tabPage1);
+            tabControl1.Controls.Add(tabPage2);
+            tabControl1.Controls.Add(tabPage3);
+            tabControl1.Dock = DockStyle.Fill;
+            tabControl1.Location = new Point(0, 0);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(768, 352);
+            tabControl1.TabIndex = 0;
+            // 
+            // tabPage1
+            // 
+            tabPage1.Controls.Add(TwoPartiasPartia1View);
+            tabPage1.Location = new Point(4, 29);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Size = new Size(760, 319);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "Партия 1";
+            tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // TwoPartiasPartia1View
+            // 
+            TwoPartiasPartia1View.BackColor = Color.White;
+            TwoPartiasPartia1View.Dock = DockStyle.Fill;
+            TwoPartiasPartia1View.Location = new Point(0, 0);
+            TwoPartiasPartia1View.Margin = new Padding(0);
+            TwoPartiasPartia1View.Name = "TwoPartiasPartia1View";
+            TwoPartiasPartia1View.Size = new Size(760, 319);
+            TwoPartiasPartia1View.TabIndex = 0;
+            // 
+            // tabPage2
+            // 
+            tabPage2.Controls.Add(TwoPartiasPartia2View);
+            tabPage2.Location = new Point(4, 29);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Size = new Size(760, 319);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "Партия 2";
+            tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // TwoPartiasPartia2View
+            // 
+            TwoPartiasPartia2View.BackColor = Color.White;
+            TwoPartiasPartia2View.Dock = DockStyle.Fill;
+            TwoPartiasPartia2View.Location = new Point(0, 0);
+            TwoPartiasPartia2View.Margin = new Padding(0);
+            TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
+            TwoPartiasPartia2View.Size = new Size(760, 319);
+            TwoPartiasPartia2View.TabIndex = 0;
+            // 
+            // tabPage3
+            // 
+            tabPage3.Controls.Add(TwoPartiasPartiaResView);
+            tabPage3.Location = new Point(4, 29);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Size = new Size(760, 319);
+            tabPage3.TabIndex = 2;
+            tabPage3.Text = "Результат";
+            tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // TwoPartiasPartiaResView
+            // 
+            TwoPartiasPartiaResView.BackColor = Color.White;
+            TwoPartiasPartiaResView.Dock = DockStyle.Fill;
+            TwoPartiasPartiaResView.Location = new Point(0, 0);
+            TwoPartiasPartiaResView.Margin = new Padding(0);
+            TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
+            TwoPartiasPartiaResView.Size = new Size(760, 319);
+            TwoPartiasPartiaResView.TabIndex = 1;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(867, 43);
+            label8.Name = "label8";
+            label8.Size = new Size(51, 20);
+            label8.TabIndex = 43;
+            label8.Text = "ГП 2:";
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(867, 9);
+            label7.Name = "label7";
+            label7.Size = new Size(51, 20);
+            label7.TabIndex = 42;
+            label7.Text = "ГП 1:";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(464, 43);
+            label6.Name = "label6";
+            label6.Size = new Size(78, 20);
+            label6.TabIndex = 41;
+            label6.Text = "Заказ 2:";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(464, 9);
+            label5.Name = "label5";
+            label5.Size = new Size(78, 20);
+            label5.TabIndex = 40;
+            label5.Text = "Заказ 1:";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(6, 43);
+            label4.Name = "label4";
+            label4.Size = new Size(135, 20);
+            label4.TabIndex = 39;
+            label4.Text = "GUID партии 2:";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(6, 9);
+            label3.Name = "label3";
+            label3.Size = new Size(135, 20);
+            label3.TabIndex = 38;
+            label3.Text = "GUID партии 1:";
+            // 
+            // TwoPartiasGP2ComboBox
+            // 
+            TwoPartiasGP2ComboBox.FormattingEnabled = true;
+            TwoPartiasGP2ComboBox.Location = new Point(924, 40);
+            TwoPartiasGP2ComboBox.Name = "TwoPartiasGP2ComboBox";
+            TwoPartiasGP2ComboBox.Size = new Size(79, 28);
+            TwoPartiasGP2ComboBox.TabIndex = 37;
+            // 
+            // TwoPartiasGP1ComboBox
+            // 
+            TwoPartiasGP1ComboBox.FormattingEnabled = true;
+            TwoPartiasGP1ComboBox.Location = new Point(924, 6);
+            TwoPartiasGP1ComboBox.Name = "TwoPartiasGP1ComboBox";
+            TwoPartiasGP1ComboBox.Size = new Size(79, 28);
+            TwoPartiasGP1ComboBox.TabIndex = 36;
+            // 
+            // TwoPartiasOrder2ComboBox
+            // 
+            TwoPartiasOrder2ComboBox.FormattingEnabled = true;
+            TwoPartiasOrder2ComboBox.Location = new Point(548, 40);
+            TwoPartiasOrder2ComboBox.Name = "TwoPartiasOrder2ComboBox";
+            TwoPartiasOrder2ComboBox.Size = new Size(304, 28);
+            TwoPartiasOrder2ComboBox.TabIndex = 35;
+            TwoPartiasOrder2ComboBox.SelectedIndexChanged += TwoPartiasOrder2ComboBox_SelectedIndexChanged;
+            // 
+            // TwoPartiasOrder1ComboBox
+            // 
+            TwoPartiasOrder1ComboBox.FormattingEnabled = true;
+            TwoPartiasOrder1ComboBox.Location = new Point(548, 6);
+            TwoPartiasOrder1ComboBox.Name = "TwoPartiasOrder1ComboBox";
+            TwoPartiasOrder1ComboBox.Size = new Size(304, 28);
+            TwoPartiasOrder1ComboBox.TabIndex = 34;
+            TwoPartiasOrder1ComboBox.SelectedIndexChanged += TwoPartiasOrder1ComboBox_SelectedIndexChanged;
+            // 
+            // TwoPartiasPartia2ComboBox
+            // 
+            TwoPartiasPartia2ComboBox.FormattingEnabled = true;
+            TwoPartiasPartia2ComboBox.Location = new Point(147, 40);
+            TwoPartiasPartia2ComboBox.Name = "TwoPartiasPartia2ComboBox";
+            TwoPartiasPartia2ComboBox.Size = new Size(304, 28);
+            TwoPartiasPartia2ComboBox.TabIndex = 33;
+            // 
+            // TwoPartiasStartButton
+            // 
+            TwoPartiasStartButton.BackColor = Color.CornflowerBlue;
+            TwoPartiasStartButton.BackgroundImageLayout = ImageLayout.Zoom;
+            TwoPartiasStartButton.Cursor = Cursors.Hand;
+            TwoPartiasStartButton.Enabled = false;
+            TwoPartiasStartButton.FlatAppearance.BorderSize = 0;
+            TwoPartiasStartButton.FlatStyle = FlatStyle.Flat;
+            TwoPartiasStartButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            TwoPartiasStartButton.ForeColor = Color.White;
+            TwoPartiasStartButton.Location = new Point(1018, 6);
+            TwoPartiasStartButton.Name = "TwoPartiasStartButton";
+            TwoPartiasStartButton.Size = new Size(139, 32);
+            TwoPartiasStartButton.TabIndex = 32;
+            TwoPartiasStartButton.Text = "Расчёт";
+            TwoPartiasStartButton.UseVisualStyleBackColor = false;
+            TwoPartiasStartButton.Click += TwoPartiasStartButton_Click;
+            // 
+            // TwoPartiasPartia1ComboBox
+            // 
+            TwoPartiasPartia1ComboBox.FormattingEnabled = true;
+            TwoPartiasPartia1ComboBox.Location = new Point(147, 6);
+            TwoPartiasPartia1ComboBox.Name = "TwoPartiasPartia1ComboBox";
+            TwoPartiasPartia1ComboBox.Size = new Size(304, 28);
+            TwoPartiasPartia1ComboBox.TabIndex = 31;
             // 
             // materialTabSelector2
             // 
@@ -523,6 +908,7 @@ namespace Rodana.ZMK
             // 
             // TyrantTabPage
             // 
+            TyrantTabPage.Controls.Add(splitContainer5);
             TyrantTabPage.Location = new Point(4, 29);
             TyrantTabPage.Name = "TyrantTabPage";
             TyrantTabPage.Padding = new Padding(3);
@@ -530,6 +916,271 @@ namespace Rodana.ZMK
             TyrantTabPage.TabIndex = 0;
             TyrantTabPage.Text = "Полное планирование";
             TyrantTabPage.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer5
+            // 
+            splitContainer5.Dock = DockStyle.Fill;
+            splitContainer5.Location = new Point(3, 3);
+            splitContainer5.Name = "splitContainer5";
+            // 
+            // splitContainer5.Panel1
+            // 
+            splitContainer5.Panel1.Controls.Add(splitContainer7);
+            // 
+            // splitContainer5.Panel2
+            // 
+            splitContainer5.Panel2.Controls.Add(splitContainer6);
+            splitContainer5.Panel2.Controls.Add(panel1);
+            splitContainer5.Size = new Size(1157, 423);
+            splitContainer5.SplitterDistance = 385;
+            splitContainer5.TabIndex = 0;
+            // 
+            // splitContainer7
+            // 
+            splitContainer7.Dock = DockStyle.Fill;
+            splitContainer7.Location = new Point(0, 0);
+            splitContainer7.Name = "splitContainer7";
+            splitContainer7.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer7.Panel1
+            // 
+            splitContainer7.Panel1.Controls.Add(button3);
+            splitContainer7.Panel1.Controls.Add(button2);
+            splitContainer7.Panel1.Controls.Add(label9);
+            splitContainer7.Panel1.Controls.Add(button1);
+            splitContainer7.Panel1.Controls.Add(customProgressBar1);
+            // 
+            // splitContainer7.Panel2
+            // 
+            splitContainer7.Panel2.Controls.Add(splitContainer8);
+            splitContainer7.Size = new Size(385, 423);
+            splitContainer7.SplitterDistance = 112;
+            splitContainer7.TabIndex = 0;
+            // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            button3.BackColor = Color.CornflowerBlue;
+            button3.BackgroundImageLayout = ImageLayout.Zoom;
+            button3.Cursor = Cursors.Hand;
+            button3.Enabled = false;
+            button3.FlatAppearance.BorderSize = 0;
+            button3.FlatStyle = FlatStyle.Flat;
+            button3.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(261, 3);
+            button3.Name = "button3";
+            button3.Size = new Size(121, 51);
+            button3.TabIndex = 30;
+            button3.Text = "Стоп";
+            button3.UseVisualStyleBackColor = false;
+            // 
+            // button2
+            // 
+            button2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            button2.BackColor = Color.CornflowerBlue;
+            button2.BackgroundImageLayout = ImageLayout.Zoom;
+            button2.Cursor = Cursors.Hand;
+            button2.Enabled = false;
+            button2.FlatAppearance.BorderSize = 0;
+            button2.FlatStyle = FlatStyle.Flat;
+            button2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button2.ForeColor = Color.White;
+            button2.Location = new Point(130, 3);
+            button2.Name = "button2";
+            button2.Size = new Size(125, 51);
+            button2.TabIndex = 29;
+            button2.Text = "Вывод";
+            button2.UseVisualStyleBackColor = false;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(3, 89);
+            label9.Name = "label9";
+            label9.Size = new Size(278, 20);
+            label9.TabIndex = 28;
+            label9.Text = "Расчёт недоступен без данных.";
+            // 
+            // button1
+            // 
+            button1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            button1.BackColor = Color.CornflowerBlue;
+            button1.BackgroundImageLayout = ImageLayout.Zoom;
+            button1.Cursor = Cursors.Hand;
+            button1.Enabled = false;
+            button1.FlatAppearance.BorderSize = 0;
+            button1.FlatStyle = FlatStyle.Flat;
+            button1.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button1.ForeColor = Color.White;
+            button1.Location = new Point(3, 3);
+            button1.Name = "button1";
+            button1.Size = new Size(121, 51);
+            button1.TabIndex = 27;
+            button1.Text = "Расчёт";
+            button1.UseVisualStyleBackColor = false;
+            // 
+            // customProgressBar1
+            // 
+            customProgressBar1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            customProgressBar1.BackColor = SystemColors.ControlLight;
+            customProgressBar1.BarPadding = new Padding(0);
+            customProgressBar1.Font = new Font("Microsoft Sans Serif", 26F, FontStyle.Bold, GraphicsUnit.Pixel);
+            customProgressBar1.ForeColor = Color.CornflowerBlue;
+            customProgressBar1.IsInfinite = false;
+            customProgressBar1.Location = new Point(3, 60);
+            customProgressBar1.Maximum = 100;
+            customProgressBar1.Minimum = 0;
+            customProgressBar1.Name = "customProgressBar1";
+            customProgressBar1.Size = new Size(379, 26);
+            customProgressBar1.TabIndex = 26;
+            customProgressBar1.Text = "customProgressBar1";
+            customProgressBar1.Value = 0;
+            // 
+            // splitContainer8
+            // 
+            splitContainer8.Dock = DockStyle.Fill;
+            splitContainer8.Location = new Point(0, 0);
+            splitContainer8.Name = "splitContainer8";
+            splitContainer8.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer8.Panel1
+            // 
+            splitContainer8.Panel1.Controls.Add(dataGridView2);
+            // 
+            // splitContainer8.Panel2
+            // 
+            splitContainer8.Panel2.Controls.Add(BarDescTextBox);
+            splitContainer8.Size = new Size(385, 307);
+            splitContainer8.SplitterDistance = 135;
+            splitContainer8.TabIndex = 0;
+            // 
+            // dataGridView2
+            // 
+            dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView2.Dock = DockStyle.Fill;
+            dataGridView2.Location = new Point(0, 0);
+            dataGridView2.Name = "dataGridView2";
+            dataGridView2.RowHeadersWidth = 51;
+            dataGridView2.Size = new Size(385, 135);
+            dataGridView2.TabIndex = 0;
+            // 
+            // BarDescTextBox
+            // 
+            BarDescTextBox.Dock = DockStyle.Fill;
+            BarDescTextBox.Location = new Point(0, 0);
+            BarDescTextBox.Multiline = true;
+            BarDescTextBox.Name = "BarDescTextBox";
+            BarDescTextBox.Size = new Size(385, 168);
+            BarDescTextBox.TabIndex = 0;
+            // 
+            // splitContainer6
+            // 
+            splitContainer6.Dock = DockStyle.Fill;
+            splitContainer6.Location = new Point(0, 30);
+            splitContainer6.Name = "splitContainer6";
+            splitContainer6.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer6.Panel1
+            // 
+            splitContainer6.Panel1.Controls.Add(ganttOLD);
+            splitContainer6.Panel1.Controls.Add(vScrollBarOLD);
+            // 
+            // splitContainer6.Panel2
+            // 
+            splitContainer6.Panel2.Controls.Add(ganttNEW);
+            splitContainer6.Panel2.Controls.Add(vScrollBarNEW);
+            splitContainer6.Size = new Size(768, 393);
+            splitContainer6.SplitterDistance = 219;
+            splitContainer6.TabIndex = 1;
+            // 
+            // ganttOLD
+            // 
+            ganttOLD.BackColor = Color.White;
+            ganttOLD.Dock = DockStyle.Fill;
+            ganttOLD.Location = new Point(0, 0);
+            ganttOLD.Name = "ganttOLD";
+            ganttOLD.Size = new Size(742, 219);
+            ganttOLD.TabIndex = 0;
+            ganttOLD.TimelineHeight = 50;
+            ganttOLD.TitleRowHeight = -1;
+            ganttOLD.TitleRowWidth = 200;
+            // 
+            // vScrollBarOLD
+            // 
+            vScrollBarOLD.Dock = DockStyle.Right;
+            vScrollBarOLD.Location = new Point(742, 0);
+            vScrollBarOLD.Name = "vScrollBarOLD";
+            vScrollBarOLD.Size = new Size(26, 219);
+            vScrollBarOLD.TabIndex = 1;
+            // 
+            // ganttNEW
+            // 
+            ganttNEW.BackColor = Color.White;
+            ganttNEW.Dock = DockStyle.Fill;
+            ganttNEW.Location = new Point(0, 0);
+            ganttNEW.Name = "ganttNEW";
+            ganttNEW.Size = new Size(742, 170);
+            ganttNEW.TabIndex = 0;
+            ganttNEW.TimelineHeight = 50;
+            ganttNEW.TitleRowHeight = -1;
+            ganttNEW.TitleRowWidth = 200;
+            // 
+            // vScrollBarNEW
+            // 
+            vScrollBarNEW.Dock = DockStyle.Right;
+            vScrollBarNEW.Location = new Point(742, 0);
+            vScrollBarNEW.Name = "vScrollBarNEW";
+            vScrollBarNEW.Size = new Size(26, 170);
+            vScrollBarNEW.TabIndex = 1;
+            // 
+            // panel1
+            // 
+            panel1.Controls.Add(label11);
+            panel1.Controls.Add(dateTimePickerTo);
+            panel1.Controls.Add(label10);
+            panel1.Controls.Add(dateTimePickerFrom);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(768, 30);
+            panel1.TabIndex = 0;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Location = new Point(258, 6);
+            label11.Name = "label11";
+            label11.Size = new Size(37, 20);
+            label11.TabIndex = 33;
+            label11.Text = "До:";
+            // 
+            // dateTimePickerTo
+            // 
+            dateTimePickerTo.CustomFormat = "dd.MM.yyyy HH:mm:ss";
+            dateTimePickerTo.Format = DateTimePickerFormat.Custom;
+            dateTimePickerTo.Location = new Point(301, 2);
+            dateTimePickerTo.Name = "dateTimePickerTo";
+            dateTimePickerTo.Size = new Size(209, 26);
+            dateTimePickerTo.TabIndex = 32;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(3, 7);
+            label10.Name = "label10";
+            label10.Size = new Size(37, 20);
+            label10.TabIndex = 31;
+            label10.Text = "От:";
+            // 
+            // dateTimePickerFrom
+            // 
+            dateTimePickerFrom.CustomFormat = "dd.MM.yyyy HH:mm:ss";
+            dateTimePickerFrom.Format = DateTimePickerFormat.Custom;
+            dateTimePickerFrom.Location = new Point(46, 3);
+            dateTimePickerFrom.Name = "dateTimePickerFrom";
+            dateTimePickerFrom.Size = new Size(209, 26);
+            dateTimePickerFrom.TabIndex = 0;
             // 
             // HandPlanningPage
             // 
@@ -586,6 +1237,8 @@ namespace Rodana.ZMK
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.AutoScroll = true;
+            splitContainer2.Panel2.Controls.Add(ClearAllSessionErrorsButton);
+            splitContainer2.Panel2.Controls.Add(HandSessionPostDataProcessButton);
             splitContainer2.Panel2.Controls.Add(SaveSettingsButton);
             splitContainer2.Panel2.Controls.Add(LogErrorsCheckBox);
             splitContainer2.Panel2.Controls.Add(materialRadioButton2);
@@ -615,6 +1268,42 @@ namespace Rodana.ZMK
             HoppersPanel.Name = "HoppersPanel";
             HoppersPanel.Size = new Size(1171, 245);
             HoppersPanel.TabIndex = 25;
+            // 
+            // ClearAllSessionErrorsButton
+            // 
+            ClearAllSessionErrorsButton.BackColor = Color.CornflowerBlue;
+            ClearAllSessionErrorsButton.BackgroundImageLayout = ImageLayout.Zoom;
+            ClearAllSessionErrorsButton.Cursor = Cursors.Hand;
+            ClearAllSessionErrorsButton.FlatAppearance.BorderSize = 0;
+            ClearAllSessionErrorsButton.FlatStyle = FlatStyle.Flat;
+            ClearAllSessionErrorsButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            ClearAllSessionErrorsButton.ForeColor = Color.White;
+            ClearAllSessionErrorsButton.Location = new Point(8, 177);
+            ClearAllSessionErrorsButton.Name = "ClearAllSessionErrorsButton";
+            ClearAllSessionErrorsButton.Size = new Size(353, 51);
+            ClearAllSessionErrorsButton.TabIndex = 38;
+            ClearAllSessionErrorsButton.Text = "Удалить все ошибки сессии";
+            ClearAllSessionErrorsButton.UseCompatibleTextRendering = true;
+            ClearAllSessionErrorsButton.UseVisualStyleBackColor = false;
+            ClearAllSessionErrorsButton.Click += ClearAllSessionErrorsButton_Click;
+            // 
+            // HandSessionPostDataProcessButton
+            // 
+            HandSessionPostDataProcessButton.BackColor = Color.CornflowerBlue;
+            HandSessionPostDataProcessButton.BackgroundImageLayout = ImageLayout.Zoom;
+            HandSessionPostDataProcessButton.Cursor = Cursors.Hand;
+            HandSessionPostDataProcessButton.FlatAppearance.BorderSize = 0;
+            HandSessionPostDataProcessButton.FlatStyle = FlatStyle.Flat;
+            HandSessionPostDataProcessButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            HandSessionPostDataProcessButton.ForeColor = Color.White;
+            HandSessionPostDataProcessButton.Location = new Point(8, 120);
+            HandSessionPostDataProcessButton.Name = "HandSessionPostDataProcessButton";
+            HandSessionPostDataProcessButton.Size = new Size(353, 51);
+            HandSessionPostDataProcessButton.TabIndex = 37;
+            HandSessionPostDataProcessButton.Text = "Ручной пост-процессинг данных сессии";
+            HandSessionPostDataProcessButton.UseCompatibleTextRendering = true;
+            HandSessionPostDataProcessButton.UseVisualStyleBackColor = false;
+            HandSessionPostDataProcessButton.Click += HandSessionPostDataProcessButton_Click;
             // 
             // SaveSettingsButton
             // 
@@ -724,7 +1413,7 @@ namespace Rodana.ZMK
             HideConsoleCheckBox.Depth = 0;
             HideConsoleCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             HideConsoleCheckBox.ForeColor = Color.CornflowerBlue;
-            HideConsoleCheckBox.Location = new Point(368, 152);
+            HideConsoleCheckBox.Location = new Point(684, 33);
             HideConsoleCheckBox.Margin = new Padding(0);
             HideConsoleCheckBox.MouseLocation = new Point(-1, -1);
             HideConsoleCheckBox.Name = "HideConsoleCheckBox";
@@ -758,7 +1447,7 @@ namespace Rodana.ZMK
             CacheDurationsCheckBox.Depth = 0;
             CacheDurationsCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             CacheDurationsCheckBox.ForeColor = Color.CornflowerBlue;
-            CacheDurationsCheckBox.Location = new Point(368, 212);
+            CacheDurationsCheckBox.Location = new Point(684, 93);
             CacheDurationsCheckBox.Margin = new Padding(0);
             CacheDurationsCheckBox.MouseLocation = new Point(-1, -1);
             CacheDurationsCheckBox.Name = "CacheDurationsCheckBox";
@@ -802,7 +1491,7 @@ namespace Rodana.ZMK
             CreateKillMeCheckBox.Depth = 0;
             CreateKillMeCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             CreateKillMeCheckBox.ForeColor = Color.CornflowerBlue;
-            CreateKillMeCheckBox.Location = new Point(368, 122);
+            CreateKillMeCheckBox.Location = new Point(684, 3);
             CreateKillMeCheckBox.Margin = new Padding(0);
             CreateKillMeCheckBox.MouseLocation = new Point(-1, -1);
             CreateKillMeCheckBox.Name = "CreateKillMeCheckBox";
@@ -834,7 +1523,7 @@ namespace Rodana.ZMK
             CreateStopMe.Depth = 0;
             CreateStopMe.Font = new Font("Microsoft Sans Serif", 10F);
             CreateStopMe.ForeColor = Color.CornflowerBlue;
-            CreateStopMe.Location = new Point(368, 182);
+            CreateStopMe.Location = new Point(684, 63);
             CreateStopMe.Margin = new Padding(0);
             CreateStopMe.MouseLocation = new Point(-1, -1);
             CreateStopMe.Name = "CreateStopMe";
@@ -874,23 +1563,6 @@ namespace Rodana.ZMK
             openFileDialog1.FileName = "openFileDialog1";
             openFileDialog1.Filter = "Текстовые таблицы (TXT)|*.txt|Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
             // 
-            // LogPartiasCheckBox
-            // 
-            LogPartiasCheckBox.AutoSize = true;
-            LogPartiasCheckBox.BackColor = Color.Black;
-            LogPartiasCheckBox.Depth = 0;
-            LogPartiasCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            LogPartiasCheckBox.ForeColor = Color.CornflowerBlue;
-            LogPartiasCheckBox.Location = new Point(303, 63);
-            LogPartiasCheckBox.Margin = new Padding(0);
-            LogPartiasCheckBox.MouseLocation = new Point(-1, -1);
-            LogPartiasCheckBox.Name = "LogPartiasCheckBox";
-            LogPartiasCheckBox.Ripple = true;
-            LogPartiasCheckBox.Size = new Size(60, 30);
-            LogPartiasCheckBox.TabIndex = 28;
-            LogPartiasCheckBox.Text = "Log";
-            LogPartiasCheckBox.UseVisualStyleBackColor = false;
-            // 
             // MainForm
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -899,6 +1571,7 @@ namespace Rodana.ZMK
             Controls.Add(MainTabControl);
             Controls.Add(materialTabSelector1);
             Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            KeyPreview = true;
             MinimumSize = new Size(1195, 604);
             Name = "MainForm";
             Text = "APS «Родана»";
@@ -918,8 +1591,41 @@ namespace Rodana.ZMK
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
             splitContainer3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            HandPartiasTabControl.ResumeLayout(false);
+            HandPartiasTabControl.PerformLayout();
+            splitContainer4.Panel1.ResumeLayout(false);
+            splitContainer4.Panel1.PerformLayout();
+            splitContainer4.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer4).EndInit();
+            splitContainer4.ResumeLayout(false);
+            tabControl1.ResumeLayout(false);
+            tabPage1.ResumeLayout(false);
+            tabPage2.ResumeLayout(false);
+            tabPage3.ResumeLayout(false);
             PlanningTabPage.ResumeLayout(false);
             PlanningTabControl.ResumeLayout(false);
+            TyrantTabPage.ResumeLayout(false);
+            splitContainer5.Panel1.ResumeLayout(false);
+            splitContainer5.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer5).EndInit();
+            splitContainer5.ResumeLayout(false);
+            splitContainer7.Panel1.ResumeLayout(false);
+            splitContainer7.Panel1.PerformLayout();
+            splitContainer7.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer7).EndInit();
+            splitContainer7.ResumeLayout(false);
+            splitContainer8.Panel1.ResumeLayout(false);
+            splitContainer8.Panel2.ResumeLayout(false);
+            splitContainer8.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer8).EndInit();
+            splitContainer8.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
+            splitContainer6.Panel1.ResumeLayout(false);
+            splitContainer6.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer6).EndInit();
+            splitContainer6.ResumeLayout(false);
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             SettingsTabPage.ResumeLayout(false);
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
@@ -941,7 +1647,7 @@ namespace Rodana.ZMK
         private TabPage MainTabPage;
         private TabPage SettingsTabPage;
         private Label mainlabel;
-        private WinFormsCustomComponents.MaterialCheckBox materialCheckBox2;
+        private WinFormsCustomComponents.MaterialCheckBox PartCheckBox;
         private WinFormsCustomComponents.CustomProgressBar PartiasProgressBar;
         public Button OpenGraphsButton;
         public Button OpenHandPlanButton;
@@ -952,7 +1658,7 @@ namespace Rodana.ZMK
         private WinFormsCustomComponents.MaterialTabControl PartiasTabControl;
         private TabPage AllPartiasTabControl;
         private TabPage HandPartiasTabControl;
-        private WinFormsCustomComponents.MaterialCheckBox materialCheckBox3;
+        private WinFormsCustomComponents.MaterialCheckBox ZadelCheckBox;
         private Button StartAlgorithmPButton;
         private WinFormsCustomComponents.MaterialRadioButton RadioButton1;
         private WinFormsCustomComponents.MaterialRadioButton materialRadioButton2;
@@ -982,10 +1688,58 @@ namespace Rodana.ZMK
         private MaterialCheckBox UsePseudoTaraCheckBox;
         private MaterialCheckBox LogErrorsCheckBox;
         private SplitContainer splitContainer2;
-        private TextBox textBox1;
+        private TextBox AllForAllTextBox;
         private SplitContainer splitContainer3;
         private DataGridView dataGridView1;
         private CustomTreeView CustomTreeViewOnPPanel;
         private MaterialCheckBox LogPartiasCheckBox;
+        private Button HandSessionPostDataProcessButton;
+        private ComboBox AllForAllPartiasGuidComboBox;
+        private ComboBox AllForAllOrdersComboBox;
+        private Label label1;
+        private Button ClearAllSessionErrorsButton;
+        private ComboBox TwoPartiasGP2ComboBox;
+        private ComboBox TwoPartiasGP1ComboBox;
+        private ComboBox TwoPartiasOrder2ComboBox;
+        private ComboBox TwoPartiasOrder1ComboBox;
+        private ComboBox TwoPartiasPartia2ComboBox;
+        private Button TwoPartiasStartButton;
+        private ComboBox TwoPartiasPartia1ComboBox;
+        private Label label8;
+        private Label label7;
+        private Label label6;
+        private Label label5;
+        private Label label4;
+        private Label label3;
+        private SplitContainer splitContainer4;
+        private TextBox TwoPartiasTextBox;
+        private TabControl tabControl1;
+        private TabPage tabPage1;
+        private CustomTreeView TwoPartiasPartia1View;
+        private TabPage tabPage2;
+        private CustomTreeView TwoPartiasPartia2View;
+        private TabPage tabPage3;
+        private CustomTreeView TwoPartiasPartiaResView;
+        private MaterialCheckBox InGPCheckBox;
+        private SplitContainer splitContainer5;
+        private SplitContainer splitContainer6;
+        private Panel panel1;
+        private SplitContainer splitContainer7;
+        private SplitContainer splitContainer8;
+        private TextBox BarDescTextBox;
+        private DataGridView dataGridView2;
+        private Label label9;
+        private Button button1;
+        private CustomProgressBar customProgressBar1;
+        private Button button3;
+        private Button button2;
+        private GanttChart ganttOLD;
+        private GanttChart ganttNEW;
+        private VScrollBar vScrollBarOLD;
+        private VScrollBar vScrollBarNEW;
+        private DateTimePicker dateTimePickerFrom;
+        private Label label11;
+        private DateTimePicker dateTimePickerTo;
+        private Label label10;
     }
 }

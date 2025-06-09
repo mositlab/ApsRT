@@ -32,6 +32,7 @@ namespace Rodana.Core.Session
             StagesMasterData = new StagesMasterData(SessionLink);
             ZadelsMasterData = new ZadelsMasterData(SessionLink);
             OrdersMasterData = new OrdersMasterData(SessionLink);
+            NaladLengthsMasterData = new NaladLengthsMasterData(SessionLink);
         }
 
         public NaladLengthsMasterData NaladLengthsMasterData { get; set; }

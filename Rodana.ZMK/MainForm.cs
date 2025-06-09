@@ -9,6 +9,17 @@ using WinFormsCustomComponents;
 using static UniversalPack.Extensions.EventExtensions;
 using RodanaCustomComponents;
 using Rodana.Core.Partias.PartiasAlgorithm;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using System.Linq;
+using System.Diagnostics.Metrics;
+using Rodana.Core.Partias.PartiasClasses;
+using Rodana.Core.Partias.PartiasGeneratorEngine;
+using Rodana.Core.Partias.PartiasConnectorEngine;
+using System.Security.Cryptography;
+using UniversalPack.Common;
+using static Google.Protobuf.WellKnownTypes.Field.Types;
+using System;
+using System.Windows.Forms;
 
 namespace Rodana.ZMK
 {
@@ -16,9 +27,62 @@ namespace Rodana.ZMK
     {
         Session sessionLink;
 
+        private static void OnDataLoaded(Session session)
+        {
+            var options = session.SessionOptions;
+            var allStages = session.MasterDataLinks.StagesMasterData.AllStages;
+            if (allStages.Count == 0)
+            {
+                if (!options.IsSilent)
+                {
+                    MessageBox.Show("АПС не может продолжать работу - таблица операций пуста.", "Пустая таблица операций", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
         public MainForm(Session sessionLink)
         {
             InitializeComponent();
+
+            ganttOLD.Dock = DockStyle.Fill;
+            ganttOLD.BorderStyle = BorderStyle.FixedSingle;
+            ganttOLD.BringToFront();
+            ganttOLD.BackColor = Color.FromArgb(210, 210, 210);
+            ganttOLD.AssignScrollBar(vScrollBarOLD);
+            ganttOLD.From = DateTime.Now;
+            ganttOLD.To = DateTime.Now.AddDays(1);
+            ganttOLD.AssignedTextBox = BarDescTextBox;
+
+            ganttNEW.Dock = DockStyle.Fill;
+            ganttNEW.BorderStyle = BorderStyle.FixedSingle;
+            ganttNEW.BringToFront();
+            ganttNEW.BackColor = Color.FromArgb(210, 210, 210);
+            ganttNEW.AssignScrollBar(vScrollBarNEW);
+            ganttNEW.From = DateTime.Now;
+            ganttNEW.To = DateTime.Now.AddDays(1);
+            ganttNEW.AssignedTextBox = BarDescTextBox;
+
+            dateTimePickerFrom.Value = DateTime.Now;
+            dateTimePickerTo.Value = DateTime.Now.AddDays(1);
+
+            ganttOLD.ChangedDatesDelegate = updateAlldateTimePicker;
+            ganttNEW.ChangedDatesDelegate = updateAlldateTimePicker;
+
+            AllForAllOrdersComboBox.ValueMember = "ValueIndex";
+            AllForAllOrdersComboBox.DisplayMember = "StringLabel";
+            AllForAllPartiasGuidComboBox.ValueMember = "ValueIndex";
+            AllForAllPartiasGuidComboBox.DisplayMember = "StringLabel";
+
+            TwoPartiasOrder1ComboBox.ValueMember = "ValueIndex";
+            TwoPartiasOrder1ComboBox.DisplayMember = "StringLabel";
+            TwoPartiasOrder2ComboBox.ValueMember = "ValueIndex";
+            TwoPartiasOrder2ComboBox.DisplayMember = "StringLabel";
+
+            TwoPartiasPartia1ComboBox.ValueMember = "ValueIndex";
+            TwoPartiasPartia1ComboBox.DisplayMember = "StringLabel";
+            TwoPartiasPartia2ComboBox.ValueMember = "ValueIndex";
+            TwoPartiasPartia2ComboBox.DisplayMember = "StringLabel";
+
             this.sessionLink = sessionLink;
             this.FormClosed += MainForm_FormClosed;
             this.ToggleThemeButton.Click += ToggleThemeButton_Click;
@@ -31,10 +95,11 @@ namespace Rodana.ZMK
             OpenGraphsButton.Click += OpenGraphsButton_Click;
             SaveSettingsButton.Click += SaveSettingsButton_Click;
 
+            sessionLink.OnSessionDataLoaded += OnDataLoaded;
+
             sessionLink.OnSessionDataLoaded += delegate
             {
-                StartAlgorithmPButton.Enabled = true;
-                PartiasProgressLabel.Text = "...";
+                PostDataProcessInGui();
             };
 
             sessionLink.HoppersHandler.OnStartLoadingEvent += HoppersStartLoad;
@@ -42,12 +107,41 @@ namespace Rodana.ZMK
             sessionLink.HoppersHandler.OnEndLoadingEvent += HoppersEndLoad;
 
             CustomTreeViewOnPPanel.SessionLink = sessionLink;
+            TwoPartiasPartia1View.SessionLink = sessionLink;
+            TwoPartiasPartia2View.SessionLink = sessionLink;
+            TwoPartiasPartiaResView.SessionLink = sessionLink;
+            CustomTreeViewOnPPanel.AssignedTextBox = AllForAllTextBox;
+            TwoPartiasPartia1View.AssignedTextBox = TwoPartiasTextBox;
+            TwoPartiasPartia2View.AssignedTextBox = TwoPartiasTextBox;
+            TwoPartiasPartiaResView.AssignedTextBox = TwoPartiasTextBox;
 
             CreateHoppers();
 
             HoppersBarsThread = Task.Run(HoppersBarsThreadMethod);
 
+            PartCheckBox.Checked = sessionLink.SessionOptions.LaunchPartia;
+            PartCheckBox.CheckedChanged += (sender, args) => { sessionLink.SessionOptions.LaunchPartia = ((CheckBox)sender).Checked; };
+            ZadelCheckBox.Checked = sessionLink.SessionOptions.LaunchZadel;
+            ZadelCheckBox.CheckedChanged += (sender, args) => { sessionLink.SessionOptions.LaunchZadel = ((CheckBox)sender).Checked; };
+
             PrepareSettings();
+        }
+
+        void updateAlldateTimePicker(DateTime From, DateTime To)
+        {
+            dateTimePickerFrom.SuspendLayout();
+            dateTimePickerFrom.Value = From;
+            dateTimePickerFrom.ResumeLayout();
+
+            dateTimePickerTo.SuspendLayout();
+            dateTimePickerTo.Value = To;
+            dateTimePickerTo.ResumeLayout();
+
+            /*ganttAnalysis.To =*/ ganttNEW.To = ganttOLD.To = To;
+            /*ganttAnalysis.From = */ganttNEW.From = ganttOLD.From = From;
+            //ganttAnalysis.DrawChart();
+            ganttNEW.DrawChart();
+            ganttOLD.DrawChart();
         }
 
         private void SaveSettingsButton_Click(object? sender, EventArgs e)
@@ -58,6 +152,8 @@ namespace Rodana.ZMK
 
         void PrepareSettings()
         {
+
+
             var settings = sessionLink.SettingsController.CurrentSettings;
             LogErrorsCheckBox.Checked = settings.LogErrors;
             LogErrorsCheckBox.CheckedChanged += (sender, args) => { settings.LogErrors = ((CheckBox)sender).Checked; };
@@ -229,6 +325,11 @@ namespace Rodana.ZMK
             foreach (var comp in Descendant<WinFormsCustomComponents.MaterialTabSelector>(this))
             {
                 comp.BackColor = color;
+                //button.ForeColor = Color.Black;
+            }
+            foreach (var comp in Descendant<RodanaCustomComponents.CustomTreeView>(this))
+            {
+                comp.CurrentTheme = color;
                 //button.ForeColor = Color.Black;
             }
         }
@@ -563,12 +664,229 @@ namespace Rodana.ZMK
 
             StartAlgorithmPButton.Invoke(delegate
             {
+                SavedPartiasUpdate();
                 StartAlgorithmPButton.Enabled = true;
                 if (algorithm.CurrentStage == PartiasAlgorithmStage.Complete)
                 {
                     PartiasProgressBar.Value = PartiasProgressBar.Maximum;
                 }
             });
+        }
+
+        private void HandSessionPostDataProcessButton_Click(object sender, EventArgs e)
+        {
+            sessionLink.PostDataProcess();
+            PostDataProcessInGui();
+        }
+
+        void PostDataProcessInGui()
+        {
+            StartAlgorithmPButton.Enabled = true;
+            TwoPartiasStartButton.Enabled = true;
+            PartiasProgressLabel.Text = "...";
+
+            var orders = sessionLink.MasterDataLinks.OrdersMasterData.AllOrders.Select(x => x.Key);
+
+            var groups = orders.GroupBy(x => x.Object);
+
+            var onlyFirsts = groups
+                .Select(x => x.Key)
+                .OrderBy(x => x.Label).ToArray();
+
+            AllForAllOrdersComboBox.Items.Clear();
+            TwoPartiasOrder1ComboBox.Items.Clear();
+            TwoPartiasOrder2ComboBox.Items.Clear();
+            foreach (var ord in onlyFirsts)
+            {
+                AllForAllOrdersComboBox.Items.Add(new CodedObjectInGui(ord));
+                TwoPartiasOrder1ComboBox.Items.Add(new CodedObjectInGui(ord));
+                TwoPartiasOrder2ComboBox.Items.Add(new CodedObjectInGui(ord));
+            }
+        }
+
+
+        private void SavedPartiasUpdate()
+        {
+            var partiasAlgorithm = sessionLink.AssignedPartiasAlgorithm;
+
+            if (partiasAlgorithm == null) return;
+
+            var partias = partiasAlgorithm.SavedPartias.Select(x => x.Key).ToList();
+
+
+            AllForAllPartiasGuidComboBox.Items.Clear();
+            TwoPartiasPartia1ComboBox.Items.Clear();
+            TwoPartiasPartia2ComboBox.Items.Clear();
+            Guid? neededOrder = AllForAllOrdersComboBox.SelectedIndex == -1 ? null : ((CodedObjectInGui)AllForAllOrdersComboBox.Items[AllForAllOrdersComboBox.SelectedIndex]).ValueIndex;
+            foreach (var partia in partias)
+            {
+                if (!neededOrder.HasValue || partiasAlgorithm.SavedPartias[partia].Any(x => sessionLink.MasterDataLinks.StagesMasterData.AllStages[x].OrderLink.OrderID.Object.Code == neededOrder.Value))
+                {
+                    AllForAllPartiasGuidComboBox.Items.Add(new CodedObjectInGui(partia, partia.ToString()));
+                }
+                TwoPartiasPartia1ComboBox.Items.Add(new CodedObjectInGui(partia, partia.ToString()));
+                TwoPartiasPartia2ComboBox.Items.Add(new CodedObjectInGui(partia, partia.ToString()));
+            }
+        }
+
+        private void AllForAllOrdersComboBox_SelectedIndexChanged(object sender, EventArgs e) => SavedPartiasUpdate();
+
+        private void AllForAllPartiasGuidComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (AllForAllPartiasGuidComboBox.SelectedIndex != -1)
+            {
+                var partiasAlgorithm = sessionLink.AssignedPartiasAlgorithm;
+
+                if (partiasAlgorithm == null) return;
+
+                var partia = ((CodedObjectInGui)AllForAllPartiasGuidComboBox.Items[AllForAllPartiasGuidComboBox.SelectedIndex]).ValueIndex;
+
+                var aps = new PartiaClass(PartiasGeneratorEngine.DeepCopy(partiasAlgorithm.SavedPartiasTrees[partia].List), DateTime.Now, false, 0, partia, partiasAlgorithm.SavedPartiasTrees[partia].GPsCount);
+                aps.LastK = partiasAlgorithm.SavedPartiasTrees[partia].K;
+                aps.Sort();
+
+                CustomTreeViewOnPPanel.SetThisTree(aps);
+            }
+        }
+
+        private void ClearAllSessionErrorsButton_Click(object sender, EventArgs e)
+        {
+            sessionLink.DataErrors.NewDataErrors.Clear();
+        }
+
+        private void TwoPartiasStartButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var partiasAlgorithm = sessionLink.AssignedPartiasAlgorithm;
+
+                if (partiasAlgorithm == null) sessionLink.TryCreateNewPartiasAlgorithmInstance(out partiasAlgorithm);
+
+                var col1 = Colors.NewRandomColor();
+                var col2 = Colors.NewRandomColor();
+
+                bool withUI = LogPartiasCheckBox.Checked;
+
+                var Orders = sessionLink.MasterDataLinks.OrdersMasterData.AllOrders;
+
+                Guid? GUID1 = null;
+                if (TwoPartiasPartia1ComboBox.SelectedIndex != -1)
+                {
+                    var guid1 = ((CodedObjectInGui)TwoPartiasPartia1ComboBox.Items[TwoPartiasPartia1ComboBox.SelectedIndex]);
+                    GUID1 = guid1.ValueIndex;
+                }
+                Guid? GUID2 = null;
+                if (TwoPartiasPartia2ComboBox.SelectedIndex != -1)
+                {
+                    var guid2 = ((CodedObjectInGui)TwoPartiasPartia2ComboBox.Items[TwoPartiasPartia2ComboBox.SelectedIndex]);
+                    GUID2 = guid2.ValueIndex;
+                }
+
+                OrderID? order1 = null;
+                if (TwoPartiasOrder1ComboBox.SelectedIndex != -1)
+                {
+                    var ord1 = ((CodedObjectInGui)TwoPartiasOrder1ComboBox.Items[TwoPartiasOrder1ComboBox.SelectedIndex]);
+                    order1 = new OrderID(new CodedObject<Guid, string>(ord1.ValueIndex, ord1.StringLabel), TwoPartiasGP1ComboBox.Text);
+                }
+                OrderID? order2 = null;
+                if (TwoPartiasOrder2ComboBox.SelectedIndex != -1)
+                {
+                    var ord2 = ((CodedObjectInGui)TwoPartiasOrder2ComboBox.Items[TwoPartiasOrder2ComboBox.SelectedIndex]);
+                    order2 = new OrderID(new CodedObject<Guid, string>(ord2.ValueIndex, ord2.StringLabel), TwoPartiasGP2ComboBox.Text);
+                }
+
+                List<List<PartiaModelling>> tree1;
+                if (GUID1.HasValue && partiasAlgorithm.SavedPartiasTrees.TryGetValue(GUID1.Value, out var ress)) tree1 = PartiasGeneratorEngine.DeepCopy(ress.List);
+                else
+                {
+                    var find = partiasAlgorithm.FindStagesToProcess(GUID1, order1);
+                    tree1 = PartiasGeneratorEngine.GenerateTree(find, col1, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
+                }
+
+                List<List<PartiaModelling>> tree2;
+                if (GUID2.HasValue && partiasAlgorithm.SavedPartiasTrees.TryGetValue(GUID2.Value, out var ress2)) tree2 = PartiasGeneratorEngine.DeepCopy(ress2.List);
+                else
+                {
+                    var find = partiasAlgorithm.FindStagesToProcess(GUID2, order2);
+                    tree2 = PartiasGeneratorEngine.GenerateTree(find, col2, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
+                }
+
+                var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
+                partiaClass1.Sort();
+                TwoPartiasPartia1View.SetThisTree(partiaClass1);
+                var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
+                partiaClass2.Sort();
+                TwoPartiasPartia2View.SetThisTree(partiaClass2);
+
+                PartiasConnectorEngineResult res = new PartiasConnectorEngineResult(0, 0, 0, 0);
+                var areDiff = tree1[0][0].Opers[0].OrderLink.OrderID != tree2[0][0].Opers[0].OrderLink.OrderID;
+                var res0 = -1;
+                if (areDiff)
+                {
+                    res0 = PartiasConnectorEngine.Connect(partiaClass1, partiaClass2, withUI, false).Total;
+                }
+
+                if (InGPCheckBox.Checked)
+                {
+                    res = PartiasConnectorEngine.Connect(partiaClass1, partiaClass1, withUI, true);
+                    if (areDiff && res0 == 0 && partiaClass2.OpersHere[0].Count > 0)
+                    {
+                        res = PartiasConnectorEngine.Connect(partiaClass2, partiaClass2, withUI, true);
+                    }
+                }
+
+                if (areDiff)
+                {
+                    TwoPartiasPartiaResView.SetThisTree(partiaClass1, partiaClass2);
+                }
+                else
+                {
+                    TwoPartiasPartiaResView.SetThisTree(partiaClass1);
+                }
+
+                if (partiaClass1 != null)
+                {
+                    partiasAlgorithm.SavedPartias.Add(partiaClass1.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass1.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());
+                    partiasAlgorithm.SavedPartiasTrees.Add(partiaClass1.MyGuid, (partiaClass1.OpersHere, partiaClass1.GPsCountNow, partiaClass1.LastK));
+                    if (areDiff)
+                    {
+                        partiasAlgorithm.SavedPartias.Add(partiaClass2.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass2.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());
+                        partiasAlgorithm.SavedPartiasTrees.Add(partiaClass2.MyGuid, (partiaClass2.OpersHere, partiaClass2.GPsCountNow, partiaClass2.LastK));
+                    }
+                    SavedPartiasUpdate();
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Что-то пошло не так!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+           
+        }
+
+        private void TwoPartiasOrder1ComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (TwoPartiasOrder1ComboBox.SelectedIndex != -1)
+            {
+                var order = ((CodedObjectInGui)TwoPartiasOrder1ComboBox.Items[TwoPartiasOrder1ComboBox.SelectedIndex]);
+                var coded = new CodedObject<Guid, string>(order.ValueIndex, order.StringLabel);
+                var allGPs = sessionLink.MasterDataLinks.OrdersMasterData.AllOrders.Where(x => x.Key.Object == coded).Select(x => x.Key.Version).OrderBy(x => x).ToList();
+
+                TwoPartiasGP1ComboBox.Items.Clear();
+                foreach (var gp in allGPs) TwoPartiasGP1ComboBox.Items.Add(gp);
+            }
+        }
+
+        private void TwoPartiasOrder2ComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (TwoPartiasOrder2ComboBox.SelectedIndex != -1)
+            {
+                var order = ((CodedObjectInGui)TwoPartiasOrder2ComboBox.Items[TwoPartiasOrder2ComboBox.SelectedIndex]);
+                var coded = new CodedObject<Guid, string>(order.ValueIndex, order.StringLabel);
+                var allGPs = sessionLink.MasterDataLinks.OrdersMasterData.AllOrders.Where(x => x.Key.Object == coded).Select(x => x.Key.Version).OrderBy(x => x).ToList();
+
+                TwoPartiasGP2ComboBox.Items.Clear();
+                foreach (var gp in allGPs) TwoPartiasGP2ComboBox.Items.Add(gp);
+            }
         }
     }
 }

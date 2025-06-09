@@ -12,45 +12,23 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace Rodana.Core.Partias.PartiasConnectorEngine
 {
-    internal class PartiasConnectorEngine
+    public class PartiasConnectorEngine
     {
 
-        internal static List<List<PartiaModelling>> DeepCopy(List<List<PartiaModelling>> original)
-        {
-            var copied = new List<List<PartiaModelling>>();
-            foreach (var list0 in original)
-            {
-                var listhere = new List<PartiaModelling>();
-                foreach (var list1 in list0)
-                {
-                    var listhere2 = new PartiaModelling(new List<Stages.Stage>(), list1.Tara, list1.Max, list1.Format, list1.RC, list1.ZadelCode,
-                        list1.ZadelsGUIDs != null ? new(list1.ZadelsGUIDs) : null);
-                    //listhere2.RCIsChecked = list1.RCIsChecked;
-                    foreach (var list2 in list1.Opers)
-                    {
-                        listhere2.Opers.Add(list2);
-                    }
-                    listhere.Add(listhere2);
-                }
-                copied.Add(listhere);
-            }
-            return copied;
-        }
-
-        internal static Dictionary<int, PartiaModelling> SeeSdvigsAsDic(List<List<PartiaModelling>> opers)
+        public static Dictionary<int, PartiaModelling> SeeSdvigsAsDic(List<List<PartiaModelling>> opers)
         {
             var list = opers.SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.Index, y))));
             return list.ToDictionary(x => x.Index, x => x.y);
         }
 
-        internal static List<PartiaModelling> SeeSdvigsAsList(List<List<PartiaModelling>> opers)
+        public static List<PartiaModelling> SeeSdvigsAsList(List<List<PartiaModelling>> opers)
         {
             var list = opers.SelectMany(x => x).ToList();
             return list;
         }
 
 
-        internal static void ClearLongestOpers(List<Stages.Stage> finalOps, Dictionary<int, PartiaModelling> IDtoSdvig)
+        public static void ClearLongestOpers(List<Stages.Stage> finalOps, Dictionary<int, PartiaModelling> IDtoSdvig)
         {
             // Очищаем от лишнего
             for (int i = 0; i < finalOps.Count; i++)
@@ -71,7 +49,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
         }
 
 
-        internal static void updateDataBcsSuccess(PartiaModelling here1, Uco gotTara, Uco gotRc, double gotMax, DimensionUnit use_format, PartiasConnectorEngineResult resultToFill)
+        public static void updateDataBcsSuccess(PartiaModelling here1, Uco gotTara, Uco gotRc, double gotMax, DimensionUnit use_format, PartiasConnectorEngineResult resultToFill)
         {
             here1.Tara = gotTara;
             here1.RC = gotRc;
@@ -689,7 +667,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             }
         }
 
-        internal static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself)
+        public static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself)
         {
             if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
             {

@@ -202,15 +202,21 @@ namespace Rodana.Core.Session
             if (SettingsController.CurrentSettings.CreateStopMe) StopMe = new Stopper("stopme", 0, x => EndSession(x));
         }
 
+        public void PostDataProcess()
+        {
+            MasterDataLinks.StagesMasterData.FixVPZDependencies();
+            MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
+            MasterDataLinks.NaladLengthsMasterData.SetNeededParamName(SettingsController.SpecialSettings.NaladLengthsCriteriaName);
+
+            // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
+            foreach (var op in MasterDataLinks.StagesMasterData.AllStages) op.Value.BakeAllIndexDiapazons(null);
+        }
+
         async public Task LoadDataAndProcessAsync()
         {
             await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(SettingsController.CurrentSettings.HoppersPaths));
 
-            MasterDataLinks.StagesMasterData.FixVPZDependencies();
-            MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
-
-            // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
-            foreach (var op in MasterDataLinks.StagesMasterData.AllStages) op.Value.BakeAllIndexDiapazons(null);
+            PostDataProcess();
 
             OnSessionDataLoaded?.Invoke(this);
 
