@@ -28,6 +28,7 @@ using Rodana.Core.Planning.PlanningClasses;
 using System.Data;
 using UniversalPack.Extensions;
 using Rodana.Core.Planning.PlanningAlgorithm;
+using Rodana.Core.NaladLengths;
 
 namespace Rodana.Core.Partias.PartiasAlgorithm
 {

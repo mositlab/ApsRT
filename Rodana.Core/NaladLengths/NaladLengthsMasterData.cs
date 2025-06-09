@@ -12,6 +12,9 @@ using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.Dimens
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Rodana.Core.Stages;
 using Rodana.Core.Planning.PlanningClasses;
+using Microsoft.Extensions.Options;
+using Google.Protobuf.WellKnownTypes;
+using System.Xml.Linq;
 
 namespace Rodana.Core.NaladLengths
 {
@@ -34,6 +37,72 @@ namespace Rodana.Core.NaladLengths
                     >
                 >
             > AllNaladLengths = new();
+
+        public void ClearAll()
+        {
+            AllNaladLengths.Clear();
+        }
+
+        public void AddNaladLengthData(NaladLengthDataLoaderModel model)
+        {
+            // 1. РабочийЦентр
+            var rc = model.Center;
+            if (!AllNaladLengths.ContainsKey(rc))
+            {
+                AllNaladLengths.Add(rc, new());
+            }
+
+            // 2. ВидОперации
+            var oper = model.OperationType;
+
+            if (oper.IsEmpty)
+            {
+                return;
+            }
+
+            if (!AllNaladLengths[rc].ContainsKey(oper))
+            {
+                AllNaladLengths[rc].Add(oper, new());
+            }
+
+            // 3. Номенклатура
+            var nomen = model.Nomenklature;
+            if (!AllNaladLengths[rc][oper].ContainsKey(nomen))
+            {
+                AllNaladLengths[rc][oper].Add(nomen, new());
+            }
+
+            var length0 = (float)model.Length;
+            var edIzm = model.DimensionUnitClassificator;
+            NaladLengthValue length = new NaladLengthValue(length0, edIzm);
+
+            var from = (float)model.ParameterFrom;
+            var to = (float)model.ParameterTo;
+            Vector2 sech = new Vector2(from, to);
+
+            if (model.IsFirst)
+            {
+                add(RequiredNaladCondition.FirstLaunch);
+            }
+
+            if (model.IsNext)
+            {
+                add(RequiredNaladCondition.AnyLaunch);
+            }
+
+            void add(RequiredNaladCondition cond)
+            {
+                if (!AllNaladLengths[rc][oper][nomen].ContainsKey(cond))
+                {
+                    AllNaladLengths[rc][oper][nomen].Add(cond, new());
+                }
+
+                if (!AllNaladLengths[rc][oper][nomen][cond].ContainsKey(sech))
+                {
+                    AllNaladLengths[rc][oper][nomen][cond].Add(sech, length);
+                }
+            }
+        }
 
 
         int criteriaIndex = -1;
