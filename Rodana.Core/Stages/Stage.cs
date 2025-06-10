@@ -20,6 +20,7 @@ using Rodana.Core.Orders;
 using Rodana.Core.NaladLengths;
 using System.Drawing;
 using System.Collections.Frozen;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Rodana.Core.Stages
 {
@@ -324,46 +325,41 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// Длительность этого этапа вне зависимости от РЦ
         /// </summary>
-        public int? Duration { get; set; }
+        int? StaticDuration;
+
+        public void SetStaticDuration(int seconds) => StaticDuration = seconds;
 
         /// <summary>
         /// Длительность конкретно этого этапа в зависимости от РЦ
         /// </summary>
-        Dictionary<Uco, int> SpecifiedDuration;
+        FrozenDictionary<Uco, int> CachedDurations;
+        public int LongestDuration { get; private set; }
 
-
-        int? CashedDuration;
-        Dictionary<Uco, int> CashedDurations;
-
-        [Obsolete("В старой версии АПС длительность этапов не зависела от РЦ, данный метод позволяет получить длительность из таблицы операций, но такой подход зачастую не подходит для планирования, используйте длительности, зависящие от РЦ.")]
-        public int GetDuration() => Duration.HasValue ? Duration.Value : SessionLink.SettingsController.CurrentSettings.OriginalDurationTime;
-
-        public int GetDuration(Uco RC)
+        public void PrepareDurations()
         {
-            if (Duration.HasValue) return Duration.Value;
+            var list = PossibleCenters ?? new List<Uco>() { OriginalCenter };
+            CachedDurations = list.ToFrozenDictionary(x => x, x => getDurationDynamic(x));
+            LongestDuration = CachedDurations.Max(x => x.Value);
+        }
 
-            if (CashedDuration.HasValue) return CashedDuration.Value;
-
-
-            if (SpecifiedDuration != null && SpecifiedDuration.TryGetValue(RC, out var specifiedDuration)) return specifiedDuration;
-
-            if (CashedDurations != null && CashedDurations.TryGetValue(RC, out specifiedDuration)) return specifiedDuration;
-
+        int getDurationDynamic(Uco RC)
+        {
+            if (StaticDuration.HasValue) return StaticDuration.Value;
+            var masterData = SessionLink.MasterDataLinks.StagesTypicalDurationsMasterData;
             var currSets = SessionLink.SettingsController.CurrentSettings;
 
             // Если нет информации там, ищу в базах данных
-            if (SessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.AnyDurations && SessionLink.MasterDataLinks.StagesTypicalDurationsMasterData.TryGetTypicalDuration(RC, OperationVid, out var time))
+            if (masterData.AnyDurations && masterData.TryGetTypicalDuration(RC, this, out var time))
             {
-                if (currSets.CacheStageDurations)
-                {
-                    if (CashedDurations == null) CashedDurations = new();
-                    CashedDurations.TryAdd(RC, time);
-                }
                 return time;
             }
 
-            if (currSets.CacheStageDurations) CashedDuration = currSets.OriginalDurationTime;
             return currSets.OriginalDurationTime;
+        }
+
+        public int GetDuration(Uco RC)
+        {
+            return CachedDurations.TryGetValue(RC, out var seconds) ? seconds : SessionLink.SettingsController.CurrentSettings.OriginalDurationTime;
         }
         #endregion
 
@@ -407,27 +403,20 @@ namespace Rodana.Core.Stages
                 >
             > NaladLengthsCache;
 
-
         Dictionary<Uco,
             Dictionary<
             RequiredNaladCondition, NaladLengthValue
                 >
             > NaladLengthsCacheLocal = new();
 
-        internal void ClearNaladLengths()
-        {
-            NaladLengthsCache = null;
-            NaladLengthsCacheLocal.Clear();
-        }
-
-
         internal void CacheNaladLengths()
         {
+            NaladLengthsCacheLocal.Clear();
             if (PossibleCenters != null)
             {
                 foreach (var rc in PossibleCenters) CacheNaladLengthsRc(rc);
             }
-            CacheNaladLengthsRc(Center);
+            CacheNaladLengthsRc(OriginalCenter);
 
             NaladLengthsCache = NaladLengthsCacheLocal.ToFrozenDictionary(x => x.Key, x => x.Value.ToFrozenDictionary(y => y.Key, y => y.Value));
 
@@ -449,7 +438,7 @@ namespace Rodana.Core.Stages
         void CacheNaladLengthsRc(Uco rc)
         {
             NaladLengthsCacheLocal.TryAdd(rc, new());
-            foreach (var whichCondition in Enum.GetValues(typeof(RequiredNaladCondition)))
+            foreach (var whichCondition in System.Enum.GetValues(typeof(RequiredNaladCondition)))
             {
                 var cond = (RequiredNaladCondition)whichCondition;
                 NaladLengthsCacheLocal[rc].TryAdd(cond,

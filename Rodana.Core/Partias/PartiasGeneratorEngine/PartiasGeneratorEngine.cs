@@ -135,7 +135,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
                 if (prevsSdvigs.Count > 1)
                 {
                     // Больше 1. Изучаем все РЦ, куда можно поставить.
-                    var possibleRCs = sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].Center };
+                    var possibleRCs = sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].OriginalCenter };
                     foreach (var rc in possibleRCs) // пройдемся по каждому РЦ и найдём вариант, при котором все prevsSdvigs смогут найти себе пару.
                     {
                         List<(bool Can, Uco Tara, PartiaModelling sdvig)> analysis = prevsSdvigs.Select(sdvigToCheck =>
@@ -198,7 +198,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
                 //OriginallyTaraWasThis.Add(x.ID, (tarao, 0));
 
 
-                var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.Center, 0,
+                var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, 0,
                     new());
                 addInfoLocal(opers, tarao, 0, sdvig, false, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
@@ -248,7 +248,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
                     {
                         //prevs.Add(x.ID, taraHere); // Новая строчка. Из-за нее следует пройтись по всему алгоритму.
                         //OriginallyTaraWasThis.Add(x.ID, (taraHere, 0));
-                        var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.Center, 0,
+                        var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.OriginalCenter, 0,
                             new());
                         addInfoLocal(opers, taraHere, 0, sdvig, true, engineData);
                         //OpersToSdvigs.Add(x.ID, sdvig);
@@ -260,7 +260,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             // Если ничего не нашёл, то делаем пустоту
             var tarae = Uco.EmptyObject;
             //OriginallyTaraWasThis.Add(x.ID, (tarae, 0));
-            var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.Center, 0,
+            var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, 0,
                 new());
             addInfoLocal(opers, tarae, 0, sdvig2, false, engineData);
             //OpersToSdvigs.Add(x.ID, sdvig2);

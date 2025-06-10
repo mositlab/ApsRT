@@ -209,7 +209,12 @@ namespace Rodana.Core.Session
             MasterDataLinks.NaladLengthsMasterData.SetNeededParamName(SettingsController.SpecialSettings.NaladLengthsCriteriaName);
 
             // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
-            foreach (var op in MasterDataLinks.StagesMasterData.AllStages) op.Value.BakeAllIndexDiapazons(null);
+            foreach (var op in MasterDataLinks.StagesMasterData.AllStages)
+            {
+                op.Value.CacheNaladLengths(); // Наладочные длины
+                op.Value.PrepareDurations(); // Длительности
+                op.Value.BakeAllIndexDiapazons(null); // Диапазоны для переналадок
+            }
         }
 
         async public Task LoadDataAndProcessAsync()

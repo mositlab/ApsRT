@@ -150,7 +150,7 @@ namespace Rodana.Core.Stages.MasterData
             }
             else
             {
-                stage.ParallelPlanningIDs.Add(stage.Center, parrMasterData.GetParPlanID(stage.Center, stage.OperationVid, stage));
+                stage.ParallelPlanningIDs.Add(stage.OriginalCenter, parrMasterData.GetParPlanID(stage.OriginalCenter, stage.OperationVid, stage));
             }
             #endregion
         }
@@ -256,8 +256,9 @@ namespace Rodana.Core.Stages.MasterData
             }
             else
             {
-                stage.Duration = (int)(stage.DurationNorm * stage.Count); // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
-                if (stage.Duration == 0) stage.Duration = 1; // Поставим 1 если внезапно
+                var Duration = (int)(stage.DurationNorm * stage.Count); // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
+                if (Duration == 0) Duration = 1; // Поставим 1 если внезапно
+                stage.SetStaticDuration(Duration);
             }
 
             if (stage.PovivsMerged)

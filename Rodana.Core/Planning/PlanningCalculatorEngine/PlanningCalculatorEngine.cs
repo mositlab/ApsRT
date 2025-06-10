@@ -140,7 +140,8 @@ namespace Rodana.Core.Planning.PlanningCalculatorEngine
                 {
                     var index = ChoosenModellings[i];
                     var list = currentBlock.Lists[index];
-                    if (list.AllTime > LongestMod) LongestMod = list.AllTime;
+                    var durationHere = list.AllTime[ChoosenCenter];
+                    if (durationHere > LongestMod) LongestMod = durationHere;
                 }
 
                 /*

@@ -21,8 +21,9 @@ namespace Rodana.Core.Stages.MasterData
 
         public bool AnyDurations => TypicalDurations != null;
 
-        public bool TryGetTypicalDuration(Uco RC, Uco OperationType, out int duration)
+        public bool TryGetTypicalDuration(Uco RC, Stage stage, out int duration)
         {
+            Uco OperationType = stage.OperationVid;
             if (TypicalDurations.TryGetValue(RC, out var opers))
             {
                 if (opers.TryGetValue(OperationType, out var dur))

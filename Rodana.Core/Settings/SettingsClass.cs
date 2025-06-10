@@ -19,7 +19,6 @@ namespace Rodana.Core.Settings
         {
             OriginalDurationTime = 1,
             SaveOnSessionEnd = true,
-            CacheStageDurations = true,
             MaxDaysBetweenPartias = 30,
             OrderCoeffs = new OrderFunctionData[3]
             {
@@ -52,9 +51,6 @@ namespace Rodana.Core.Settings
 
         [JsonProperty]
         public int OriginalDurationTime { get; set; }
-
-        [JsonProperty]
-        public bool CacheStageDurations { get; set; }
 
         [JsonProperty]
         public bool CreateKillMe { get; set; }

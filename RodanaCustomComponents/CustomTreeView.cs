@@ -64,7 +64,7 @@ namespace RodanaCustomComponents
 
             foreach (var partiaClass1 in partiaClasses)
             {
-                PartiaModelling maxSdvig = partiaClass1.OpersHere.SelectMany(x => x).MaxBy(y => y.Opers[0].UsesVspomTara || y.ZadelCode != 0 || y.Opers[0].IsVspom || y.Opers[0].IsLast ? int.MinValue : y.Opers[0].GetDuration());
+                PartiaModelling maxSdvig = partiaClass1.OpersHere.SelectMany(x => x).MaxBy(y => y.Opers[0].UsesVspomTara || y.ZadelCode != 0 || y.Opers[0].IsVspom || y.Opers[0].IsLast ? int.MinValue : y.Opers[0].LongestDuration);
 
                     var offset = partiaClass1.OpersHere.Count / 2;
                 for (var i = 0; i < partiaClass1.OpersHere.Count; i++)
@@ -127,7 +127,7 @@ namespace RodanaCustomComponents
                                 $"\r\nКоличество мест: {x.PlacesCount}" +
                                 //$"\r\nКгКм: {x.KgKm}" +
                                 $"\r\nВид раб. центра: {(x.RCRoute.IsEmpty ? "нету" : x.RCRoute.ToString())}" +
-                                $"\r\nСписок РЦ: {(x.PossibleCenters == null ? x.Center : string.Join(", ", x.PossibleCenters.Select(x => x.ToString())))}" +
+                                $"\r\nСписок РЦ: {(x.PossibleCenters == null ? x.OriginalCenter : string.Join(", ", x.PossibleCenters.Select(x => x.ToString())))}" +
                                 $"\r\nНеОбъединять: {x.IsLast}" +
                                 $"\r\nНеМенятьТару: {x.NoChangeTara}" +
                                 $"\r\nВспом. тару: {x.UsesVspomTara}" +

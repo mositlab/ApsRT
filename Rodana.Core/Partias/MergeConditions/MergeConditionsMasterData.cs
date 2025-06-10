@@ -249,8 +249,8 @@ namespace Rodana.Core.Partias.MergeConditions
             // проверка группы заменяемости
             if (condition.CheckWorkCenterRoute || forObshEtaps)
             {
-                var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.Center };
-                var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.Center };
+                var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
+                var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
 
                 if (!op1Centers.Intersect(op2Centers).Any())
                 {

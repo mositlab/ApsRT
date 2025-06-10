@@ -134,7 +134,6 @@ namespace Rodana.ZMK
             ToggleThemeButton = new Button();
             HideConsoleCheckBox = new MaterialCheckBox();
             SaveOnExitCheckBox = new MaterialCheckBox();
-            CacheDurationsCheckBox = new MaterialCheckBox();
             AutoLoadCheckBox = new MaterialCheckBox();
             BackupStagesDurationLabel = new Label();
             CreateKillMeCheckBox = new MaterialCheckBox();
@@ -1326,7 +1325,6 @@ namespace Rodana.ZMK
             splitContainer2.Panel2.Controls.Add(ToggleThemeButton);
             splitContainer2.Panel2.Controls.Add(HideConsoleCheckBox);
             splitContainer2.Panel2.Controls.Add(SaveOnExitCheckBox);
-            splitContainer2.Panel2.Controls.Add(CacheDurationsCheckBox);
             splitContainer2.Panel2.Controls.Add(AutoLoadCheckBox);
             splitContainer2.Panel2.Controls.Add(BackupStagesDurationLabel);
             splitContainer2.Panel2.Controls.Add(CreateKillMeCheckBox);
@@ -1357,9 +1355,9 @@ namespace Rodana.ZMK
             ClearAllSessionErrorsButton.FlatStyle = FlatStyle.Flat;
             ClearAllSessionErrorsButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             ClearAllSessionErrorsButton.ForeColor = Color.White;
-            ClearAllSessionErrorsButton.Location = new Point(8, 177);
+            ClearAllSessionErrorsButton.Location = new Point(916, 56);
             ClearAllSessionErrorsButton.Name = "ClearAllSessionErrorsButton";
-            ClearAllSessionErrorsButton.Size = new Size(353, 51);
+            ClearAllSessionErrorsButton.Size = new Size(252, 51);
             ClearAllSessionErrorsButton.TabIndex = 38;
             ClearAllSessionErrorsButton.Text = "Удалить все ошибки сессии";
             ClearAllSessionErrorsButton.UseCompatibleTextRendering = true;
@@ -1375,9 +1373,9 @@ namespace Rodana.ZMK
             HandSessionPostDataProcessButton.FlatStyle = FlatStyle.Flat;
             HandSessionPostDataProcessButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             HandSessionPostDataProcessButton.ForeColor = Color.White;
-            HandSessionPostDataProcessButton.Location = new Point(8, 120);
+            HandSessionPostDataProcessButton.Location = new Point(916, 3);
             HandSessionPostDataProcessButton.Name = "HandSessionPostDataProcessButton";
-            HandSessionPostDataProcessButton.Size = new Size(353, 51);
+            HandSessionPostDataProcessButton.Size = new Size(252, 51);
             HandSessionPostDataProcessButton.TabIndex = 37;
             HandSessionPostDataProcessButton.Text = "Ручной пост-процессинг данных сессии";
             HandSessionPostDataProcessButton.UseCompatibleTextRendering = true;
@@ -1423,7 +1421,7 @@ namespace Rodana.ZMK
             materialRadioButton2.Depth = 0;
             materialRadioButton2.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
             materialRadioButton2.ForeColor = Color.CornflowerBlue;
-            materialRadioButton2.Location = new Point(944, 207);
+            materialRadioButton2.Location = new Point(8, 150);
             materialRadioButton2.Margin = new Padding(0);
             materialRadioButton2.MouseLocation = new Point(-1, -1);
             materialRadioButton2.Name = "materialRadioButton2";
@@ -1457,7 +1455,7 @@ namespace Rodana.ZMK
             RadioButton1.Depth = 0;
             RadioButton1.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
             RadioButton1.ForeColor = Color.CornflowerBlue;
-            RadioButton1.Location = new Point(944, 173);
+            RadioButton1.Location = new Point(8, 116);
             RadioButton1.Margin = new Padding(0);
             RadioButton1.MouseLocation = new Point(-1, -1);
             RadioButton1.Name = "RadioButton1";
@@ -1518,23 +1516,6 @@ namespace Rodana.ZMK
             SaveOnExitCheckBox.TabIndex = 23;
             SaveOnExitCheckBox.Text = "Сохранять настройки при выходе";
             SaveOnExitCheckBox.UseVisualStyleBackColor = false;
-            // 
-            // CacheDurationsCheckBox
-            // 
-            CacheDurationsCheckBox.AutoSize = true;
-            CacheDurationsCheckBox.BackColor = Color.Black;
-            CacheDurationsCheckBox.Depth = 0;
-            CacheDurationsCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            CacheDurationsCheckBox.ForeColor = Color.CornflowerBlue;
-            CacheDurationsCheckBox.Location = new Point(684, 93);
-            CacheDurationsCheckBox.Margin = new Padding(0);
-            CacheDurationsCheckBox.MouseLocation = new Point(-1, -1);
-            CacheDurationsCheckBox.Name = "CacheDurationsCheckBox";
-            CacheDurationsCheckBox.Ripple = true;
-            CacheDurationsCheckBox.Size = new Size(244, 30);
-            CacheDurationsCheckBox.TabIndex = 32;
-            CacheDurationsCheckBox.Text = "Кэшировать длительности";
-            CacheDurationsCheckBox.UseVisualStyleBackColor = false;
             // 
             // AutoLoadCheckBox
             // 
@@ -1759,7 +1740,6 @@ namespace Rodana.ZMK
         private NumericUpDown PartiasMaxDaysNumericUpDown;
         private Label BackupStagesDurationLabel;
         private NumericUpDown BackupStagesDurationNumericUpDown;
-        private MaterialCheckBox CacheDurationsCheckBox;
         private MaterialCheckBox HideConsoleCheckBox;
         private Button SaveSettingsButton;
         private FolderBrowserDialog folderBrowserDialog1;

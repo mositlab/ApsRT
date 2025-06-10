@@ -2,6 +2,7 @@
 using Rodana.Core.Partias.TaraSearchEngine;
 using Rodana.Core.Stages;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,9 +14,9 @@ namespace Rodana.Core.Planning.PlanningClasses
     public class PlanningModelling : IAbleForTaraCalcInterface
     {
         public List<Stage> OpersList;
-        public TimeSpan AllTime;
+        public FrozenDictionary<Uco, TimeSpan> AllTime;
         //public TimeSpan MaxTime;
-        public double TimeK;
+        public FrozenDictionary<Uco, double> TimeK;
         public double Count; // Тут эта фигня нужна ДЛЯ: а) расчёта тары в Вишке (пригодится для макс намоток) и б) в будущем пригодится, тк 04.06.2024: количество для модов, пришедших из меса, уже задано, как сумма всех исходных этапов.
         public PlanningModellingType ModType;
 
@@ -57,69 +58,83 @@ namespace Rodana.Core.Planning.PlanningClasses
             PrevMods = prevs;
             NextMods = nexts;
 
-            void classic()
+
+            foreach (var oper in list) // Создаём массив тех РЦ, которые однозначно есть на всех этапах
             {
-                // Если это после формирования партий, то суммируем (по старинке). Если РЦ параллельный, то вместо суммы нужен отжиг.
-                var timeSum = list.Sum(x => x.GetDuration());
-                var timeMax = parrRC ? list.Max(x => x.GetDuration()) : timeSum;
-                AllTime = TimeSpan.FromSeconds(timeMax);
-                TimeK = (double)timeMax / timeSum;
-                Count = list.Sum(x => x.Count);
+                var rcs = oper.PossibleCenters ?? new() { oper.OriginalCenter };
+                if (PossibleRCsHere == null)
+                    PossibleRCsHere = rcs;
+                else
+                    PossibleRCsHere = PossibleRCsHere.Intersect(rcs).ToList();
             }
 
-            void justSum()
-            {
-                // Пришедший из МЕС-а мод, согласно Алёне (04.06) содержит количество и время, которое уже является суммарным. Поэтому мы берём инфу из первой же операции, и работаем с ней
-                AllTime = TimeSpan.FromSeconds(FirstOper.GetDuration());
-                TimeK = 1.0 / list.Count; // делим коэффициент на количество, так как нужно будет потом юзать при отрисовке ганта
-                //Count = FirstOper.Count; // совсем недавно была лишь первая но 01.08.24 поправили
-                Count = list.Sum(x => x.Count);
-            }
+            Count = list.Sum(x => x.Count);
 
             switch (type)
             {
                 // Исходный этап
                 case PlanningModellingType.Elementar: // Это исходный этапчик
                     {
-                        AllTime = TimeSpan.FromSeconds(FirstOper.GetDuration());
-                        TimeK = 1;
+                        AllTime = PossibleRCsHere.ToFrozenDictionary(x => x, x => TimeSpan.FromSeconds(FirstOper.GetDuration(x)));
+                        TimeK = AllTime.ToFrozenDictionary(x => x.Key, x => 1.0);
                         Count = FirstOper.Count;
                         break;
                     }
 
+                default:
+                    {
+                        // Если это после формирования партий, то суммируем (по старинке). Если РЦ параллельный, то вместо суммы нужен отжиг.
+                        var timeSum = PossibleRCsHere.ToFrozenDictionary(x => x, x => list.Sum(y => y.GetDuration(x)));
+                        var timeMax = parrRC ? PossibleRCsHere.ToFrozenDictionary(x => x, x => list.Max(y => y.GetDuration(x))) : timeSum;
+                        AllTime = timeMax.ToFrozenDictionary(x => x.Key, x => TimeSpan.FromSeconds(x.Value));
+                        TimeK = timeMax.ToFrozenDictionary(x => x.Key, x => (double)timeMax[x.Key] / timeSum[x.Key]);
+                        break;
+                    }
+
                 // Обработка модов, сформированных АПС-кой
-                case PlanningModellingType.AfterPartias:
-                    {
-                        classic();
-                        break;
-                    }
-                case PlanningModellingType.EasyFlagAfterPartias: // что общий этап, что моделирования - после партий суммируются по старинке
-                    {
-                        classic();
-                        break;
-                    }
+                //case PlanningModellingType.AfterPartias:
+                //    {
+                //        classic();
+                //        break;
+                //    }
+                //case PlanningModellingType.EasyFlagAfterPartias: // что общий этап, что моделирования - после партий суммируются по старинке
+                //    {
+                //        classic();
+                //        break;
+                //    }
 
-                // Обработка моделирований из меса
-                case PlanningModellingType.FromMES:
-                    {
-                        justSum();
-                        break;
-                    }
-                case PlanningModellingType.EasyFlagFromMES:
-                    {
-                        justSum();
-                        break;
-                    }
+                //// Обработка моделирований из меса
+                //case PlanningModellingType.FromMES:
+                //    {
+                //        justSum();
+                //        break;
+                //    }
+                //case PlanningModellingType.EasyFlagFromMES:
+                //    {
+                //        justSum();
+                //        break;
+                //    }
             }
 
-            foreach (var oper in list) // Создаём массив тех РЦ, которые однозначно есть на всех этапах
-            {
-                var rcs = oper.PossibleCenters ?? new() { oper.Center };
-                if (PossibleRCsHere == null)
-                    PossibleRCsHere = rcs;
-                else
-                    PossibleRCsHere = PossibleRCsHere.Intersect(rcs).ToList();
-            }
+
+
+            //void classic()
+            //{
+            //    // Если это после формирования партий, то суммируем (по старинке). Если РЦ параллельный, то вместо суммы нужен отжиг.
+            //    var timeSum = list.Sum(x => x.GetDuration());
+            //    var timeMax = parrRC ? list.Max(x => x.GetDuration()) : timeSum;
+            //    AllTime = TimeSpan.FromSeconds(timeMax);
+            //    TimeK = (double)timeMax / timeSum;
+            //}
+
+            //void justSum()
+            //{
+            //    // Пришедший из МЕС-а мод, согласно Алёне (04.06) содержит количество и время, которое уже является суммарным. Поэтому мы берём инфу из первой же операции, и работаем с ней
+            //    AllTime = TimeSpan.FromSeconds(FirstOper.GetDuration());
+            //    TimeK = 1.0 / list.Count; // делим коэффициент на количество, так как нужно будет потом юзать при отрисовке ганта
+            //    //Count = FirstOper.Count; // совсем недавно была лишь первая но 01.08.24 поправили
+            //}
         }
+
     }
 }

@@ -174,9 +174,6 @@ namespace Rodana.ZMK
             CreateStopMe.Checked = settings.CreateStopMe;
             CreateStopMe.CheckedChanged += (sender, args) => { settings.CreateStopMe = ((CheckBox)sender).Checked; };
 
-            CacheDurationsCheckBox.Checked = settings.CacheStageDurations;
-            CacheDurationsCheckBox.CheckedChanged += (sender, args) => { settings.CacheStageDurations = ((CheckBox)sender).Checked; };
-
             PartiasMaxDaysNumericUpDown.Value = (decimal)settings.MaxDaysBetweenPartias;
             PartiasMaxDaysNumericUpDown.ValueChanged += (sender, args) => { settings.MaxDaysBetweenPartias = (double)((NumericUpDown)sender).Value; };
 

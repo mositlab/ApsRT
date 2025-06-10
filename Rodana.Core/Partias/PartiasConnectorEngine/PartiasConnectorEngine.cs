@@ -345,7 +345,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                     here01.Opers.AddRange(here2[i].Opers);
                     var sum = false;
                     Uco gotTara = new(Guid.Empty, "");
-                    Uco gotRc = here1.Opers[0].PossibleCenters?[0] ?? here1.Opers[0].Center;//new(Guid.Empty, "");
+                    Uco gotRc = here1.Opers[0].PossibleCenters?[0] ?? here1.Opers[0].OriginalCenter;//new(Guid.Empty, "");
                     var gotMax = here1.Max;
                     var use_format = DimensionUnit.Unknown;
 
@@ -385,9 +385,9 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                     else
                     {
                         // Установки ещё не было. Смотрим полностью
-                        var list1 = here1.Opers[0].OnOneRC ? (group1 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group1, out var list1F) ? list1F : new()) : (here1.Opers[0].PossibleCenters ?? new List<Uco>() { here1.Opers[0].Center });
+                        var list1 = here1.Opers[0].OnOneRC ? (group1 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group1, out var list1F) ? list1F : new()) : (here1.Opers[0].PossibleCenters ?? new List<Uco>() { here1.Opers[0].OriginalCenter });
 
-                        var list2 = here2[i].Opers[0].OnOneRC ? (group2 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group2, out var list2F) ? list2F : new()) : (here2[i].Opers[0].PossibleCenters ?? new List<Uco>() { here2[i].Opers[0].Center });
+                        var list2 = here2[i].Opers[0].OnOneRC ? (group2 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group2, out var list2F) ? list2F : new()) : (here2[i].Opers[0].PossibleCenters ?? new List<Uco>() { here2[i].Opers[0].OriginalCenter });
 
                         if (here1.Opers[0].OnOneRC)
                         {
@@ -631,7 +631,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                                                 .Where(x => resultToFill.IDToTara.ContainsKey(x)) // выбираем тех, про кого есть инфа в словаре о предках
                                                 .Select(x => resultToFill.IDToTara[x]) // выбираем тару из них
                                                 .Distinct();
-                                            var possibleCenters = fop.PossibleCenters ?? new List<Uco>() { fop.Center }; // Формируем список рц, взяв его из первой попавшейся операции в этом сдвиге / моделировании
+                                            var possibleCenters = fop.PossibleCenters ?? new List<Uco>() { fop.OriginalCenter }; // Формируем список рц, взяв его из первой попавшейся операции в этом сдвиге / моделировании
 
                                             //AddPartiaError(fop.Index, PartiaErrorLogType.NotFoundRCAfterCheck, (new Uco(Guid.Empty, ""), possibleCenters, possibleTara.ToList()));
                                         }
@@ -693,7 +693,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
 
             if (SessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias)
             {
-                var bestSubdivision = listOnOneRc1.Union(listOnOneRc2).SelectMany(x => x.Opers[0].PossibleCenters ?? new List<Uco>() { x.Opers[0].Center }) // Сначала найдём ВСЕ центры здесь, у обоих партий
+                var bestSubdivision = listOnOneRc1.Union(listOnOneRc2).SelectMany(x => x.Opers[0].PossibleCenters ?? new List<Uco>() { x.Opers[0].OriginalCenter }) // Сначала найдём ВСЕ центры здесь, у обоих партий
                     .GroupBy(x => CentersData[x].Subdivision) // группируем по цеху
                     .MaxBy(x => x.Count()) // найдем максимальный
                     .Key; // берем ключ, потому что это цех
@@ -714,7 +714,7 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
                     finalResult.ForOneRCGroups.Add(mod.Opers[0].Index, groupN); // Заполняем данными
                 }
 
-                List<Uco> allowedRCs = group.First().Opers[0].PossibleCenters ?? new List<Uco>() { group.First().Opers[0].Center };
+                List<Uco> allowedRCs = group.First().Opers[0].PossibleCenters ?? new List<Uco>() { group.First().Opers[0].OriginalCenter };
                 allowedRCs = allowedRCs.Where(rc =>
                     group.All(
                         mod => TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false)

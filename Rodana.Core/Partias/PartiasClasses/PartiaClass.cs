@@ -50,7 +50,7 @@ namespace Rodana.Core.Partias.PartiasClasses
                 {
                     var y = OpersHere[i][j];
                     if (y.Opers[0].UsesVspomTara || y.ZadelCode != 0 || y.Opers[0].IsVspom || y.Opers[0].IsLast) continue;
-                    var maxT = y.Opers.Max(x => x.GetDuration());
+                    var maxT = y.Opers.Max(x => x.LongestDuration);
                     if (maxT > time)
                     {
                         best = y.Opers;

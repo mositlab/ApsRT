@@ -36,7 +36,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                 .Where(x => IDToTara.TryGetValue(x, out var tar) && !tar.IsEmpty) // выбираем тех, про кого есть инфа в словаре о предках
                 .Select(x => (isVspom: ALL[x].UsesVspomTara, tara: IDToTara[x])) // выбираем тару из них
                 .Distinct();
-            possibleCenters ??= CurrentOpers.FirstOperLink.PossibleCenters ?? new List<Uco>() { CurrentOpers.FirstOperLink.Center }; // Если этого списка не пришло, Формируем список рц, взяв его из первой попавшейся операции в этом сдвиге / моделировании
+            possibleCenters ??= CurrentOpers.FirstOperLink.PossibleCenters ?? new List<Uco>() { CurrentOpers.FirstOperLink.OriginalCenter }; // Если этого списка не пришло, Формируем список рц, взяв его из первой попавшейся операции в этом сдвиге / моделировании
 
             // РЦ должен содержать ВСЕ тары в отдающих.
 
@@ -109,7 +109,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
             searchData.dataErrorMore.RCsOnPrevEtap = allOpers.AllOpers.SelectMany(x => x.Prevs).SelectMany(Index =>
             {
                 var op = ALL[Index];
-                return op.PossibleCenters ?? new List<Uco> { op.Center };
+                return op.PossibleCenters ?? new List<Uco> { op.OriginalCenter };
             }).Distinct().ToList();
 
             searchData.dataErrorMore.Count = searchData.sum;
@@ -119,7 +119,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
             if (allOpers.FirstOperLink.NoCheckNamotka)
             {
                 searchData.errorMessage?.Append($"{allOpers.FirstOperLink}: не проверяет намотку. Сразу ухожу.\r\n");
-                var rcs = allOpers.FirstOperLink.PossibleCenters ?? new List<Uco>() { allOpers.FirstOperLink.Center };
+                var rcs = allOpers.FirstOperLink.PossibleCenters ?? new List<Uco>() { allOpers.FirstOperLink.OriginalCenter };
                 searchData.PossibleCentersAndTaras = rcs.Select(x => (RC: x, Tara: new Uco(Guid.Empty, ""))).ToArray();
                 return true;
             }
@@ -157,15 +157,15 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                 //bool VspomTara = first.Prevs.Count > 0 && ALL[first.Prevs[0]].UsesVspomTara;
                 if (first.PossibleCenters == null)
                 {
-                    rcs.Add(first.Center);
+                    rcs.Add(first.OriginalCenter);
                     res = Array.Empty<(Uco RC, Uco Tara)>();
-                    var res00 = TaraDataSet.FromAndToTara.ContainsKey(first.Center)
-                        && (!first.IsVspom || CentersData[first.Center].AbleToVspom);
+                    var res00 = TaraDataSet.FromAndToTara.ContainsKey(first.OriginalCenter)
+                        && (!first.IsVspom || CentersData[first.OriginalCenter].AbleToVspom);
                     if (res00)
                     {
-                        if (TaraHereMustBeThis == null || TaraHereMustBeThis.Count == 0 || TaraHereMustBeThis.All(x => TaraDataSet.GetNeededTaras(first.Center, first.OperationVid, x.WasVspom)/*.FromAndToTara[first.Center]*/.otd.TryGetValue(x.WasVspom, out var has) && has.Contains(x.Tara)))
+                        if (TaraHereMustBeThis == null || TaraHereMustBeThis.Count == 0 || TaraHereMustBeThis.All(x => TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, x.WasVspom)/*.FromAndToTara[first.Center]*/.otd.TryGetValue(x.WasVspom, out var has) && has.Contains(x.Tara)))
                         {
-                            res = (TaraDataSet.GetNeededTaras(first.Center, first.OperationVid, null).priem.TryGetValue(false, out var has) ? has.Select(x => (RC: first.Center, Tara: x)) : new (Uco, Uco)[] { }).ToArray();
+                            res = (TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, null).priem.TryGetValue(false, out var has) ? has.Select(x => (RC: first.OriginalCenter, Tara: x)) : new (Uco, Uco)[] { }).ToArray();
                         }
                         else
                         {
@@ -395,7 +395,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                     searchData.errorMessage?.Append($"Доступные РЦ следующего этапа ({first}):\r\n");
                     if (first.op.PossibleCenters == null)
                     {
-                        searchData.errorMessage?.Append(first.op.Center + "\r\n");
+                        searchData.errorMessage?.Append(first.op.OriginalCenter + "\r\n");
                         // Сначала проверим момент "НеМенятьТару"
                         if (first.op.NoChangeTara)
                         {
@@ -407,14 +407,14 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                         }
 
                         // А вот теперь все остальное
-                        if (TaraDataSet.FromAndToTara.ContainsKey(first.op.Center) //&& (!first.IsVspom || CentersData[first.Center].NotChangeTara)
-                            && (options.NextRCsMustBeThese == null || /*!first.isFirst ||*/ (first.op.NoChangeTara && options.NextRCsExcludeNoChangeTara) || options.NextRCsMustBeThese.Contains(first.op.Center)) // Если есть ограничение по РЦ детей, то нужно чекнуть, входит ли он сюда (это для G используется)
+                        if (TaraDataSet.FromAndToTara.ContainsKey(first.op.OriginalCenter) //&& (!first.IsVspom || CentersData[first.Center].NotChangeTara)
+                            && (options.NextRCsMustBeThese == null || /*!first.isFirst ||*/ (first.op.NoChangeTara && options.NextRCsExcludeNoChangeTara) || options.NextRCsMustBeThese.Contains(first.op.OriginalCenter)) // Если есть ограничение по РЦ детей, то нужно чекнуть, входит ли он сюда (это для G используется)
                                                                                                                                                                                                                    //&& first.op.Prevs.All(x => !PrevsInfo.TryGetValue(x, out var prevTara) || )
                             )
                         {
 
                             // чекнем конечную тару
-                            var hasFinalTara = first.op.EndTara.IsEmpty || TaraDataSet.GetNeededTaras(first.op.Center, first.op.OperationVid, null)/*.FromAndToTara[x]*/.priem.TryGetValue(false, out var taras) && taras.Contains(first.op.EndTara); // у него должна спец приемная тара в случае чего
+                            var hasFinalTara = first.op.EndTara.IsEmpty || TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, null)/*.FromAndToTara[x]*/.priem.TryGetValue(false, out var taras) && taras.Contains(first.op.EndTara); // у него должна спец приемная тара в случае чего
 
                             if (hasFinalTara)
                             {
@@ -422,15 +422,15 @@ namespace Rodana.Core.Partias.TaraSearchEngine
 
                                 HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
-                                var res01 = localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(first.op.Center, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara));
+                                var res01 = localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara));
 
                                 if (res01)
                                 {
-                                    foundOtdTara = TaraDataSet.GetNeededTaras(first.op.Center, first.op.OperationVid, FirVsp ? null : willVspom)/*.FromAndToTara[first.op.Center]*/.otd
+                                    foundOtdTara = TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, FirVsp ? null : willVspom)/*.FromAndToTara[first.op.Center]*/.otd
                                         .TryGetValue(FirVsp ? false : willVspom, out var has) // вот как у этапа выше вспом. тара назначена - вот здесь она себя и проявляет
                                                                                               //&&
                                                                                               //first.op.Prevs.All(x => PrevsInfo == null || !PrevsInfo.TryGetValue(x, out var t) || has.Contains(t)) // Нужно ещё чекнуть, чтоб все тары у предыдущих этапов были тут (полная проверка)
-                                        ? has.Select(x => (RC: first.op.Center, Tara: x)).ToList()
+                                        ? has.Select(x => (RC: first.op.OriginalCenter, Tara: x)).ToList()
                                         : new (Uco, Uco)[] { }.ToList();
                                 }
                                 else
@@ -446,7 +446,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                                 var dem = searchData.dataErrorMore;
                                 dem.DataToInsert = first.op.EndTara.Label;
 
-                                var rcsToIns = first.op.PossibleCenters ?? new() { first.op.Center };
+                                var rcsToIns = first.op.PossibleCenters ?? new() { first.op.OriginalCenter };
                                 dem.RCsOnNextEtap = (
                                     dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                     dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
@@ -520,7 +520,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                             var dem = searchData.dataErrorMore;
                             dem.DataToInsert = first.op.EndTara.Label;
 
-                            var rcsToIns = first.op.PossibleCenters ?? new() { first.op.Center };
+                            var rcsToIns = first.op.PossibleCenters ?? new() { first.op.OriginalCenter };
                             dem.RCsOnNextEtap = (
                                 dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                 dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
@@ -553,7 +553,7 @@ namespace Rodana.Core.Partias.TaraSearchEngine
                         searchData.dataErrorMore.TarasOnNextEtap.Union(foundOtdTara.Select(x => x.Tara)).Distinct().ToList()
                         );
 
-                    var rcs = first.op.PossibleCenters ?? new() { first.op.Center };
+                    var rcs = first.op.PossibleCenters ?? new() { first.op.OriginalCenter };
                     searchData.dataErrorMore.RCsOnNextEtap = (
                         searchData.dataErrorMore.RCsOnNextEtap == null ? rcs.ToList() :
                         searchData.dataErrorMore.RCsOnNextEtap.Union(rcs).Distinct().ToList()

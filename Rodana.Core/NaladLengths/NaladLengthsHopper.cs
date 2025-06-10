@@ -19,7 +19,6 @@ namespace Rodana.Core.NaladLengths
     public class NaladLengthsHopper : IHopperInterface
     {
 
-        StagesMasterData StagesMasterData;
         NaladLengthsMasterData NaladLengthsMasterData;
 
         public void ActionFile(string filename)
@@ -29,15 +28,13 @@ namespace Rodana.Core.NaladLengths
 
         public void AfterLoading()
         {
-            foreach (var op in StagesMasterData.AllStages) op.Value.CacheNaladLengths();
+
         }
 
         public void BeforeAllLoading(Session.Session session, string[] filenames)
         {
-            StagesMasterData = session.MasterDataLinks.StagesMasterData;
             NaladLengthsMasterData = session.MasterDataLinks.NaladLengthsMasterData;
             NaladLengthsMasterData.ClearAll();
-            foreach (var op in StagesMasterData.AllStages) op.Value.ClearNaladLengths();
         }
 
         public void BeforeLoading(string filename, DataLoaderOptions options)

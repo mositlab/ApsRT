@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,20 +14,17 @@ namespace Rodana.Core.Planning.PlanningClasses
         public List<PlanningModelling> Lists;
         public Uco ActualRC;
 
-        TimeSpan _maxTime;
+        FrozenDictionary<Uco, TimeSpan> _maxTime;
         int lastCount = 0;
 
-        public TimeSpan MaxTime
+        public TimeSpan MaxTime(Uco center)
         {
-            get
+            if (lastCount != Lists.Count)
             {
-                if (lastCount != Lists.Count)
-                {
-                    _maxTime = Lists.Max(x => x.AllTime);
-                    lastCount = Lists.Count;
-                }
-                return _maxTime;
+                _maxTime = Lists[0].PossibleRCsHere.ToFrozenDictionary(center => center, center => Lists.Max(x => x.AllTime[center]));
+                lastCount = Lists.Count;
             }
+            return _maxTime[center];
             //Lists.Count == 1 ? Lists [0].AllTime : ; // Макс. время для вывода надо, вместо разных, в случае, если тут параллелизм
         }
 
