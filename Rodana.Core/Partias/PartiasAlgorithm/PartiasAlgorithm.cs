@@ -78,6 +78,8 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
         {
             try
             {
+                var dateOfStart = DateTime.Now;
+
                 // 1. Готовим сессию
                 CurrentStage = PartiasAlgorithmStage.PreparingSession;
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
@@ -127,6 +129,10 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 CurrentStage = PartiasAlgorithmStage.Output;
                 CurrentStageChanged?.Invoke(CurrentStage, fin.Length);
                 WriteToSession(fin, easyFlags);
+
+                var dateOfEnd = DateTime.Now;
+
+                Console.WriteLine($"partias algorithm time estimated: {dateOfEnd - dateOfStart}");
 
                 // Вызов функции глобального вывода
                 try
