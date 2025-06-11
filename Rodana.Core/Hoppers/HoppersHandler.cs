@@ -159,6 +159,15 @@ namespace Rodana.Core.Hoppers
                     }
                 }
             }
+
+            session.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                if (paths[i].StartsWith("SQL:")) continue;
+                paths[i] = Path.IsPathRooted(paths[i]) ? paths[i] : (sessionPath + paths[i]);
+            }
+
             hopperInterface.BeforeAllLoading(session, paths);
 
             for (var z = 0; z < paths.Length; z++)

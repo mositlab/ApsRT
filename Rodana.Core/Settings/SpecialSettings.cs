@@ -19,5 +19,7 @@ namespace Rodana.Core.Settings
 
         public string LivensteinCodesCriteriaName { get; set; }
 
+        public bool CalculateSubdivisionsTransfers { get; set; }
+
     }
 }

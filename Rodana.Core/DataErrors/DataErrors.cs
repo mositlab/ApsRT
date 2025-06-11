@@ -46,11 +46,14 @@ namespace Rodana.Core.DataErrors
             bool HasErrors = false;
             //var sw = new StreamWriter(PartiasErrorsFile, false, Encoding.UTF8);
             //var swBig = new StreamWriter(PartiasErrorsBigFile, false, Encoding.UTF8);
-            var swNew = new StreamWriter(DatasErrorsFile, false, Encoding.UTF8);
+
+            session.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+
+            var swNew = new StreamWriter(sessionPath + DatasErrorsFile, false, Encoding.UTF8);
             StreamWriter swNewBig = null;
             try
             {
-                swNewBig = new StreamWriter(DatasErrorsBigFile, false, Encoding.UTF8);
+                swNewBig = new StreamWriter(sessionPath + DatasErrorsBigFile, false, Encoding.UTF8);
             }
             catch
             {

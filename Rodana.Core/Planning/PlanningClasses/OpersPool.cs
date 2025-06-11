@@ -16,6 +16,8 @@ namespace Rodana.Core.Planning.PlanningClasses
     public class OpersPool
     {
 
+        public Session.Session SessionLink { get; }
+
         // Собственно блоки
         public List<OpersBlock> Blocks;
 
@@ -43,7 +45,10 @@ namespace Rodana.Core.Planning.PlanningClasses
 
         public FrozenDictionary<int, int> OperIDsToModIDs;
 
-        public OpersPool(List<OpersBlock> blocks,
+
+        public FrozenDictionary<Guid, LastSubdivisionsPoolClass> LastSubdivisionsData;
+
+        public OpersPool(Session.Session sessionLink, List<OpersBlock> blocks,
            FrozenDictionary<OrderID, OrdersPoolClass> ordersData,
            FrozenDictionary<int, DatesPoolClass> datesData,
            FrozenDictionary<int, GottenNaladLengthPoolClass> naladLengthsData,
@@ -51,6 +56,7 @@ namespace Rodana.Core.Planning.PlanningClasses
            FrozenDictionary<Guid, LengthsNeedToRecalcPoolClass> naladLengthsRecreate,
            FrozenDictionary<int, PlanningModelling> iDsToMods,
            FrozenDictionary<int, int> operIDsToModIDs,
+           FrozenDictionary<Guid, LastSubdivisionsPoolClass> lastSubdivisionsData,
            Dictionary<Uco, CenterInPlanData> centersData)
         {
             Blocks = blocks;
@@ -62,10 +68,14 @@ namespace Rodana.Core.Planning.PlanningClasses
             OperIDsToModIDs = operIDsToModIDs;
             CentersData = centersData;
             NaladLengthsNeedToRecalc = naladLengthsRecreate;
+            LastSubdivisionsData = lastSubdivisionsData;
+            SessionLink = sessionLink;
         }
 
-        public OpersPool(List<OpersBlock> blocks, OpersPoolConstructor constructor, DateTime start)
+        public OpersPool(Session.Session sessionLink, List<OpersBlock> blocks, OpersPoolConstructor constructor, DateTime start)
         {
+            SessionLink = sessionLink;
+
             Blocks = blocks;
 
             // Формирует здесь словарь для простоев
@@ -77,6 +87,11 @@ namespace Rodana.Core.Planning.PlanningClasses
             IDsToMods = constructor.alreadyCreatedMods.ToFrozenDictionary(x => x.ModID, x => x);
 
             OperIDsToModIDs = constructor.opsModsAlreadyCreated.ToFrozenDictionary(x => x.Oper.Index, x => x.ModID);
+
+            if (sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
+            {
+                LastSubdivisionsData = constructor.partiasCodes.ToFrozenDictionary(x => x, x => new LastSubdivisionsPoolClass(Uco.EmptyObject, -1));
+            }
 
             NaladLengthsDataRecreate(constructor);
 

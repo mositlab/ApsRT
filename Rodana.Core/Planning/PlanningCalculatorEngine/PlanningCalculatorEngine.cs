@@ -210,6 +210,28 @@ namespace Rodana.Core.Planning.PlanningCalculatorEngine
                     ProcessOrder(pool, operationB, lastDateFinally, currentFlag, resultToFill);
                 }
 
+                // Попробуем подсчитать переход из цеха в цех
+                if (resultToFill.Session.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
+                {
+                    var ordPf = operationB.GetOrderOrPartiaCode();
+                    var ordPfClass = pool.LastSubdivisionsData[ordPf];
+                    if (ordPfClass.Flag != currentFlag)
+                    {
+                        // Просто задаем РЦ
+                        ordPfClass.Flag = currentFlag;
+                        ordPfClass.LastSubdivision = centerGlobalData.Subdivision;
+                    }
+                    else
+                    {
+                        // Проверяем, совпало ли подразделение
+                        if (ordPfClass.LastSubdivision != centerGlobalData.Subdivision)
+                        {
+                            ordPfClass.LastSubdivision = centerGlobalData.Subdivision;
+                            resultToFill.SubdivisionsTransfer++;
+                        }
+                    }
+                }
+
                 // Задаём минимальные даты начала детям
                 SetMinDatesToChilds(pool, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
 

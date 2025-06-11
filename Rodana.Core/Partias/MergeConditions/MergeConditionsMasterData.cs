@@ -174,6 +174,13 @@ namespace Rodana.Core.Partias.MergeConditions
                 return false;
             }
 
+            if (op1.RejectedPositionsGuid != op2.RejectedPositionsGuid)
+            {
+                reason = $"у {op1.Index} и {op2.Index} не равны Идентификаторы Забракованных Позиций";
+                smallreason = "не равны Идентификаторы Забракованных Позиций";
+                return false;
+            }
+
             return true;
         }
 

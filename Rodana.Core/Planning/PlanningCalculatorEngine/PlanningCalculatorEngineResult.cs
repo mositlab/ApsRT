@@ -38,6 +38,12 @@ namespace Rodana.Core.Planning.PlanningCalculatorEngine
 
         public int TaraErrorsCount { get; set; }
 
+
+        /// <summary>
+        /// Сколько было переходов из цеха в цех
+        /// </summary>
+        public int SubdivisionsTransfer { get; set; }
+
         public int CatchedNaladLengthsErrorsCount { get => (ModellingsWithBrokenFreeNaladLengths?.Count ?? 0) + (ModellingsWithBrokenFixedNaladLengths?.Count ?? 0); }
 
         /// <summary>

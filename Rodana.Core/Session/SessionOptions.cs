@@ -18,6 +18,35 @@ namespace Rodana.Core.Session
             LaunchZadel = false,
             Jsort = false;
 
+        public string LaunchPath { get; set; }
+
+        const string SessionsPath = "sessions";
+
+        public bool GetPreparedLaunchPath(out string path)
+        {
+            if (string.IsNullOrEmpty(LaunchPath))
+            {
+                path = "";
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    if (!Directory.Exists(SessionsPath)) Directory.CreateDirectory(SessionsPath);
+                    var mergedPath = $"{SessionsPath}/{LaunchPath}/";
+                    if (!Directory.Exists(mergedPath)) Directory.CreateDirectory(mergedPath);
+                    path = mergedPath;
+                    return true;
+                }
+                catch
+                {
+                    path = "";
+                    return false;
+                }
+            }
+        }
+
         public bool OnlyPart => (LaunchPartia && !LaunchPlan) /*|| This.PARTCheckBox.Checked*/;
 
         //internal static bool IsZadel => LaunchZadel/* || This.ZadelCheckBox.Checked*/;

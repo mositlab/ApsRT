@@ -409,57 +409,5 @@ namespace Rodana.Core.Partias.Leftovers
 
         }
 
-        internal void OutputLeftovers(List<PartiaClass> partias)
-        {
-            var sw = new StreamWriter("leftoversUsed.csv", false, Encoding.UTF8);
-            var swBig = new StreamWriter("leftoversUsedBig.csv", false, Encoding.UTF8);
-
-            sw.WriteLine($"GUID;Материал_GUID;Количество;ОригМатериал_GUID;ОригКоличество;ДатаПланирования");
-            swBig.WriteLine($"GUID;Материал_GUID;Материал;Количество;ОригМатериал_GUID;ОригМатериал;ОригКоличество;ДатаПланирования");
-
-            var sdvigs = partias.SelectMany(x => PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(x.OpersHere));
-
-            foreach (var sdvig in sdvigs)
-            {
-                foreach (var oper in sdvig.Opers)
-                {
-                    for (int i = 0; i < oper.StageMaterialsInfo.UsedLeftovers.Count; i++)
-                    {
-                        var element = oper.StageMaterialsInfo.UsedLeftovers[i];
-                        var origMat = oper.StageMaterialsInfo.UsedMaterials[i];
-                        if (element == null) continue;
-
-                        sw.WriteLine($"" +
-                            $"{oper.GUID};" +
-
-                            $"{element.Nomenklature.Code};" +
-                            $"{element.CalculatedCount};" +
-
-                            $"{origMat.Nomenklature.Code};" +
-                            $"{origMat.Count};" +
-
-                            $"{DateTime.Now}");
-
-                        swBig.WriteLine($"" +
-                            $"{oper.GUID};" +
-
-                            $"{element.Nomenklature.Code};" +
-                            $"{element.Nomenklature.Label};" +
-                            $"{element.CalculatedCount};" +
-
-                            $"{origMat.Nomenklature.Code};" +
-                            $"{origMat.Nomenklature.Label};" +
-                            $"{origMat.Count};" +
-
-                            $"{DateTime.Now}");
-                    }
-                }
-            }
-
-
-            sw.Close();
-            swBig.Close();
-        }
-
     }
 }

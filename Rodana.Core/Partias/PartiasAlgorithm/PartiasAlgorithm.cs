@@ -94,7 +94,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 CurrentStage = PartiasAlgorithmStage.PreparingLeftovers;
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
                 SessionLink.MasterDataLinks.LeftoversMasterData.PreparePartiasForLeftovers(PartiiList);
-                SessionLink.MasterDataLinks.LeftoversMasterData.OutputLeftovers(PartiiList); // И сразу же их и выводим
+                //SessionLink.MasterDataLinks.LeftoversMasterData.OutputLeftovers(PartiiList); // И сразу же их и выводим
 
                 // 5. Готовим таблицу дедлайнов
                 CurrentStage = PartiasAlgorithmStage.FiilingDeadlineTables;
@@ -193,6 +193,29 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
         Dictionary<OrderID, PartiaClass> orderToPartia;
 
         public Dictionary<Guid, bool> PartiaHasErrors { get; private set; } = new(); // пока оставил словарь, вдруг что-то ещё понадобится
+
+        public bool ThisOperHasPartiaErrors(Stage op)
+        {
+            if (op.CustomPartiaGuid.HasValue)
+            {
+                if (PartiaHasErrors.TryGetValue(op.CustomPartiaGuid.Value, out var err))
+                {
+                    return err;
+                }
+            }
+            else
+            {
+                var Pf =op.OrderLink.PartiaPF;
+                if (Pf.HasValue)
+                {
+                    if (PartiaHasErrors.TryGetValue(Pf.Value, out var err))
+                    {
+                        return err;
+                    }
+                }
+            }
+            return false;
+        }
 
         public Dictionary<Guid, (List<List<PartiaModelling>> List, int GPsCount, float K)> SavedPartiasTrees = new();
         public Dictionary<Guid, HashSet<int>> SavedPartias { get; private set; } = new();

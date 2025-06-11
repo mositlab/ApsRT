@@ -20,7 +20,7 @@ namespace Rodana.Core.Session
 
         internal void OnApplicationExit(int exitCode)
         {
-            StreamWriter exitLogSW = new StreamWriter(session.SessionOutputEngine.ExitLogFile, false, Encoding.UTF8);
+            StreamWriter exitLogSW = new StreamWriter(logPath + session.SessionOutputEngine.ExitLogFile, false, Encoding.UTF8);
             exitLogSW.WriteLine($"exit code: {exitCode}");
 
             try
@@ -63,8 +63,17 @@ namespace Rodana.Core.Session
             exitLogSW.Close();
         }
 
+        string logPath;
+
         internal void LogThread()
         {
+            session.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+            if (string.IsNullOrEmpty(sessionPath))
+            {
+                sessionPath = "logs/";
+                if (!Directory.Exists("logs/")) Directory.CreateDirectory("logs/");
+            }
+            logPath = sessionPath;
             //StreamWriter fs = new StreamWriter(Loader.LogFile, true);
             while (true)
             {
@@ -79,7 +88,7 @@ namespace Rodana.Core.Session
                 {
                     if (LogQueue.TryDequeue(out var str))
                     {
-                        File.AppendAllText(session.SessionOutputEngine.LogFile, str);//fs.WriteLine(str);
+                        File.AppendAllText(logPath + session.SessionOutputEngine.LogFile, str);//fs.WriteLine(str);
                     }
                 }
 
@@ -87,7 +96,7 @@ namespace Rodana.Core.Session
                 {
                     if (PartiasLogQueue.TryDequeue(out var str))
                     {
-                        File.AppendAllText(session.SessionOutputEngine.PartiiLogFile, str);//fs.WriteLine(str);
+                        File.AppendAllText(logPath + session.SessionOutputEngine.PartiiLogFile, str);//fs.WriteLine(str);
                     }
                 }
             }

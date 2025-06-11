@@ -55,7 +55,7 @@ namespace Rodana.Core.Stages
 
         public override string ToString()
         {
-            return $"Оп. {(EasyFlag.HasValue ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{GUID}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
+            return $"Оп. {(GetEasyFlag() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{GUID}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
         }
 
         /// <summary>
@@ -184,6 +184,11 @@ namespace Rodana.Core.Stages
         #endregion
 
         #region Важные Гуиды и их получение
+
+        [DataRecordColumn("ИдентификаторЗабракованныхПозиций", defaultIfFail: true)]
+        public Guid? RejectedPositionsGuid { get; set; }
+
+
         public Guid GetOrderOrPartiaCode()
         {
             return GetPartiaCode() ?? OrderLink.OrderID.Object.Code;
@@ -214,6 +219,8 @@ namespace Rodana.Core.Stages
         /// </summary>
         //public bool EasyFlagIsFromMes;
 
+        public Guid GetEasyFlag() => EasyFlag ?? EasyFlagOriginal ?? Guid.Empty;
+
         /// <summary>
         /// Это флаг для вывода - общий этап, для упрощения.
         /// </summary>
@@ -222,7 +229,7 @@ namespace Rodana.Core.Stages
         /// <summary>
         /// А это бекап флага на случай стирания всего и вся
         /// </summary>
-        [DataRecordColumn("ИдентификаторОбщегоЭтапа")]
+        [DataRecordColumn("ИдентификаторОбщегоЭтапа", defaultIfFail: true)]
         public Guid? EasyFlagOriginal { get; set; }
 
         #endregion

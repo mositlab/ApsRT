@@ -1,6 +1,7 @@
 ﻿using Google.Protobuf.Compiler;
 using Rodana.Core.DataErrors;
 using Rodana.Core.Hoppers;
+using Rodana.Core.Partias.Leftovers;
 using Rodana.Core.Partias.PartiasAlgorithm;
 using Rodana.Core.Planning.PlanningAlgorithm;
 using Rodana.Core.Settings;
@@ -144,11 +145,11 @@ namespace Rodana.Core.Session
                     opts.IsSilent = true;
                     continue;
                 }
-                //if (arg.StartsWith("guid:"))
-                //{
-                //    guid = Guid.Parse(arg.Substring(5));
-                //    continue;
-                //}
+                if (arg.StartsWith("guid:"))
+                {
+                    opts.LaunchPath = arg.Substring(5);
+                    continue;
+                }
                 //if (arg.StartsWith("key:"))
                 //{
                 //    key = arg.Substring(4);
@@ -204,9 +205,17 @@ namespace Rodana.Core.Session
 
         public void PostDataProcess()
         {
+            if (DataErrors.TryOutputDataErrors())
+            {
+                if (SessionOptions.IsSilent)
+                    EndSession(601);
+            }
+
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
             MasterDataLinks.NaladLengthsMasterData.SetNeededParamName(SettingsController.SpecialSettings.NaladLengthsCriteriaName);
+
+            MasterDataLinks.LeftoversMasterData.PostProcess();
 
             // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
             foreach (var op in MasterDataLinks.StagesMasterData.AllStages)
