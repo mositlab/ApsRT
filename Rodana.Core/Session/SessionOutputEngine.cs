@@ -137,7 +137,7 @@ namespace Rodana.Core.Session
             lock (algorithm.LockerObject)
             {
 
-                var localCopy = new OpersPool(blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
+                var localCopy = new OpersPool(SessionLink, blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
 
                 var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);
 

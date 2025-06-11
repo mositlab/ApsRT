@@ -12,8 +12,9 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
         Preparing = 1,
         Prepared = 2,
         RunningV = 3,
-        RunningG = 4,
-        Complete = 5,
-        Failed = 6
+        FailedV = 4,
+        RunningG = 5,
+        Complete = 6,
+        Failed = 7
     }
 }

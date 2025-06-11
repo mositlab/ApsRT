@@ -15,6 +15,10 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using System.Collections;
 
 namespace Rodana.Core.Planning.PlanningAlgorithm
 {
@@ -36,11 +40,11 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public PlanningCalculatorEngineResult OriginalValue { get; private set; }
 
-        public PlanningAlgorithmStage CurrentStage { get; private set; }
+        public PlanningAlgorithmStage CurrentStage { get; internal set; }
 
-        public event Action<PlanningAlgorithmStage, int> CurrentStageChanged;
+        public Action<PlanningAlgorithmStage, int> CurrentStageChanged;
 
-        public event Action<PlanningAlgorithmStage, int> AlgorithmCallback;
+        public Action<PlanningAlgorithmStage, int> AlgorithmCallback;
 
         public Task<bool> Process { get; private set; }
 
@@ -78,16 +82,76 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public bool AlgorithmProcess(bool WithLog)
         {
-            PrepareEverything();
-
-            if (SessionLink.SessionOptions.Jsort)
+            try
             {
-                SessionLink.SessionOutputEngine.Output(true);
-                SessionLink.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: jsort done.\r\n");
-                if (SessionLink.SessionOptions.IsSilent) SessionLink.EndSession(0);//Close();
-            }
+                if (CurrentStage != PlanningAlgorithmStage.Prepared)
+                {
+                    PrepareEverything();
+                }
 
-            return true;
+                if (SessionLink.SessionOptions.Jsort)
+                {
+                    SessionLink.SessionOutputEngine.Output(true);
+                    SessionLink.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: jsort done.\r\n");
+                    CurrentStage = PlanningAlgorithmStage.Complete;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                    if (SessionLink.SessionOptions.IsSilent) SessionLink.EndSession(0);//Close();
+                    return true;
+                }
+
+                CurrentStage = PlanningAlgorithmStage.RunningV;
+                CurrentStageChanged?.Invoke(CurrentStage, BestBlocksList.Count);
+                var V = new AlgorithmV();
+                V.Start(workflow, Ks);
+
+                CurrentStage = PlanningAlgorithmStage.RunningG;
+                CurrentStageChanged?.Invoke(CurrentStage, );
+                var G = new AlgorithmG();
+                G.Start();
+
+                Ks = LoadedData.K_Koeffs.Replace(" ", "").Split(',').Select(x => double.Parse(x.Replace('.', ','))).ToArray();//GetKsFromUI();
+
+                // v failed:
+                This.OnCalcDebugger.Text += "\r\n" + TimeSpan.FromSeconds(TotalRechanges).ToString() + $" {possibleFirstIndexes[i]} - не дошёл, осталось {OpersCopy.Count}";
+
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        This.GenNLabel.Text = workflow.Generation.ToString() + " / " + OpersNow.Count; // иногда эта залупа провоцирует ошибку
+                    }
+                    catch
+                    {
+
+                    }
+                });
+
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        This.CalcProgressBar.Value++;
+                        This.GenNLabel.Text = workflow.Generation.ToString() + " / " + OpersNow.Count; // иногда эта залупа провоцирует ошибку
+                    }
+                    catch
+                    {
+
+                    }
+                });
+
+                CurrentStage = PlanningAlgorithmStage.Complete;
+                CurrentStageChanged?.Invoke(CurrentStage, 0);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CurrentStage = PlanningAlgorithmStage.Failed;
+                CurrentStageChanged?.Invoke(CurrentStage, 0);
+                return false;
+            }
+            
         }
 
         public bool PrepareEverything()
@@ -126,12 +190,14 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
             Console.WriteLine("calc...");
 
-            var pool = new OpersPool(ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
+            var pool = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
 
             SessionLink.MasterDataLinks.WorkingIntervalsMasterData.PrepareCentersForMinDataTime(pool.CentersData.Keys, MinAcceptableDate);
 
+            PrepareOnOneRCData(pool);
+
             var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
-            var localCopy = new OpersPool(ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
+            var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
             OriginalValue = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(localCopy, MinAcceptableDate, result);
 
             FoundSmth = false;
@@ -437,6 +503,83 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                 }
             }
             return good;
+        }
+
+
+        public Dictionary<int, int> ModIDToOnOneRCGroupID = new();
+        public Dictionary<int, (List<int> ModIDs, List<Uco> PossibleRCs)> OnOneRCGroupData = new();
+        public void PrepareOnOneRCData(OpersPool pool)
+        {
+            ModIDToOnOneRCGroupID.Clear();
+            OnOneRCGroupData.Clear();
+
+            var modsToGroup = pool.Blocks.SelectMany(x => x.Lists).Where(x => x.FirstOper.OnOneRC); // Выберем все нужные моды
+
+            var groups = modsToGroup.GroupBy(mod => (mod.FirstOper.GetOrderOrPartiaCode(), mod.FirstOper.Level, mod.FirstOper.OperationVid, mod.FirstOper.Nomenklature));
+            foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
+            {
+                var groupID = OnOneRCGroupData.Count;
+                var modList = group.Select(x => x.ModID).ToList();
+
+                List<Uco> rcs = null;
+                foreach (var mod in group)
+                {
+                    if (rcs == null)
+                        rcs = mod.PossibleRCsHere;
+                    else
+                        rcs = rcs.Intersect(mod.PossibleRCsHere).ToList();
+                }
+
+
+                OnOneRCGroupData.Add(groupID, (modList, rcs));
+                foreach (var modID in modList)
+                {
+                    ModIDToOnOneRCGroupID.Add(modID, groupID); // Заполняем ссылки на группы
+                }
+            }
+        }
+
+        public void UpdateOpsOnOneRC(OpersBlock blockToStart, OpersPool pool)
+        {
+            var settedRC = blockToStart.ActualRC;
+            foreach (var mod in blockToStart.Lists)
+            {
+                if (mod.FirstOper.OnOneRC
+                    && ModIDToOnOneRCGroupID.TryGetValue(mod.ModID, out var dataID)
+                    && OnOneRCGroupData.TryGetValue(dataID, out var data))
+                {
+                    foreach (var neededMod in data.ModIDs)
+                    {
+                        if (neededMod == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
+                        var index = pool.Blocks.FindIndex(x => x.Lists.Any(y => y.ModID == neededMod));
+                        if (index != -1) pool.Blocks[index].ActualRC = settedRC;
+                    }
+                }
+            }
+        }
+
+        public int LastGen { get; private set; } = 0;
+        public TimeSpan LastDate { get; private set; } = TimeSpan.MinValue;
+
+        public void UpdateBcsSuccess(PlanningAlgorithmWorkflow workflow, PlanningCalculatorEngineResult t, PlanningCalculatorEngineResult origTime, List<OpersBlock> ops)
+        {
+            //if (!IsSilent)
+            //{
+            //    LastGen = workflow.Generation;
+            //    LastDate = DateTime.Now - MinAcceptableDate;
+            //    var p1 = t.MostRCSeconds / origTime.MostRCSeconds * 100f;
+            //    var p2 = t.RechangesSeconds / origTime.RechangesSeconds * 100f;
+            //    var p3 = t.ProductionSeconds / origTime.ProductionSeconds * 100f;
+            //    //var p4 = (double)t.ProstoiSeconds / origTime.ProstoiSeconds * 100f;
+            //    p3 = Math.Round(100.0 - p3, 2);
+            //    //p4 = Math.Round(100.0 - p4, 2);
+            //    GraphsController.AddNewPointToGraphs(workflow.Generation, t.DaysRuinedValue, t.ProstoiSeconds.TotalSeconds, p1, p2, p3, t, ops);
+            //}
+            BestBlocksList = ops;
+            FoundSmth = true;
+            FoundGlobal = true;
+
+            //UpdateUIThere(workflow);
         }
     }
 }
