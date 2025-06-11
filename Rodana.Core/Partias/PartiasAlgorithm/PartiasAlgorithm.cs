@@ -102,7 +102,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 PrepareDeadlinesTable();
 
                 // 6. Готовим таблицу глубин
-                CurrentStage = PartiasAlgorithmStage.FiilingDeadlineTables;
+                CurrentStage = PartiasAlgorithmStage.FillingDeepTables;
                 CurrentStageChanged?.Invoke(CurrentStage, (allGPToCheckNow.Length * allGPToCheckNow.Length - allGPToCheckNow.Length) / 2);
                 PrepareDeepTable(WithLog);
 
@@ -137,7 +137,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 // Вызов функции глобального вывода
                 try
                 {
-                    SessionLink.SessionOutputEngine.Output();
+                    SessionLink.SessionOutputEngine.Output(ForcedToRecreate: true);
                 }
                 catch (Exception e)
                 {
@@ -174,7 +174,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 op.Center = op.OriginalCenter;
                 op.CurrentTara = op.EndTara;
                 op.CurrentTaraMaxCapacity = 0;
-                op.EasyFlag = null;
+                op.EasyFlag = op.EasyFlagOriginal;
                 op.CustomPartiaGuid = null;
                 op.StageMaterialsInfo.UsedLeftovers = op.StageMaterialsInfo.UsedMaterials.Select(x => (Leftovers.StageLeftover)null).ToList();
 
@@ -367,15 +367,6 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                                 PartiaHasErrors[guidToSet] = true;
                             }
                         }
-                        if (opsHere.All(x => x.EndTara.IsEmpty))
-                        {
-                            dataErrors.AddNewPartiaError(opsHere[0].Index, NewDataErrorType.NoOrigTara, new DataErrorStruct());
-                            if (LogErrors)
-                            {
-                                PartiaHasErrors.TryAdd(guidToSet, true);
-                                PartiaHasErrors[guidToSet] = true;
-                            }
-                        }
                     }
                     ops.AddRange(opsHere);
                 }
@@ -383,6 +374,15 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
 
             if (ops.Count > 0)
             {
+                if (ops.All(x => x.EndTara.IsEmpty))
+                {
+                    dataErrors.AddNewPartiaError(ops[0].Index, NewDataErrorType.NoOrigTara, new DataErrorStruct());
+                    if (LogErrors)
+                    {
+                        PartiaHasErrors.TryAdd(guidToSet, true);
+                        PartiaHasErrors[guidToSet] = true;
+                    }
+                }
                 var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(ops, Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {

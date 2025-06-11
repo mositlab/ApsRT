@@ -240,7 +240,7 @@ namespace Rodana.Core.Session
                 if (SessionOptions.IsSilent) EndSession(600); // Пустая табличка операций!
             }
 
-            if (SessionOptions.IsSilent)
+            if (SessionOptions.IsSilent && SessionOptions.PartOrZadel)
             {
                 // Если она тихая. то ПРИСТУПАЕМ
                 if (TryCreateNewPartiasAlgorithmInstance(out var newPartiasAlgorithmInstance)
@@ -248,11 +248,30 @@ namespace Rodana.Core.Session
                 {
                     bool result = await newPartiasAlgorithmInstance.Process;
 
-
-
                     if (result)
                     {
-                        // Начинаем планирование
+                        if (newPartiasAlgorithmInstance.CurrentStage == PartiasAlgorithmStage.Complete && SessionOptions.LaunchPlan)
+                        {
+                            if (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
+                                && newPlanningAlgorithmInstance.Start())
+                            {
+                                bool result2 = await newPlanningAlgorithmInstance.Process;
+
+                                if (result2)
+                                {
+                                    SessionOutputEngine.Output(ForcedToRecreate: false); // Выводим вообще всё.
+                                    EndSession(0);
+                                }
+                                else
+                                {
+                                    EndSession(13);
+                                }
+                            }
+                            else
+                            {
+                                EndSession(13);
+                            }
+                        }
                     }
                     else
                     {

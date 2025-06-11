@@ -441,7 +441,7 @@ namespace UniversalPack.Common.DataLoader
             if (value is null || value == DBNull.Value)
             {
                 return attribute.DefaultIfNull
-                    ? default(DateTime)
+                    ? default(DateTime?)
                     : null;
             }
 
@@ -459,7 +459,7 @@ namespace UniversalPack.Common.DataLoader
                 }
                 else if (attribute.DefaultIfNull)
                 {
-                    return default(DateTime);
+                    return default(DateTime?);
                 }
                 else
                 {

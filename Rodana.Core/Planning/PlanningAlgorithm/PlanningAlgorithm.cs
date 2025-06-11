@@ -55,14 +55,14 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public Task<bool> Process { get; private set; }
 
-        public bool Start(bool WithLog)
+        public bool Start()
         {
             if (CurrentStage == PlanningAlgorithmStage.None)
             {
                 if (SessionLink.PartiasAlgorithmIsNotRunning)
                 {
                     // Да, можно.
-                    Process = Task.Run(() => AlgorithmProcess(WithLog));
+                    Process = Task.Run(() => AlgorithmProcess(16, 1));
                     return true;
                 }
                 else
@@ -80,16 +80,16 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public object LockerObject { get; set; } = new();
 
-        bool wannaStop = false;
+        public bool WannaStop { get; private set; } = false;
 
-        public void WannaStop() => wannaStop = true;
+        public void Stop() => WannaStop = true;
 
         public int GLOBAL_FIXED_MIN = 0;
         public int GLOBAL_VPZ_MAX = 0;
 
         public bool FoundSmth = false, FoundGlobal = false;
 
-        public bool AlgorithmProcess(bool WithLog)
+        public bool AlgorithmProcess(int parallelCount, int depth)
         {
             try
             {
@@ -98,7 +98,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                     PrepareEverything();
                 }
 
-                (var result, var localCopy) = SessionLink.SessionOutputEngine.Output(true);
+                (var result, var localCopy) = SessionLink.SessionOutputEngine.Output(ForcedToRecreate: false, true);
                 OnFirstResultAcquried?.Invoke(result, localCopy);
 
                 if (SessionLink.SessionOptions.Jsort)
@@ -127,7 +127,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                 var V = new AlgorithmV(this);
 
                 V.Start(UsedWorkflow);
-                if (wannaStop)
+                if (WannaStop)
                 {
                     CurrentStage = PlanningAlgorithmStage.Failed;
                     CurrentStageChanged?.Invoke(CurrentStage, 0);
@@ -136,10 +136,10 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
                 CurrentStage = PlanningAlgorithmStage.RunningG;
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
-                //var G = new AlgorithmG();
-                //G.Start();
+                var G = new AlgorithmG(this);
+                G.Start(parallelCount, depth);
 
-                if (wannaStop)
+                if (WannaStop)
                 {
                     CurrentStage = PlanningAlgorithmStage.Failed;
                     CurrentStageChanged?.Invoke(CurrentStage, 0);
@@ -161,9 +161,9 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public bool PrepareEverything()
         {
-            if (wannaStop)
+            if (WannaStop)
             {
-                wannaStop = false; // Сбрасываем, если кнопка была нажата ранее
+                WannaStop = false; // Сбрасываем, если кнопка была нажата ранее
             }
 
 
@@ -570,10 +570,10 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public void UpdateBcsSuccess(PlanningCalculatorEngineResult t, List<OpersBlock> ops)
         {
-            lock (LockerObject)
-            {
-                BestBlocksList = ops;
-            }
+            //lock (LockerObject)
+            //{
+            //}
+            BestBlocksList = ops;
             LastGen = UsedWorkflow.Generation;
             LastDate = DateTime.Now - StartOfPlanningDate;
             FoundSmth = true;

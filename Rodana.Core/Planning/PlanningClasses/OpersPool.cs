@@ -38,7 +38,7 @@ namespace Rodana.Core.Planning.PlanningClasses
         public FrozenDictionary<Guid, LengthsNeedToRecalcPoolClass> NaladLengthsNeedToRecalc;
 
         // Тут хранится инфа о центрах
-        public Dictionary<Uco, CenterInPlanData> CentersData;
+        public FrozenDictionary<Uco, CenterInPlanData> CentersData;
 
         // словарь для сопоставления
         public FrozenDictionary<int, PlanningModelling> IDsToMods;
@@ -58,7 +58,7 @@ namespace Rodana.Core.Planning.PlanningClasses
            FrozenDictionary<int, PlanningModelling> iDsToMods,
            FrozenDictionary<int, int> operIDsToModIDs,
            FrozenDictionary<Guid, LastSubdivisionsPoolClass> lastSubdivisionsData,
-           Dictionary<Uco, CenterInPlanData> centersData)
+           FrozenDictionary<Uco, CenterInPlanData> centersData)
         {
             Blocks = blocks;
             DatesData = datesData;
@@ -97,7 +97,7 @@ namespace Rodana.Core.Planning.PlanningClasses
             NaladLengthsDataRecreate(constructor);
 
             // Формирует здесь словарь для центров
-            CentersData = constructor.centersData.ToDictionary(x => x.Key, x => PlanningCalculatorEngine.PlanningCalculatorEngine.FillCenterWithSomeData(null, x.Key, start));
+            CentersData = constructor.centersData.ToFrozenDictionary(x => x.Key, x => PlanningCalculatorEngine.PlanningCalculatorEngine.FillCenterWithSomeData(null, x.Key, start));
         }
 
         public void NaladLengthsDataRecreate(OpersPoolConstructor constructor)
@@ -122,6 +122,88 @@ namespace Rodana.Core.Planning.PlanningClasses
 
         #region УЙМА всяких методов, которые по хорошему надо разгрести и убрать
 
+        internal int Find(int Index, int Start, bool Back)
+        {
+            for (var i = Start; Back ? i >= 0 : i < Blocks.Count;)
+            {
+                for (var j = 0; j < Blocks[i].Lists.Count; j++)
+                {
+                    for (var jj = 0; jj < Blocks[i].Lists[j].OpersList.Count; jj++)
+                    {
+                        if (Blocks[i].Lists[j].OpersList[jj].Index == Index)
+                        {
+                            return i;
+                        }
+                    }
+                }
+
+                if (Back)
+                {
+                    i--;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        ///  Перенос
+        /// </summary>
+        /// <returns>Минимальный и максимальные индексы пула, куда можно поставить блок (включительно, в рандомайзерах надо будет прибавлять к max единицу).</returns>
+        internal (int MIN, int MAX, int Prev, int Next) FindDiapazons(OpersBlock opertoIns, Uco onRC, int wannaThisPlace, bool calcPrevNexts, bool onlyCalcPrevNexts, bool plusOne, out bool Errors, HashSet<int> doneOpers = null)
+        {
+            var MIN = opertoIns.Lists[0].OpersList[0].VPZ || opertoIns.Lists[0].OpersList[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.GLOBAL_FIXED_MIN : SessionLink.AssignedPlanningAlgorithm.GLOBAL_VPZ_MAX; // минимум - никаких операций нет, поэтому -1. Если будет хоть одна операция, то вставляем строго после нее.
+            var MAX = opertoIns.Lists[0].OpersList[0].VPZ || opertoIns.Lists[0].OpersList[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.GLOBAL_VPZ_MAX : Blocks.Count; // максимум - включительно, включая последний же индекс. Insert вставит его ПЕРЕД этим индексом, поэтому всё норм.
+
+            // Определяем границы
+            Errors = false;
+            int Prev = -1;
+            int Next = -1;
+            if (calcPrevNexts)
+            {
+                Prev = wannaThisPlace == 0 ? -1 : Blocks.FindLastIndex(wannaThisPlace - 1, x => x.ActualRC == onRC/*opertoIns.ActualRC*/);
+                Next = Blocks.FindIndex(wannaThisPlace + (plusOne ? 1 : 0), x => x.ActualRC == onRC/*opertoIns.ActualRC*/);
+            }
+
+            if (onlyCalcPrevNexts) return (-1, -1, Prev, Next);
+
+            for (int ChoosenLine = 0; ChoosenLine < opertoIns.Lists.Count; ChoosenLine++)
+            {
+                for (var i = 0; i < opertoIns.Lists[ChoosenLine].OpersList.Count; i++)
+                {
+                    // Смотрим предыдущие
+                    for (var j = 0; j < opertoIns.Lists[ChoosenLine].OpersList[i].Prevs.Count; j++)
+                    {
+                        var prev = opertoIns.Lists[ChoosenLine].OpersList[i].Prevs[j];
+                        //var n = opersCopy.FindIndex(x => x.Lists.Any(y => y.Any(z => z.Index == prev)));//
+                        //var n = opersCopy.OperIDToPos[opertoIns.Lists[ChoosenLine].OpersList[i].Prevs[j]];//
+                        var n = Find(prev, wannaThisPlace == -1 ? (Blocks.Count - 1) : (wannaThisPlace - 1), true);
+                        if (doneOpers != null && doneOpers.Contains(prev) && n == -1) Errors = true;
+                        if (n > -1 && n >= MIN)
+                        {
+                            MIN = n + 1;
+                        }
+                    }
+                    // Теперь следующие
+                    for (var j = 0; j < opertoIns.Lists[ChoosenLine].OpersList[i].Nexts.Count; j++)
+                    {
+                        var next = opertoIns.Lists[ChoosenLine].OpersList[i].Nexts[j];
+                        //var n = opersCopy.FindIndex(x => x.Lists.Any(y => y.Any(z => z.Index == next)));
+                        //var n = opersCopy.OperIDToPos[opertoIns.Lists[ChoosenLine].OpersList[i].Nexts[j]];
+                        var n = Find(next, wannaThisPlace == -1 ? 0 : wannaThisPlace, false);
+                        if (doneOpers != null && doneOpers.Contains(next) && n == -1) Errors = true;
+                        if (n > -1 && n < MAX)
+                        {
+                            MAX = n;
+                        }
+                    }
+                }
+            }
+            return (MIN, MAX, Prev, Next);
+        }
 
         public static List<OpersBlock> CopyBlocks(List<OpersBlock> list, bool WithTara)
             =>

@@ -17,9 +17,9 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         int CurrentComboParam = 0; // какой сейчас выбран способ оптимизации в массиве
         int CurrCycle = 0; // Текущий цикл
-        internal int currentMode = 0; // текущий режим, по факту равен ComboList[CurrentComboParam]
-        internal int currDynCounter { get; private set; }
-        internal int maxDynCounter { get; private set; }
+        public int currentMode { get; private set; } = 0; // текущий режим, по факту равен ComboList[CurrentComboParam]
+        public int currDynCounter { get; private set; }
+        public int maxDynCounter { get; private set; }
         internal bool FoundForDynamic = false;
 
         public int Generation = 0;
@@ -30,7 +30,6 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         internal DateTime LastTime;
 
-        internal PlanningCalculatorEngineResult origValue;
         internal PlanningCalculatorEngineResult BestValue;
 
         //internal bool NeverGraphs;
@@ -71,7 +70,6 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             currDynCounter = 0;
             maxDynCounter = 0;
 
-            origValue = originalValue;
             BestValue = originalValue;
 
             SetNewDynCounter();//SetComboParams(CurrentComboParam, ComboList, ref currentMode, ref currDynCounter, ref maxDynCounter);
@@ -122,7 +120,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             {
                 if (sessionLink.AssignedPlanningAlgorithm.FoundSmth)
                 {
-                    sessionLink.SessionOutputEngine.Output();//Output(false, true, "ranges manual.csv", "orders.csv", OutputFile, "rechanges.csv", "mods.csv", "naladLengths.csv");
+                    sessionLink.SessionOutputEngine.Output(ForcedToRecreate: false);//Output(false, true, "ranges manual.csv", "orders.csv", OutputFile, "rechanges.csv", "mods.csv", "naladLengths.csv");
                     sessionLink.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: better solution exported. gn {Generation}. cl {CurrCycle}: tr {BestValue.TaraErrorsCount}, nl {0/*BestValue.CatchedErrorsCount*/}.\r\n");
                     sessionLink.AssignedPlanningAlgorithm.FoundSmth = false;
                 }

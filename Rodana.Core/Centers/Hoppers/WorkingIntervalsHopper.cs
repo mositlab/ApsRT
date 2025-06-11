@@ -3,6 +3,7 @@ using Rodana.Core.Hoppers;
 using Rodana.Core.Partias.Leftovers;
 using Rodana.Core.Stages.Hoppers;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -41,6 +42,7 @@ namespace Rodana.Core.Centers.Hoppers
 
         void IHopperInterface.AfterLoading()
         {
+            Dictionary<Uco, List<(DateTime When, TimeSpan Time, int Type)>> WorkingIntervalsTemp2 = new();
             foreach (var unSortedCenter in WorkingIntervalsTemp)
             {
                 var center = unSortedCenter.Value.OrderBy(x => x.from).ToArray();
@@ -49,16 +51,17 @@ namespace Rodana.Core.Centers.Hoppers
                     var start = center[i].to;
                     var end = center[i + 1].from;
                     var span = end - start;
-                    if (WorkingIntervalsMasterData.CentersFixingTime.TryGetValue(unSortedCenter.Key, out var list))
+                    if (WorkingIntervalsTemp2.TryGetValue(unSortedCenter.Key, out var list))
                     {
                         list.Add((start, span, 1));
                     }
                     else
                     {
-                        WorkingIntervalsMasterData.CentersFixingTime.Add(unSortedCenter.Key, new() { (start, span, 1) });
+                        WorkingIntervalsTemp2.Add(unSortedCenter.Key, new() { (start, span, 1) });
                     }
                 }
             }
+            WorkingIntervalsMasterData.CentersFixingTime = WorkingIntervalsTemp2.ToFrozenDictionary();
             WorkingIntervalsTemp = null;
         }
 

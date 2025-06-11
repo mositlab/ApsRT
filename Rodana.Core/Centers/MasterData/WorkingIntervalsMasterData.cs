@@ -1,6 +1,7 @@
 ﻿using Rodana.Core.Planning.PlanningClasses;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,15 +21,15 @@ namespace Rodana.Core.Centers.MasterData
 
         public void ClearAll()
         {
-            PreparedRCFixingData.Clear();
-            CentersFixingTime.Clear();
+            //PreparedRCFixingData.Clear();
+            //CentersFixingTime.Clear();
             CachedModellingsFullDurations.Clear();
         }
 
-        internal Dictionary<Uco, CachedInterval> PreparedRCFixingData = new(); // начало. Позволяет узнать, какой РЦ в какой интервал попал (либо какой будет следующий).
+        internal FrozenDictionary<Uco, CachedInterval> PreparedRCFixingData;// = new(); // начало. Позволяет узнать, какой РЦ в какой интервал попал (либо какой будет следующий).
 
         // 0 - ремонт (черный тогда), 1 - нерабочее время (белый)
-        public Dictionary<Uco, List<(DateTime When, TimeSpan Time, int Type)>> CentersFixingTime = new(/*new CodedObjectEqualityComparer()*/); // Список ремонтов для каждого из РЦ.
+        public FrozenDictionary<Uco, List<(DateTime When, TimeSpan Time, int Type)>> CentersFixingTime;// = new(/*new CodedObjectEqualityComparer()*/); // Список ремонтов для каждого из РЦ.
 
         #region Калькулятор полной длительности любого интервала, с учетом обедов и ремонтов
 
@@ -199,12 +200,13 @@ namespace Rodana.Core.Centers.MasterData
 
         internal void PrepareCentersForMinDataTime(IEnumerable<Uco> centers_choosen, DateTime MinAcceptableDate)
         {
-            PreparedRCFixingData.Clear();
-            var TM = /*SessionLink.MasterDataLinks.StagesMasterData.*/MinAcceptableDate;//FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
-            foreach (var center in centers_choosen)
-            {
-                PreparedRCFixingData[center] = CheckIfCatchedNonWorkingIntervalCached(center, TM, 0);
-            }
+            PreparedRCFixingData = centers_choosen.ToFrozenDictionary(x => x, x => CheckIfCatchedNonWorkingIntervalCached(x, MinAcceptableDate, 0));
+            //PreparedRCFixingData.Clear();
+            //var TM = /*SessionLink.MasterDataLinks.StagesMasterData.*/MinAcceptableDate;//FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
+            //foreach (var center in centers_choosen)
+            //{
+            //    PreparedRCFixingData[center] = CheckIfCatchedNonWorkingIntervalCached(center, TM, 0);
+            //}
         }
 
 

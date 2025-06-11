@@ -761,8 +761,8 @@ namespace Rodana.ZMK
                     PartiasAlgorithmStage.PreparingSession => "1. Подготовка сессии",
                     PartiasAlgorithmStage.PreparingPartias => "2. Подготовка партий",
                     PartiasAlgorithmStage.PreparingLeftovers => "4. Подготовка остатков",
-                    PartiasAlgorithmStage.FillingDeepTables => "5. Заполнение таблиц глубин",
-                    PartiasAlgorithmStage.FiilingDeadlineTables => "6. Заполнение таблиц дедлайнов",
+                    PartiasAlgorithmStage.FiilingDeadlineTables => "5. Заполнение таблиц дедлайнов",
+                    PartiasAlgorithmStage.FillingDeepTables => "6. Заполнение таблиц глубин",
                     PartiasAlgorithmStage.Searching => "7. Поиск",
                     PartiasAlgorithmStage.AfterSearchErrorsCheck => "8. Проверка ошибок",
                     PartiasAlgorithmStage.InsidePartiasOptimization => "9. Объединение внутри партий",
@@ -1058,11 +1058,11 @@ namespace Rodana.ZMK
 
             int N = 0;
 
-            if (algorithm.Start(false))
+            if (algorithm.Start())
             {
                 while (!algorithm.Process.IsCompleted)
                 {
-                    PlanningProcessBar.Invoke(delegate
+                    PlanningProcessBar.BeginInvoke(delegate
                     {
                         PlanningProcessBar.Value = N;
                         if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningV)
@@ -1072,7 +1072,7 @@ namespace Rodana.ZMK
 
                         if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningG)
                         {
-                            PlanningProcessLabel.Text = $"G: {algorithm.UsedWorkflow.Generation} | {algorithm.LastGen} ({algorithm.LastDate})";
+                            PlanningProcessLabel.Text = $"G: {algorithm.UsedWorkflow.Generation} - критерий {algorithm.UsedWorkflow.currentMode} [ {algorithm.UsedWorkflow.currDynCounter} / {algorithm.UsedWorkflow.maxDynCounter} ] | лучшая: {algorithm.LastGen} ({algorithm.LastDate})";
                         }
 
                         updateUI();
@@ -1245,7 +1245,7 @@ namespace Rodana.ZMK
                                 GlobalToLocalCenterRows[blockRC],
                                 0, 1,
                                 -2, 0);
-                            bar.fixingBars = prostoi.interval.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
+                            bar.fixingBars = CentersFixingTime == null ? null : prostoi.interval.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
                             diagram.AddBar(bar);
                         }
 
@@ -1275,7 +1275,7 @@ namespace Rodana.ZMK
                                 reches, GlobalToLocalCenterRows[blockRC],
                                 0, 1,
                                 -1, 0);
-                            bar.fixingBars = rechanges.interval.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
+                            bar.fixingBars = CentersFixingTime == null ? null : rechanges.interval.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
                             //bar.fixingBars = e.CatchedIntervals.Select(x => (CentersFixingTime[e.UsedRCCode][x].When, CentersFixingTime[e.UsedRCCode][x].When.Add(CentersFixingTime[e.UsedRCCode][x].Time))).ToList();
                             diagram.AddBar(bar);
                             //Diagram.DrawChart();
@@ -1355,7 +1355,7 @@ namespace Rodana.ZMK
                             operLoc.Color
                             //, opers_list.CustomModellingColor
                             );
-                            bar.fixingBars = intervalForOp.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
+                            bar.fixingBars = CentersFixingTime == null ? null : intervalForOp.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
                             diagram.AddBar(bar, operLoc.Index);
 
 
@@ -1399,7 +1399,7 @@ namespace Rodana.ZMK
         {
             var algorithm = sessionLink.AssignedPlanningAlgorithm;
             if (algorithm == null) return;
-            var outData = sessionLink.SessionOutputEngine.Output();
+            var outData = sessionLink.SessionOutputEngine.Output(ForcedToRecreate: false);
             ganttNEW.Invoke(delegate
             {
                 OutputToGanttChart(ganttNEW, outData.copy, outData.result);
@@ -1410,7 +1410,7 @@ namespace Rodana.ZMK
         {
             var algorithm = sessionLink.AssignedPlanningAlgorithm;
             if (algorithm == null) return;
-            algorithm.WannaStop();
+            algorithm.Stop();
         }
     
         private void CreatePlanningTable()

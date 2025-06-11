@@ -17,6 +17,7 @@ using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, s
 using Rodana.Core.Planning.PlanningClasses.PoolClasses;
 using Rodana.Core.Centers.MasterData;
 using Rodana.Core.Partias.TaraSearchEngine;
+using System.Collections.Frozen;
 
 namespace Rodana.Core.Planning.PlanningAlgorithm
 {
@@ -77,7 +78,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                     break;
                 }
 
-                if (basisLink.wannaStop)
+                if (basisLink.WannaStop)
                 {
                     break;
                 }
@@ -137,7 +138,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                 // Цикл проходится
                 while (OpersCopy.Count > 0)
                 {
-                    if (basisLink.wannaStop)
+                    if (basisLink.WannaStop)
                     {
                         isbad = true;
                         break;
@@ -506,7 +507,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             long prostoiTime,
             long rechTime,
             GottenNaladLengthStruct gottenNaladLength,
-            Dictionary<Uco, CenterInPlanData>? centers_choosen,
+            FrozenDictionary<Uco, CenterInPlanData>? centers_choosen,
             (Uco tara, double max) tara,
             bool ThisTaraMustBeLast,
             OpersPool pool,
@@ -670,7 +671,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             out long timeP,
             out GottenNaladLengthStruct naladsOut,
             double[] Ks,
-            Dictionary<Uco, CenterInPlanData>? centers_choosen,
+            FrozenDictionary<Uco, CenterInPlanData>? centers_choosen,
             long TotalRechanges,
             long TotalProstoi,
             Dictionary<int, DateTime>? ProstoiTimes)

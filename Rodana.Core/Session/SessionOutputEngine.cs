@@ -103,7 +103,7 @@ namespace Rodana.Core.Session
             }
         }
 
-        public (PlanningCalculatorEngineResult result, OpersPool copy) Output(bool asOld = false)
+        public (PlanningCalculatorEngineResult result, OpersPool copy) Output(bool ForcedToRecreate, bool asOld = false)
         {
             // Вызов вывода заделов
             if (SessionLink.SessionOptions.LaunchZadel)
@@ -120,7 +120,7 @@ namespace Rodana.Core.Session
 
             // Вывод всего
             var algorithm = SessionLink.AssignedPlanningAlgorithm;
-            if (algorithm == null) SessionLink.TryCreateNewPlanningAlgorithmInstance(out algorithm); // Сначала просто получим текущий алгоритм планирования, потому что именно там хранится всё, что нам надо для вывода
+            if (algorithm == null || ForcedToRecreate) SessionLink.TryCreateNewPlanningAlgorithmInstance(out algorithm); // Сначала просто получим текущий алгоритм планирования, потому что именно там хранится всё, что нам надо для вывода
             if (algorithm.BestBlocksList == null)
             {
                 // Значит, алгоритм не работает. Подготовить его
