@@ -9,6 +9,8 @@ using WinFormsCustomComponents;
 using static UniversalPack.Extensions.EventExtensions;
 using RodanaCustomComponents;
 using Rodana.Core.Partias.PartiasAlgorithm;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using System.Linq;
 using System.Diagnostics.Metrics;
@@ -21,6 +23,12 @@ using static Google.Protobuf.WellKnownTypes.Field.Types;
 using System;
 using System.Windows.Forms;
 using static RodanaCustomComponents.FormsExtensions;
+using Rodana.Core.Planning.PlanningAlgorithm;
+using Rodana.Core.Centers.MasterData;
+using Rodana.Core.Planning.PlanningCalculatorEngine;
+using Rodana.Core.Planning.PlanningClasses;
+using Rodana.Core.Rechanges.RechangesEngine;
+using Rodana.Core.Planning.PlanningClasses.PoolClasses;
 
 namespace Rodana.ZMK
 {
@@ -41,9 +49,24 @@ namespace Rodana.ZMK
             }
         }
 
+        #region Настройки и действия формы
+
+
+        private void HandSessionPostDataProcessButton_Click(object sender, EventArgs e)
+        {
+            sessionLink.PostDataProcess();
+            PostDataProcessInGui();
+        }
+        private void ClearAllSessionErrorsButton_Click(object sender, EventArgs e)
+        {
+            sessionLink.DataErrors.NewDataErrors.Clear();
+        }
+
         public MainForm(Session sessionLink)
         {
             InitializeComponent();
+
+            CreatePlanningTable();
 
             ganttOLD.Dock = DockStyle.Fill;
             ganttOLD.BorderStyle = BorderStyle.FixedSingle;
@@ -138,8 +161,10 @@ namespace Rodana.ZMK
             dateTimePickerTo.Value = To;
             dateTimePickerTo.ResumeLayout();
 
-            /*ganttAnalysis.To =*/ ganttNEW.To = ganttOLD.To = To;
-            /*ganttAnalysis.From = */ganttNEW.From = ganttOLD.From = From;
+            /*ganttAnalysis.To =*/
+            ganttNEW.To = ganttOLD.To = To;
+            /*ganttAnalysis.From = */
+            ganttNEW.From = ganttOLD.From = From;
             //ganttAnalysis.DrawChart();
             ganttNEW.DrawChart();
             ganttOLD.DrawChart();
@@ -154,8 +179,163 @@ namespace Rodana.ZMK
         void PrepareSettings()
         {
 
-
             var settings = sessionLink.SettingsController.CurrentSettings;
+
+            VKoeffsTextBox.Text = string.Join(", ", settings.VKoeffs);
+            VKoeffsTextBox.TextChanged += (sender, args) =>
+            {
+                settings.VKoeffs = ((TextBox)sender).Text.Replace(" ", "").Split(',').Select(x => double.Parse(x.Replace('.', ','))).ToArray();
+            };
+
+            CriteriasListTextBox.Text = string.Join(",", settings.CriteriasList);
+            CriteriasListTextBox.TextChanged += (sender, args) =>
+            {
+                settings.CriteriasList = ((TextBox)sender).Text.Replace(" ", "").Split(',').Select(x => int.Parse(x)).ToArray();
+            };
+
+            CriteriasPossibleWorseNumericUpDown1.Value = (decimal)settings.CriteriasPossibleWorse[0];
+            CriteriasPossibleWorseNumericUpDown1.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[0] = (int)((NumericUpDown)sender).Value; };
+            CriteriasPossibleWorseNumericUpDown2.Value = (decimal)settings.CriteriasPossibleWorse[1];
+            CriteriasPossibleWorseNumericUpDown2.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[1] = (int)((NumericUpDown)sender).Value; };
+            CriteriasPossibleWorseNumericUpDown3.Value = (decimal)settings.CriteriasPossibleWorse[2];
+            CriteriasPossibleWorseNumericUpDown3.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[2] = (int)((NumericUpDown)sender).Value; };
+            CriteriasPossibleWorseNumericUpDown4.Value = (decimal)settings.CriteriasPossibleWorse[3];
+            CriteriasPossibleWorseNumericUpDown4.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[3] = (int)((NumericUpDown)sender).Value; };
+            CriteriasPossibleWorseNumericUpDown5.Value = (decimal)settings.CriteriasPossibleWorse[4];
+            CriteriasPossibleWorseNumericUpDown5.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[4] = (int)((NumericUpDown)sender).Value; };
+            CriteriasPossibleWorseNumericUpDown6.Value = (decimal)settings.CriteriasPossibleWorse[5];
+            CriteriasPossibleWorseNumericUpDown6.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[5] = (int)((NumericUpDown)sender).Value; };
+            CriteriasPossibleWorseNumericUpDown7.Value = (decimal)settings.CriteriasPossibleWorse[6];
+            CriteriasPossibleWorseNumericUpDown7.ValueChanged += (sender, args) => { settings.CriteriasPossibleWorse[6] = (int)((NumericUpDown)sender).Value; };
+
+            CriteriasMinIterationsNumericUpDown1.Value = (decimal)settings.CriteriasMinIterations[0];
+            CriteriasMinIterationsNumericUpDown1.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[0] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMinIterationsNumericUpDown2.Value = (decimal)settings.CriteriasMinIterations[1];
+            CriteriasMinIterationsNumericUpDown2.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[1] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMinIterationsNumericUpDown3.Value = (decimal)settings.CriteriasMinIterations[2];
+            CriteriasMinIterationsNumericUpDown3.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[2] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMinIterationsNumericUpDown4.Value = (decimal)settings.CriteriasMinIterations[3];
+            CriteriasMinIterationsNumericUpDown4.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[3] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMinIterationsNumericUpDown5.Value = (decimal)settings.CriteriasMinIterations[4];
+            CriteriasMinIterationsNumericUpDown5.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[4] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMinIterationsNumericUpDown6.Value = (decimal)settings.CriteriasMinIterations[5];
+            CriteriasMinIterationsNumericUpDown6.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[5] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMinIterationsNumericUpDown7.Value = (decimal)settings.CriteriasMinIterations[6];
+            CriteriasMinIterationsNumericUpDown7.ValueChanged += (sender, args) => { settings.CriteriasMinIterations[6] = (int)((NumericUpDown)sender).Value; };
+
+            CriteriasMaxIterationsNumericUpDown1.Value = (decimal)settings.CriteriasMaxIterations[0];
+            CriteriasMaxIterationsNumericUpDown1.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[0] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMaxIterationsNumericUpDown2.Value = (decimal)settings.CriteriasMaxIterations[1];
+            CriteriasMaxIterationsNumericUpDown2.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[1] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMaxIterationsNumericUpDown3.Value = (decimal)settings.CriteriasMaxIterations[2];
+            CriteriasMaxIterationsNumericUpDown3.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[2] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMaxIterationsNumericUpDown4.Value = (decimal)settings.CriteriasMaxIterations[3];
+            CriteriasMaxIterationsNumericUpDown4.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[3] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMaxIterationsNumericUpDown5.Value = (decimal)settings.CriteriasMaxIterations[4];
+            CriteriasMaxIterationsNumericUpDown5.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[4] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMaxIterationsNumericUpDown6.Value = (decimal)settings.CriteriasMaxIterations[5];
+            CriteriasMaxIterationsNumericUpDown6.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[5] = (int)((NumericUpDown)sender).Value; };
+            CriteriasMaxIterationsNumericUpDown7.Value = (decimal)settings.CriteriasMaxIterations[6];
+            CriteriasMaxIterationsNumericUpDown7.ValueChanged += (sender, args) => { settings.CriteriasMaxIterations[6] = (int)((NumericUpDown)sender).Value; };
+
+            UseOnlyMaxCriteriasSettingsCheckBox.Checked = settings.UseOnlyMaxCriteriasSettings;
+            UseOnlyMaxCriteriasSettingsCheckBox.CheckedChanged += (sender, args) => { settings.UseOnlyMaxCriteriasSettings = ((CheckBox)sender).Checked; };
+
+            criteriaRadioButton1.Checked = settings.UsedCriteria == 0;
+            criteriaRadioButton1.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 0; };
+            criteriaRadioButton2.Checked = settings.UsedCriteria == 1;
+            criteriaRadioButton2.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 1; };
+            criteriaRadioButton3.Checked = settings.UsedCriteria == 2;
+            criteriaRadioButton3.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 2; };
+            criteriaRadioButton4.Checked = settings.UsedCriteria == 3;
+            criteriaRadioButton4.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 3; };
+            criteriaRadioButton5.Checked = settings.UsedCriteria == 4;
+            criteriaRadioButton5.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 4; };
+            criteriaRadioButton6.Checked = settings.UsedCriteria == 5;
+            criteriaRadioButton6.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 5; };
+            criteriaRadioButton7.Checked = settings.UsedCriteria == 6;
+            criteriaRadioButton7.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 6; };
+            materialRadioButtonCombo.Checked = settings.UsedCriteria == -1;
+            materialRadioButtonCombo.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = -1; };
+            materialRadioButtonAuto.Checked = settings.UsedCriteria == -2;
+            materialRadioButtonAuto.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = -2; };
+
+            #region Низкий приоритет
+            p2l1kNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level1.K;
+            p2l1kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level1.K = (int)((NumericUpDown)sender).Value; };
+            p2l1aNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level1.A;
+            p2l1aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level1.A = (int)((NumericUpDown)sender).Value; };
+            p2l1xNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level1.UpTo;
+            p2l1xNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level1.UpTo = (int)((NumericUpDown)sender).Value; };
+
+            p2l2kNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level2.K;
+            p2l2kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level2.K = (int)((NumericUpDown)sender).Value; };
+            p2l2aNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level2.A;
+            p2l2aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level2.A = (int)((NumericUpDown)sender).Value; };
+            p2l2xNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level2.UpTo;
+            p2l2xNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level2.UpTo = (int)((NumericUpDown)sender).Value; };
+
+            p2l3kNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level3.K;
+            p2l3kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level3.K = (int)((NumericUpDown)sender).Value; };
+            p2l3aNumericUpDown.Value = (decimal)settings.OrderCoeffs[2].Level3.A;
+            p2l3aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[2].Level3.A = (int)((NumericUpDown)sender).Value; };
+            #endregion
+
+            #region Средний приоритет
+            p1l1kNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level1.K;
+            p1l1kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level1.K = (int)((NumericUpDown)sender).Value; };
+            p1l1aNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level1.A;
+            p1l1aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level1.A = (int)((NumericUpDown)sender).Value; };
+            p1l1xNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level1.UpTo;
+            p1l1xNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level1.UpTo = (int)((NumericUpDown)sender).Value; };
+
+            p1l2kNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level2.K;
+            p1l2kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level2.K = (int)((NumericUpDown)sender).Value; };
+            p1l2aNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level2.A;
+            p1l2aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level2.A = (int)((NumericUpDown)sender).Value; };
+            p1l2xNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level2.UpTo;
+            p1l2xNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level2.UpTo = (int)((NumericUpDown)sender).Value; };
+
+            p1l3kNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level3.K;
+            p1l3kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level3.K = (int)((NumericUpDown)sender).Value; };
+            p1l3aNumericUpDown.Value = (decimal)settings.OrderCoeffs[1].Level3.A;
+            p1l3aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[1].Level3.A = (int)((NumericUpDown)sender).Value; };
+            #endregion
+
+            #region Высокий приоритет
+            p0l1kNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level1.K;
+            p0l1kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level1.K = (int)((NumericUpDown)sender).Value; };
+            p0l1aNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level1.A;
+            p0l1aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level1.A = (int)((NumericUpDown)sender).Value; };
+            p0l1xNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level1.UpTo;
+            p0l1xNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level1.UpTo = (int)((NumericUpDown)sender).Value; };
+
+            p0l2kNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level2.K;
+            p0l2kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level2.K = (int)((NumericUpDown)sender).Value; };
+            p0l2aNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level2.A;
+            p0l2aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level2.A = (int)((NumericUpDown)sender).Value; };
+            p0l2xNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level2.UpTo;
+            p0l2xNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level2.UpTo = (int)((NumericUpDown)sender).Value; };
+
+            p0l3kNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level3.K;
+            p0l3kNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level3.K = (int)((NumericUpDown)sender).Value; };
+            p0l3aNumericUpDown.Value = (decimal)settings.OrderCoeffs[0].Level3.A;
+            p0l3aNumericUpDown.ValueChanged += (sender, args) => { settings.OrderCoeffs[0].Level3.A = (int)((NumericUpDown)sender).Value; };
+            #endregion
+
+            AfterXMinsRadioButton.Checked = settings.UseMinutes;
+            AfterXMinsRadioButton.CheckedChanged += (sender, args) => { settings.UseMinutes = ((RadioButton)sender).Checked; };
+            AfterXCyclesRadioButton.Checked = settings.UseCycles;
+            AfterXCyclesRadioButton.CheckedChanged += (sender, args) => { settings.UseCycles = ((RadioButton)sender).Checked; };
+
+            IterationsNumericUpDown.Value = (decimal)settings.IterationsCount;
+            IterationsNumericUpDown.ValueChanged += (sender, args) => { settings.IterationsCount = (int)((NumericUpDown)sender).Value; };
+            MinutesNumericUpDown.Value = (decimal)settings.MinutesCount;
+            MinutesNumericUpDown.ValueChanged += (sender, args) => { settings.MinutesCount = (double)((NumericUpDown)sender).Value; };
+            CyclesNumericUpDown.Value = (decimal)settings.CyclesCount;
+            CyclesNumericUpDown.ValueChanged += (sender, args) => { settings.CyclesCount = (int)((NumericUpDown)sender).Value; };
+
+
             LogErrorsCheckBox.Checked = settings.LogErrors;
             LogErrorsCheckBox.CheckedChanged += (sender, args) => { settings.LogErrors = ((CheckBox)sender).Checked; };
 
@@ -259,6 +439,10 @@ namespace Rodana.ZMK
             }
             sessionLink.EndSession(0);
         }
+
+        #endregion
+
+        #region ХОППЕРЫ
 
         List<HopperUIClass> HoppersInInterface = new();
         List<int> HoppersCurrentValues = new();
@@ -523,79 +707,7 @@ namespace Rodana.ZMK
             }));
         }
 
-        Task partiasAlgroithm;
-        private void StartAlgorithmPButton_Click(object sender, EventArgs e)
-        {
-            if (sessionLink.TryCreateNewPartiasAlgorithmInstance(out var algorithm))
-            {
-                StartAlgorithmPButton.Enabled = false;
-
-                partiasAlgroithm = Task.Run(() => PartiasAlgorithm(algorithm));
-            }
-        }
-
-        private void Algorithm_CurrentStageChanged(PartiasAlgorithmStage arg1, int arg2)
-        {
-            PartiasProgressLabel.Invoke(delegate
-            {
-                PartiasProgressLabel.Text = arg1 switch
-                {
-                    PartiasAlgorithmStage.None => "...",
-                    PartiasAlgorithmStage.PreparingSession => "1. Подготовка сессии",
-                    PartiasAlgorithmStage.PreparingPartias => "2. Подготовка партий",
-                    PartiasAlgorithmStage.PreparingLeftovers => "4. Подготовка остатков",
-                    PartiasAlgorithmStage.FillingDeepTables => "5. Заполнение таблиц глубин",
-                    PartiasAlgorithmStage.FiilingDeadlineTables => "6. Заполнение таблиц дедлайнов",
-                    PartiasAlgorithmStage.Searching => "7. Поиск",
-                    PartiasAlgorithmStage.AfterSearchErrorsCheck => "8. Проверка ошибок",
-                    PartiasAlgorithmStage.InsidePartiasOptimization => "9. Объединение внутри партий",
-                    PartiasAlgorithmStage.FormingEasyFlags => "11. Формирование общих этапов",
-                    PartiasAlgorithmStage.Output => "12. Вывод",
-                    PartiasAlgorithmStage.Complete => "13. Завершено",
-                    PartiasAlgorithmStage.Failed => "14. Ошибка"
-                };
-                PartiasProgressBar.Maximum = arg2;
-            });
-        }
-
-        void PartiasAlgorithm(PartiasAlgorithm algorithm)
-        {
-            algorithm.CurrentStageChanged += Algorithm_CurrentStageChanged;
-            algorithm.AlgorithmCallback += Algorithm_AlgorithmCallback;
-
-            int N = 0;
-
-            if (algorithm.Start(LogPartiasCheckBox.Checked))
-            {
-                while (!algorithm.Process.IsCompleted)
-                {
-                    PartiasProgressBar.Invoke(delegate { PartiasProgressBar.Value = N; });
-                    Thread.Sleep(250);
-                }
-            }
-
-            void Algorithm_AlgorithmCallback(PartiasAlgorithmStage arg1, int arg2)
-                => N = arg2;
-
-            algorithm.CurrentStageChanged -= Algorithm_CurrentStageChanged;
-            algorithm.AlgorithmCallback -= Algorithm_AlgorithmCallback;
-
-            StartAlgorithmPButton.Invoke(delegate
-            {
-                SavedPartiasUpdate();
-                StartAlgorithmPButton.Enabled = true;
-                if (algorithm.CurrentStage == PartiasAlgorithmStage.Complete)
-                {
-                    PartiasProgressBar.Value = PartiasProgressBar.Maximum;
-                }
-            });
-        }
-
-        private void HandSessionPostDataProcessButton_Click(object sender, EventArgs e)
-        {
-            sessionLink.PostDataProcess();
-            PostDataProcessInGui();
-        }
+        #endregion
 
         void PostDataProcessInGui()
         {
@@ -625,6 +737,76 @@ namespace Rodana.ZMK
             }
         }
 
+
+        #region ПАРТИИ
+
+        Task partiasAlgroithm;
+        private void StartAlgorithmPButton_Click(object sender, EventArgs e)
+        {
+            if (sessionLink.TryCreateNewPartiasAlgorithmInstance(out var algorithm))
+            {
+                StartAlgorithmPButton.Enabled = false;
+
+                partiasAlgroithm = Task.Run(() => PartiasAlgorithm(algorithm));
+            }
+        }
+
+        private void PartiasAlgorithm_CurrentStageChanged(PartiasAlgorithmStage arg1, int arg2)
+        {
+            PartiasProgressLabel.Invoke(delegate
+            {
+                PartiasProgressLabel.Text = arg1 switch
+                {
+                    PartiasAlgorithmStage.None => "...",
+                    PartiasAlgorithmStage.PreparingSession => "1. Подготовка сессии",
+                    PartiasAlgorithmStage.PreparingPartias => "2. Подготовка партий",
+                    PartiasAlgorithmStage.PreparingLeftovers => "4. Подготовка остатков",
+                    PartiasAlgorithmStage.FillingDeepTables => "5. Заполнение таблиц глубин",
+                    PartiasAlgorithmStage.FiilingDeadlineTables => "6. Заполнение таблиц дедлайнов",
+                    PartiasAlgorithmStage.Searching => "7. Поиск",
+                    PartiasAlgorithmStage.AfterSearchErrorsCheck => "8. Проверка ошибок",
+                    PartiasAlgorithmStage.InsidePartiasOptimization => "9. Объединение внутри партий",
+                    PartiasAlgorithmStage.FormingEasyFlags => "11. Формирование общих этапов",
+                    PartiasAlgorithmStage.Output => "12. Вывод",
+                    PartiasAlgorithmStage.Complete => "13. Завершено",
+                    PartiasAlgorithmStage.Failed => "14. Ошибка"
+                };
+                PartiasProgressBar.Maximum = arg2;
+            });
+        }
+
+        void PartiasAlgorithm(PartiasAlgorithm algorithm)
+        {
+            algorithm.CurrentStageChanged += PartiasAlgorithm_CurrentStageChanged;
+            algorithm.AlgorithmCallback += Algorithm_AlgorithmCallback;
+
+            int N = 0;
+
+            if (algorithm.Start(LogPartiasCheckBox.Checked))
+            {
+                while (!algorithm.Process.IsCompleted)
+                {
+                    PartiasProgressBar.Invoke(delegate { PartiasProgressBar.Value = N; });
+                    Thread.Sleep(250);
+                }
+            }
+
+            void Algorithm_AlgorithmCallback(PartiasAlgorithmStage arg1, int arg2)
+                => N = arg2;
+
+            algorithm.CurrentStageChanged -= PartiasAlgorithm_CurrentStageChanged;
+            algorithm.AlgorithmCallback -= Algorithm_AlgorithmCallback;
+
+            StartAlgorithmPButton.Invoke(delegate
+            {
+                SavedPartiasUpdate();
+                StartAlgorithmPButton.Enabled = true;
+                if (algorithm.CurrentStage == PartiasAlgorithmStage.Complete)
+                {
+                    PartiasProgressBar.Value = PartiasProgressBar.Maximum;
+                }
+            });
+        }
 
         private void SavedPartiasUpdate()
         {
@@ -669,7 +851,7 @@ namespace Rodana.ZMK
                 PartiasDataTable.Rows.Clear();
                 var ALL = sessionLink.MasterDataLinks.StagesMasterData.AllStages;
                 var allOrdersHere = partiasAlgorithm.SavedPartias[partia].Select(index => ALL[index].OrderLink.OrderID).Distinct().ToList();
-                foreach ( var order in allOrdersHere)
+                foreach (var order in allOrdersHere)
                 {
                     var bestStage = partiasAlgorithm.SavedPartias[partia]
                         .Where(index => ALL[index].OrderLink.OrderID == order)
@@ -688,11 +870,6 @@ namespace Rodana.ZMK
 
                 CustomTreeViewOnPPanel.SetThisTree(aps);
             }
-        }
-
-        private void ClearAllSessionErrorsButton_Click(object sender, EventArgs e)
-        {
-            sessionLink.DataErrors.NewDataErrors.Clear();
         }
 
         private void TwoPartiasStartButton_Click(object sender, EventArgs e)
@@ -801,7 +978,7 @@ namespace Rodana.ZMK
             {
                 MessageBox.Show("Что-то пошло не так!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-           
+
         }
 
         private void TwoPartiasOrder1ComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -829,5 +1006,456 @@ namespace Rodana.ZMK
                 foreach (var gp in allGPs) TwoPartiasGP2ComboBox.Items.Add(gp);
             }
         }
+
+        #endregion
+
+        Task planningAlgorithm;
+        private void LaunchPlanningButton_Click(object sender, EventArgs e)
+        {
+            if (sessionLink.TryCreateNewPlanningAlgorithmInstance(out var algorithm))
+            {
+                LaunchPlanningButton.Enabled = false;
+                StopPlanningButton.Enabled = true;
+
+                planningAlgorithm = Task.Run(() => PlanningAlgorithm(algorithm));
+            }
+        }
+
+        private void PlanningAlgorithm_CurrentStageChanged(PlanningAlgorithmStage arg1, int arg2)
+        {
+            PlanningProcessLabel.Invoke(delegate
+            {
+                if (arg1 == PlanningAlgorithmStage.RunningV)
+                {
+                    OutputButton.Enabled = true;
+                }
+                if (arg1 == PlanningAlgorithmStage.FailedV)
+                {
+                    BarDescTextBox.Text = $"V не дошёл, осталось {arg2}.";
+                }
+                PlanningProcessLabel.Text = arg1 switch
+                {
+                    PlanningAlgorithmStage.None => "...",
+                    PlanningAlgorithmStage.Preparing => "1. Подготовка",
+                    PlanningAlgorithmStage.Prepared => "Данные подготовлены",
+                    PlanningAlgorithmStage.RunningV => "V",
+                    PlanningAlgorithmStage.RunningG => "G",
+                    PlanningAlgorithmStage.FailedV => "V завершен с ошибкой",
+                    PlanningAlgorithmStage.Complete => "Завершено.",
+                    PlanningAlgorithmStage.Failed => "Ошибка."
+                };
+                PlanningProcessBar.Maximum = arg2;
+            });
+        }
+
+        void PlanningAlgorithm(PlanningAlgorithm algorithm)
+        {
+            algorithm.CurrentStageChanged += PlanningAlgorithm_CurrentStageChanged;
+            algorithm.AlgorithmCallback += Algorithm_AlgorithmCallback;
+            algorithm.OnFirstResultAcquried += onAcquired;
+            algorithm.OnNewResult += onNewRes;
+            hasNewRes = false;
+
+            int N = 0;
+
+            if (algorithm.Start(false))
+            {
+                while (!algorithm.Process.IsCompleted)
+                {
+                    PlanningProcessBar.Invoke(delegate
+                    {
+                        PlanningProcessBar.Value = N;
+                        if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningV)
+                        {
+                            PlanningProcessLabel.Text = $"V: {N} / {PlanningProcessBar.Maximum}";
+                        }
+
+                        if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningG)
+                        {
+                            PlanningProcessLabel.Text = $"G: {algorithm.UsedWorkflow.Generation} | {algorithm.LastGen} ({algorithm.LastDate})";
+                        }
+
+                        updateUI();
+
+                    });
+                    Thread.Sleep(250);
+                }
+
+                PlanningProcessBar.Invoke(updateUI);
+            }
+
+            void updateUI()
+            {
+
+                if (hasNewRes)
+                {
+                    hasNewRes = false;
+                    PlanningDataTable.Rows[0].Cells[2].Value = resToShow.DaysRuinedValue;
+                    PlanningDataTable.Rows[1].Cells[2].Value = resToShow.RechangesSeconds;
+                    PlanningDataTable.Rows[2].Cells[2].Value = resToShow.ProstoiSeconds;
+                    PlanningDataTable.Rows[3].Cells[2].Value = resToShow.ProductionSeconds;
+                    PlanningDataTable.Rows[4].Cells[2].Value = resToShow.BadOffsets;
+
+                    PlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100.0 - (resToShow.DaysRuinedValue / algorithm.OriginalValue.DaysRuinedValue * 100f), 2) + "%";
+                    PlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100.0 - (resToShow.RechangesSeconds / algorithm.OriginalValue.RechangesSeconds * 100f), 2) + "%";
+                    PlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100.0 - (resToShow.ProstoiSeconds / algorithm.OriginalValue.ProstoiSeconds * 100f), 2) + "%";
+                    PlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100.0 - (resToShow.ProductionSeconds / algorithm.OriginalValue.ProductionSeconds * 100f), 2) + "%";
+                    PlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2) + "%";
+                    //if (!IsSilent)
+                    //{
+
+                    //    GraphsController.AddNewPointToGraphs(workflow.Generation, t.DaysRuinedValue, t.ProstoiSeconds.TotalSeconds, p1, p2, p3, t, ops);
+                    //}
+                    //UpdateUIThere(workflow);
+                }
+            }
+
+            void Algorithm_AlgorithmCallback(PlanningAlgorithmStage arg1, int arg2) => N = arg2;
+
+            algorithm.OnNewResult -= onNewRes;
+            algorithm.CurrentStageChanged -= PlanningAlgorithm_CurrentStageChanged;
+            algorithm.AlgorithmCallback -= Algorithm_AlgorithmCallback;
+            algorithm.OnFirstResultAcquried -= onAcquired;
+
+            LaunchPlanningButton.Invoke(delegate
+            {
+                StopPlanningButton.Enabled = false;
+                //OutputButton.Enabled = false;
+                LaunchPlanningButton.Enabled = true;
+                if (algorithm.CurrentStage == PlanningAlgorithmStage.Complete)
+                {
+                    PlanningProcessBar.Value = PlanningProcessBar.Maximum;
+                }
+            });
+        }
+
+        bool hasNewRes = false;
+        PlanningCalculatorEngineResult resToShow;
+        void onNewRes(PlanningCalculatorEngineResult newRes, List<OpersBlock> list)
+        {
+            hasNewRes = true;
+            resToShow = newRes;
+        }
+
+        void onAcquired(PlanningCalculatorEngineResult res, OpersPool pool)
+        {
+            ganttOLD.Invoke(delegate
+            {
+                OutputToGanttChart(ganttOLD, pool, res);
+                PlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+                PlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+                PlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+                PlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+                PlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+                //PlanningDataTable.Rows[5].Cells[1].Value = res.DaysRuinedValue;
+                //PlanningDataTable.Rows[6].Cells[1].Value = res.;
+            });
+        }
+
+        Font smallFont = new Font("Montserrat", 7f, FontStyle.Bold, GraphicsUnit.Point);
+
+        public void OutputToGanttChart(GanttChart diagram, OpersPool pool, PlanningCalculatorEngineResult dataForHelp)
+        {
+
+            diagram.ClearBars();
+            diagram.SavedOpersLink = null;
+
+            // Это временный словарь чтобы узнать номер линии центра
+            Dictionary<Uco, int> centerIdToLineN = new();
+            List<GanttChart.RowTitle> textRows = new();
+
+            Dictionary<Uco, int> GlobalToLocalCenterRows = new();
+
+            var currRow = 0;
+
+            var CentersData = sessionLink.MasterDataLinks.CentersMasterData.CentersData;
+            var ALL = sessionLink.MasterDataLinks.StagesMasterData.AllStages;
+            var NonWorkingIntervalsMasterData = sessionLink.MasterDataLinks.WorkingIntervalsMasterData;
+            var CentersFixingTime = NonWorkingIntervalsMasterData.CentersFixingTime;
+            var ExistingCriterias = sessionLink.MasterDataLinks.RechangesMasterData.ExistingCriterias;
+            var MODELLING = sessionLink.MasterDataLinks.StagesMasterData.MesModellingsInfo;
+            var Custom_MODELLING = sessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo;
+            var MIN_DATE_TIME_AFTER_FIX = sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate;
+            var prevTimeDelta = sessionLink.MasterDataLinks.StagesMasterData.PrevTimeDelta;
+
+            foreach (var el in pool.CentersData/*int i = 0; i < opers.CentersData.Count; i++*/)
+            {
+                var id = el.Key;
+                //var idS = Centers.CentersIntToStr[id];
+                centerIdToLineN.Add(id, currRow);
+                if (true/*!CentersData[id].IsHiddenOnDiagrams*//* && !CentersData[idS].WillRemoveEverything*/)
+                {
+                    textRows.Add(new GanttChart.RowTitle(new GanttChart.TextInfo[]
+                    {
+                            new GanttChart.TextInfo($"[{CentersData[id].RowIndex}] {id}", new Point(12, 0)),
+                            new GanttChart.TextInfo($"R: {el.Value.RechangesTime}", new Point(2, 17), smallFont, Color.Red),
+                            new GanttChart.TextInfo("", new Point(125, 17), smallFont, Color.Red),
+                            new GanttChart.TextInfo($"P: {el.Value.ProstoiTime}", new Point(2, 29), smallFont, Color.DarkViolet),
+                            new GanttChart.TextInfo("", new Point(125, 29), smallFont, Color.DarkViolet),
+                            new GanttChart.TextInfo($"T: {el.Value.TotalTime}", new Point(2, 42), smallFont, Color.RoyalBlue),
+                            new GanttChart.TextInfo("", new Point(125, 42), smallFont, Color.RoyalBlue)
+                        //new GanttChart.TextInfo((gg+1).ToString(), new Point(2, 0), smallFont, Color.Black)
+                    }, id));
+                    GlobalToLocalCenterRows.Add(id, currRow);
+                    currRow++;
+                }
+            }
+
+
+            for (int i = 0; i < pool.Blocks.Count; i++)
+            {
+                var block = pool.Blocks[i];
+                var blockRC = block.ActualRC;
+
+                var groups = block.Lists.GroupBy(x => dataForHelp.FirstStagesStartDate[x.FirstOper.Index]).ToArray(); // Сначала отсортируем по дате. Если она одинаковая, то будет одна группа, где параллельные моделирования.
+
+                foreach (var group in groups)
+                {
+                    var parallelCount = group.Count(); // Сколько их тут
+
+                    var sortedMods = group.OrderBy(x => dataForHelp.FirstStagesRanks[x.FirstOper.Index]).ToArray(); // Получив их ранги, мы можем точно понять, какое моделирование было первым, и так далее. Перед каждым моделированием, мы можем посмотреть, были ли перед ним простои и переналадки, взяв у его первой операции айдишник, а ещё дату начала.
+
+                    for (int mod = 0; mod < sortedMods.Length; mod++)
+                    {
+                        var currMod = sortedMods[mod];
+                        var nextOper = currMod.FirstOper;
+                        var firstID = nextOper.Index;
+                        (DatesPoolClass data, CachedInterval interval) prostoi;
+                        (RechangesEngineResult data, CachedInterval interval, int last) rechanges;
+                        if (!dataForHelp.ProstoiBeforeFirstStages.TryGetValue(firstID, out prostoi)) prostoi = (null, CachedInterval.Empty);
+                        if (!dataForHelp.RechangesBeforeFirstStages.TryGetValue(firstID, out rechanges)) rechanges = (null, CachedInterval.Empty, -1);
+
+                        //if (firstID == 833)
+                        //{
+                        //    ;
+                        //}
+                        var centerGlobalData = CentersData[blockRC];
+
+                        var dateTime = dataForHelp.FirstStagesStartDate[firstID];
+
+                        if (prostoi.interval.Duration.Ticks > 0)
+                        {
+                            var start = dateTime - rechanges.interval.Duration - prostoi.interval.Duration;
+                            //var name = CentersIntToStr[ChoosenCenter];
+                            var bar = new GanttChart.Bar(start, start + prostoi.interval.Duration, Color.DarkViolet/*Color.LightGray*/, Color.DimGray,//prostInd == -1 ? Color.MediumOrchid : Color.LightGray, prostInd == -1 ? Color.DarkViolet : Color.Silver,//, ,
+                                "Простой." +
+                                //$"\r\nСмысл: {Desc}" +
+                                (prostoi.data != null && prostoi.data.LastID != -1 ? $"\r\nНазначила: {ALL[prostoi.data.LastID]} с РЦ '{pool.Blocks[prostoi.data.LastBlockIndex].ActualRC}'" : "") +
+                                $"\r\nСледующая: {ALL[nextOper.Index]}", // ну типа она же именно что следующая, поэтому берем эту переменную и вставляем сюда.
+                                GlobalToLocalCenterRows[blockRC],
+                                0, 1,
+                                -2, 0);
+                            bar.fixingBars = prostoi.interval.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
+                            diagram.AddBar(bar);
+                        }
+
+                        if (rechanges.data != null && rechanges.last != -1)
+                        {
+                            var start = dateTime - rechanges.interval.Duration;
+
+                            var reches = "";
+                            var op1 = ALL[rechanges.last];
+                            var op2 = ALL[firstID];
+                            void add(string sss, int nnn)
+                            {
+                                reches += $"\r\n{sss}: {op1.RechangeParameters[nnn].ToString()} => {op2.RechangeParameters[nnn].ToString()}";
+                            }
+
+                            for (int ind = 0; ind < ExistingCriterias.Length; ind++)
+                            {
+                                add(ExistingCriterias[ind].Name, ind);
+                            }
+
+                            reches += $"\r\nОперация: {op1.OperationVid} => {op2.OperationVid}";
+                            var results = rechanges.data.ToLinearDictionary();
+                            var bar = new GanttChart.Bar(start, start.Add(rechanges.interval.Duration),
+                    Colors.MOSITLAB_RED, Colors.MOSITLAB_RED_DARK,
+                                $"Переналадка: {(results != null ? string.Join(", ", results.Select(x => x.Value.Name + " (" + x.Value.Duration + " с.)")) : "")}" +
+                                $"\r\nИндекс (ИД): {op1.Index} ({op1.GUID}) => {op2.Index} ({op2.GUID})" +
+                                reches, GlobalToLocalCenterRows[blockRC],
+                                0, 1,
+                                -1, 0);
+                            bar.fixingBars = rechanges.interval.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
+                            //bar.fixingBars = e.CatchedIntervals.Select(x => (CentersFixingTime[e.UsedRCCode][x].When, CentersFixingTime[e.UsedRCCode][x].When.Add(CentersFixingTime[e.UsedRCCode][x].Time))).ToList();
+                            diagram.AddBar(bar);
+                            //Diagram.DrawChart();
+                        }
+
+                        TimeSpan offset = new TimeSpan();
+                        int currentRank = dataForHelp.FirstStagesRanks[firstID];
+                        var intervalForOp = dataForHelp.FirstStagesFullDurations[firstID];
+
+
+                        for (int op = 0; op < currMod.OpersList.Count; op++)
+                        {
+                            var operLoc = currMod.OpersList[op];
+                            var duration = TimeSpan.FromSeconds(operLoc.GetDuration(blockRC)) * currMod.TimeK[blockRC];
+                            var start = dateTime + offset;
+
+                            if (intervalForOp.CatchedIntervals != null && intervalForOp.CatchedIntervals.Length > 0)
+                                duration = NonWorkingIntervalsMasterData.GetDurationWithNonWorkingIntervals(blockRC, start, (int)duration.TotalSeconds, intervalForOp.CatchedIntervals.First()).Duration;
+
+                            //if (intervalForOp.CatchedIntervals != null)
+                            //    foreach (var lunch in intervalForOp.CatchedIntervals)
+                            //{
+                            //    var interval = NonWorkingIntervalsMasterData.CentersFixingTime[blockRC][lunch];
+
+                            //    if (start.Add(duration) <= (interval.When + interval.Time) // Конец операции дальше конца этого интервала?
+                            //        && start <= interval.When // И при этом начало этой операции должно стоять ДО него
+                            //        ) duration += interval.Time;
+                            //}
+
+                            var orderlink = operLoc.OrderLink;
+                            var ordern = orderlink.OrderID;
+                            // Вывод на диаграмму Ганта
+                            var bar = new GanttChart.Bar(start, start + duration,
+                            (operLoc.IsLast ? Color.Yellow : (parallelCount > 1 ? Color.DarkGreen : Colors.MOSITLAB_BLUE)), Colors.MOSITLAB_BLUE_DARK,
+                            $"Операция {operLoc.Index} ({operLoc.GUID}) (вид: {operLoc.OperationVid})" +
+                            ((operLoc.Center == blockRC) ? "" : $"\r\nСтандартный РЦ: {operLoc.Center}") +
+                            $"\r\nРанг: {currentRank}" +
+                            (operLoc.PrevDateTime.HasValue ? $"\r\nПред. время: {operLoc.PrevDateTime.Value} + {(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)} = {operLoc.PrevDateTime.Value.Add(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)}" : "") +
+                            $"\r\nНоменклатура: {operLoc.Nomenklature}" +
+                            //(centerGlobalData.ParallelModelling ? $"\r\n*Сокращённая" : "") +
+                            $"\r\nПродукция: {operLoc.Production}" +
+                            $"\r\nНаладочная длина: {pool.NaladLengthsData[operLoc.Index].data.NaladLengthHere.Value}" +
+                            $"\r\nРегистратор: {operLoc.Registrator}" +
+                            $"\r\nКоличество: {operLoc.Count}" +
+                            $"\r\nПовив: {operLoc.Poviv}" +
+                            "\r\n" +
+                            string.Join("\r\n", ExistingCriterias.Select((x, index) =>
+                            $"{x.Name}: {operLoc.RechangeParameters[index].ToString()}"
+                            )) +
+                            //$"\r\nНапряжение: {operLoc.RechangesSTR[(int)RechangeCriteria.Voltage]} ({operLoc.Rechanges[(int)RechangeCriteria.Voltage]})" +
+                            //$"\r\nКоличество мест: {operLoc.OECount} [st {operLoc.OEStaticCount}, ls {operLoc.OELastCount}, cl {operLoc.OECalculatedCount}, rh {operLoc.Rechanges[(byte)RechangeCriteria.OECount]}]" +
+                            //$"\r\nСечение: {operLoc.RechangesSTR[(int)RechangeCriteria.Razm1Sech]}" +
+                            //$"\r\nДиаметр: {operLoc.RechangesSTR[(int)RechangeCriteria.Diam]}" +
+                            //$"\r\nТпж: {operLoc.RechangesSTR[(int)RechangeCriteria.TPZH]}" +
+                            $"\r\nID пар. планирования: {(string.Join("; ", operLoc.ParallelPlanningIDs.Select(x => $"{x.Key} = {x.Value}")))}" +
+                            $"\r\nЕд. изм.:: {operLoc.EdIzm}" +
+                            $"\r\nМетод расчёта: {operLoc.UsedCalcMethod}" +
+                            //$"\r\nЛиния: {e.CenterRow + 1}" +
+                            (operLoc.MesModelling.Code == Guid.Empty ? "" : $"\r\nМоделирование: {operLoc.MesModelling} / custom: {(operLoc.IsCustomModelling ? operLoc.CustomModelling : "")}") +
+                            $"\r\nТара: {operLoc.CurrentTara}" +
+                            (ordern.Object.Label.Length == 0 ? "" : $"\r\nЗаказ: {ordern.Object}\r\nПартия ГП: {ordern.Version}\r\nДедлайн: {orderlink.Deadline:G}\r\nПриоритет: {orderlink.Priority}") +
+                            //(opers_list.CustomModelling == -1 ? "" : $"\r\nКастомное моделирование: {opers_list.CustomModelling}") +
+                            (operLoc.StartTimeFact.HasValue ? $"\r\nДата начала (ФАКТ.): {operLoc.StartTimeFact.Value}" : "") +
+                            (operLoc.Fixed ? $"\r\nЗАФИКСИРОВАНА" : "") +
+                            (operLoc.VPZ ? $"\r\nВПЗ" : "") +
+                            (operLoc.Prevs.Count == 0 ? "" : $"\r\nЗависима от: {string.Join(", ", operLoc.Prevs.Select(x => $"{ALL[x].Index} / {ALL[x].GUID}"))}") +
+                            (operLoc.Nexts.Count == 0 ? "" : $"\r\nВлияет на: {string.Join(", ", operLoc.Nexts.Select(x => $"{ALL[x].Index} / {ALL[x].GUID}"))}"),
+                            GlobalToLocalCenterRows[blockRC],
+                            parallelCount > 1 ? (1f / parallelCount) * mod : 0,
+                            parallelCount > 1 ? (1f / parallelCount) : 1, // TODO
+                            operLoc.Index,
+                            pool.NaladLengthsData[operLoc.Index].data.NaladLengthHere.Value,
+                            operLoc.Fixed ? Color.Maroon : (operLoc.IsFact ? Color.Gray : (operLoc.VPZ ? Color.RoyalBlue : null)),
+                            operLoc.Center == blockRC ? null : Color.Orange,
+                            operLoc.Prevs.Count == 0 && operLoc.Nexts.Count == 0 ? Color.Lime : (operLoc.CurrentTara.IsEmpty && !operLoc.IsVspom ? Color.Red : (operLoc.ParallelPlanningIDs.All(x => x.Value == -1) && centerGlobalData.CanBeParallel ? Color.OrangeRed : null)),
+                            operLoc.IsCustomModelling ? Custom_MODELLING[operLoc.CustomModelling].Color : (operLoc.MesModelling.Code == Guid.Empty ? (Color?)null : MODELLING[operLoc.MesModelling.Code].Color),// || opers_list.CustomModelling > -1 // opersHere.Count == 1 ||
+                            operLoc.Color
+                            //, opers_list.CustomModellingColor
+                            );
+                            bar.fixingBars = intervalForOp.CatchedIntervals?.Select(x => (CentersFixingTime[blockRC][x].When, CentersFixingTime[blockRC][x].When.Add(CentersFixingTime[blockRC][x].Time))).ToList();
+                            diagram.AddBar(bar, operLoc.Index);
+
+
+
+
+                            currentRank++;
+                            offset = offset.Add(duration);
+                        }
+
+                        if (Math.Abs((offset - intervalForOp.Duration).TotalSeconds) > 1)
+                        {
+                            ;
+                        }
+                    }
+                }
+            }
+
+
+            diagram.CurrentHoveredBar = -1;
+            diagram.assignedDataPack = pool.Blocks.SelectMany(x => x.Lists.SelectMany(z => z.OpersList.Select(y => (y.Index, y.Prevs, y.Nexts, x.ActualRC, y.PossibleCenters)))).ToDictionary(x => x.Index, x => (x.Prevs, x.Nexts, x.ActualRC, x.PossibleCenters));
+            diagram.SavedOpersLink = OpersPool.CopyBlocks(pool.Blocks, false);
+            diagram.SetRowTitles(textRows);
+            diagram.FindAllPrevsHere(-1, false); // все нахрен стираем
+        }
+
+        private void ModsColorCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            ganttOLD.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
+            ganttNEW.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
+            //ganttAnalysis.UpdateColorsInfoAndPaint(MoreColorsCheckBox.Checked, MoreModColorsCheckBox.Checked, ShowFixedOpersCheckBox.Checked, ShowFreeOpersCheckBox.Checked, ShowAltRCsCheckBox.Checked);
+        }
+
+        private void StagesColorCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            ganttOLD.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
+            ganttNEW.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
+            //ganttAnalysis.UpdateColorsInfoAndPaint(MoreColorsCheckBox.Checked, MoreModColorsCheckBox.Checked, ShowFixedOpersCheckBox.Checked, ShowFreeOpersCheckBox.Checked, ShowAltRCsCheckBox.Checked);
+        }
+
+        private void OutputButton_Click(object sender, EventArgs e)
+        {
+            var algorithm = sessionLink.AssignedPlanningAlgorithm;
+            if (algorithm == null) return;
+            var outData = sessionLink.SessionOutputEngine.Output();
+            ganttNEW.Invoke(delegate
+            {
+                OutputToGanttChart(ganttNEW, outData.copy, outData.result);
+            });
+        }
+
+        private void StopPlanningButton_Click(object sender, EventArgs e)
+        {
+            var algorithm = sessionLink.AssignedPlanningAlgorithm;
+            if (algorithm == null) return;
+            algorithm.WannaStop();
+        }
+    
+        private void CreatePlanningTable()
+        {
+
+            for (int i = 0; i < 7; i++)
+            {
+                PlanningDataTable.Rows.Add();
+            }
+
+            var row1 = PlanningDataTable.Rows[0];
+            row1.DefaultCellStyle.ForeColor = Color.RoyalBlue;
+            row1.DefaultCellStyle.Font = new Font(Font, FontStyle.Bold);
+            row1.Cells[0].Value = "Срывы сроков";
+
+            var row2 = PlanningDataTable.Rows[1];
+            row2.DefaultCellStyle.ForeColor = Color.Red;
+            row2.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row2.Cells[0].Value = "Переналадки";
+
+            var row3 = PlanningDataTable.Rows[2];
+            row3.DefaultCellStyle.ForeColor = Color.DarkViolet;
+            row3.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row3.Cells[0].Value = "Простои";
+
+            var row4 = PlanningDataTable.Rows[3];
+            row4.DefaultCellStyle.ForeColor = Color.DarkGreen;
+            row4.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row4.Cells[0].Value = "Длительность плана";
+
+            var row5 = PlanningDataTable.Rows[4];
+            row5.DefaultCellStyle.ForeColor = Color.DarkOrange;
+            row5.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row5.Cells[0].Value = "Размотка тары";
+
+            var row6 = PlanningDataTable.Rows[5];
+            row6.DefaultCellStyle.ForeColor = Color.LightCoral;
+            row6.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row6.Cells[0].Value = "Распределение РЦ";
+
+            var row7 = PlanningDataTable.Rows[6];
+            row7.DefaultCellStyle.ForeColor = Color.DarkBlue;
+            row7.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row7.Cells[0].Value = "Соответствие";
+        }
+    
     }
 }

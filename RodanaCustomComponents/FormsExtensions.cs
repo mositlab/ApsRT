@@ -50,6 +50,11 @@ namespace RodanaCustomComponents
                 comp.ForeColor = textColor;
                 //button.ForeColor = Color.Black;
             }
+            foreach (var comp in Descendant<GroupBox>(form))
+            {
+                comp.ForeColor = textColor;
+                //button.ForeColor = Color.Black;
+            }
             foreach (var comp in Descendant<TabPage>(form))
             {
                 comp.BackColor = backColor;

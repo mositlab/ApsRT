@@ -180,6 +180,8 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
 
             }
 
+            SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Clear();
+
             foreach (var zadel in SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary)
             {
                 //zadel.Value.CalcCount = zadel.Value.Count;
@@ -1043,11 +1045,10 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                     {
                         var modGuid = CreateCustomMods ? Guid.NewGuid() : lvl2.Opers[0].MesModelling.Code; // если ко мне пришла заблоченная партия, значит надо брать моделирования из меса. Для этого достаточно взять первую попавшуюся операцию из этого моделирования
 
-                        //if (CreateCustomMods)
-                        //{
-                        //    CustomModellingIntToStr.Add(modGuid, $"Кастомное моделирование APS #{Mod} ({modGuid})");
-                        //    Custom_MODELLING.Add(modGuid, (MainLoader.NewRandomColor(), new()));
-                        //}
+                        if (CreateCustomMods)
+                        {
+                            SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Add(modGuid, (Colors.NewRandomColor(), new()));
+                        }
 
                         for (var i = 0; i < lvl2.Opers.Count; i++)
                         {
@@ -1077,7 +1078,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
 
                             if (CreateCustomMods)
                             {
-                                //Custom_MODELLING[modGuid].list.Add(op1.Index);
+                                SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo[modGuid].RelatedOpers.Add(op1.Index);
                             }
                         }
                     }

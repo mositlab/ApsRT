@@ -44,49 +44,49 @@ namespace Rodana.Core.Rechanges
         /// <summary>
         /// Имя критерия
         /// </summary>
-        internal string Name { get; }
+        public string Name { get; }
 
         /// <summary>
         /// Список имён столбцов, откуда в таблице операций брать данные
         /// </summary>
-        internal (string ValueColumn, string LabelColumn)[] StagesTableColumnsNames { get; }
+        public (string ValueColumn, string LabelColumn)[] StagesTableColumnsNames { get; }
 
         /// <summary>
         /// Может быть числом? Как например сечение
         /// </summary>
-        internal bool CanBeNumber { get; }
+        public bool CanBeNumber { get; }
 
         /// <summary>
         /// Может быть диапазоном? Как например диаметры и сечение
         /// </summary>
-        internal bool CanBeDiapazon { get; }
+        public bool CanBeDiapazon { get; }
 
         /// <summary>
         /// Может быть строкой? Как, к примеру, вид металла или красители
         /// </summary>
-        internal bool CanBeString { get; }
+        public bool CanBeString { get; }
 
         /// <summary>
         /// Может ли быть идентификатором, как например тех операция или изоляция.
         /// Можно сюда передать кодовый объект без имени (только гуид), но пока что не было примеров производств, где так надо.
         /// Будут сравниваться только гуиды
         /// </summary>
-        internal bool CanBeGuid { get; }
+        public bool CanBeGuid { get; }
 
         /// <summary>
         /// Возможна ли многозначная проверка
         /// </summary>
-        internal bool CanBeMultiple { get; }
+        public bool CanBeMultiple { get; }
 
         /// <summary>
         /// Нужно ли сортировать значения - как например в материалах
         /// </summary>
-        internal bool Sort { get; }
+        public bool Sort { get; }
 
         /// <summary>
         /// Вместо хранения значений, этап хранит у себя функцию, с помощью которой выдаст объект, который придётся распаковать, и вот с ним уже можно будет работать.
         /// </summary>
-        internal bool IsLink { get; }
+        public bool IsLink { get; }
 
         /// <summary>
         /// Непосредственно сама ссылка, позволяющая получить данные
@@ -98,7 +98,7 @@ namespace Rodana.Core.Rechanges
         /// <summary>
         /// У него постоянно меняются значения? В таком случае наличие этого критерия заставить АПС хранить данные не в статичном, а в динамичном кэше, а так же постоянно сравнивать диаметры
         /// </summary>
-        internal bool IsDynamic { get; }
+        public bool IsDynamic { get; }
     }
 
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.Orders
 {
-    public struct OrderFunctionData
+    public class OrderFunctionData
     {
         public OrderFunctionLevelData Level1 { get; set; }
         public OrderFunctionLevelData Level2 { get; set; }

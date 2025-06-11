@@ -28,7 +28,7 @@ namespace Rodana.Core.Centers.MasterData
         internal Dictionary<Uco, CachedInterval> PreparedRCFixingData = new(); // начало. Позволяет узнать, какой РЦ в какой интервал попал (либо какой будет следующий).
 
         // 0 - ремонт (черный тогда), 1 - нерабочее время (белый)
-        internal Dictionary<Uco, List<(DateTime When, TimeSpan Time, int Type)>> CentersFixingTime = new(/*new CodedObjectEqualityComparer()*/); // Список ремонтов для каждого из РЦ.
+        public Dictionary<Uco, List<(DateTime When, TimeSpan Time, int Type)>> CentersFixingTime = new(/*new CodedObjectEqualityComparer()*/); // Список ремонтов для каждого из РЦ.
 
         #region Калькулятор полной длительности любого интервала, с учетом обедов и ремонтов
 
@@ -49,7 +49,7 @@ namespace Rodana.Core.Centers.MasterData
         /// <param name="start">начало интервала</param>
         /// <param name="duration">сколько длится</param>
         /// <returns>Интервал с информацией о попавших в него обедах и ремонтах (они включаются в длительность)</returns>
-        internal CachedInterval GetDurationWithNonWorkingIntervals(Uco RC, DateTime start, int duration, int startSearchFrom)
+        public CachedInterval GetDurationWithNonWorkingIntervals(Uco RC, DateTime start, int duration, int startSearchFrom)
         {
             //if (start.TimeOfDay.Hours == 23)
             //{

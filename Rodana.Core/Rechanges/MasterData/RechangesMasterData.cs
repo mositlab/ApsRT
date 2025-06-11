@@ -129,7 +129,7 @@ namespace Rodana.Core.Rechanges.MasterData
 
         object rechangeCashLocker = new();
 
-        internal RechangeUniversalCriteria[] ExistingCriterias;
+        public RechangeUniversalCriteria[] ExistingCriterias;
 
         internal int GetCriteriaIndexByName(string rawCriteriaName)
         {

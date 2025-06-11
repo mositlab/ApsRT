@@ -6,18 +6,16 @@ using System.Threading.Tasks;
 
 namespace Rodana.Core.Orders
 {
-    public struct OrderFunctionLevelData
+    public class OrderFunctionLevelData
     {
-        public OrderFunctionLevelData(double from, double to, double k, double a)
+        public OrderFunctionLevelData(double upto, double k, double a)
         {
-            From = from;
-            To = to;
+            UpTo = upto;
             K = k;
             A = a;
         }
 
-        public double From { get; set; }
-        public double To { get; set; } // Обозначение с какого дня по какой
+        public double UpTo { get; set; } // Обозначение с какого дня по какой
 
         //KX ^ A
         public double K { get; set; }

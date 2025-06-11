@@ -24,8 +24,15 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
     {
         public PlanningAlgorithm basisLink;
 
-        public void Start(PlanningAlgorithmWorkflow workflow, double[] Ks = null)
+        public AlgorithmV(PlanningAlgorithm basisLink)
         {
+            this.basisLink = basisLink;
+        }
+
+        public void Start(PlanningAlgorithmWorkflow workflow)
+        {
+
+            double[] Ks = basisLink.SessionLink.SettingsController.CurrentSettings.VKoeffs;
 
             var NaladLengthsMasterData = basisLink.SessionLink.MasterDataLinks.NaladLengthsMasterData;
             var ParallelPlanningMasterData = basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData;
@@ -70,12 +77,12 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                     break;
                 }
 
-                if (basisLink.WannaStop)
+                if (basisLink.wannaStop)
                 {
                     break;
                 }
 
-                workflow.ProgressChanged(0);
+                //workflow.ProgressChanged(0);
 
                 long TotalRechanges = 0; // Сумма вообще всех переналадок
                 long TotalProstoi = 0; // Сумма вообще всех простоев
@@ -130,7 +137,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                 // Цикл проходится
                 while (OpersCopy.Count > 0)
                 {
-                    if (basisLink.WannaStop)
+                    if (basisLink.wannaStop)
                     {
                         isbad = true;
                         break;
@@ -218,7 +225,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
 
                         TemporaryTaraSearchData data = null;
-                        bool Can1 = TaraSearchEngine.GetAllVariantsForThese(OpersCopy[j].Lists[0], out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForV });
+                        bool Can1 = TaraSearchEngine.GetAllVariantsForThese(OpersCopy[j].Lists[0], out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForV, ModToTaraInfoLink = basisLink.ModToTaraInfo });
 
                         //bool Can = Merger.SumIsPossible(OpersCopy[j].Lists[0].OpersList,
                         //    out _, out _, out _, out _, out _, false, true,
@@ -326,7 +333,8 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                                                 PrevsInfo = PrevsInfoForV,// ПРЕД.
                                                 TaraMustBeThis = tara.Tara,// огр. по таре
                                                 RCMustBeThis = tara.RC,// огр. по РЦ
-                                                LogSomeErrors = false
+                                                LogSomeErrors = false,
+                                                ModToTaraInfoLink = basisLink.ModToTaraInfo
                                             });
                                         AnyCan |= Can2;
                                         if (Can2)
@@ -433,7 +441,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
                     AddOperHere(best, asParallel, timeP, timeR, bestNalads, centers_choosen, bestTara, bestTaraIsLast, pool, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
 
-                    workflow.ProgressChanged(OpersNow.Count); // Провоцируем перерисовку
+                    //workflow.ProgressChanged(OpersNow.Count); // Провоцируем перерисовку
 
                     basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, OpersNow.Count);
 
@@ -449,19 +457,19 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
                     //continue; // Если там никакая операция не подошла, то он ничего не вычисляет, а просто переходит к следующему циклу
                 }
-                Console.WriteLine($"V, step {i}, " + OpersNow.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Count());
+                Console.WriteLine($"V, step {i}, " + OpersNow.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Distinct().Count());
                 var pool0 = new OpersPool(basisLink.SessionLink, OpersNow, preparedData, basisLink.MinAcceptableDate);
                 var t = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool0, basisLink.MinAcceptableDate, null);
                 //This.SomeResultsTextBox.Text += $"Дошёл, {TimeSpan.FromSeconds(t.RechangesSeconds)}\r\n";
-                if (globalres > t.RechangesSeconds) // тут не только переналадки вообще-то
+                if (true/*globalres > t.RechangesSeconds*/) // тут не только переналадки вообще-то
                 {
                     workflow.BestValue = t;
-                    workflow.LastRechangesForCombo = t.RechangesSeconds;
-                    workflow.LastProductionForCombo = t.GlobalPlanEndDate - basisLink.MinAcceptableDate;
-                    workflow.LastProstoiForCombo = t.ProstoiSeconds.TotalMinutes;
-                    workflow.LastDaysForCombo = t.DaysRuinedValue;
-                    workflow.LastBadOffsetsForCombo = t.BadOffsets;
-                    basisLink.UpdateBcsSuccess(workflow, t, workflow.origValue, pool0.Blocks);
+                    //workflow.LastRechangesForCombo = t.RechangesSeconds;
+                    //workflow.LastProductionForCombo = t.GlobalPlanEndDate - basisLink.MinAcceptableDate;
+                    //workflow.LastProstoiForCombo = t.ProstoiSeconds.TotalMinutes;
+                    //workflow.LastDaysForCombo = t.DaysRuinedValue;
+                    //workflow.LastBadOffsetsForCombo = t.BadOffsets;
+                    basisLink.UpdateBcsSuccess(t, pool0.Blocks);
                     globalres = t.RechangesSeconds;
                 }
                 //else
@@ -672,7 +680,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             var CentersMasterData = masterDatas.CentersMasterData;
             var RechangesMasterData = masterDatas.RechangesMasterData;
             var AdditionalConditionsMasterData = masterDatas.AdditionalConditionsMasterData;
-            var MIN_DATE_TIME_AFTER_FIX = masterDatas.StagesMasterData.MIN_DATE_TIME_AFTER_FIX;
+            var MIN_DATE_TIME_AFTER_FIX = basisLink.MinAcceptableDate;
             var ALL = masterDatas.StagesMasterData.AllStages;
             var CentersFixingTime = masterDatas.WorkingIntervalsMasterData.CentersFixingTime;
             var CentersData = masterDatas.CentersMasterData.CentersData;

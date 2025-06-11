@@ -40,7 +40,7 @@ namespace Rodana.Core.Centers
         internal bool HasAdditionalActions;
         internal UniversalBinaryStorage PossibleAdditionalActions;
 
-        internal bool CanBeParallel;
+        public bool CanBeParallel;
         public int? MaxMinutesAwaiting; // макс время ожидания
 
         public int RowIndex;

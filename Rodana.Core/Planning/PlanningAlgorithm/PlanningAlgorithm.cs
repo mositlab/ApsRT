@@ -35,16 +35,23 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
         }
 
         public DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
-    
+        public DateTime StartOfPlanningDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
+
         public List<OpersBlock> BestBlocksList { get; private set; }
 
         public PlanningCalculatorEngineResult OriginalValue { get; private set; }
+
+        public PlanningAlgorithmWorkflow UsedWorkflow { get; private set; }
 
         public PlanningAlgorithmStage CurrentStage { get; internal set; }
 
         public Action<PlanningAlgorithmStage, int> CurrentStageChanged;
 
         public Action<PlanningAlgorithmStage, int> AlgorithmCallback;
+
+        public Action<PlanningCalculatorEngineResult, OpersPool> OnFirstResultAcquried;
+
+        public Action<PlanningCalculatorEngineResult, List<OpersBlock>> OnNewResult;
 
         public Task<bool> Process { get; private set; }
 
@@ -73,12 +80,14 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public object LockerObject { get; set; } = new();
 
-        public bool WannaStop = false;
+        bool wannaStop = false;
+
+        public void WannaStop() => wannaStop = true;
 
         public int GLOBAL_FIXED_MIN = 0;
         public int GLOBAL_VPZ_MAX = 0;
 
-        bool FoundSmth = false, FoundGlobal = false;
+        public bool FoundSmth = false, FoundGlobal = false;
 
         public bool AlgorithmProcess(bool WithLog)
         {
@@ -89,9 +98,11 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                     PrepareEverything();
                 }
 
+                (var result, var localCopy) = SessionLink.SessionOutputEngine.Output(true);
+                OnFirstResultAcquried?.Invoke(result, localCopy);
+
                 if (SessionLink.SessionOptions.Jsort)
                 {
-                    SessionLink.SessionOutputEngine.Output(true);
                     SessionLink.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: jsort done.\r\n");
                     CurrentStage = PlanningAlgorithmStage.Complete;
                     CurrentStageChanged?.Invoke(CurrentStage, 0);
@@ -99,50 +110,44 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                     return true;
                 }
 
+
+                var LoadedData = SessionLink.SettingsController.CurrentSettings;
+
+                UsedWorkflow = new PlanningAlgorithmWorkflow(
+                   SessionLink,
+                   !LoadedData.UseCycles && !LoadedData.UseMinutes ? LoadedData.IterationsCount : 0,
+                   LoadedData.UseCycles ? LoadedData.CyclesCount : 0,
+                   LoadedData.UseMinutes ? LoadedData.MinutesCount : 0,
+                   OriginalValue,
+                   8
+                   );
+
                 CurrentStage = PlanningAlgorithmStage.RunningV;
                 CurrentStageChanged?.Invoke(CurrentStage, BestBlocksList.Count);
-                var V = new AlgorithmV();
-                V.Start(workflow, Ks);
+                var V = new AlgorithmV(this);
+
+                V.Start(UsedWorkflow);
+                if (wannaStop)
+                {
+                    CurrentStage = PlanningAlgorithmStage.Failed;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                    return false;
+                }
 
                 CurrentStage = PlanningAlgorithmStage.RunningG;
-                CurrentStageChanged?.Invoke(CurrentStage, );
-                var G = new AlgorithmG();
-                G.Start();
+                CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
+                //var G = new AlgorithmG();
+                //G.Start();
 
-                Ks = LoadedData.K_Koeffs.Replace(" ", "").Split(',').Select(x => double.Parse(x.Replace('.', ','))).ToArray();//GetKsFromUI();
-
-                // v failed:
-                This.OnCalcDebugger.Text += "\r\n" + TimeSpan.FromSeconds(TotalRechanges).ToString() + $" {possibleFirstIndexes[i]} - не дошёл, осталось {OpersCopy.Count}";
-
-
-                Task.Run(() =>
+                if (wannaStop)
                 {
-                    try
-                    {
-                        This.GenNLabel.Text = workflow.Generation.ToString() + " / " + OpersNow.Count; // иногда эта залупа провоцирует ошибку
-                    }
-                    catch
-                    {
-
-                    }
-                });
-
-
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        This.CalcProgressBar.Value++;
-                        This.GenNLabel.Text = workflow.Generation.ToString() + " / " + OpersNow.Count; // иногда эта залупа провоцирует ошибку
-                    }
-                    catch
-                    {
-
-                    }
-                });
+                    CurrentStage = PlanningAlgorithmStage.Failed;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                    return false;
+                }
 
                 CurrentStage = PlanningAlgorithmStage.Complete;
-                CurrentStageChanged?.Invoke(CurrentStage, 0);
+                CurrentStageChanged?.Invoke(CurrentStage, 1);
                 return true;
             }
             catch (Exception ex)
@@ -156,13 +161,14 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         public bool PrepareEverything()
         {
-            if (WannaStop)
+            if (wannaStop)
             {
-                WannaStop = false; // Сбрасываем, если кнопка была нажата ранее
+                wannaStop = false; // Сбрасываем, если кнопка была нажата ранее
             }
 
 
             MinAcceptableDate = DateTime.Now;
+            StartOfPlanningDate = DateTime.Now;
 
             Console.WriteLine($"planning start: {MinAcceptableDate}");
 
@@ -505,6 +511,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             return good;
         }
 
+        public ConcurrentDictionary<int, TemporaryTaraSearchData> ModToTaraInfo = new();
 
         public Dictionary<int, int> ModIDToOnOneRCGroupID = new();
         public Dictionary<int, (List<int> ModIDs, List<Uco> PossibleRCs)> OnOneRCGroupData = new();
@@ -561,25 +568,17 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
         public int LastGen { get; private set; } = 0;
         public TimeSpan LastDate { get; private set; } = TimeSpan.MinValue;
 
-        public void UpdateBcsSuccess(PlanningAlgorithmWorkflow workflow, PlanningCalculatorEngineResult t, PlanningCalculatorEngineResult origTime, List<OpersBlock> ops)
+        public void UpdateBcsSuccess(PlanningCalculatorEngineResult t, List<OpersBlock> ops)
         {
-            //if (!IsSilent)
-            //{
-            //    LastGen = workflow.Generation;
-            //    LastDate = DateTime.Now - MinAcceptableDate;
-            //    var p1 = t.MostRCSeconds / origTime.MostRCSeconds * 100f;
-            //    var p2 = t.RechangesSeconds / origTime.RechangesSeconds * 100f;
-            //    var p3 = t.ProductionSeconds / origTime.ProductionSeconds * 100f;
-            //    //var p4 = (double)t.ProstoiSeconds / origTime.ProstoiSeconds * 100f;
-            //    p3 = Math.Round(100.0 - p3, 2);
-            //    //p4 = Math.Round(100.0 - p4, 2);
-            //    GraphsController.AddNewPointToGraphs(workflow.Generation, t.DaysRuinedValue, t.ProstoiSeconds.TotalSeconds, p1, p2, p3, t, ops);
-            //}
-            BestBlocksList = ops;
+            lock (LockerObject)
+            {
+                BestBlocksList = ops;
+            }
+            LastGen = UsedWorkflow.Generation;
+            LastDate = DateTime.Now - StartOfPlanningDate;
             FoundSmth = true;
             FoundGlobal = true;
-
-            //UpdateUIThere(workflow);
+            OnNewResult?.Invoke(t, ops);
         }
     }
 }

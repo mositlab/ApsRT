@@ -123,7 +123,7 @@ namespace Rodana.Core.Planning.PlanningClasses
         #region УЙМА всяких методов, которые по хорошему надо разгрести и убрать
 
 
-        internal static List<OpersBlock> CopyBlocks(List<OpersBlock> list, bool WithTara)
+        public static List<OpersBlock> CopyBlocks(List<OpersBlock> list, bool WithTara)
             =>
             CopyBlocksDeep(list, WithTara);
         //new OpersPool(list, null, null, null, null, null, null, null, null, false).CopyBlocks(WithTara);

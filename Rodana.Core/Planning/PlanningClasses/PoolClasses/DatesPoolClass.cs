@@ -8,9 +8,9 @@ namespace Rodana.Core.Planning.PlanningClasses.PoolClasses
 {
     public class DatesPoolClass
     {
-        internal DateTime MinValue;
-        internal int Flag;
-        internal int LastBlockIndex, LastID;
+        public DateTime MinValue;
+        public int Flag;
+        public int LastBlockIndex, LastID;
 
         public DatesPoolClass(DatesPoolClass fromBase) : this(fromBase.MinValue, fromBase.Flag, fromBase.LastBlockIndex, fromBase.LastID) { }
 

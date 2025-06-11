@@ -13,26 +13,26 @@ namespace Rodana.Core.Planning.PlanningClasses
     /// </summary>
     public class CenterInPlanData // struct
     {
-        internal PlanningModelling LastMod;
-        internal OpersBlock LastBlock;
-        internal DateTime LastDate; // дата конца загрузки
-        internal DateTime LastStartDate; // дата начала последнего блока
+        public PlanningModelling LastMod;
+        public OpersBlock LastBlock;
+        public DateTime LastDate; // дата конца загрузки
+        public DateTime LastStartDate; // дата начала последнего блока
 
-        internal int NextNonWorkingInterval;
+        public int NextNonWorkingInterval;
 
-        //internal CashedInterval NonWorkingIntervalData;
+        //public CashedInterval NonWorkingIntervalData;
 
-        internal UniversalBinaryStorage AdditinalConditions;
+        public UniversalBinaryStorage AdditinalConditions;
 
-        internal int Flag;
+        public int Flag;
 
-        internal int LocalFlag;
+        public int LocalFlag;
 
-        internal TimeSpan OpersTime, RechangesTime, ProstoiTime;
+        public TimeSpan OpersTime, RechangesTime, ProstoiTime;
 
-        internal TimeSpan TotalTime => OpersTime + RechangesTime + ProstoiTime;
+        public TimeSpan TotalTime => OpersTime + RechangesTime + ProstoiTime;
 
-        internal CenterInPlanData Copy() // Копируем структуру. При подсчёте это нужно
+        public CenterInPlanData Copy() // Копируем структуру. При подсчёте это нужно
         {
             var copy = new CenterInPlanData()
             {

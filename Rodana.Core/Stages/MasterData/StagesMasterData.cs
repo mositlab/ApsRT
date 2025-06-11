@@ -52,7 +52,8 @@ namespace Rodana.Core.Stages.MasterData
             AllStages.Clear();
             GUIDToIndex.Clear();
             MesModellingsInfo.Clear();
-            MIN_DATE_TIME_AFTER_FIX = DateTime.MaxValue;
+            ApsModellingsInfo.Clear();
+            //MIN_DATE_TIME_AFTER_FIX = DateTime.MaxValue;
             FIXED_START_TIME = null;
             PrevTimeDelta = null;
             //MinAcceptableDate = DateTime.Now;
@@ -62,11 +63,13 @@ namespace Rodana.Core.Stages.MasterData
 
         public Dictionary<Guid, (Color Color, List<int> RelatedOpers)> MesModellingsInfo = new();
 
+        public Dictionary<Guid, (Color Color, List<int> RelatedOpers)> ApsModellingsInfo = new();
+
         // А это доп. дата, которая была введена для того, чтобы апс разграничила выполнение Fixed-операций и других
         // Благодаря этой сохраненной дате АПС даёт простою
         public DateTime? FIXED_START_TIME { get; private set; }
 
-        public DateTime MIN_DATE_TIME_AFTER_FIX { get; set; } = DateTime.MaxValue; //  Это всегда было временем начала
+        //public DateTime MIN_DATE_TIME_AFTER_FIX { get; set; } = DateTime.MaxValue; //  Это всегда было временем начала
 
         public TimeSpan OneDay { get; private set; } = TimeSpan.FromDays(1);
 

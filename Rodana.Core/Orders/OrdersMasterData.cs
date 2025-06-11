@@ -72,14 +72,14 @@ namespace Rodana.Core.Orders
         /// <returns></returns>
         public double CalcDeadline(double days, OrderID ordernG, int priority)
         {
-            var koeffs = SessionLink.SettingsController.CurrentSettings.OrderCoeffs[priority > 2 ? 2 : priority];
-            if (days < koeffs.Level1.To)
+            var koeffs = SessionLink.SettingsController.CurrentSettings.OrderCoeffs[priority];
+            if (days < koeffs.Level1.UpTo)
             {
                 return Math.Pow(days, koeffs.Level1.A) * koeffs.Level1.K;
             }
             else
             {
-                if (days >= koeffs.Level2.From && days < koeffs.Level2.To)
+                if (days < koeffs.Level2.UpTo)
                 {
                     return Math.Pow(days, koeffs.Level2.A) * koeffs.Level2.K;
                 }

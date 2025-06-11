@@ -13,7 +13,8 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
     {
         internal object[] RawData;
 
-        int[] ComboList; // перечисление способов оптимизации
+        int[] CriteriasList => sessionLink.SettingsController.CurrentSettings.CriteriasList; // перечисление способов оптимизации
+
         int CurrentComboParam = 0; // какой сейчас выбран способ оптимизации в массиве
         int CurrCycle = 0; // Текущий цикл
         internal int currentMode = 0; // текущий режим, по факту равен ComboList[CurrentComboParam]
@@ -21,63 +22,51 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
         internal int maxDynCounter { get; private set; }
         internal bool FoundForDynamic = false;
 
-        internal int Generation = 0, Best = 0;
+        public int Generation = 0;
 
         int GensMax = 0;
         int CyclesMax = 0;
         double MinutesD = 0;
 
-        bool AsCombo = false;
-
         internal DateTime LastTime;
-
-        internal TimeSpan LastRechangesForCombo;
-        internal TimeSpan LastProductionForCombo;
-        internal double LastProstoiForCombo;
-        internal double LastDaysForCombo;
-        internal double LastBadOffsetsForCombo;
-        TimeSpan LastMostRCForCombo;
 
         internal PlanningCalculatorEngineResult origValue;
         internal PlanningCalculatorEngineResult BestValue;
 
-        internal bool NeverGraphs;
+        //internal bool NeverGraphs;
 
         internal bool CheckRestrictions(PlanningCalculatorEngineResult t)
         {
-            var val = ((t.RechangesSeconds * 100.0 / LastRechangesForCombo) - 100.0);
-            var R = double.IsNaN(val) || val <= LoadedData.MethodsData[10];
 
-            val = ((t.ProductionSeconds * 100.0 / LastProductionForCombo) - 100.0);
-            var R2 = double.IsNaN(val) || val <= LoadedData.MethodsData[11];
+            var val = ((t.DaysRuinedValue * 100.0 / BestValue.DaysRuinedValue) - 100.0);
+            var R1 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[0];
 
-            val = ((t.ProstoiSeconds.TotalMinutes * 100.0 / LastProstoiForCombo) - 100.0);
-            var R3 = double.IsNaN(val) || val <= LoadedData.MethodsData[12];
+            val = ((t.RechangesSeconds * 100.0 / BestValue.RechangesSeconds) - 100.0);
+            var R2 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[1];
 
-            val = ((t.DaysRuinedValue * 100.0 / LastDaysForCombo) - 100.0);
-            var R4 = double.IsNaN(val) || val <= LoadedData.MethodsData[13];
+            val = ((t.ProstoiSeconds.TotalMinutes * 100.0 / BestValue.ProstoiSeconds.TotalMinutes) - 100.0);
+            var R3 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[2];
 
-            //val = ((t.MostRCSeconds * 100.0 / LastMostRCForCombo) - 100.0);
-            //var R5 = double.IsNaN(val) || val <= LoadedData.MethodsData[14];
+            val = ((t.ProductionSeconds * 100.0 / BestValue.ProductionSeconds) - 100.0);
+            var R4 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[3];
 
-            val = ((t.BadOffsets * 100.0 / LastBadOffsetsForCombo) - 100.0);
-            var R7 = double.IsNaN(val) || val <= LoadedData.MethodsData[20];
+            val = ((t.BadOffsets * 100.0 / BestValue.BadOffsets) - 100.0);
+            var R5 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[4];
 
-            return R && R2 && R3 && R4 && R7;
+            return R1 && R2 && R3 && R4 && R5;
         }
 
         public Session.Session sessionLink { get; }
 
         SettingsClass LoadedData => sessionLink.SettingsController.CurrentSettings;
 
-        internal PlanningAlgorithmWorkflow(Session.Session session, int[] comboList, bool asCombo, int generations, int cycles, double minutes, PlanningCalculatorEngineResult originalValue, int rawDataCount)
+        internal PlanningAlgorithmWorkflow(Session.Session session, int generations, int cycles, double minutes, PlanningCalculatorEngineResult originalValue, int rawDataCount)
         {
+            sessionLink = session;
             RawData = new object[rawDataCount];
-            ComboList = comboList;
             GensMax = generations;
             CyclesMax = cycles;
             MinutesD = minutes * 100;
-            AsCombo = asCombo;
             LastTime = DateTime.Now;
             currDynCounter = 0;
             maxDynCounter = 0;
@@ -85,17 +74,10 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             origValue = originalValue;
             BestValue = originalValue;
 
-            LastRechangesForCombo = originalValue.RechangesSeconds;
-            LastProductionForCombo = originalValue.ProductionSeconds;
-            LastProstoiForCombo = originalValue.ProstoiSeconds.TotalMinutes;
-            LastDaysForCombo = originalValue.DaysRuinedValue;
-            LastBadOffsetsForCombo = originalValue.BadOffsets;
-            LastMostRCForCombo = originalValue.MostRCSeconds;
-
             SetNewDynCounter();//SetComboParams(CurrentComboParam, ComboList, ref currentMode, ref currDynCounter, ref maxDynCounter);
         }
 
-        internal Action<int> ProgressChanged;
+        //internal Action<int> ProgressChanged;
 
         internal bool CanContinue()
         {
@@ -103,13 +85,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             {
                 if (MinutesD > 0) // по минутам
                 {
-                    var mins = (DateTime.Now - start).TotalMinutes * 100;
-                    ProgressChanged?.Invoke((int)mins);
-                    //if (!IsSilent)
-                    //{
-                    //    This.CalcProgressBar.Value = (int)mins;
-                    //}
-
+                    var mins = (DateTime.Now - sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate).TotalMinutes * 100;
                     if (mins >= MinutesD)
                     {
                         return false;
@@ -118,12 +94,6 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
                 if (CyclesMax > 0)
                 {
-                    ProgressChanged?.Invoke(CurrCycle);
-                    //if (!IsSilent)
-                    //{
-                    //    This.CalcProgressBar.Value = CurrCycle;
-                    //}
-
                     if (CurrCycle >= CyclesMax)
                     {
                         return false;
@@ -132,12 +102,6 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
                 if (GensMax > 0)
                 {
-                    ProgressChanged?.Invoke(Generation);
-                    //if (!IsSilent)
-                    //{
-                    //    This.CalcProgressBar.Value = Generation;
-                    //}
-
                     if (Generation >= GensMax)
                     {
                         return false;
@@ -153,18 +117,18 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
         internal void CheckOutput()
         {
-            if (IsSilent
+            if (sessionLink.SessionOptions.IsSilent
                 && (DateTime.Now - LastTime).TotalSeconds > 30) // Если я работаю втихую, и уже прошло полминуты
             {
-                if (FoundSmth)
+                if (sessionLink.AssignedPlanningAlgorithm.FoundSmth)
                 {
-                    Output(false, true, "ranges manual.csv", "orders.csv", OutputFile, "rechanges.csv", "mods.csv", "naladLengths.csv");
-                    ConcurrentLogger.AddToLogQueue.Enqueue($"[{DateTime.Now}]: better solution exported. gn {Generation}. cl {CurrCycle}: tr {BestValue.TaraErrorsCount}, nl {BestValue.CatchedErrorsCount}.\r\n");
-                    FoundSmth = false;
+                    sessionLink.SessionOutputEngine.Output();//Output(false, true, "ranges manual.csv", "orders.csv", OutputFile, "rechanges.csv", "mods.csv", "naladLengths.csv");
+                    sessionLink.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: better solution exported. gn {Generation}. cl {CurrCycle}: tr {BestValue.TaraErrorsCount}, nl {0/*BestValue.CatchedErrorsCount*/}.\r\n");
+                    sessionLink.AssignedPlanningAlgorithm.FoundSmth = false;
                 }
                 else
                 {
-                    ConcurrentLogger.AddToLogQueue.Enqueue($"[{DateTime.Now}]: no solution... gn {Generation}. cl {CurrCycle}: tr {BestValue.TaraErrorsCount}, nl {BestValue.CatchedErrorsCount}.\r\n");
+                    sessionLink.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: no solution... gn {Generation}. cl {CurrCycle}: tr {BestValue.TaraErrorsCount}, nl {0/*BestValue.CatchedErrorsCount*/}.\r\n");
                 }
 
                 LastTime = DateTime.Now; // Независимо, нашел или нет, задаем новое время проверки
@@ -177,9 +141,9 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
         /// <param name="BestValue"></param>
         internal bool NextIteration()
         {
-            if (ComboList.Length > 1)
+            if (CriteriasList.Length > 1)
             {
-                if (AsCombo)
+                if (LoadedData.UsedCriteria == -1)
                 {
                     currDynCounter++; // Увеличиваем, несмотря ни на что
                 }
@@ -198,14 +162,8 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                 if (currDynCounter == maxDynCounter)
                 {
                     CurrCycle++;
-                    LastRechangesForCombo = BestValue.RechangesSeconds; // обновляем для нового этапа
-                    LastProductionForCombo = BestValue.ProductionSeconds; // обновляем для нового этапа
-                    LastProstoiForCombo = BestValue.ProstoiSeconds.TotalMinutes; // обновляем для нового этапа
-                    LastDaysForCombo = BestValue.DaysRuinedValue;
-                    LastBadOffsetsForCombo = BestValue.BadOffsets;
-                    LastMostRCForCombo = BestValue.MostRCSeconds;
                     CurrentComboParam++;
-                    if (CurrentComboParam == ComboList.Length)
+                    if (CurrentComboParam == CriteriasList.Length)
                     {
                         CurrentComboParam = 0;
                     }
@@ -215,10 +173,10 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             }
 
 
-            if (!IsSilent && !FoundForDynamic && !NeverGraphs)
-            {
-                Graphs.AddNewFailedPoint();
-            }
+            //if (!IsSilent && !FoundForDynamic && !NeverGraphs)
+            //{
+            //    Graphs.AddNewFailedPoint();
+            //}
 
 
             CheckOutput();
@@ -228,41 +186,21 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             return CanContinue();
         }
 
-        Random _rand = new Random();
-
         /// <summary>
         /// Обновляет динамический счётчик и выдаёт новый режим работы
         /// </summary>
         internal void SetNewDynCounter()
         {
             currDynCounter = 0;
-            currentMode = ComboList[CurrentComboParam];
+            currentMode = CriteriasList[CurrentComboParam];
 
-            if (LoadedData.UseOnlyMaxCombo)
+            if (LoadedData.UseOnlyMaxCriteriasSettings)
             {
-                maxDynCounter = currentMode switch
-                {
-                    1 => (int)LoadedData.MethodsData[1],
-                    2 => (int)LoadedData.MethodsData[3],
-                    3 => (int)LoadedData.MethodsData[5],
-                    4 => (int)LoadedData.MethodsData[7],
-                    6 => (int)LoadedData.MethodsData[16],
-                    7 => (int)LoadedData.MethodsData[19],
-                    _ => (int)LoadedData.MethodsData[9],
-                };
+                maxDynCounter = LoadedData.CriteriasMaxIterations[currentMode];
             }
             else
             {
-                maxDynCounter = currentMode switch
-                {
-                    1 => _rand.Next((int)LoadedData.MethodsData[0], (int)LoadedData.MethodsData[1]),
-                    2 => _rand.Next((int)LoadedData.MethodsData[2], (int)LoadedData.MethodsData[3]),
-                    3 => _rand.Next((int)LoadedData.MethodsData[4], (int)LoadedData.MethodsData[5]),
-                    4 => _rand.Next((int)LoadedData.MethodsData[6], (int)LoadedData.MethodsData[7]),
-                    6 => _rand.Next((int)LoadedData.MethodsData[15], (int)LoadedData.MethodsData[16]),
-                    7 => _rand.Next((int)LoadedData.MethodsData[18], (int)LoadedData.MethodsData[19]),
-                    _ => _rand.Next((int)LoadedData.MethodsData[8], (int)LoadedData.MethodsData[9]),
-                };
+                maxDynCounter = Random.Shared.Next(LoadedData.CriteriasMinIterations[currentMode], LoadedData.CriteriasMaxIterations[currentMode]);
             }
         }
     }
