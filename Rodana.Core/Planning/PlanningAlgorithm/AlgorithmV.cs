@@ -220,7 +220,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
                         }
 
                         var list = OpersCopy[j].Lists[0].OpersList[0].PossibleCenters;
-                        var alt = (list != null);
+                        var alt = (list != null) && false;
 
                         //var taraList = Tara.GetOperTara(OpersCopy[j].Lists[0].FirstOper, false);
 
