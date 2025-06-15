@@ -160,6 +160,13 @@ namespace Rodana.Core.Partias.MergeConditions
                 return false;
             }
 
+            if (op1.IsVspom != op2.IsVspom)
+            {
+                reason = $"у {op1.Index} и {op2.Index} не равны признаки вспом";
+                smallreason = "не равны вспом";
+                return false;
+            }
+
             if (op1.IsFictive != op2.IsFictive)
             {
                 reason = $"у {op1.Index} и {op2.Index} не равны фиктивности";
@@ -194,7 +201,7 @@ namespace Rodana.Core.Partias.MergeConditions
         public bool StagesEqualityCheck(Stage op1, Stage op2, out string reason, out string smallreason, out bool hasSettings, bool forObshEtaps = false)
         {
             // результат проверки объединения
-            bool result;
+            bool result = false;
             var mergeCondition = GetMergeConditionSafeByOperVidAndSub(op1.OperationVid.Code, op1.Subdivision.Code);
 
             if (mergeCondition != null)
@@ -207,10 +214,19 @@ namespace Rodana.Core.Partias.MergeConditions
             }
             else
             {
-                // иначе проверяем старым способом
-                reason = smallreason = $"Для вида тех. операции {op1.OperationVid} не задан набор условий.";
-                hasSettings = false;
-                return false;
+                if (op1.IsVspom)
+                {
+                    // иначе проверяем старым способом
+                    result = LegacyOperationEquality(op1, op2, out reason, out smallreason, forObshEtaps);
+                    hasSettings = true;
+                    if (!result) return false;
+                }
+                else
+                {
+                    reason = smallreason = $"Для вида тех. операции {op1.OperationVid} не задан набор условий.";
+                    hasSettings = false;
+                    return false;
+                }
             }
 
             if (!MainChecks(op1, op2, out var str, out var str2))
@@ -231,7 +247,6 @@ namespace Rodana.Core.Partias.MergeConditions
             //    OpersAreEqualCash[op1.Index][op2.Index] = result;
             //    OpersAreEqualCash[op2.Index][op1.Index] = result;
             //}
-
             return result;
         }
 
@@ -321,6 +336,83 @@ namespace Rodana.Core.Partias.MergeConditions
                         return false;
                     }
                 }
+            }
+
+            smallreason = reason = string.Empty;
+
+            return true;
+        }
+
+
+
+        /// <summary>
+        /// Проверка критериев объединения операций старым методом
+        /// </summary>
+        /// <param name="op1">Операция</param>
+        /// <param name="op2">Операция</param>
+        /// <param name="reason">Причина необъединения</param>
+        /// <returns></returns>
+        bool LegacyOperationEquality(Stage op1, Stage op2, out string reason, out string smallreason, bool forObshEtaps = false)
+        {
+            if (op1.PlacesCount != op2.PlacesCount)
+            {
+                reason = $"разные кол-во мест у ОЭ - {op1.PlacesCount} и {op2.PlacesCount}";
+                smallreason = "$разные кол-во мест у ОЭ";
+                return false;
+            }
+
+            if (op1.Poviv != op2.Poviv)
+            {
+                reason = $"разные повив - {op1.Poviv} и {op2.Poviv}";
+                smallreason = "$разные повивы";
+                return false;
+            }
+            if (op1.Subdivision != op2.Subdivision)
+            {
+                reason = $"разные подразд - {op1.Subdivision} и {op2.Subdivision}";
+                smallreason = "$разные подразделения";
+                return false;
+            }
+            if (op1.Nomenklature != op2.Nomenklature)
+            {
+                reason = $"разные номен/стад - {op1.Nomenklature} и {op2.Nomenklature}";
+                smallreason = "$разные номенклатуры";
+
+                return false;
+            }
+            if (forObshEtaps)
+            {
+                var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
+                var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
+
+                if (!op1Centers.Intersect(op2Centers).Any())
+                {
+                    smallreason = reason = "нет пересечения по РЦ";
+
+                    return false;
+                }
+            }
+
+
+            if (op1.StageMaterialsInfo == null)
+            {
+                reason = $"у {op1.Index} пуст мат";
+                smallreason = "$пустой материал";
+                return false;
+            }
+            if (op2.StageMaterialsInfo == null)
+            {
+                reason = $"у {op2.Index} пуст мат";
+                smallreason = "$пустой материал";
+                return false;
+            }
+
+            // сравнение материалов
+            if (!op1.StageMaterialsInfo.IsEqualTo(op2.StageMaterialsInfo))
+            {
+                reason = $"разные материалы - {op1.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")} и {op2.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")}";
+                smallreason = "разные материалы";
+                return false;
             }
 
             smallreason = reason = string.Empty;

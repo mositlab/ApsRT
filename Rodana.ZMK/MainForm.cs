@@ -970,11 +970,11 @@ namespace Rodana.ZMK
                 {
                     partiasAlgorithm.SavedPartias.Add(partiaClass1.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass1.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());
                     partiasAlgorithm.SavedPartiasTrees.Add(partiaClass1.MyGuid, (partiaClass1.OpersHere, partiaClass1.GPsCountNow, partiaClass1.LastK));
-                    if (areDiff)
-                    {
-                        partiasAlgorithm.SavedPartias.Add(partiaClass2.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass2.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());
-                        partiasAlgorithm.SavedPartiasTrees.Add(partiaClass2.MyGuid, (partiaClass2.OpersHere, partiaClass2.GPsCountNow, partiaClass2.LastK));
-                    }
+                    //if (areDiff && partiaClass2.OpersHere)
+                    //{
+                    //    partiasAlgorithm.SavedPartias.Add(partiaClass2.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass2.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());
+                    //    partiasAlgorithm.SavedPartiasTrees.Add(partiaClass2.MyGuid, (partiaClass2.OpersHere, partiaClass2.GPsCountNow, partiaClass2.LastK));
+                    //}
                     SavedPartiasUpdate();
                 }
             }
