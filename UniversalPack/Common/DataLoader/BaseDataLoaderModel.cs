@@ -125,21 +125,29 @@ namespace UniversalPack.Common.DataLoader
         /// <returns></returns>
         private static object ConvertCodedObject(IDataRecord record, DataLoaderOptions options, DataRecordCodedObjectColumnAttribute attribute)
         {
-            var guidValue = (Guid)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull);
+            var guidValue = (Guid?)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull);
+
+            if (!guidValue.HasValue)
+            {
+                if (attribute.IsDimensionUnit)
+                    return (CodedObject<Guid, DimensionUnit>?)null;
+                else
+                    return (CodedObject<Guid, string>?)null;
+            }
 
             if (attribute.IsDimensionUnit)
             {
                 var nameValue = (record[attribute.ValueName]?.ToString() ?? string.Empty)
                     .ParseDimensionUnit();
 
-                return new CodedObject<Guid, DimensionUnit>(guidValue, nameValue);
+                return new CodedObject<Guid, DimensionUnit>(guidValue.Value, nameValue);
             }
 
             else
             {
                 var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
 
-                return new CodedObject<Guid, string>(guidValue, nameValue);
+                return new CodedObject<Guid, string>(guidValue.Value, nameValue);
             }
 
         }
@@ -228,7 +236,7 @@ namespace UniversalPack.Common.DataLoader
             if (value is null || value == DBNull.Value)
             {
                 return defaultIfNull
-                    ? default(Guid)
+                    ? default(Guid?)
                     : null;
             }
 
@@ -246,12 +254,12 @@ namespace UniversalPack.Common.DataLoader
             }
             else if (defaultIfNull)
             {
-                return default(Guid);
+                return default(Guid?);
             }
             else
             {
-                return (Guid?)null;
-                //throw new DataLoaderException($"Недопустимое значение GUID '{value}' для поля '{name}'", record, record.GetValues());
+                //return (Guid?)null;
+                throw new DataLoaderException($"Недопустимое значение GUID '{value}' для поля '{name}'", record, record.GetValues());
             }
         }
 
@@ -281,7 +289,7 @@ namespace UniversalPack.Common.DataLoader
             if (value is null || value == DBNull.Value)
             {
                 return attribute.DefaultIfNull
-                    ? default(int)
+                    ? default(int?)
                     : null;
             }
 
@@ -298,11 +306,11 @@ namespace UniversalPack.Common.DataLoader
             }
             else if (attribute.DefaultIfNull)
             {
-                return default(int);
+                return default(int?);
             }
             else
             {
-                return (int?)null;
+                //return (int?)null;
                 throw new DataLoaderException($"Недопустимое значение целого числа '{value}' для поля '{attribute.Name}'", record, record.GetValues());
             }
         }
@@ -321,7 +329,7 @@ namespace UniversalPack.Common.DataLoader
             if (value is null || value == DBNull.Value)
             {
                 return attribute.DefaultIfNull
-                    ? default(double)
+                    ? default(double?)
                     : null;
             }
 
@@ -338,12 +346,12 @@ namespace UniversalPack.Common.DataLoader
             }
             else if (attribute.DefaultIfNull)
             {
-                return default(double);
+                return default(double?);
             }
             else
             {
-                return (double?)null;
-                //throw new DataLoaderException($"Недопустимое значение дробного числа '{value}' для поля '{attribute.Name}'", record, record.GetValues());
+                //return (double?)null;
+                throw new DataLoaderException($"Недопустимое значение дробного числа '{value}' для поля '{attribute.Name}'", record, record.GetValues());
             }
         }
 
@@ -463,6 +471,7 @@ namespace UniversalPack.Common.DataLoader
                 }
                 else
                 {
+                    //return default(DateTime?);
                     throw new DataLoaderException($"Недопустимое значение даты-времени '{value}' для поля '{attribute.Name}'", record, record.GetValues());
                 }
             }
@@ -482,7 +491,7 @@ namespace UniversalPack.Common.DataLoader
             if (value is null || value == DBNull.Value)
             {
                 return attribute.DefaultIfNull
-                    ? default(DateOnly)
+                    ? default(DateOnly?)
                     : null;
             }
 
@@ -500,7 +509,7 @@ namespace UniversalPack.Common.DataLoader
                 }
                 else if (attribute.DefaultIfNull)
                 {
-                    return default(DateOnly);
+                    return default(DateOnly?);
                 }
                 else
                 {

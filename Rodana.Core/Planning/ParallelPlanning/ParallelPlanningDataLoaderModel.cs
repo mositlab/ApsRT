@@ -30,8 +30,8 @@ namespace Rodana.Core.Planning.ParallelPlanning
         [DataRecordColumn("ИдентификаторПараллельнойЗагрузки")]
         public int ParallelID { get; set; }
 
-        [DataRecordColumn("ДопустимаяДельта")]
-        public double Delta { get; set; }
+        [DataRecordColumn("ДопустимаяДельта", defaultIfFail: true)]
+        public double? Delta { get; set; }
 
         [DataRecordColumn("НеПовышатьТару", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool NotIncreaseTara { get; set; }
@@ -42,11 +42,11 @@ namespace Rodana.Core.Planning.ParallelPlanning
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]
         public Uco Tara { get; set; }
 
-        [DataRecordColumn("КоличествоТарыШт")]
+        [DataRecordColumn("КоличествоТарыШт", defaultIfFail: true)]
         public int? TaraCount { get; set; }
 
         [DataRecordColumn("МаксКоличество", defaultIfFail: true)]
-        public int MaxCapacity { get; set; }
+        public int? MaxCapacity { get; set; }
 
         [DataRecordCodedObjectColumn("НаборХарактеристикОдновременнойЗагрузки_GUID", "НаборХарактеристикОдновременнойЗагрузки")]
         public Uco CharsList { get; set; }
@@ -54,17 +54,17 @@ namespace Rodana.Core.Planning.ParallelPlanning
         [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика")]
         public Uco Char { get; set; }
 
-        [DataRecordColumn("МинимальноеЗначение")]
-        public double Min { get; set; }
+        [DataRecordColumn("МинимальноеЗначение", defaultIfFail: true)]
+        public double? Min { get; set; }
 
-        [DataRecordColumn("МаксимальноеЗначение")]
-        public double Max { get; set; }
+        [DataRecordColumn("МаксимальноеЗначение", defaultIfFail: true)]
+        public double? Max { get; set; }
 
         [DataRecordColumn("Значение")]
         public string Value { get; set; }
 
-        [DataRecordColumn("Значение_GUID")]
-        public Guid ValueGUID { get; set; }
+        [DataRecordColumn("Значение_GUID", defaultIfFail: true)]
+        public Guid? ValueGUID { get; set; }
 
         [DataRecordColumn("ИмяПоляТаблицыОперацийAPS")]
         public string ColumnName { get; set; }

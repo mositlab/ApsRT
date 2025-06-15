@@ -26,13 +26,13 @@ namespace Rodana.Core.Rechanges.Hoppers
         [DataRecordColumn("ПереходС")]
         public string From { get; set; }
 
-        [DataRecordColumn("ПереходС_GUID")]
+        [DataRecordColumn("ПереходС_GUID", defaultIfFail: true)]
         public Guid? FromGuid { get; set; }
 
         [DataRecordColumn("ПереходНа")]
         public string To { get; set; }
 
-        [DataRecordColumn("ПереходНа_GUID")]
+        [DataRecordColumn("ПереходНа_GUID", defaultIfFail: true)]
         public Guid? ToGuid { get; set; }
 
         [DataRecordCodedObjectColumn("РабочийЦентр_GUID", "РабочийЦентр")]

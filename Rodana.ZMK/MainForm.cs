@@ -888,12 +888,16 @@ namespace Rodana.ZMK
                 var Orders = sessionLink.MasterDataLinks.OrdersMasterData.AllOrders;
 
                 Guid? GUID1 = null;
+                if (TwoPartiasPartia1ComboBox.SelectedIndex == -1 && TwoPartiasPartia1ComboBox.Text.Length > 0)
+                    TwoPartiasPartia1ComboBox.SelectedIndex = TwoPartiasPartia1ComboBox.FindStringExact(TwoPartiasPartia1ComboBox.Text);
                 if (TwoPartiasPartia1ComboBox.SelectedIndex != -1)
                 {
                     var guid1 = ((CodedObjectInGui)TwoPartiasPartia1ComboBox.Items[TwoPartiasPartia1ComboBox.SelectedIndex]);
                     GUID1 = guid1.ValueIndex;
                 }
                 Guid? GUID2 = null;
+                if (TwoPartiasPartia2ComboBox.SelectedIndex == -1 && TwoPartiasPartia2ComboBox.Text.Length > 0)
+                    TwoPartiasPartia2ComboBox.SelectedIndex = TwoPartiasPartia2ComboBox.FindStringExact(TwoPartiasPartia2ComboBox.Text);
                 if (TwoPartiasPartia2ComboBox.SelectedIndex != -1)
                 {
                     var guid2 = ((CodedObjectInGui)TwoPartiasPartia2ComboBox.Items[TwoPartiasPartia2ComboBox.SelectedIndex]);
@@ -1067,12 +1071,12 @@ namespace Rodana.ZMK
                         PlanningProcessBar.Value = N;
                         if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningV)
                         {
-                            PlanningProcessLabel.Text = $"V: {N} / {PlanningProcessBar.Maximum}";
+                            PlanningProcessLabel.Text = $"Шаг 1: {N} / {PlanningProcessBar.Maximum}";
                         }
 
                         if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningG)
                         {
-                            PlanningProcessLabel.Text = $"G: {algorithm.UsedWorkflow.Generation} - критерий {algorithm.UsedWorkflow.currentMode} [ {algorithm.UsedWorkflow.currDynCounter} / {algorithm.UsedWorkflow.maxDynCounter} ] | лучшая: {algorithm.LastGen} ({algorithm.LastDate})";
+                            PlanningProcessLabel.Text = $"Шаг 2: {algorithm.UsedWorkflow.Generation} - критерий {algorithm.UsedWorkflow.currentMode} [ {algorithm.UsedWorkflow.currDynCounter} / {algorithm.UsedWorkflow.maxDynCounter} ] | лучшая: {algorithm.LastGen} ({algorithm.LastDate})";
                         }
 
                         updateUI();
@@ -1412,7 +1416,7 @@ namespace Rodana.ZMK
             if (algorithm == null) return;
             algorithm.Stop();
         }
-    
+
         private void CreatePlanningTable()
         {
 
@@ -1456,6 +1460,7 @@ namespace Rodana.ZMK
             row7.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
             row7.Cells[0].Value = "Соответствие";
         }
-    
+
+        private void AllForAllOrdersComboBox_TextChanged(object sender, EventArgs e) => SavedPartiasUpdate();
     }
 }

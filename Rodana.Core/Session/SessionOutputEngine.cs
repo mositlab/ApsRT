@@ -457,7 +457,7 @@ namespace Rodana.Core.Session
 
                             var guidToCheck = operLoc.CustomPartiaGuid ?? (operLoc.OrderLink.PartiaPF ?? Guid.Empty);
 
-                            if (partiasAlgorithm == null || !partiasAlgorithm.PartiaHasErrors.TryGetValue(guidToCheck, out var errors) || !errors)
+                            if (true/*partiasAlgorithm == null || !partiasAlgorithm.PartiaHasErrors.TryGetValue(guidToCheck, out var errors) || !errors*/)
                             {
                                 Guid ord = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Object.Code : Guid.Empty;
                                 var gp = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Version : "";
@@ -472,7 +472,7 @@ namespace Rodana.Core.Session
                                     (!IsSilent || LaunchPlan ? $"{start + maxTimeWithFixes:G}" : "") +//$"{(centStruct.LastDate + offset + secs:G)}" +
                                     $";{maxTimeWithFixes.TotalHours}" +
                                     $";{operLoc.EdIzm.DimensionUnitToString()};{operLoc.GetEasyFlag()}" +
-                                    $";{(partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}");
+                                    $";{(partiasAlgorithm != null && partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}");
                             }
                         }
                     }

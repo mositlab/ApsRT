@@ -428,9 +428,9 @@ namespace Rodana.ZMK
             MainTabPage.Controls.Add(mainlabel);
             MainTabPage.Controls.Add(OpenPlanningButton);
             MainTabPage.Controls.Add(OpenPartiasButton);
-            MainTabPage.Location = new Point(4, 25);
+            MainTabPage.Location = new Point(4, 29);
             MainTabPage.Name = "MainTabPage";
-            MainTabPage.Size = new Size(1171, 501);
+            MainTabPage.Size = new Size(1171, 497);
             MainTabPage.TabIndex = 2;
             MainTabPage.Text = "Главная";
             // 
@@ -520,7 +520,7 @@ namespace Rodana.ZMK
             mainlabel.Font = new Font("Segoe UI Light", 22.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             mainlabel.Location = new Point(22, 15);
             mainlabel.Name = "mainlabel";
-            mainlabel.Size = new Size(839, 41);
+            mainlabel.Size = new Size(1027, 50);
             mainlabel.TabIndex = 16;
             mainlabel.Text = "Система оптимизации графика производства (APS) «РОДАНА»";
             // 
@@ -529,9 +529,9 @@ namespace Rodana.ZMK
             PartiasTabPage.BackColor = Color.White;
             PartiasTabPage.Controls.Add(PartiasTabControl);
             PartiasTabPage.Controls.Add(materialTabSelector2);
-            PartiasTabPage.Location = new Point(4, 24);
+            PartiasTabPage.Location = new Point(4, 29);
             PartiasTabPage.Name = "PartiasTabPage";
-            PartiasTabPage.Size = new Size(1171, 502);
+            PartiasTabPage.Size = new Size(1171, 497);
             PartiasTabPage.TabIndex = 0;
             PartiasTabPage.Text = "Формирование партий";
             // 
@@ -543,17 +543,17 @@ namespace Rodana.ZMK
             PartiasTabControl.Location = new Point(0, 35);
             PartiasTabControl.Name = "PartiasTabControl";
             PartiasTabControl.SelectedIndex = 0;
-            PartiasTabControl.Size = new Size(1171, 467);
+            PartiasTabControl.Size = new Size(1171, 462);
             PartiasTabControl.TabIndex = 21;
             // 
             // AllPartiasTabControl
             // 
             AllPartiasTabControl.BackColor = Color.White;
             AllPartiasTabControl.Controls.Add(splitContainer1);
-            AllPartiasTabControl.Location = new Point(4, 25);
+            AllPartiasTabControl.Location = new Point(4, 29);
             AllPartiasTabControl.Name = "AllPartiasTabControl";
             AllPartiasTabControl.Padding = new Padding(3);
-            AllPartiasTabControl.Size = new Size(1163, 438);
+            AllPartiasTabControl.Size = new Size(1163, 429);
             AllPartiasTabControl.TabIndex = 0;
             AllPartiasTabControl.Text = "Полный расчёт";
             // 
@@ -584,7 +584,7 @@ namespace Rodana.ZMK
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer3);
-            splitContainer1.Size = new Size(1157, 432);
+            splitContainer1.Size = new Size(1157, 423);
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
             // 
@@ -594,7 +594,7 @@ namespace Rodana.ZMK
             AllForAllPartiasGuidComboBox.FormattingEnabled = true;
             AllForAllPartiasGuidComboBox.Location = new Point(130, 143);
             AllForAllPartiasGuidComboBox.Name = "AllForAllPartiasGuidComboBox";
-            AllForAllPartiasGuidComboBox.Size = new Size(265, 24);
+            AllForAllPartiasGuidComboBox.Size = new Size(265, 28);
             AllForAllPartiasGuidComboBox.TabIndex = 31;
             AllForAllPartiasGuidComboBox.SelectedIndexChanged += AllForAllPartiasGuidComboBox_SelectedIndexChanged;
             // 
@@ -604,16 +604,17 @@ namespace Rodana.ZMK
             AllForAllOrdersComboBox.FormattingEnabled = true;
             AllForAllOrdersComboBox.Location = new Point(91, 112);
             AllForAllOrdersComboBox.Name = "AllForAllOrdersComboBox";
-            AllForAllOrdersComboBox.Size = new Size(304, 24);
+            AllForAllOrdersComboBox.Size = new Size(304, 28);
             AllForAllOrdersComboBox.TabIndex = 30;
             AllForAllOrdersComboBox.SelectedIndexChanged += AllForAllOrdersComboBox_SelectedIndexChanged;
+            AllForAllOrdersComboBox.TextChanged += AllForAllOrdersComboBox_TextChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Location = new Point(5, 115);
             label1.Name = "label1";
-            label1.Size = new Size(63, 17);
+            label1.Size = new Size(80, 20);
             label1.TabIndex = 29;
             label1.Text = "Фильтр:";
             // 
@@ -625,12 +626,12 @@ namespace Rodana.ZMK
             LogPartiasCheckBox.Depth = 0;
             LogPartiasCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             LogPartiasCheckBox.ForeColor = Color.CornflowerBlue;
-            LogPartiasCheckBox.Location = new Point(311, 63);
+            LogPartiasCheckBox.Location = new Point(304, 63);
             LogPartiasCheckBox.Margin = new Padding(0);
             LogPartiasCheckBox.MouseLocation = new Point(-1, -1);
             LogPartiasCheckBox.Name = "LogPartiasCheckBox";
             LogPartiasCheckBox.Ripple = true;
-            LogPartiasCheckBox.Size = new Size(53, 30);
+            LogPartiasCheckBox.Size = new Size(60, 30);
             LogPartiasCheckBox.TabIndex = 28;
             LogPartiasCheckBox.Text = "Log";
             LogPartiasCheckBox.UseVisualStyleBackColor = false;
@@ -643,7 +644,7 @@ namespace Rodana.ZMK
             AllForAllTextBox.Multiline = true;
             AllForAllTextBox.Name = "AllForAllTextBox";
             AllForAllTextBox.ScrollBars = ScrollBars.Both;
-            AllForAllTextBox.Size = new Size(398, 253);
+            AllForAllTextBox.Size = new Size(398, 244);
             AllForAllTextBox.TabIndex = 27;
             // 
             // label2
@@ -651,7 +652,7 @@ namespace Rodana.ZMK
             label2.AutoSize = true;
             label2.Location = new Point(3, 146);
             label2.Name = "label2";
-            label2.Size = new Size(97, 17);
+            label2.Size = new Size(121, 20);
             label2.TabIndex = 26;
             label2.Text = "GUID партии:";
             // 
@@ -660,7 +661,7 @@ namespace Rodana.ZMK
             PartiasProgressLabel.AutoSize = true;
             PartiasProgressLabel.Location = new Point(3, 89);
             PartiasProgressLabel.Name = "PartiasProgressLabel";
-            PartiasProgressLabel.Size = new Size(219, 17);
+            PartiasProgressLabel.Size = new Size(278, 20);
             PartiasProgressLabel.TabIndex = 25;
             PartiasProgressLabel.Text = "Расчёт недоступен без данных.";
             // 
@@ -691,12 +692,12 @@ namespace Rodana.ZMK
             ZadelCheckBox.Depth = 0;
             ZadelCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             ZadelCheckBox.ForeColor = Color.CornflowerBlue;
-            ZadelCheckBox.Location = new Point(311, 33);
+            ZadelCheckBox.Location = new Point(301, 33);
             ZadelCheckBox.Margin = new Padding(0);
             ZadelCheckBox.MouseLocation = new Point(-1, -1);
             ZadelCheckBox.Name = "ZadelCheckBox";
             ZadelCheckBox.Ripple = true;
-            ZadelCheckBox.Size = new Size(64, 30);
+            ZadelCheckBox.Size = new Size(74, 30);
             ZadelCheckBox.TabIndex = 22;
             ZadelCheckBox.Text = "Zadel";
             ZadelCheckBox.UseVisualStyleBackColor = false;
@@ -709,12 +710,12 @@ namespace Rodana.ZMK
             PartCheckBox.Depth = 0;
             PartCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             PartCheckBox.ForeColor = Color.CornflowerBlue;
-            PartCheckBox.Location = new Point(311, 3);
+            PartCheckBox.Location = new Point(303, 3);
             PartCheckBox.Margin = new Padding(0);
             PartCheckBox.MouseLocation = new Point(-1, -1);
             PartCheckBox.Name = "PartCheckBox";
             PartCheckBox.Ripple = true;
-            PartCheckBox.Size = new Size(55, 30);
+            PartCheckBox.Size = new Size(63, 30);
             PartCheckBox.TabIndex = 20;
             PartCheckBox.Text = "Part";
             PartCheckBox.UseVisualStyleBackColor = false;
@@ -750,8 +751,8 @@ namespace Rodana.ZMK
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(PartiasDataTable);
-            splitContainer3.Size = new Size(751, 430);
-            splitContainer3.SplitterDistance = 252;
+            splitContainer3.Size = new Size(751, 421);
+            splitContainer3.SplitterDistance = 246;
             splitContainer3.TabIndex = 0;
             // 
             // CustomTreeViewOnPPanel
@@ -759,7 +760,7 @@ namespace Rodana.ZMK
             CustomTreeViewOnPPanel.Dock = DockStyle.Fill;
             CustomTreeViewOnPPanel.Location = new Point(0, 0);
             CustomTreeViewOnPPanel.Name = "CustomTreeViewOnPPanel";
-            CustomTreeViewOnPPanel.Size = new Size(751, 252);
+            CustomTreeViewOnPPanel.Size = new Size(751, 246);
             CustomTreeViewOnPPanel.TabIndex = 1;
             // 
             // PartiasDataTable
@@ -772,7 +773,7 @@ namespace Rodana.ZMK
             PartiasDataTable.Location = new Point(0, 0);
             PartiasDataTable.Name = "PartiasDataTable";
             PartiasDataTable.RowHeadersWidth = 51;
-            PartiasDataTable.Size = new Size(751, 174);
+            PartiasDataTable.Size = new Size(751, 171);
             PartiasDataTable.TabIndex = 0;
             // 
             // Column1
@@ -828,10 +829,10 @@ namespace Rodana.ZMK
             HandPartiasTabControl.Controls.Add(TwoPartiasPartia2ComboBox);
             HandPartiasTabControl.Controls.Add(TwoPartiasStartButton);
             HandPartiasTabControl.Controls.Add(TwoPartiasPartia1ComboBox);
-            HandPartiasTabControl.Location = new Point(4, 24);
+            HandPartiasTabControl.Location = new Point(4, 29);
             HandPartiasTabControl.Name = "HandPartiasTabControl";
             HandPartiasTabControl.Padding = new Padding(3);
-            HandPartiasTabControl.Size = new Size(1163, 439);
+            HandPartiasTabControl.Size = new Size(1163, 429);
             HandPartiasTabControl.TabIndex = 1;
             HandPartiasTabControl.Text = "Поштучное объединение";
             // 
@@ -847,7 +848,7 @@ namespace Rodana.ZMK
             InGPCheckBox.MouseLocation = new Point(-1, -1);
             InGPCheckBox.Name = "InGPCheckBox";
             InGPCheckBox.Ripple = true;
-            InGPCheckBox.Size = new Size(97, 30);
+            InGPCheckBox.Size = new Size(114, 30);
             InGPCheckBox.TabIndex = 45;
             InGPCheckBox.Text = "Внутри ГП";
             InGPCheckBox.UseVisualStyleBackColor = false;
@@ -865,7 +866,7 @@ namespace Rodana.ZMK
             // splitContainer4.Panel2
             // 
             splitContainer4.Panel2.Controls.Add(tabControl1);
-            splitContainer4.Size = new Size(1157, 362);
+            splitContainer4.Size = new Size(1157, 352);
             splitContainer4.SplitterDistance = 385;
             splitContainer4.TabIndex = 44;
             // 
@@ -877,7 +878,7 @@ namespace Rodana.ZMK
             TwoPartiasTextBox.Multiline = true;
             TwoPartiasTextBox.Name = "TwoPartiasTextBox";
             TwoPartiasTextBox.ScrollBars = ScrollBars.Both;
-            TwoPartiasTextBox.Size = new Size(385, 362);
+            TwoPartiasTextBox.Size = new Size(385, 352);
             TwoPartiasTextBox.TabIndex = 28;
             // 
             // tabControl1
@@ -889,15 +890,15 @@ namespace Rodana.ZMK
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(768, 362);
+            tabControl1.Size = new Size(768, 352);
             tabControl1.TabIndex = 0;
             // 
             // tabPage1
             // 
             tabPage1.Controls.Add(TwoPartiasPartia1View);
-            tabPage1.Location = new Point(4, 25);
+            tabPage1.Location = new Point(4, 29);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(760, 333);
+            tabPage1.Size = new Size(760, 319);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Партия 1";
             tabPage1.UseVisualStyleBackColor = true;
@@ -909,15 +910,15 @@ namespace Rodana.ZMK
             TwoPartiasPartia1View.Location = new Point(0, 0);
             TwoPartiasPartia1View.Margin = new Padding(0);
             TwoPartiasPartia1View.Name = "TwoPartiasPartia1View";
-            TwoPartiasPartia1View.Size = new Size(760, 333);
+            TwoPartiasPartia1View.Size = new Size(760, 319);
             TwoPartiasPartia1View.TabIndex = 0;
             // 
             // tabPage2
             // 
             tabPage2.Controls.Add(TwoPartiasPartia2View);
-            tabPage2.Location = new Point(4, 24);
+            tabPage2.Location = new Point(4, 29);
             tabPage2.Name = "tabPage2";
-            tabPage2.Size = new Size(760, 334);
+            tabPage2.Size = new Size(760, 329);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Партия 2";
             tabPage2.UseVisualStyleBackColor = true;
@@ -929,15 +930,15 @@ namespace Rodana.ZMK
             TwoPartiasPartia2View.Location = new Point(0, 0);
             TwoPartiasPartia2View.Margin = new Padding(0);
             TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
-            TwoPartiasPartia2View.Size = new Size(760, 334);
+            TwoPartiasPartia2View.Size = new Size(760, 329);
             TwoPartiasPartia2View.TabIndex = 0;
             // 
             // tabPage3
             // 
             tabPage3.Controls.Add(TwoPartiasPartiaResView);
-            tabPage3.Location = new Point(4, 24);
+            tabPage3.Location = new Point(4, 29);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(760, 334);
+            tabPage3.Size = new Size(760, 329);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Результат";
             tabPage3.UseVisualStyleBackColor = true;
@@ -949,7 +950,7 @@ namespace Rodana.ZMK
             TwoPartiasPartiaResView.Location = new Point(0, 0);
             TwoPartiasPartiaResView.Margin = new Padding(0);
             TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
-            TwoPartiasPartiaResView.Size = new Size(760, 334);
+            TwoPartiasPartiaResView.Size = new Size(760, 329);
             TwoPartiasPartiaResView.TabIndex = 1;
             // 
             // label8
@@ -957,7 +958,7 @@ namespace Rodana.ZMK
             label8.AutoSize = true;
             label8.Location = new Point(867, 43);
             label8.Name = "label8";
-            label8.Size = new Size(42, 17);
+            label8.Size = new Size(51, 20);
             label8.TabIndex = 43;
             label8.Text = "ГП 2:";
             // 
@@ -966,7 +967,7 @@ namespace Rodana.ZMK
             label7.AutoSize = true;
             label7.Location = new Point(867, 9);
             label7.Name = "label7";
-            label7.Size = new Size(42, 17);
+            label7.Size = new Size(51, 20);
             label7.TabIndex = 42;
             label7.Text = "ГП 1:";
             // 
@@ -975,7 +976,7 @@ namespace Rodana.ZMK
             label6.AutoSize = true;
             label6.Location = new Point(464, 43);
             label6.Name = "label6";
-            label6.Size = new Size(63, 17);
+            label6.Size = new Size(78, 20);
             label6.TabIndex = 41;
             label6.Text = "Заказ 2:";
             // 
@@ -984,7 +985,7 @@ namespace Rodana.ZMK
             label5.AutoSize = true;
             label5.Location = new Point(464, 9);
             label5.Name = "label5";
-            label5.Size = new Size(63, 17);
+            label5.Size = new Size(78, 20);
             label5.TabIndex = 40;
             label5.Text = "Заказ 1:";
             // 
@@ -993,7 +994,7 @@ namespace Rodana.ZMK
             label4.AutoSize = true;
             label4.Location = new Point(6, 43);
             label4.Name = "label4";
-            label4.Size = new Size(109, 17);
+            label4.Size = new Size(135, 20);
             label4.TabIndex = 39;
             label4.Text = "GUID партии 2:";
             // 
@@ -1002,7 +1003,7 @@ namespace Rodana.ZMK
             label3.AutoSize = true;
             label3.Location = new Point(6, 9);
             label3.Name = "label3";
-            label3.Size = new Size(109, 17);
+            label3.Size = new Size(135, 20);
             label3.TabIndex = 38;
             label3.Text = "GUID партии 1:";
             // 
@@ -1011,7 +1012,7 @@ namespace Rodana.ZMK
             TwoPartiasGP2ComboBox.FormattingEnabled = true;
             TwoPartiasGP2ComboBox.Location = new Point(924, 40);
             TwoPartiasGP2ComboBox.Name = "TwoPartiasGP2ComboBox";
-            TwoPartiasGP2ComboBox.Size = new Size(79, 24);
+            TwoPartiasGP2ComboBox.Size = new Size(79, 28);
             TwoPartiasGP2ComboBox.TabIndex = 37;
             // 
             // TwoPartiasGP1ComboBox
@@ -1019,7 +1020,7 @@ namespace Rodana.ZMK
             TwoPartiasGP1ComboBox.FormattingEnabled = true;
             TwoPartiasGP1ComboBox.Location = new Point(924, 6);
             TwoPartiasGP1ComboBox.Name = "TwoPartiasGP1ComboBox";
-            TwoPartiasGP1ComboBox.Size = new Size(79, 24);
+            TwoPartiasGP1ComboBox.Size = new Size(79, 28);
             TwoPartiasGP1ComboBox.TabIndex = 36;
             // 
             // TwoPartiasOrder2ComboBox
@@ -1027,7 +1028,7 @@ namespace Rodana.ZMK
             TwoPartiasOrder2ComboBox.FormattingEnabled = true;
             TwoPartiasOrder2ComboBox.Location = new Point(548, 40);
             TwoPartiasOrder2ComboBox.Name = "TwoPartiasOrder2ComboBox";
-            TwoPartiasOrder2ComboBox.Size = new Size(304, 24);
+            TwoPartiasOrder2ComboBox.Size = new Size(304, 28);
             TwoPartiasOrder2ComboBox.TabIndex = 35;
             TwoPartiasOrder2ComboBox.SelectedIndexChanged += TwoPartiasOrder2ComboBox_SelectedIndexChanged;
             // 
@@ -1036,7 +1037,7 @@ namespace Rodana.ZMK
             TwoPartiasOrder1ComboBox.FormattingEnabled = true;
             TwoPartiasOrder1ComboBox.Location = new Point(548, 6);
             TwoPartiasOrder1ComboBox.Name = "TwoPartiasOrder1ComboBox";
-            TwoPartiasOrder1ComboBox.Size = new Size(304, 24);
+            TwoPartiasOrder1ComboBox.Size = new Size(304, 28);
             TwoPartiasOrder1ComboBox.TabIndex = 34;
             TwoPartiasOrder1ComboBox.SelectedIndexChanged += TwoPartiasOrder1ComboBox_SelectedIndexChanged;
             // 
@@ -1045,7 +1046,7 @@ namespace Rodana.ZMK
             TwoPartiasPartia2ComboBox.FormattingEnabled = true;
             TwoPartiasPartia2ComboBox.Location = new Point(147, 40);
             TwoPartiasPartia2ComboBox.Name = "TwoPartiasPartia2ComboBox";
-            TwoPartiasPartia2ComboBox.Size = new Size(304, 24);
+            TwoPartiasPartia2ComboBox.Size = new Size(304, 28);
             TwoPartiasPartia2ComboBox.TabIndex = 33;
             // 
             // TwoPartiasStartButton
@@ -1071,7 +1072,7 @@ namespace Rodana.ZMK
             TwoPartiasPartia1ComboBox.FormattingEnabled = true;
             TwoPartiasPartia1ComboBox.Location = new Point(147, 6);
             TwoPartiasPartia1ComboBox.Name = "TwoPartiasPartia1ComboBox";
-            TwoPartiasPartia1ComboBox.Size = new Size(304, 24);
+            TwoPartiasPartia1ComboBox.Size = new Size(304, 28);
             TwoPartiasPartia1ComboBox.TabIndex = 31;
             // 
             // materialTabSelector2
@@ -1092,9 +1093,9 @@ namespace Rodana.ZMK
             // 
             PlanningTabPage.Controls.Add(PlanningTabControl);
             PlanningTabPage.Controls.Add(materialTabSelector3);
-            PlanningTabPage.Location = new Point(4, 25);
+            PlanningTabPage.Location = new Point(4, 29);
             PlanningTabPage.Name = "PlanningTabPage";
-            PlanningTabPage.Size = new Size(1171, 501);
+            PlanningTabPage.Size = new Size(1171, 497);
             PlanningTabPage.TabIndex = 1;
             PlanningTabPage.Text = "Планирование производства";
             PlanningTabPage.UseVisualStyleBackColor = true;
@@ -1108,16 +1109,16 @@ namespace Rodana.ZMK
             PlanningTabControl.Location = new Point(0, 35);
             PlanningTabControl.Name = "PlanningTabControl";
             PlanningTabControl.SelectedIndex = 0;
-            PlanningTabControl.Size = new Size(1171, 466);
+            PlanningTabControl.Size = new Size(1171, 462);
             PlanningTabControl.TabIndex = 0;
             // 
             // TyrantTabPage
             // 
             TyrantTabPage.Controls.Add(splitContainer5);
-            TyrantTabPage.Location = new Point(4, 25);
+            TyrantTabPage.Location = new Point(4, 29);
             TyrantTabPage.Name = "TyrantTabPage";
             TyrantTabPage.Padding = new Padding(3);
-            TyrantTabPage.Size = new Size(1163, 437);
+            TyrantTabPage.Size = new Size(1163, 429);
             TyrantTabPage.TabIndex = 0;
             TyrantTabPage.Text = "Полное планирование";
             TyrantTabPage.UseVisualStyleBackColor = true;
@@ -1137,7 +1138,7 @@ namespace Rodana.ZMK
             // 
             splitContainer5.Panel2.Controls.Add(splitContainer6);
             splitContainer5.Panel2.Controls.Add(panel1);
-            splitContainer5.Size = new Size(1157, 431);
+            splitContainer5.Size = new Size(1157, 423);
             splitContainer5.SplitterDistance = 385;
             splitContainer5.TabIndex = 0;
             // 
@@ -1162,8 +1163,8 @@ namespace Rodana.ZMK
             // splitContainer7.Panel2
             // 
             splitContainer7.Panel2.Controls.Add(splitContainer8);
-            splitContainer7.Size = new Size(385, 431);
-            splitContainer7.SplitterDistance = 128;
+            splitContainer7.Size = new Size(385, 423);
+            splitContainer7.SplitterDistance = 125;
             splitContainer7.TabIndex = 0;
             // 
             // StagesColorCheckBox
@@ -1178,7 +1179,7 @@ namespace Rodana.ZMK
             StagesColorCheckBox.MouseLocation = new Point(-1, -1);
             StagesColorCheckBox.Name = "StagesColorCheckBox";
             StagesColorCheckBox.Ripple = true;
-            StagesColorCheckBox.Size = new Size(116, 30);
+            StagesColorCheckBox.Size = new Size(139, 30);
             StagesColorCheckBox.TabIndex = 37;
             StagesColorCheckBox.Text = "Цвета этапов";
             StagesColorCheckBox.UseVisualStyleBackColor = false;
@@ -1196,7 +1197,7 @@ namespace Rodana.ZMK
             ModsColorCheckBox.MouseLocation = new Point(-1, -1);
             ModsColorCheckBox.Name = "ModsColorCheckBox";
             ModsColorCheckBox.Ripple = true;
-            ModsColorCheckBox.Size = new Size(175, 30);
+            ModsColorCheckBox.Size = new Size(212, 30);
             ModsColorCheckBox.TabIndex = 36;
             ModsColorCheckBox.Text = "Цвета моделирований";
             ModsColorCheckBox.UseVisualStyleBackColor = false;
@@ -1245,7 +1246,7 @@ namespace Rodana.ZMK
             PlanningProcessLabel.AutoSize = true;
             PlanningProcessLabel.Location = new Point(3, 89);
             PlanningProcessLabel.Name = "PlanningProcessLabel";
-            PlanningProcessLabel.Size = new Size(219, 17);
+            PlanningProcessLabel.Size = new Size(278, 20);
             PlanningProcessLabel.TabIndex = 28;
             PlanningProcessLabel.Text = "Расчёт недоступен без данных.";
             // 
@@ -1299,8 +1300,8 @@ namespace Rodana.ZMK
             // splitContainer8.Panel2
             // 
             splitContainer8.Panel2.Controls.Add(BarDescTextBox);
-            splitContainer8.Size = new Size(385, 299);
-            splitContainer8.SplitterDistance = 126;
+            splitContainer8.Size = new Size(385, 294);
+            splitContainer8.SplitterDistance = 123;
             splitContainer8.TabIndex = 0;
             // 
             // PlanningDataTable
@@ -1326,7 +1327,7 @@ namespace Rodana.ZMK
             PlanningDataTable.Name = "PlanningDataTable";
             PlanningDataTable.ReadOnly = true;
             PlanningDataTable.RowHeadersWidth = 51;
-            PlanningDataTable.Size = new Size(385, 126);
+            PlanningDataTable.Size = new Size(385, 123);
             PlanningDataTable.TabIndex = 0;
             // 
             // Column6
@@ -1373,7 +1374,7 @@ namespace Rodana.ZMK
             BarDescTextBox.Multiline = true;
             BarDescTextBox.Name = "BarDescTextBox";
             BarDescTextBox.ScrollBars = ScrollBars.Both;
-            BarDescTextBox.Size = new Size(385, 169);
+            BarDescTextBox.Size = new Size(385, 167);
             BarDescTextBox.TabIndex = 0;
             // 
             // splitContainer6
@@ -1394,8 +1395,8 @@ namespace Rodana.ZMK
             splitContainer6.Panel2.Controls.Add(ganttNEW);
             splitContainer6.Panel2.Controls.Add(vScrollBarNEW);
             splitContainer6.Panel2MinSize = 10;
-            splitContainer6.Size = new Size(768, 401);
-            splitContainer6.SplitterDistance = 222;
+            splitContainer6.Size = new Size(768, 393);
+            splitContainer6.SplitterDistance = 217;
             splitContainer6.TabIndex = 1;
             // 
             // ganttOLD
@@ -1404,7 +1405,7 @@ namespace Rodana.ZMK
             ganttOLD.Dock = DockStyle.Fill;
             ganttOLD.Location = new Point(0, 0);
             ganttOLD.Name = "ganttOLD";
-            ganttOLD.Size = new Size(742, 222);
+            ganttOLD.Size = new Size(742, 217);
             ganttOLD.TabIndex = 0;
             ganttOLD.TimelineHeight = 50;
             ganttOLD.TitleRowHeight = -1;
@@ -1415,7 +1416,7 @@ namespace Rodana.ZMK
             vScrollBarOLD.Dock = DockStyle.Right;
             vScrollBarOLD.Location = new Point(742, 0);
             vScrollBarOLD.Name = "vScrollBarOLD";
-            vScrollBarOLD.Size = new Size(26, 222);
+            vScrollBarOLD.Size = new Size(26, 217);
             vScrollBarOLD.TabIndex = 1;
             // 
             // ganttNEW
@@ -1424,7 +1425,7 @@ namespace Rodana.ZMK
             ganttNEW.Dock = DockStyle.Fill;
             ganttNEW.Location = new Point(0, 0);
             ganttNEW.Name = "ganttNEW";
-            ganttNEW.Size = new Size(742, 175);
+            ganttNEW.Size = new Size(742, 172);
             ganttNEW.TabIndex = 0;
             ganttNEW.TimelineHeight = 50;
             ganttNEW.TitleRowHeight = -1;
@@ -1435,7 +1436,7 @@ namespace Rodana.ZMK
             vScrollBarNEW.Dock = DockStyle.Right;
             vScrollBarNEW.Location = new Point(742, 0);
             vScrollBarNEW.Name = "vScrollBarNEW";
-            vScrollBarNEW.Size = new Size(26, 175);
+            vScrollBarNEW.Size = new Size(26, 172);
             vScrollBarNEW.TabIndex = 1;
             // 
             // panel1
@@ -1455,7 +1456,7 @@ namespace Rodana.ZMK
             label11.AutoSize = true;
             label11.Location = new Point(258, 6);
             label11.Name = "label11";
-            label11.Size = new Size(31, 17);
+            label11.Size = new Size(37, 20);
             label11.TabIndex = 33;
             label11.Text = "До:";
             // 
@@ -1465,7 +1466,7 @@ namespace Rodana.ZMK
             dateTimePickerTo.Format = DateTimePickerFormat.Custom;
             dateTimePickerTo.Location = new Point(301, 2);
             dateTimePickerTo.Name = "dateTimePickerTo";
-            dateTimePickerTo.Size = new Size(209, 23);
+            dateTimePickerTo.Size = new Size(209, 26);
             dateTimePickerTo.TabIndex = 32;
             // 
             // label10
@@ -1473,7 +1474,7 @@ namespace Rodana.ZMK
             label10.AutoSize = true;
             label10.Location = new Point(3, 7);
             label10.Name = "label10";
-            label10.Size = new Size(30, 17);
+            label10.Size = new Size(37, 20);
             label10.TabIndex = 31;
             label10.Text = "От:";
             // 
@@ -1483,24 +1484,24 @@ namespace Rodana.ZMK
             dateTimePickerFrom.Format = DateTimePickerFormat.Custom;
             dateTimePickerFrom.Location = new Point(46, 3);
             dateTimePickerFrom.Name = "dateTimePickerFrom";
-            dateTimePickerFrom.Size = new Size(209, 23);
+            dateTimePickerFrom.Size = new Size(209, 26);
             dateTimePickerFrom.TabIndex = 0;
             // 
             // HandPlanningPage
             // 
-            HandPlanningPage.Location = new Point(4, 24);
+            HandPlanningPage.Location = new Point(4, 29);
             HandPlanningPage.Name = "HandPlanningPage";
             HandPlanningPage.Padding = new Padding(3);
-            HandPlanningPage.Size = new Size(1163, 438);
+            HandPlanningPage.Size = new Size(1163, 433);
             HandPlanningPage.TabIndex = 1;
             HandPlanningPage.Text = "Ручной анализ плана";
             HandPlanningPage.UseVisualStyleBackColor = true;
             // 
             // GraphsTabPage
             // 
-            GraphsTabPage.Location = new Point(4, 24);
+            GraphsTabPage.Location = new Point(4, 29);
             GraphsTabPage.Name = "GraphsTabPage";
-            GraphsTabPage.Size = new Size(1163, 438);
+            GraphsTabPage.Size = new Size(1163, 433);
             GraphsTabPage.TabIndex = 2;
             GraphsTabPage.Text = "Графики эффективности";
             GraphsTabPage.UseVisualStyleBackColor = true;
@@ -1521,9 +1522,9 @@ namespace Rodana.ZMK
             // 
             SettingsTabPage.BackColor = Color.White;
             SettingsTabPage.Controls.Add(splitContainer2);
-            SettingsTabPage.Location = new Point(4, 24);
+            SettingsTabPage.Location = new Point(4, 29);
             SettingsTabPage.Name = "SettingsTabPage";
-            SettingsTabPage.Size = new Size(1171, 502);
+            SettingsTabPage.Size = new Size(1171, 497);
             SettingsTabPage.TabIndex = 3;
             SettingsTabPage.Text = "Настройки";
             // 
@@ -1555,8 +1556,8 @@ namespace Rodana.ZMK
             splitContainer2.Panel2.Controls.Add(BackupStagesDurationNumericUpDown);
             splitContainer2.Panel2.Controls.Add(PartiasMaxDaysLabel);
             splitContainer2.Panel2.Controls.Add(PartiasMaxDaysNumericUpDown);
-            splitContainer2.Size = new Size(1171, 502);
-            splitContainer2.SplitterDistance = 189;
+            splitContainer2.Size = new Size(1171, 497);
+            splitContainer2.SplitterDistance = 187;
             splitContainer2.TabIndex = 37;
             // 
             // HoppersPanel
@@ -1566,7 +1567,7 @@ namespace Rodana.ZMK
             HoppersPanel.Dock = DockStyle.Fill;
             HoppersPanel.Location = new Point(0, 0);
             HoppersPanel.Name = "HoppersPanel";
-            HoppersPanel.Size = new Size(1171, 189);
+            HoppersPanel.Size = new Size(1171, 187);
             HoppersPanel.TabIndex = 25;
             // 
             // groupBox7
@@ -1597,7 +1598,7 @@ namespace Rodana.ZMK
             UsePseudoTaraCheckBox.MouseLocation = new Point(-1, -1);
             UsePseudoTaraCheckBox.Name = "UsePseudoTaraCheckBox";
             UsePseudoTaraCheckBox.Ripple = true;
-            UsePseudoTaraCheckBox.Size = new Size(168, 30);
+            UsePseudoTaraCheckBox.Size = new Size(204, 30);
             UsePseudoTaraCheckBox.TabIndex = 35;
             UsePseudoTaraCheckBox.Text = "Внедрять псевдотару";
             UsePseudoTaraCheckBox.UseVisualStyleBackColor = false;
@@ -1614,7 +1615,7 @@ namespace Rodana.ZMK
             CreateStopMe.MouseLocation = new Point(-1, -1);
             CreateStopMe.Name = "CreateStopMe";
             CreateStopMe.Ripple = true;
-            CreateStopMe.Size = new Size(149, 30);
+            CreateStopMe.Size = new Size(180, 30);
             CreateStopMe.TabIndex = 27;
             CreateStopMe.Text = "Создавать StopMe";
             CreateStopMe.UseVisualStyleBackColor = false;
@@ -1631,7 +1632,7 @@ namespace Rodana.ZMK
             CreateKillMeCheckBox.MouseLocation = new Point(-1, -1);
             CreateKillMeCheckBox.Name = "CreateKillMeCheckBox";
             CreateKillMeCheckBox.Ripple = true;
-            CreateKillMeCheckBox.Size = new Size(140, 30);
+            CreateKillMeCheckBox.Size = new Size(168, 30);
             CreateKillMeCheckBox.TabIndex = 26;
             CreateKillMeCheckBox.Text = "Создавать KillMe";
             CreateKillMeCheckBox.UseVisualStyleBackColor = false;
@@ -1648,7 +1649,7 @@ namespace Rodana.ZMK
             AutoLoadCheckBox.MouseLocation = new Point(-1, -1);
             AutoLoadCheckBox.Name = "AutoLoadCheckBox";
             AutoLoadCheckBox.Ripple = true;
-            AutoLoadCheckBox.Size = new Size(167, 30);
+            AutoLoadCheckBox.Size = new Size(203, 30);
             AutoLoadCheckBox.TabIndex = 24;
             AutoLoadCheckBox.Text = "Автозагрузка данных";
             AutoLoadCheckBox.UseVisualStyleBackColor = false;
@@ -1681,7 +1682,7 @@ namespace Rodana.ZMK
             HideConsoleCheckBox.MouseLocation = new Point(-1, -1);
             HideConsoleCheckBox.Name = "HideConsoleCheckBox";
             HideConsoleCheckBox.Ripple = true;
-            HideConsoleCheckBox.Size = new Size(148, 30);
+            HideConsoleCheckBox.Size = new Size(179, 30);
             HideConsoleCheckBox.TabIndex = 33;
             HideConsoleCheckBox.Text = "Скрывать консоль";
             HideConsoleCheckBox.UseVisualStyleBackColor = false;
@@ -1698,7 +1699,7 @@ namespace Rodana.ZMK
             LogErrorsCheckBox.MouseLocation = new Point(-1, -1);
             LogErrorsCheckBox.Name = "LogErrorsCheckBox";
             LogErrorsCheckBox.Ripple = true;
-            LogErrorsCheckBox.Size = new Size(167, 30);
+            LogErrorsCheckBox.Size = new Size(202, 30);
             LogErrorsCheckBox.TabIndex = 36;
             LogErrorsCheckBox.Text = "Фиксировать ошибки";
             LogErrorsCheckBox.UseVisualStyleBackColor = false;
@@ -1790,7 +1791,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown7.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown7.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown7.Name = "CriteriasMaxIterationsNumericUpDown7";
-            CriteriasMaxIterationsNumericUpDown7.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown7.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown7.TabIndex = 75;
             CriteriasMaxIterationsNumericUpDown7.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown7.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -1805,7 +1806,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown7.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown7.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown7.Name = "CriteriasMinIterationsNumericUpDown7";
-            CriteriasMinIterationsNumericUpDown7.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown7.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown7.TabIndex = 74;
             CriteriasMinIterationsNumericUpDown7.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown7.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -1821,7 +1822,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown7.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown7.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown7.Name = "CriteriasPossibleWorseNumericUpDown7";
-            CriteriasPossibleWorseNumericUpDown7.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown7.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown7.TabIndex = 73;
             CriteriasPossibleWorseNumericUpDown7.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown7.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -1836,7 +1837,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown6.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown6.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown6.Name = "CriteriasMaxIterationsNumericUpDown6";
-            CriteriasMaxIterationsNumericUpDown6.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown6.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown6.TabIndex = 72;
             CriteriasMaxIterationsNumericUpDown6.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown6.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -1851,7 +1852,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown6.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown6.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown6.Name = "CriteriasMinIterationsNumericUpDown6";
-            CriteriasMinIterationsNumericUpDown6.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown6.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown6.TabIndex = 71;
             CriteriasMinIterationsNumericUpDown6.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown6.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -1867,7 +1868,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown6.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown6.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown6.Name = "CriteriasPossibleWorseNumericUpDown6";
-            CriteriasPossibleWorseNumericUpDown6.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown6.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown6.TabIndex = 70;
             CriteriasPossibleWorseNumericUpDown6.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown6.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -1882,7 +1883,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown5.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown5.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown5.Name = "CriteriasMaxIterationsNumericUpDown5";
-            CriteriasMaxIterationsNumericUpDown5.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown5.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown5.TabIndex = 69;
             CriteriasMaxIterationsNumericUpDown5.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown5.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -1897,7 +1898,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown5.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown5.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown5.Name = "CriteriasMinIterationsNumericUpDown5";
-            CriteriasMinIterationsNumericUpDown5.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown5.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown5.TabIndex = 68;
             CriteriasMinIterationsNumericUpDown5.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown5.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -1913,7 +1914,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown5.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown5.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown5.Name = "CriteriasPossibleWorseNumericUpDown5";
-            CriteriasPossibleWorseNumericUpDown5.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown5.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown5.TabIndex = 67;
             CriteriasPossibleWorseNumericUpDown5.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown5.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -1928,7 +1929,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown4.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown4.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown4.Name = "CriteriasMaxIterationsNumericUpDown4";
-            CriteriasMaxIterationsNumericUpDown4.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown4.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown4.TabIndex = 66;
             CriteriasMaxIterationsNumericUpDown4.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown4.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -1943,7 +1944,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown4.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown4.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown4.Name = "CriteriasMinIterationsNumericUpDown4";
-            CriteriasMinIterationsNumericUpDown4.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown4.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown4.TabIndex = 65;
             CriteriasMinIterationsNumericUpDown4.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown4.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -1959,7 +1960,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown4.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown4.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown4.Name = "CriteriasPossibleWorseNumericUpDown4";
-            CriteriasPossibleWorseNumericUpDown4.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown4.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown4.TabIndex = 64;
             CriteriasPossibleWorseNumericUpDown4.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown4.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -1974,7 +1975,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown3.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown3.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown3.Name = "CriteriasMaxIterationsNumericUpDown3";
-            CriteriasMaxIterationsNumericUpDown3.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown3.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown3.TabIndex = 63;
             CriteriasMaxIterationsNumericUpDown3.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown3.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -1989,7 +1990,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown3.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown3.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown3.Name = "CriteriasMinIterationsNumericUpDown3";
-            CriteriasMinIterationsNumericUpDown3.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown3.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown3.TabIndex = 62;
             CriteriasMinIterationsNumericUpDown3.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown3.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -2005,7 +2006,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown3.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown3.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown3.Name = "CriteriasPossibleWorseNumericUpDown3";
-            CriteriasPossibleWorseNumericUpDown3.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown3.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown3.TabIndex = 61;
             CriteriasPossibleWorseNumericUpDown3.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown3.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -2020,7 +2021,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown2.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown2.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown2.Name = "CriteriasMaxIterationsNumericUpDown2";
-            CriteriasMaxIterationsNumericUpDown2.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown2.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown2.TabIndex = 60;
             CriteriasMaxIterationsNumericUpDown2.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown2.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -2035,7 +2036,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown2.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown2.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown2.Name = "CriteriasMinIterationsNumericUpDown2";
-            CriteriasMinIterationsNumericUpDown2.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown2.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown2.TabIndex = 59;
             CriteriasMinIterationsNumericUpDown2.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown2.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -2051,7 +2052,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown2.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown2.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown2.Name = "CriteriasPossibleWorseNumericUpDown2";
-            CriteriasPossibleWorseNumericUpDown2.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown2.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown2.TabIndex = 58;
             CriteriasPossibleWorseNumericUpDown2.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown2.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -2080,7 +2081,7 @@ namespace Rodana.ZMK
             label41.Font = new Font("Microsoft Sans Serif", 9F);
             label41.Location = new Point(9, 27);
             label41.Name = "label41";
-            label41.Size = new Size(67, 15);
+            label41.Size = new Size(77, 18);
             label41.TabIndex = 45;
             label41.Text = "Критерий:";
             // 
@@ -2097,7 +2098,7 @@ namespace Rodana.ZMK
             UseOnlyMaxCriteriasSettingsCheckBox.Name = "UseOnlyMaxCriteriasSettingsCheckBox";
             UseOnlyMaxCriteriasSettingsCheckBox.RightToLeft = RightToLeft.No;
             UseOnlyMaxCriteriasSettingsCheckBox.Ripple = true;
-            UseOnlyMaxCriteriasSettingsCheckBox.Size = new Size(176, 30);
+            UseOnlyMaxCriteriasSettingsCheckBox.Size = new Size(213, 30);
             UseOnlyMaxCriteriasSettingsCheckBox.TabIndex = 37;
             UseOnlyMaxCriteriasSettingsCheckBox.Text = "Только максимальные";
             UseOnlyMaxCriteriasSettingsCheckBox.UseVisualStyleBackColor = false;
@@ -2112,7 +2113,7 @@ namespace Rodana.ZMK
             CriteriasMaxIterationsNumericUpDown1.Margin = new Padding(0);
             CriteriasMaxIterationsNumericUpDown1.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMaxIterationsNumericUpDown1.Name = "CriteriasMaxIterationsNumericUpDown1";
-            CriteriasMaxIterationsNumericUpDown1.Size = new Size(84, 19);
+            CriteriasMaxIterationsNumericUpDown1.Size = new Size(84, 22);
             CriteriasMaxIterationsNumericUpDown1.TabIndex = 55;
             CriteriasMaxIterationsNumericUpDown1.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown1.Value = new decimal(new int[] { 200, 0, 0, 0 });
@@ -2127,7 +2128,7 @@ namespace Rodana.ZMK
             CriteriasMinIterationsNumericUpDown1.Margin = new Padding(0);
             CriteriasMinIterationsNumericUpDown1.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CriteriasMinIterationsNumericUpDown1.Name = "CriteriasMinIterationsNumericUpDown1";
-            CriteriasMinIterationsNumericUpDown1.Size = new Size(84, 19);
+            CriteriasMinIterationsNumericUpDown1.Size = new Size(84, 22);
             CriteriasMinIterationsNumericUpDown1.TabIndex = 54;
             CriteriasMinIterationsNumericUpDown1.TextAlign = HorizontalAlignment.Center;
             CriteriasMinIterationsNumericUpDown1.Value = new decimal(new int[] { 100, 0, 0, 0 });
@@ -2143,7 +2144,7 @@ namespace Rodana.ZMK
             CriteriasPossibleWorseNumericUpDown1.Margin = new Padding(0);
             CriteriasPossibleWorseNumericUpDown1.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             CriteriasPossibleWorseNumericUpDown1.Name = "CriteriasPossibleWorseNumericUpDown1";
-            CriteriasPossibleWorseNumericUpDown1.Size = new Size(84, 19);
+            CriteriasPossibleWorseNumericUpDown1.Size = new Size(84, 22);
             CriteriasPossibleWorseNumericUpDown1.TabIndex = 53;
             CriteriasPossibleWorseNumericUpDown1.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown1.Value = new decimal(new int[] { 15, 0, 0, 0 });
@@ -2154,7 +2155,7 @@ namespace Rodana.ZMK
             label40.Font = new Font("Microsoft Sans Serif", 9F);
             label40.Location = new Point(9, 322);
             label40.Name = "label40";
-            label40.Size = new Size(67, 15);
+            label40.Size = new Size(77, 18);
             label40.TabIndex = 45;
             label40.Text = "Критерии:";
             // 
@@ -2178,7 +2179,7 @@ namespace Rodana.ZMK
             // 
             CriteriasListTextBox.Location = new Point(81, 319);
             CriteriasListTextBox.Name = "CriteriasListTextBox";
-            CriteriasListTextBox.Size = new Size(238, 23);
+            CriteriasListTextBox.Size = new Size(238, 26);
             CriteriasListTextBox.TabIndex = 44;
             // 
             // criteriaRadioButton6
@@ -2324,7 +2325,7 @@ namespace Rodana.ZMK
             label31.Font = new Font("Microsoft Sans Serif", 10F);
             label31.Location = new Point(194, 63);
             label31.Name = "label31";
-            label31.Size = new Size(52, 17);
+            label31.Size = new Size(63, 20);
             label31.TabIndex = 61;
             label31.Text = "иначе.";
             // 
@@ -2339,7 +2340,7 @@ namespace Rodana.ZMK
             p0l3aNumericUpDown.Margin = new Padding(0);
             p0l3aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l3aNumericUpDown.Name = "p0l3aNumericUpDown";
-            p0l3aNumericUpDown.Size = new Size(70, 19);
+            p0l3aNumericUpDown.Size = new Size(70, 22);
             p0l3aNumericUpDown.TabIndex = 60;
             p0l3aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2349,7 +2350,7 @@ namespace Rodana.ZMK
             label32.Font = new Font("Microsoft Sans Serif", 10F);
             label32.Location = new Point(100, 63);
             label32.Name = "label32";
-            label32.Size = new Size(20, 17);
+            label32.Size = new Size(23, 20);
             label32.TabIndex = 59;
             label32.Text = "a:";
             // 
@@ -2364,7 +2365,7 @@ namespace Rodana.ZMK
             p0l3kNumericUpDown.Margin = new Padding(0);
             p0l3kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l3kNumericUpDown.Name = "p0l3kNumericUpDown";
-            p0l3kNumericUpDown.Size = new Size(70, 19);
+            p0l3kNumericUpDown.Size = new Size(70, 22);
             p0l3kNumericUpDown.TabIndex = 58;
             p0l3kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2374,7 +2375,7 @@ namespace Rodana.ZMK
             label33.Font = new Font("Microsoft Sans Serif", 10F);
             label33.Location = new Point(6, 63);
             label33.Name = "label33";
-            label33.Size = new Size(19, 17);
+            label33.Size = new Size(22, 20);
             label33.TabIndex = 57;
             label33.Text = "k:";
             // 
@@ -2389,7 +2390,7 @@ namespace Rodana.ZMK
             p0l2xNumericUpDown.Margin = new Padding(0);
             p0l2xNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l2xNumericUpDown.Name = "p0l2xNumericUpDown";
-            p0l2xNumericUpDown.Size = new Size(70, 19);
+            p0l2xNumericUpDown.Size = new Size(70, 22);
             p0l2xNumericUpDown.TabIndex = 56;
             p0l2xNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2399,7 +2400,7 @@ namespace Rodana.ZMK
             label34.Font = new Font("Microsoft Sans Serif", 10F);
             label34.Location = new Point(194, 41);
             label34.Name = "label34";
-            label34.Size = new Size(26, 17);
+            label34.Size = new Size(32, 20);
             label34.TabIndex = 55;
             label34.Text = "x <";
             // 
@@ -2414,7 +2415,7 @@ namespace Rodana.ZMK
             p0l2aNumericUpDown.Margin = new Padding(0);
             p0l2aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l2aNumericUpDown.Name = "p0l2aNumericUpDown";
-            p0l2aNumericUpDown.Size = new Size(70, 19);
+            p0l2aNumericUpDown.Size = new Size(70, 22);
             p0l2aNumericUpDown.TabIndex = 54;
             p0l2aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2424,7 +2425,7 @@ namespace Rodana.ZMK
             label35.Font = new Font("Microsoft Sans Serif", 10F);
             label35.Location = new Point(100, 41);
             label35.Name = "label35";
-            label35.Size = new Size(20, 17);
+            label35.Size = new Size(23, 20);
             label35.TabIndex = 53;
             label35.Text = "a:";
             // 
@@ -2439,7 +2440,7 @@ namespace Rodana.ZMK
             p0l2kNumericUpDown.Margin = new Padding(0);
             p0l2kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l2kNumericUpDown.Name = "p0l2kNumericUpDown";
-            p0l2kNumericUpDown.Size = new Size(70, 19);
+            p0l2kNumericUpDown.Size = new Size(70, 22);
             p0l2kNumericUpDown.TabIndex = 52;
             p0l2kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2449,7 +2450,7 @@ namespace Rodana.ZMK
             label36.Font = new Font("Microsoft Sans Serif", 10F);
             label36.Location = new Point(6, 41);
             label36.Name = "label36";
-            label36.Size = new Size(19, 17);
+            label36.Size = new Size(22, 20);
             label36.TabIndex = 51;
             label36.Text = "k:";
             // 
@@ -2464,7 +2465,7 @@ namespace Rodana.ZMK
             p0l1xNumericUpDown.Margin = new Padding(0);
             p0l1xNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l1xNumericUpDown.Name = "p0l1xNumericUpDown";
-            p0l1xNumericUpDown.Size = new Size(70, 19);
+            p0l1xNumericUpDown.Size = new Size(70, 22);
             p0l1xNumericUpDown.TabIndex = 50;
             p0l1xNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2474,7 +2475,7 @@ namespace Rodana.ZMK
             label37.Font = new Font("Microsoft Sans Serif", 10F);
             label37.Location = new Point(194, 19);
             label37.Name = "label37";
-            label37.Size = new Size(26, 17);
+            label37.Size = new Size(32, 20);
             label37.TabIndex = 49;
             label37.Text = "x <";
             // 
@@ -2489,7 +2490,7 @@ namespace Rodana.ZMK
             p0l1aNumericUpDown.Margin = new Padding(0);
             p0l1aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l1aNumericUpDown.Name = "p0l1aNumericUpDown";
-            p0l1aNumericUpDown.Size = new Size(70, 19);
+            p0l1aNumericUpDown.Size = new Size(70, 22);
             p0l1aNumericUpDown.TabIndex = 48;
             p0l1aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2499,7 +2500,7 @@ namespace Rodana.ZMK
             label38.Font = new Font("Microsoft Sans Serif", 10F);
             label38.Location = new Point(100, 19);
             label38.Name = "label38";
-            label38.Size = new Size(20, 17);
+            label38.Size = new Size(23, 20);
             label38.TabIndex = 47;
             label38.Text = "a:";
             // 
@@ -2514,7 +2515,7 @@ namespace Rodana.ZMK
             p0l1kNumericUpDown.Margin = new Padding(0);
             p0l1kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p0l1kNumericUpDown.Name = "p0l1kNumericUpDown";
-            p0l1kNumericUpDown.Size = new Size(70, 19);
+            p0l1kNumericUpDown.Size = new Size(70, 22);
             p0l1kNumericUpDown.TabIndex = 46;
             p0l1kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2524,7 +2525,7 @@ namespace Rodana.ZMK
             label39.Font = new Font("Microsoft Sans Serif", 10F);
             label39.Location = new Point(6, 19);
             label39.Name = "label39";
-            label39.Size = new Size(19, 17);
+            label39.Size = new Size(22, 20);
             label39.TabIndex = 43;
             label39.Text = "k:";
             // 
@@ -2560,7 +2561,7 @@ namespace Rodana.ZMK
             label22.Font = new Font("Microsoft Sans Serif", 10F);
             label22.Location = new Point(194, 63);
             label22.Name = "label22";
-            label22.Size = new Size(52, 17);
+            label22.Size = new Size(63, 20);
             label22.TabIndex = 61;
             label22.Text = "иначе.";
             // 
@@ -2575,7 +2576,7 @@ namespace Rodana.ZMK
             p1l3aNumericUpDown.Margin = new Padding(0);
             p1l3aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l3aNumericUpDown.Name = "p1l3aNumericUpDown";
-            p1l3aNumericUpDown.Size = new Size(70, 19);
+            p1l3aNumericUpDown.Size = new Size(70, 22);
             p1l3aNumericUpDown.TabIndex = 60;
             p1l3aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2585,7 +2586,7 @@ namespace Rodana.ZMK
             label23.Font = new Font("Microsoft Sans Serif", 10F);
             label23.Location = new Point(100, 63);
             label23.Name = "label23";
-            label23.Size = new Size(20, 17);
+            label23.Size = new Size(23, 20);
             label23.TabIndex = 59;
             label23.Text = "a:";
             // 
@@ -2600,7 +2601,7 @@ namespace Rodana.ZMK
             p1l3kNumericUpDown.Margin = new Padding(0);
             p1l3kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l3kNumericUpDown.Name = "p1l3kNumericUpDown";
-            p1l3kNumericUpDown.Size = new Size(70, 19);
+            p1l3kNumericUpDown.Size = new Size(70, 22);
             p1l3kNumericUpDown.TabIndex = 58;
             p1l3kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2610,7 +2611,7 @@ namespace Rodana.ZMK
             label24.Font = new Font("Microsoft Sans Serif", 10F);
             label24.Location = new Point(6, 63);
             label24.Name = "label24";
-            label24.Size = new Size(19, 17);
+            label24.Size = new Size(22, 20);
             label24.TabIndex = 57;
             label24.Text = "k:";
             // 
@@ -2625,7 +2626,7 @@ namespace Rodana.ZMK
             p1l2xNumericUpDown.Margin = new Padding(0);
             p1l2xNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l2xNumericUpDown.Name = "p1l2xNumericUpDown";
-            p1l2xNumericUpDown.Size = new Size(70, 19);
+            p1l2xNumericUpDown.Size = new Size(70, 22);
             p1l2xNumericUpDown.TabIndex = 56;
             p1l2xNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2635,7 +2636,7 @@ namespace Rodana.ZMK
             label25.Font = new Font("Microsoft Sans Serif", 10F);
             label25.Location = new Point(194, 41);
             label25.Name = "label25";
-            label25.Size = new Size(26, 17);
+            label25.Size = new Size(32, 20);
             label25.TabIndex = 55;
             label25.Text = "x <";
             // 
@@ -2650,7 +2651,7 @@ namespace Rodana.ZMK
             p1l2aNumericUpDown.Margin = new Padding(0);
             p1l2aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l2aNumericUpDown.Name = "p1l2aNumericUpDown";
-            p1l2aNumericUpDown.Size = new Size(70, 19);
+            p1l2aNumericUpDown.Size = new Size(70, 22);
             p1l2aNumericUpDown.TabIndex = 54;
             p1l2aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2660,7 +2661,7 @@ namespace Rodana.ZMK
             label26.Font = new Font("Microsoft Sans Serif", 10F);
             label26.Location = new Point(100, 41);
             label26.Name = "label26";
-            label26.Size = new Size(20, 17);
+            label26.Size = new Size(23, 20);
             label26.TabIndex = 53;
             label26.Text = "a:";
             // 
@@ -2675,7 +2676,7 @@ namespace Rodana.ZMK
             p1l2kNumericUpDown.Margin = new Padding(0);
             p1l2kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l2kNumericUpDown.Name = "p1l2kNumericUpDown";
-            p1l2kNumericUpDown.Size = new Size(70, 19);
+            p1l2kNumericUpDown.Size = new Size(70, 22);
             p1l2kNumericUpDown.TabIndex = 52;
             p1l2kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2685,7 +2686,7 @@ namespace Rodana.ZMK
             label27.Font = new Font("Microsoft Sans Serif", 10F);
             label27.Location = new Point(6, 41);
             label27.Name = "label27";
-            label27.Size = new Size(19, 17);
+            label27.Size = new Size(22, 20);
             label27.TabIndex = 51;
             label27.Text = "k:";
             // 
@@ -2700,7 +2701,7 @@ namespace Rodana.ZMK
             p1l1xNumericUpDown.Margin = new Padding(0);
             p1l1xNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l1xNumericUpDown.Name = "p1l1xNumericUpDown";
-            p1l1xNumericUpDown.Size = new Size(70, 19);
+            p1l1xNumericUpDown.Size = new Size(70, 22);
             p1l1xNumericUpDown.TabIndex = 50;
             p1l1xNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2710,7 +2711,7 @@ namespace Rodana.ZMK
             label28.Font = new Font("Microsoft Sans Serif", 10F);
             label28.Location = new Point(194, 19);
             label28.Name = "label28";
-            label28.Size = new Size(26, 17);
+            label28.Size = new Size(32, 20);
             label28.TabIndex = 49;
             label28.Text = "x <";
             // 
@@ -2725,7 +2726,7 @@ namespace Rodana.ZMK
             p1l1aNumericUpDown.Margin = new Padding(0);
             p1l1aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l1aNumericUpDown.Name = "p1l1aNumericUpDown";
-            p1l1aNumericUpDown.Size = new Size(70, 19);
+            p1l1aNumericUpDown.Size = new Size(70, 22);
             p1l1aNumericUpDown.TabIndex = 48;
             p1l1aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2735,7 +2736,7 @@ namespace Rodana.ZMK
             label29.Font = new Font("Microsoft Sans Serif", 10F);
             label29.Location = new Point(100, 19);
             label29.Name = "label29";
-            label29.Size = new Size(20, 17);
+            label29.Size = new Size(23, 20);
             label29.TabIndex = 47;
             label29.Text = "a:";
             // 
@@ -2750,7 +2751,7 @@ namespace Rodana.ZMK
             p1l1kNumericUpDown.Margin = new Padding(0);
             p1l1kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p1l1kNumericUpDown.Name = "p1l1kNumericUpDown";
-            p1l1kNumericUpDown.Size = new Size(70, 19);
+            p1l1kNumericUpDown.Size = new Size(70, 22);
             p1l1kNumericUpDown.TabIndex = 46;
             p1l1kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2760,7 +2761,7 @@ namespace Rodana.ZMK
             label30.Font = new Font("Microsoft Sans Serif", 10F);
             label30.Location = new Point(6, 19);
             label30.Name = "label30";
-            label30.Size = new Size(19, 17);
+            label30.Size = new Size(22, 20);
             label30.TabIndex = 43;
             label30.Text = "k:";
             // 
@@ -2770,7 +2771,7 @@ namespace Rodana.ZMK
             label12.Font = new Font("Microsoft Sans Serif", 9F);
             label12.Location = new Point(6, 21);
             label12.Name = "label12";
-            label12.Size = new Size(231, 15);
+            label12.Size = new Size(283, 18);
             label12.TabIndex = 43;
             label12.Text = "Функция: y = k*x^a, x - количество дней";
             // 
@@ -2806,7 +2807,7 @@ namespace Rodana.ZMK
             label19.Font = new Font("Microsoft Sans Serif", 10F);
             label19.Location = new Point(194, 63);
             label19.Name = "label19";
-            label19.Size = new Size(52, 17);
+            label19.Size = new Size(63, 20);
             label19.TabIndex = 61;
             label19.Text = "иначе.";
             // 
@@ -2821,7 +2822,7 @@ namespace Rodana.ZMK
             p2l3aNumericUpDown.Margin = new Padding(0);
             p2l3aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l3aNumericUpDown.Name = "p2l3aNumericUpDown";
-            p2l3aNumericUpDown.Size = new Size(70, 19);
+            p2l3aNumericUpDown.Size = new Size(70, 22);
             p2l3aNumericUpDown.TabIndex = 60;
             p2l3aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2831,7 +2832,7 @@ namespace Rodana.ZMK
             label20.Font = new Font("Microsoft Sans Serif", 10F);
             label20.Location = new Point(100, 63);
             label20.Name = "label20";
-            label20.Size = new Size(20, 17);
+            label20.Size = new Size(23, 20);
             label20.TabIndex = 59;
             label20.Text = "a:";
             // 
@@ -2846,7 +2847,7 @@ namespace Rodana.ZMK
             p2l3kNumericUpDown.Margin = new Padding(0);
             p2l3kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l3kNumericUpDown.Name = "p2l3kNumericUpDown";
-            p2l3kNumericUpDown.Size = new Size(70, 19);
+            p2l3kNumericUpDown.Size = new Size(70, 22);
             p2l3kNumericUpDown.TabIndex = 58;
             p2l3kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2856,7 +2857,7 @@ namespace Rodana.ZMK
             label21.Font = new Font("Microsoft Sans Serif", 10F);
             label21.Location = new Point(6, 63);
             label21.Name = "label21";
-            label21.Size = new Size(19, 17);
+            label21.Size = new Size(22, 20);
             label21.TabIndex = 57;
             label21.Text = "k:";
             // 
@@ -2871,7 +2872,7 @@ namespace Rodana.ZMK
             p2l2xNumericUpDown.Margin = new Padding(0);
             p2l2xNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l2xNumericUpDown.Name = "p2l2xNumericUpDown";
-            p2l2xNumericUpDown.Size = new Size(70, 19);
+            p2l2xNumericUpDown.Size = new Size(70, 22);
             p2l2xNumericUpDown.TabIndex = 56;
             p2l2xNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2881,7 +2882,7 @@ namespace Rodana.ZMK
             label16.Font = new Font("Microsoft Sans Serif", 10F);
             label16.Location = new Point(194, 41);
             label16.Name = "label16";
-            label16.Size = new Size(26, 17);
+            label16.Size = new Size(32, 20);
             label16.TabIndex = 55;
             label16.Text = "x <";
             // 
@@ -2896,7 +2897,7 @@ namespace Rodana.ZMK
             p2l2aNumericUpDown.Margin = new Padding(0);
             p2l2aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l2aNumericUpDown.Name = "p2l2aNumericUpDown";
-            p2l2aNumericUpDown.Size = new Size(70, 19);
+            p2l2aNumericUpDown.Size = new Size(70, 22);
             p2l2aNumericUpDown.TabIndex = 54;
             p2l2aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2906,7 +2907,7 @@ namespace Rodana.ZMK
             label17.Font = new Font("Microsoft Sans Serif", 10F);
             label17.Location = new Point(100, 41);
             label17.Name = "label17";
-            label17.Size = new Size(20, 17);
+            label17.Size = new Size(23, 20);
             label17.TabIndex = 53;
             label17.Text = "a:";
             // 
@@ -2921,7 +2922,7 @@ namespace Rodana.ZMK
             p2l2kNumericUpDown.Margin = new Padding(0);
             p2l2kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l2kNumericUpDown.Name = "p2l2kNumericUpDown";
-            p2l2kNumericUpDown.Size = new Size(70, 19);
+            p2l2kNumericUpDown.Size = new Size(70, 22);
             p2l2kNumericUpDown.TabIndex = 52;
             p2l2kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2931,7 +2932,7 @@ namespace Rodana.ZMK
             label18.Font = new Font("Microsoft Sans Serif", 10F);
             label18.Location = new Point(6, 41);
             label18.Name = "label18";
-            label18.Size = new Size(19, 17);
+            label18.Size = new Size(22, 20);
             label18.TabIndex = 51;
             label18.Text = "k:";
             // 
@@ -2946,7 +2947,7 @@ namespace Rodana.ZMK
             p2l1xNumericUpDown.Margin = new Padding(0);
             p2l1xNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l1xNumericUpDown.Name = "p2l1xNumericUpDown";
-            p2l1xNumericUpDown.Size = new Size(70, 19);
+            p2l1xNumericUpDown.Size = new Size(70, 22);
             p2l1xNumericUpDown.TabIndex = 50;
             p2l1xNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2956,7 +2957,7 @@ namespace Rodana.ZMK
             label15.Font = new Font("Microsoft Sans Serif", 10F);
             label15.Location = new Point(194, 19);
             label15.Name = "label15";
-            label15.Size = new Size(26, 17);
+            label15.Size = new Size(32, 20);
             label15.TabIndex = 49;
             label15.Text = "x <";
             // 
@@ -2971,7 +2972,7 @@ namespace Rodana.ZMK
             p2l1aNumericUpDown.Margin = new Padding(0);
             p2l1aNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l1aNumericUpDown.Name = "p2l1aNumericUpDown";
-            p2l1aNumericUpDown.Size = new Size(70, 19);
+            p2l1aNumericUpDown.Size = new Size(70, 22);
             p2l1aNumericUpDown.TabIndex = 48;
             p2l1aNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -2981,7 +2982,7 @@ namespace Rodana.ZMK
             label14.Font = new Font("Microsoft Sans Serif", 10F);
             label14.Location = new Point(100, 19);
             label14.Name = "label14";
-            label14.Size = new Size(20, 17);
+            label14.Size = new Size(23, 20);
             label14.TabIndex = 47;
             label14.Text = "a:";
             // 
@@ -2996,7 +2997,7 @@ namespace Rodana.ZMK
             p2l1kNumericUpDown.Margin = new Padding(0);
             p2l1kNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             p2l1kNumericUpDown.Name = "p2l1kNumericUpDown";
-            p2l1kNumericUpDown.Size = new Size(70, 19);
+            p2l1kNumericUpDown.Size = new Size(70, 22);
             p2l1kNumericUpDown.TabIndex = 46;
             p2l1kNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
@@ -3006,7 +3007,7 @@ namespace Rodana.ZMK
             label13.Font = new Font("Microsoft Sans Serif", 10F);
             label13.Location = new Point(6, 19);
             label13.Name = "label13";
-            label13.Size = new Size(19, 17);
+            label13.Size = new Size(22, 20);
             label13.TabIndex = 43;
             label13.Text = "k:";
             // 
@@ -3035,7 +3036,7 @@ namespace Rodana.ZMK
             CyclesNumericUpDown.Margin = new Padding(0);
             CyclesNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             CyclesNumericUpDown.Name = "CyclesNumericUpDown";
-            CyclesNumericUpDown.Size = new Size(84, 19);
+            CyclesNumericUpDown.Size = new Size(84, 22);
             CyclesNumericUpDown.TabIndex = 45;
             CyclesNumericUpDown.TextAlign = HorizontalAlignment.Center;
             CyclesNumericUpDown.Value = new decimal(new int[] { 21, 0, 0, 0 });
@@ -3067,7 +3068,7 @@ namespace Rodana.ZMK
             MinutesNumericUpDown.Margin = new Padding(0);
             MinutesNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             MinutesNumericUpDown.Name = "MinutesNumericUpDown";
-            MinutesNumericUpDown.Size = new Size(84, 19);
+            MinutesNumericUpDown.Size = new Size(84, 22);
             MinutesNumericUpDown.TabIndex = 43;
             MinutesNumericUpDown.TextAlign = HorizontalAlignment.Center;
             MinutesNumericUpDown.Value = new decimal(new int[] { 30, 0, 0, 0 });
@@ -3082,7 +3083,7 @@ namespace Rodana.ZMK
             IterationsNumericUpDown.Margin = new Padding(0);
             IterationsNumericUpDown.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             IterationsNumericUpDown.Name = "IterationsNumericUpDown";
-            IterationsNumericUpDown.Size = new Size(84, 19);
+            IterationsNumericUpDown.Size = new Size(84, 22);
             IterationsNumericUpDown.TabIndex = 42;
             IterationsNumericUpDown.TextAlign = HorizontalAlignment.Center;
             IterationsNumericUpDown.Value = new decimal(new int[] { 5000, 0, 0, 0 });
@@ -3127,7 +3128,7 @@ namespace Rodana.ZMK
             label9.Font = new Font("Microsoft Sans Serif", 9F);
             label9.Location = new Point(8, 114);
             label9.Name = "label9";
-            label9.Size = new Size(66, 15);
+            label9.Size = new Size(82, 18);
             label9.TabIndex = 40;
             label9.Text = "Коэфф. V:";
             // 
@@ -3135,7 +3136,7 @@ namespace Rodana.ZMK
             // 
             VKoeffsTextBox.Location = new Point(80, 111);
             VKoeffsTextBox.Name = "VKoeffsTextBox";
-            VKoeffsTextBox.Size = new Size(238, 23);
+            VKoeffsTextBox.Size = new Size(238, 26);
             VKoeffsTextBox.TabIndex = 39;
             // 
             // ClearAllSessionErrorsButton
@@ -3213,7 +3214,7 @@ namespace Rodana.ZMK
             BackupStagesDurationLabel.Font = new Font("Microsoft Sans Serif", 9F);
             BackupStagesDurationLabel.Location = new Point(8, 59);
             BackupStagesDurationLabel.Name = "BackupStagesDurationLabel";
-            BackupStagesDurationLabel.Size = new Size(223, 15);
+            BackupStagesDurationLabel.Size = new Size(266, 18);
             BackupStagesDurationLabel.TabIndex = 31;
             BackupStagesDurationLabel.Text = "Резервная длительность этапов (с.):";
             // 
@@ -3227,7 +3228,7 @@ namespace Rodana.ZMK
             BackupStagesDurationNumericUpDown.Margin = new Padding(0);
             BackupStagesDurationNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             BackupStagesDurationNumericUpDown.Name = "BackupStagesDurationNumericUpDown";
-            BackupStagesDurationNumericUpDown.Size = new Size(84, 19);
+            BackupStagesDurationNumericUpDown.Size = new Size(84, 22);
             BackupStagesDurationNumericUpDown.TabIndex = 30;
             BackupStagesDurationNumericUpDown.TextAlign = HorizontalAlignment.Center;
             BackupStagesDurationNumericUpDown.Value = new decimal(new int[] { 1, 0, 0, 0 });
@@ -3238,7 +3239,7 @@ namespace Rodana.ZMK
             PartiasMaxDaysLabel.Font = new Font("Microsoft Sans Serif", 9F);
             PartiasMaxDaysLabel.Location = new Point(8, 85);
             PartiasMaxDaysLabel.Name = "PartiasMaxDaysLabel";
-            PartiasMaxDaysLabel.Size = new Size(202, 15);
+            PartiasMaxDaysLabel.Size = new Size(243, 18);
             PartiasMaxDaysLabel.TabIndex = 29;
             PartiasMaxDaysLabel.Text = "Максимум дней между партиями:";
             // 
@@ -3252,7 +3253,7 @@ namespace Rodana.ZMK
             PartiasMaxDaysNumericUpDown.Margin = new Padding(0);
             PartiasMaxDaysNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             PartiasMaxDaysNumericUpDown.Name = "PartiasMaxDaysNumericUpDown";
-            PartiasMaxDaysNumericUpDown.Size = new Size(84, 19);
+            PartiasMaxDaysNumericUpDown.Size = new Size(84, 22);
             PartiasMaxDaysNumericUpDown.TabIndex = 28;
             PartiasMaxDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
             PartiasMaxDaysNumericUpDown.Value = new decimal(new int[] { 30, 0, 0, 0 });

@@ -60,7 +60,8 @@ namespace Rodana.Core.Planning.ParallelPlanning
                 // 3.1 Дельта и "Не Повышать Тару"
                 if (!ParIDParams.ContainsKey(model.ParallelID))
                 {
-                    ParIDParams.Add(model.ParallelID, new ParallelPlanningParamClass(model.Delta, model.NotIncreaseTara));
+                    if (!model.Delta.HasValue) model.Delta = 999999;
+                    ParIDParams.Add(model.ParallelID, new ParallelPlanningParamClass(model.Delta.Value, model.NotIncreaseTara));
                 }
 
                 // 4. Вариант загрузки
@@ -85,7 +86,7 @@ namespace Rodana.Core.Planning.ParallelPlanning
                 {
                     vari.List.Add(model.Tara, model.TaraCount.Value);
                     vari.TotalCount += model.TaraCount.Value;
-                    vari.MaxCapacity = model.MaxCapacity;
+                    vari.MaxCapacity = model.MaxCapacity ?? 0;
                 }
                 ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID][model.Variant] = vari;
 
@@ -119,7 +120,7 @@ namespace Rodana.Core.Planning.ParallelPlanning
                 // 7.1 Оставшиеся столбцы - для характеристики
                 if (!characters.ListOfChars.ContainsKey(model.Char))
                 {
-                    characters.ListOfChars.Add(model.Char, new ConcreteCharacteristic(model.Min, model.Max, PropsMasterData.GenerateLinks(model.ColumnName), model.Value, model.ValueGUID)); // Добавляем
+                    characters.ListOfChars.Add(model.Char, new ConcreteCharacteristic(model.Min ?? 0, model.Max ?? 0, PropsMasterData.GenerateLinks(model.ColumnName), model.Value, model.ValueGUID ?? Guid.Empty)); // Добавляем
                 }
             }
         }

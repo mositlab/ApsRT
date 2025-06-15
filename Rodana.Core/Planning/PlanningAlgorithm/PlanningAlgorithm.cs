@@ -190,6 +190,7 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
             Console.WriteLine("4.3 - order them");
             (GLOBAL_FIXED_MIN, GLOBAL_VPZ_MAX) = Order_Fixed_VPZ_Free(ref ops, true/*OpersAreNotHighlyStricted*/);
 
+            Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Count());
             Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Distinct().Count());
 
             BestBlocksList = ops;
