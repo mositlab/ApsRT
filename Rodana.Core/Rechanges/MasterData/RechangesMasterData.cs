@@ -64,7 +64,11 @@ namespace Rodana.Core.Rechanges.MasterData
             }
             else
             {
-                var rc = SessionLink.MasterDataLinks.CentersMasterData.CentersData[RC];
+                if (!SessionLink.MasterDataLinks.CentersMasterData.CentersData.TryGetValue(RC, out var rc))
+                {
+                    // Можно сюда вывести лог.
+                    return;
+                }
                 rc.PossibleRechanges ??= new();
                 rc.PossibleRechanges.SetDataBit(index, true);
                 rc.IsWithRechanges = true;
