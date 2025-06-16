@@ -1,5 +1,7 @@
 ﻿using WinFormsCustomComponents;
 using RodanaCustomComponents;
+using ZedGraph;
+using Label = System.Windows.Forms.Label;
 
 namespace Rodana.ZMK
 {
@@ -31,8 +33,9 @@ namespace Rodana.ZMK
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             OpenPlanningButton = new Button();
             OpenPartiasButton = new Button();
             materialTabSelector1 = new MaterialTabSelector();
@@ -123,6 +126,33 @@ namespace Rodana.ZMK
             dateTimePickerFrom = new DateTimePicker();
             HandPlanningPage = new TabPage();
             GraphsTabPage = new TabPage();
+            GraphsMaterialTabControl = new MaterialTabControl();
+            tabPage8 = new TabPage();
+            splitContainer14 = new SplitContainer();
+            splitContainer15 = new SplitContainer();
+            OrdersGraphControl = new ZedGraphControl();
+            ProstoiGraphControl = new ZedGraphControl();
+            splitContainer16 = new SplitContainer();
+            RechangesGraphControl = new ZedGraphControl();
+            TotalTimeGraphControl = new ZedGraphControl();
+            tabPage9 = new TabPage();
+            splitContainer11 = new SplitContainer();
+            splitContainer12 = new SplitContainer();
+            BadOffsetsGraphControl = new ZedGraphControl();
+            zedGraphControl2 = new ZedGraphControl();
+            splitContainer13 = new SplitContainer();
+            zedGraphControl1 = new ZedGraphControl();
+            zedGraphControl3 = new ZedGraphControl();
+            tabPage4 = new TabPage();
+            splitContainer9 = new SplitContainer();
+            splitContainer10 = new SplitContainer();
+            TarasGraphControl = new ZedGraphControl();
+            MaterialsGraphControl = new ZedGraphControl();
+            ProductionGraphControl = new ZedGraphControl();
+            panel2 = new Panel();
+            tabPage5 = new TabPage();
+            AllPercentagesGraphControl = new ZedGraphControl();
+            materialTabSelector4 = new MaterialTabSelector();
             materialTabSelector3 = new MaterialTabSelector();
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
@@ -291,6 +321,44 @@ namespace Rodana.ZMK
             splitContainer6.Panel2.SuspendLayout();
             splitContainer6.SuspendLayout();
             panel1.SuspendLayout();
+            GraphsTabPage.SuspendLayout();
+            GraphsMaterialTabControl.SuspendLayout();
+            tabPage8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer14).BeginInit();
+            splitContainer14.Panel1.SuspendLayout();
+            splitContainer14.Panel2.SuspendLayout();
+            splitContainer14.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer15).BeginInit();
+            splitContainer15.Panel1.SuspendLayout();
+            splitContainer15.Panel2.SuspendLayout();
+            splitContainer15.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer16).BeginInit();
+            splitContainer16.Panel1.SuspendLayout();
+            splitContainer16.Panel2.SuspendLayout();
+            splitContainer16.SuspendLayout();
+            tabPage9.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer11).BeginInit();
+            splitContainer11.Panel1.SuspendLayout();
+            splitContainer11.Panel2.SuspendLayout();
+            splitContainer11.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer12).BeginInit();
+            splitContainer12.Panel1.SuspendLayout();
+            splitContainer12.Panel2.SuspendLayout();
+            splitContainer12.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer13).BeginInit();
+            splitContainer13.Panel1.SuspendLayout();
+            splitContainer13.Panel2.SuspendLayout();
+            splitContainer13.SuspendLayout();
+            tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer9).BeginInit();
+            splitContainer9.Panel1.SuspendLayout();
+            splitContainer9.Panel2.SuspendLayout();
+            splitContainer9.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer10).BeginInit();
+            splitContainer10.Panel1.SuspendLayout();
+            splitContainer10.Panel2.SuspendLayout();
+            splitContainer10.SuspendLayout();
+            tabPage5.SuspendLayout();
             SettingsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
@@ -918,7 +986,7 @@ namespace Rodana.ZMK
             tabPage2.Controls.Add(TwoPartiasPartia2View);
             tabPage2.Location = new Point(4, 29);
             tabPage2.Name = "tabPage2";
-            tabPage2.Size = new Size(760, 329);
+            tabPage2.Size = new Size(760, 319);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Партия 2";
             tabPage2.UseVisualStyleBackColor = true;
@@ -930,7 +998,7 @@ namespace Rodana.ZMK
             TwoPartiasPartia2View.Location = new Point(0, 0);
             TwoPartiasPartia2View.Margin = new Padding(0);
             TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
-            TwoPartiasPartia2View.Size = new Size(760, 329);
+            TwoPartiasPartia2View.Size = new Size(760, 319);
             TwoPartiasPartia2View.TabIndex = 0;
             // 
             // tabPage3
@@ -938,7 +1006,7 @@ namespace Rodana.ZMK
             tabPage3.Controls.Add(TwoPartiasPartiaResView);
             tabPage3.Location = new Point(4, 29);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(760, 329);
+            tabPage3.Size = new Size(760, 319);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Результат";
             tabPage3.UseVisualStyleBackColor = true;
@@ -950,7 +1018,7 @@ namespace Rodana.ZMK
             TwoPartiasPartiaResView.Location = new Point(0, 0);
             TwoPartiasPartiaResView.Margin = new Padding(0);
             TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
-            TwoPartiasPartiaResView.Size = new Size(760, 329);
+            TwoPartiasPartiaResView.Size = new Size(760, 319);
             TwoPartiasPartiaResView.TabIndex = 1;
             // 
             // label8
@@ -1311,14 +1379,14 @@ namespace Rodana.ZMK
             PlanningDataTable.BorderStyle = BorderStyle.None;
             PlanningDataTable.CellBorderStyle = DataGridViewCellBorderStyle.None;
             PlanningDataTable.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Control;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            PlanningDataTable.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Control;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            dataGridViewCellStyle2.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.True;
+            PlanningDataTable.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             PlanningDataTable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             PlanningDataTable.Columns.AddRange(new DataGridViewColumn[] { Column6, Column7, Column8, Column9 });
             PlanningDataTable.Dock = DockStyle.Fill;
@@ -1492,19 +1560,459 @@ namespace Rodana.ZMK
             HandPlanningPage.Location = new Point(4, 29);
             HandPlanningPage.Name = "HandPlanningPage";
             HandPlanningPage.Padding = new Padding(3);
-            HandPlanningPage.Size = new Size(1163, 433);
+            HandPlanningPage.Size = new Size(1163, 429);
             HandPlanningPage.TabIndex = 1;
             HandPlanningPage.Text = "Ручной анализ плана";
             HandPlanningPage.UseVisualStyleBackColor = true;
             // 
             // GraphsTabPage
             // 
+            GraphsTabPage.Controls.Add(GraphsMaterialTabControl);
+            GraphsTabPage.Controls.Add(materialTabSelector4);
             GraphsTabPage.Location = new Point(4, 29);
             GraphsTabPage.Name = "GraphsTabPage";
-            GraphsTabPage.Size = new Size(1163, 433);
+            GraphsTabPage.Size = new Size(1163, 429);
             GraphsTabPage.TabIndex = 2;
             GraphsTabPage.Text = "Графики эффективности";
             GraphsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // GraphsMaterialTabControl
+            // 
+            GraphsMaterialTabControl.Controls.Add(tabPage8);
+            GraphsMaterialTabControl.Controls.Add(tabPage9);
+            GraphsMaterialTabControl.Controls.Add(tabPage4);
+            GraphsMaterialTabControl.Controls.Add(tabPage5);
+            GraphsMaterialTabControl.Dock = DockStyle.Fill;
+            GraphsMaterialTabControl.Location = new Point(0, 35);
+            GraphsMaterialTabControl.Name = "GraphsMaterialTabControl";
+            GraphsMaterialTabControl.SelectedIndex = 0;
+            GraphsMaterialTabControl.Size = new Size(1163, 394);
+            GraphsMaterialTabControl.TabIndex = 2;
+            // 
+            // tabPage8
+            // 
+            tabPage8.Controls.Add(splitContainer14);
+            tabPage8.Location = new Point(4, 29);
+            tabPage8.Name = "tabPage8";
+            tabPage8.Padding = new Padding(3);
+            tabPage8.Size = new Size(1155, 361);
+            tabPage8.TabIndex = 0;
+            tabPage8.Text = "Основное";
+            tabPage8.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer14
+            // 
+            splitContainer14.Dock = DockStyle.Fill;
+            splitContainer14.Location = new Point(3, 3);
+            splitContainer14.Name = "splitContainer14";
+            // 
+            // splitContainer14.Panel1
+            // 
+            splitContainer14.Panel1.Controls.Add(splitContainer15);
+            splitContainer14.Panel1MinSize = 10;
+            // 
+            // splitContainer14.Panel2
+            // 
+            splitContainer14.Panel2.Controls.Add(splitContainer16);
+            splitContainer14.Panel2MinSize = 10;
+            splitContainer14.Size = new Size(1149, 355);
+            splitContainer14.SplitterDistance = 551;
+            splitContainer14.TabIndex = 1;
+            // 
+            // splitContainer15
+            // 
+            splitContainer15.Dock = DockStyle.Fill;
+            splitContainer15.Location = new Point(0, 0);
+            splitContainer15.Name = "splitContainer15";
+            splitContainer15.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer15.Panel1
+            // 
+            splitContainer15.Panel1.Controls.Add(OrdersGraphControl);
+            splitContainer15.Panel1MinSize = 10;
+            // 
+            // splitContainer15.Panel2
+            // 
+            splitContainer15.Panel2.Controls.Add(ProstoiGraphControl);
+            splitContainer15.Panel2MinSize = 10;
+            splitContainer15.Size = new Size(551, 355);
+            splitContainer15.SplitterDistance = 183;
+            splitContainer15.TabIndex = 0;
+            // 
+            // OrdersGraphControl
+            // 
+            OrdersGraphControl.BackColor = Color.Transparent;
+            OrdersGraphControl.Dock = DockStyle.Fill;
+            OrdersGraphControl.Location = new Point(0, 0);
+            OrdersGraphControl.Margin = new Padding(6, 5, 6, 5);
+            OrdersGraphControl.Name = "OrdersGraphControl";
+            OrdersGraphControl.ScrollGrace = 0D;
+            OrdersGraphControl.ScrollMaxX = 0D;
+            OrdersGraphControl.ScrollMaxY = 0D;
+            OrdersGraphControl.ScrollMaxY2 = 0D;
+            OrdersGraphControl.ScrollMinX = 0D;
+            OrdersGraphControl.ScrollMinY = 0D;
+            OrdersGraphControl.ScrollMinY2 = 0D;
+            OrdersGraphControl.Size = new Size(551, 183);
+            OrdersGraphControl.TabIndex = 2;
+            OrdersGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // ProstoiGraphControl
+            // 
+            ProstoiGraphControl.Dock = DockStyle.Fill;
+            ProstoiGraphControl.Location = new Point(0, 0);
+            ProstoiGraphControl.Margin = new Padding(6, 5, 6, 5);
+            ProstoiGraphControl.Name = "ProstoiGraphControl";
+            ProstoiGraphControl.ScrollGrace = 0D;
+            ProstoiGraphControl.ScrollMaxX = 0D;
+            ProstoiGraphControl.ScrollMaxY = 0D;
+            ProstoiGraphControl.ScrollMaxY2 = 0D;
+            ProstoiGraphControl.ScrollMinX = 0D;
+            ProstoiGraphControl.ScrollMinY = 0D;
+            ProstoiGraphControl.ScrollMinY2 = 0D;
+            ProstoiGraphControl.Size = new Size(551, 168);
+            ProstoiGraphControl.TabIndex = 2;
+            ProstoiGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // splitContainer16
+            // 
+            splitContainer16.Dock = DockStyle.Fill;
+            splitContainer16.Location = new Point(0, 0);
+            splitContainer16.Name = "splitContainer16";
+            splitContainer16.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer16.Panel1
+            // 
+            splitContainer16.Panel1.Controls.Add(RechangesGraphControl);
+            splitContainer16.Panel1MinSize = 10;
+            // 
+            // splitContainer16.Panel2
+            // 
+            splitContainer16.Panel2.Controls.Add(TotalTimeGraphControl);
+            splitContainer16.Panel2MinSize = 10;
+            splitContainer16.Size = new Size(594, 355);
+            splitContainer16.SplitterDistance = 183;
+            splitContainer16.TabIndex = 0;
+            // 
+            // RechangesGraphControl
+            // 
+            RechangesGraphControl.Dock = DockStyle.Fill;
+            RechangesGraphControl.Location = new Point(0, 0);
+            RechangesGraphControl.Margin = new Padding(6, 5, 6, 5);
+            RechangesGraphControl.Name = "RechangesGraphControl";
+            RechangesGraphControl.ScrollGrace = 0D;
+            RechangesGraphControl.ScrollMaxX = 0D;
+            RechangesGraphControl.ScrollMaxY = 0D;
+            RechangesGraphControl.ScrollMaxY2 = 0D;
+            RechangesGraphControl.ScrollMinX = 0D;
+            RechangesGraphControl.ScrollMinY = 0D;
+            RechangesGraphControl.ScrollMinY2 = 0D;
+            RechangesGraphControl.Size = new Size(594, 183);
+            RechangesGraphControl.TabIndex = 2;
+            RechangesGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // TotalTimeGraphControl
+            // 
+            TotalTimeGraphControl.Dock = DockStyle.Fill;
+            TotalTimeGraphControl.Location = new Point(0, 0);
+            TotalTimeGraphControl.Margin = new Padding(6, 5, 6, 5);
+            TotalTimeGraphControl.Name = "TotalTimeGraphControl";
+            TotalTimeGraphControl.ScrollGrace = 0D;
+            TotalTimeGraphControl.ScrollMaxX = 0D;
+            TotalTimeGraphControl.ScrollMaxY = 0D;
+            TotalTimeGraphControl.ScrollMaxY2 = 0D;
+            TotalTimeGraphControl.ScrollMinX = 0D;
+            TotalTimeGraphControl.ScrollMinY = 0D;
+            TotalTimeGraphControl.ScrollMinY2 = 0D;
+            TotalTimeGraphControl.Size = new Size(594, 168);
+            TotalTimeGraphControl.TabIndex = 2;
+            TotalTimeGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // tabPage9
+            // 
+            tabPage9.Controls.Add(splitContainer11);
+            tabPage9.Location = new Point(4, 29);
+            tabPage9.Name = "tabPage9";
+            tabPage9.Padding = new Padding(3);
+            tabPage9.Size = new Size(1155, 361);
+            tabPage9.TabIndex = 1;
+            tabPage9.Text = "Основное (ч. 2)";
+            tabPage9.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer11
+            // 
+            splitContainer11.Dock = DockStyle.Fill;
+            splitContainer11.Location = new Point(3, 3);
+            splitContainer11.Name = "splitContainer11";
+            // 
+            // splitContainer11.Panel1
+            // 
+            splitContainer11.Panel1.Controls.Add(splitContainer12);
+            splitContainer11.Panel1MinSize = 10;
+            // 
+            // splitContainer11.Panel2
+            // 
+            splitContainer11.Panel2.Controls.Add(splitContainer13);
+            splitContainer11.Panel2MinSize = 10;
+            splitContainer11.Size = new Size(1149, 355);
+            splitContainer11.SplitterDistance = 1132;
+            splitContainer11.TabIndex = 0;
+            // 
+            // splitContainer12
+            // 
+            splitContainer12.Dock = DockStyle.Fill;
+            splitContainer12.Location = new Point(0, 0);
+            splitContainer12.Name = "splitContainer12";
+            splitContainer12.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer12.Panel1
+            // 
+            splitContainer12.Panel1.Controls.Add(BadOffsetsGraphControl);
+            splitContainer12.Panel1MinSize = 10;
+            // 
+            // splitContainer12.Panel2
+            // 
+            splitContainer12.Panel2.Controls.Add(zedGraphControl2);
+            splitContainer12.Panel2MinSize = 10;
+            splitContainer12.Size = new Size(1132, 355);
+            splitContainer12.SplitterDistance = 340;
+            splitContainer12.TabIndex = 0;
+            // 
+            // BadOffsetsGraphControl
+            // 
+            BadOffsetsGraphControl.Dock = DockStyle.Fill;
+            BadOffsetsGraphControl.Location = new Point(0, 0);
+            BadOffsetsGraphControl.Margin = new Padding(6, 5, 6, 5);
+            BadOffsetsGraphControl.Name = "BadOffsetsGraphControl";
+            BadOffsetsGraphControl.ScrollGrace = 0D;
+            BadOffsetsGraphControl.ScrollMaxX = 0D;
+            BadOffsetsGraphControl.ScrollMaxY = 0D;
+            BadOffsetsGraphControl.ScrollMaxY2 = 0D;
+            BadOffsetsGraphControl.ScrollMinX = 0D;
+            BadOffsetsGraphControl.ScrollMinY = 0D;
+            BadOffsetsGraphControl.ScrollMinY2 = 0D;
+            BadOffsetsGraphControl.Size = new Size(1132, 340);
+            BadOffsetsGraphControl.TabIndex = 2;
+            BadOffsetsGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // zedGraphControl2
+            // 
+            zedGraphControl2.Dock = DockStyle.Fill;
+            zedGraphControl2.Location = new Point(0, 0);
+            zedGraphControl2.Margin = new Padding(6, 5, 6, 5);
+            zedGraphControl2.Name = "zedGraphControl2";
+            zedGraphControl2.ScrollGrace = 0D;
+            zedGraphControl2.ScrollMaxX = 0D;
+            zedGraphControl2.ScrollMaxY = 0D;
+            zedGraphControl2.ScrollMaxY2 = 0D;
+            zedGraphControl2.ScrollMinX = 0D;
+            zedGraphControl2.ScrollMinY = 0D;
+            zedGraphControl2.ScrollMinY2 = 0D;
+            zedGraphControl2.Size = new Size(1132, 11);
+            zedGraphControl2.TabIndex = 2;
+            zedGraphControl2.UseExtendedPrintDialog = true;
+            // 
+            // splitContainer13
+            // 
+            splitContainer13.Dock = DockStyle.Fill;
+            splitContainer13.Location = new Point(0, 0);
+            splitContainer13.Name = "splitContainer13";
+            splitContainer13.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer13.Panel1
+            // 
+            splitContainer13.Panel1.Controls.Add(zedGraphControl1);
+            splitContainer13.Panel1MinSize = 10;
+            // 
+            // splitContainer13.Panel2
+            // 
+            splitContainer13.Panel2.Controls.Add(zedGraphControl3);
+            splitContainer13.Panel2MinSize = 10;
+            splitContainer13.Size = new Size(13, 355);
+            splitContainer13.SplitterDistance = 183;
+            splitContainer13.TabIndex = 0;
+            // 
+            // zedGraphControl1
+            // 
+            zedGraphControl1.Dock = DockStyle.Fill;
+            zedGraphControl1.Location = new Point(0, 0);
+            zedGraphControl1.Margin = new Padding(6, 5, 6, 5);
+            zedGraphControl1.Name = "zedGraphControl1";
+            zedGraphControl1.ScrollGrace = 0D;
+            zedGraphControl1.ScrollMaxX = 0D;
+            zedGraphControl1.ScrollMaxY = 0D;
+            zedGraphControl1.ScrollMaxY2 = 0D;
+            zedGraphControl1.ScrollMinX = 0D;
+            zedGraphControl1.ScrollMinY = 0D;
+            zedGraphControl1.ScrollMinY2 = 0D;
+            zedGraphControl1.Size = new Size(13, 183);
+            zedGraphControl1.TabIndex = 2;
+            zedGraphControl1.UseExtendedPrintDialog = true;
+            // 
+            // zedGraphControl3
+            // 
+            zedGraphControl3.Dock = DockStyle.Fill;
+            zedGraphControl3.Location = new Point(0, 0);
+            zedGraphControl3.Margin = new Padding(6, 5, 6, 5);
+            zedGraphControl3.Name = "zedGraphControl3";
+            zedGraphControl3.ScrollGrace = 0D;
+            zedGraphControl3.ScrollMaxX = 0D;
+            zedGraphControl3.ScrollMaxY = 0D;
+            zedGraphControl3.ScrollMaxY2 = 0D;
+            zedGraphControl3.ScrollMinX = 0D;
+            zedGraphControl3.ScrollMinY = 0D;
+            zedGraphControl3.ScrollMinY2 = 0D;
+            zedGraphControl3.Size = new Size(13, 168);
+            zedGraphControl3.TabIndex = 2;
+            zedGraphControl3.UseExtendedPrintDialog = true;
+            // 
+            // tabPage4
+            // 
+            tabPage4.Controls.Add(splitContainer9);
+            tabPage4.Controls.Add(panel2);
+            tabPage4.Location = new Point(4, 29);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Size = new Size(1155, 361);
+            tabPage4.TabIndex = 2;
+            tabPage4.Text = "Особые графики";
+            tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer9
+            // 
+            splitContainer9.Dock = DockStyle.Fill;
+            splitContainer9.Location = new Point(0, 30);
+            splitContainer9.Name = "splitContainer9";
+            splitContainer9.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer9.Panel1
+            // 
+            splitContainer9.Panel1.Controls.Add(splitContainer10);
+            splitContainer9.Panel1MinSize = 10;
+            // 
+            // splitContainer9.Panel2
+            // 
+            splitContainer9.Panel2.Controls.Add(ProductionGraphControl);
+            splitContainer9.Panel2MinSize = 10;
+            splitContainer9.Size = new Size(1155, 331);
+            splitContainer9.SplitterDistance = 158;
+            splitContainer9.TabIndex = 1;
+            // 
+            // splitContainer10
+            // 
+            splitContainer10.Dock = DockStyle.Fill;
+            splitContainer10.Location = new Point(0, 0);
+            splitContainer10.Name = "splitContainer10";
+            // 
+            // splitContainer10.Panel1
+            // 
+            splitContainer10.Panel1.Controls.Add(TarasGraphControl);
+            splitContainer10.Panel1MinSize = 10;
+            // 
+            // splitContainer10.Panel2
+            // 
+            splitContainer10.Panel2.Controls.Add(MaterialsGraphControl);
+            splitContainer10.Panel2MinSize = 10;
+            splitContainer10.Size = new Size(1155, 158);
+            splitContainer10.SplitterDistance = 584;
+            splitContainer10.TabIndex = 0;
+            // 
+            // TarasGraphControl
+            // 
+            TarasGraphControl.Dock = DockStyle.Fill;
+            TarasGraphControl.Location = new Point(0, 0);
+            TarasGraphControl.Margin = new Padding(6, 5, 6, 5);
+            TarasGraphControl.Name = "TarasGraphControl";
+            TarasGraphControl.ScrollGrace = 0D;
+            TarasGraphControl.ScrollMaxX = 0D;
+            TarasGraphControl.ScrollMaxY = 0D;
+            TarasGraphControl.ScrollMaxY2 = 0D;
+            TarasGraphControl.ScrollMinX = 0D;
+            TarasGraphControl.ScrollMinY = 0D;
+            TarasGraphControl.ScrollMinY2 = 0D;
+            TarasGraphControl.Size = new Size(584, 158);
+            TarasGraphControl.TabIndex = 2;
+            TarasGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // MaterialsGraphControl
+            // 
+            MaterialsGraphControl.Dock = DockStyle.Fill;
+            MaterialsGraphControl.Location = new Point(0, 0);
+            MaterialsGraphControl.Margin = new Padding(6, 5, 6, 5);
+            MaterialsGraphControl.Name = "MaterialsGraphControl";
+            MaterialsGraphControl.ScrollGrace = 0D;
+            MaterialsGraphControl.ScrollMaxX = 0D;
+            MaterialsGraphControl.ScrollMaxY = 0D;
+            MaterialsGraphControl.ScrollMaxY2 = 0D;
+            MaterialsGraphControl.ScrollMinX = 0D;
+            MaterialsGraphControl.ScrollMinY = 0D;
+            MaterialsGraphControl.ScrollMinY2 = 0D;
+            MaterialsGraphControl.Size = new Size(567, 158);
+            MaterialsGraphControl.TabIndex = 2;
+            MaterialsGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // ProductionGraphControl
+            // 
+            ProductionGraphControl.Dock = DockStyle.Fill;
+            ProductionGraphControl.Location = new Point(0, 0);
+            ProductionGraphControl.Margin = new Padding(6, 5, 6, 5);
+            ProductionGraphControl.Name = "ProductionGraphControl";
+            ProductionGraphControl.ScrollGrace = 0D;
+            ProductionGraphControl.ScrollMaxX = 0D;
+            ProductionGraphControl.ScrollMaxY = 0D;
+            ProductionGraphControl.ScrollMaxY2 = 0D;
+            ProductionGraphControl.ScrollMinX = 0D;
+            ProductionGraphControl.ScrollMinY = 0D;
+            ProductionGraphControl.ScrollMinY2 = 0D;
+            ProductionGraphControl.Size = new Size(1155, 169);
+            ProductionGraphControl.TabIndex = 2;
+            ProductionGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // panel2
+            // 
+            panel2.Dock = DockStyle.Top;
+            panel2.Location = new Point(0, 0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(1155, 30);
+            panel2.TabIndex = 0;
+            // 
+            // tabPage5
+            // 
+            tabPage5.Controls.Add(AllPercentagesGraphControl);
+            tabPage5.Location = new Point(4, 29);
+            tabPage5.Name = "tabPage5";
+            tabPage5.Size = new Size(1155, 361);
+            tabPage5.TabIndex = 3;
+            tabPage5.Text = "Оптимизация (в %)";
+            tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // AllPercentagesGraphControl
+            // 
+            AllPercentagesGraphControl.Dock = DockStyle.Fill;
+            AllPercentagesGraphControl.Location = new Point(0, 0);
+            AllPercentagesGraphControl.Margin = new Padding(6, 5, 6, 5);
+            AllPercentagesGraphControl.Name = "AllPercentagesGraphControl";
+            AllPercentagesGraphControl.ScrollGrace = 0D;
+            AllPercentagesGraphControl.ScrollMaxX = 0D;
+            AllPercentagesGraphControl.ScrollMaxY = 0D;
+            AllPercentagesGraphControl.ScrollMaxY2 = 0D;
+            AllPercentagesGraphControl.ScrollMinX = 0D;
+            AllPercentagesGraphControl.ScrollMinY = 0D;
+            AllPercentagesGraphControl.ScrollMinY2 = 0D;
+            AllPercentagesGraphControl.Size = new Size(1155, 361);
+            AllPercentagesGraphControl.TabIndex = 1;
+            AllPercentagesGraphControl.UseExtendedPrintDialog = true;
+            // 
+            // materialTabSelector4
+            // 
+            materialTabSelector4.BackColor = Color.CornflowerBlue;
+            materialTabSelector4.BaseTabControl = GraphsMaterialTabControl;
+            materialTabSelector4.Dock = DockStyle.Top;
+            materialTabSelector4.ForeColor = Color.White;
+            materialTabSelector4.Location = new Point(0, 0);
+            materialTabSelector4.Name = "materialTabSelector4";
+            materialTabSelector4.Size = new Size(1163, 35);
+            materialTabSelector4.TabIndex = 1;
+            materialTabSelector4.Text = "materialTabSelector4";
             // 
             // materialTabSelector3
             // 
@@ -1665,7 +2173,7 @@ namespace Rodana.ZMK
             SaveOnExitCheckBox.MouseLocation = new Point(-1, -1);
             SaveOnExitCheckBox.Name = "SaveOnExitCheckBox";
             SaveOnExitCheckBox.Ripple = true;
-            SaveOnExitCheckBox.Size = new Size(245, 30);
+            SaveOnExitCheckBox.Size = new Size(309, 30);
             SaveOnExitCheckBox.TabIndex = 23;
             SaveOnExitCheckBox.Text = "Сохранять настройки при выходе";
             SaveOnExitCheckBox.UseVisualStyleBackColor = false;
@@ -3326,6 +3834,44 @@ namespace Rodana.ZMK
             splitContainer6.ResumeLayout(false);
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            GraphsTabPage.ResumeLayout(false);
+            GraphsMaterialTabControl.ResumeLayout(false);
+            tabPage8.ResumeLayout(false);
+            splitContainer14.Panel1.ResumeLayout(false);
+            splitContainer14.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer14).EndInit();
+            splitContainer14.ResumeLayout(false);
+            splitContainer15.Panel1.ResumeLayout(false);
+            splitContainer15.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer15).EndInit();
+            splitContainer15.ResumeLayout(false);
+            splitContainer16.Panel1.ResumeLayout(false);
+            splitContainer16.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer16).EndInit();
+            splitContainer16.ResumeLayout(false);
+            tabPage9.ResumeLayout(false);
+            splitContainer11.Panel1.ResumeLayout(false);
+            splitContainer11.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer11).EndInit();
+            splitContainer11.ResumeLayout(false);
+            splitContainer12.Panel1.ResumeLayout(false);
+            splitContainer12.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer12).EndInit();
+            splitContainer12.ResumeLayout(false);
+            splitContainer13.Panel1.ResumeLayout(false);
+            splitContainer13.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer13).EndInit();
+            splitContainer13.ResumeLayout(false);
+            tabPage4.ResumeLayout(false);
+            splitContainer9.Panel1.ResumeLayout(false);
+            splitContainer9.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer9).EndInit();
+            splitContainer9.ResumeLayout(false);
+            splitContainer10.Panel1.ResumeLayout(false);
+            splitContainer10.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer10).EndInit();
+            splitContainer10.ResumeLayout(false);
+            tabPage5.ResumeLayout(false);
             SettingsTabPage.ResumeLayout(false);
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
@@ -3613,5 +4159,32 @@ namespace Rodana.ZMK
         private DataGridViewTextBoxColumn Column7;
         private DataGridViewTextBoxColumn Column8;
         private DataGridViewTextBoxColumn Column9;
+        private MaterialTabControl GraphsMaterialTabControl;
+        private TabPage tabPage8;
+        private TabPage tabPage9;
+        private MaterialTabSelector materialTabSelector4;
+        private TabPage tabPage4;
+        private TabPage tabPage5;
+        private ZedGraphControl AllPercentagesGraphControl;
+        private SplitContainer splitContainer9;
+        private Panel panel2;
+        private SplitContainer splitContainer10;
+        private SplitContainer splitContainer14;
+        private SplitContainer splitContainer15;
+        private ZedGraphControl OrdersGraphControl;
+        private ZedGraphControl ProstoiGraphControl;
+        private SplitContainer splitContainer16;
+        private ZedGraphControl RechangesGraphControl;
+        private ZedGraphControl TotalTimeGraphControl;
+        private SplitContainer splitContainer11;
+        private SplitContainer splitContainer12;
+        private ZedGraphControl BadOffsetsGraphControl;
+        private ZedGraphControl zedGraphControl2;
+        private SplitContainer splitContainer13;
+        private ZedGraphControl zedGraphControl1;
+        private ZedGraphControl zedGraphControl3;
+        private ZedGraphControl TarasGraphControl;
+        private ZedGraphControl MaterialsGraphControl;
+        private ZedGraphControl ProductionGraphControl;
     }
 }

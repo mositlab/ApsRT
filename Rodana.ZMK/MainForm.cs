@@ -29,6 +29,8 @@ using Rodana.Core.Planning.PlanningCalculatorEngine;
 using Rodana.Core.Planning.PlanningClasses;
 using Rodana.Core.Rechanges.RechangesEngine;
 using Rodana.Core.Planning.PlanningClasses.PoolClasses;
+using ZedGraph;
+using Label = System.Windows.Forms.Label;
 
 namespace Rodana.ZMK
 {
@@ -67,6 +69,8 @@ namespace Rodana.ZMK
             InitializeComponent();
 
             CreatePlanningTable();
+
+            PrepareGraphs();
 
             ganttOLD.Dock = DockStyle.Fill;
             ganttOLD.BorderStyle = BorderStyle.FixedSingle;
@@ -832,6 +836,7 @@ namespace Rodana.ZMK
             }
         }
 
+        private void AllForAllOrdersComboBox_TextChanged(object sender, EventArgs e) => SavedPartiasUpdate();
         private void AllForAllOrdersComboBox_SelectedIndexChanged(object sender, EventArgs e) => SavedPartiasUpdate();
 
         private void AllForAllPartiasGuidComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -1013,6 +1018,8 @@ namespace Rodana.ZMK
 
         #endregion
 
+
+        #region ПЛАНИРОВАНИЕ
         Task planningAlgorithm;
         private void LaunchPlanningButton_Click(object sender, EventArgs e)
         {
@@ -1461,6 +1468,64 @@ namespace Rodana.ZMK
             row7.Cells[0].Value = "Соответствие";
         }
 
-        private void AllForAllOrdersComboBox_TextChanged(object sender, EventArgs e) => SavedPartiasUpdate();
+#endregion
+
+    
+        private void PrepareGraphs()
+        {
+            zedGraphControl1.GraphPane.Title.Text = "Пустой график";
+            zedGraphControl2.GraphPane.Title.Text = "Пустой график";
+            zedGraphControl3.GraphPane.Title.Text = "Пустой график";
+
+            var pane = OrdersGraphControl.GraphPane;
+            pane.Title.Text = "Срывы сроков";
+            pane.XAxis.Title.Text = "Итерация";
+            pane.YAxis.Title.Text = "Сумма срывов";
+
+            pane = ProductionGraphControl.GraphPane;
+            pane.Title.Text = "Готовая продукция";
+            pane.XAxis.Title.Text = "Дата";
+            pane.YAxis.Title.Text = "Количество";
+            pane.XAxis.Type = AxisType.Date;
+            pane.XAxis.Scale.Format = "dd-MM-yyyy";// HH:mm:ss
+            pane.XAxis.Scale.MajorUnit = DateUnit.Second;
+
+
+            pane = TarasGraphControl.GraphPane;
+            pane.Title.Text = "Загрузка тар";
+            pane.XAxis.Title.Text = "Дата";
+            pane.YAxis.Title.Text = "Количество";
+            pane.XAxis.Type = AxisType.Date;
+            pane.XAxis.Scale.Format = "dd-MM-yyyy";// HH:mm:ss
+            pane.XAxis.Scale.MajorUnit = DateUnit.Second;
+
+            pane = MaterialsGraphControl.GraphPane;
+            pane.Title.Text = "Материалы";
+            pane.XAxis.Title.Text = "Дата";
+            pane.YAxis.Title.Text = "Количество";
+            pane.XAxis.Type = AxisType.Date;
+            pane.XAxis.Scale.Format = "dd-MM-yyyy";// HH:mm:ss
+            pane.XAxis.Scale.MajorUnit = DateUnit.Second;
+
+            pane = TotalTimeGraphControl.GraphPane;
+            pane.Title.Text = "Длина графика";
+            pane.XAxis.Title.Text = "Итерация";
+            pane.YAxis.Title.Text = "Дней";
+
+            pane = ProstoiGraphControl.GraphPane;
+            pane.Title.Text = "Простои";
+            pane.XAxis.Title.Text = "Итерация";
+            pane.YAxis.Title.Text = "Время (ч.)";
+
+            pane = RechangesGraphControl.GraphPane;
+            pane.Title.Text = "Переналадки";
+            pane.XAxis.Title.Text = "Итерация";
+            pane.YAxis.Title.Text = "Время (ч.)";
+
+            pane = BadOffsetsGraphControl.GraphPane;
+            pane.Title.Text = "Размотка тары";
+            pane.XAxis.Title.Text = "Итерация";
+            pane.YAxis.Title.Text = "Время (ч.)";
+        }
     }
 }

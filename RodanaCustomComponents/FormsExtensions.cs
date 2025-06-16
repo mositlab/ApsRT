@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZedGraph;
 
 namespace RodanaCustomComponents
 {
@@ -45,7 +46,7 @@ namespace RodanaCustomComponents
                 comp.BackColor = color;
                 //button.ForeColor = Color.Black;
             }
-            foreach (var comp in Descendant<Label>(form))
+            foreach (var comp in Descendant<System.Windows.Forms.Label>(form))
             {
                 comp.ForeColor = textColor;
                 //button.ForeColor = Color.Black;
@@ -63,6 +64,40 @@ namespace RodanaCustomComponents
             foreach (var comp in Descendant<SplitContainer>(form))
             {
                 comp.BackColor = backColor;
+                //button.ForeColor = Color.Black;
+            }
+            foreach (var comp in Descendant<SplitterPanel>(form))
+            {
+                comp.BackColor = backColor;
+                //button.ForeColor = Color.Black;
+            }
+
+            foreach (var comp in Descendant<ZedGraphControl>(form))
+            {
+                //comp.GraphPane.Chart.Fill.Color = backColor;
+                //comp.GraphPane.Title. = backColor;
+                comp.GraphPane.Chart.Fill.Brush = new System.Drawing.SolidBrush(backColor);
+                comp.GraphPane.Fill.Color = backColor;
+                comp.GraphPane.Title.FontSpec.FontColor = textColor;
+
+                comp.GraphPane.Chart.Border.Color = textColor;
+
+                comp.GraphPane.XAxis.Color = textColor;
+                comp.GraphPane.XAxis.Title.FontSpec.FontColor = textColor;
+                comp.GraphPane.XAxis.MajorGrid.Color = textColor;
+                comp.GraphPane.XAxis.MinorGrid.Color = textColor;
+                comp.GraphPane.XAxis.MajorTic.Color = textColor;
+                comp.GraphPane.XAxis.MinorTic.Color = textColor;
+                comp.GraphPane.XAxis.Scale.FontSpec.FontColor = textColor;
+
+                comp.GraphPane.YAxis.Color = textColor;
+                comp.GraphPane.YAxis.Title.FontSpec.FontColor = textColor;
+                comp.GraphPane.YAxis.MajorGrid.Color = textColor;
+                comp.GraphPane.YAxis.MinorGrid.Color = textColor;
+                comp.GraphPane.YAxis.MajorTic.Color = textColor;
+                comp.GraphPane.YAxis.MinorTic.Color = textColor;
+                comp.GraphPane.YAxis.Scale.FontSpec.FontColor = textColor;
+
                 //button.ForeColor = Color.Black;
             }
 
