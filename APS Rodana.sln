@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversalPack", "UniversalP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RodanaCustomComponents", "RodanaCustomComponents\RodanaCustomComponents.csproj", "{14773554-B9B9-47EF-A32A-908F139648A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rodana.SKO", "Rodana.SKO\Rodana.SKO.csproj", "{825AA84E-347D-11DC-9F8C-8B53E17A6820}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{14773554-B9B9-47EF-A32A-908F139648A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14773554-B9B9-47EF-A32A-908F139648A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14773554-B9B9-47EF-A32A-908F139648A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
