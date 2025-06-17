@@ -82,6 +82,9 @@ namespace RodanaCustomComponents
 
                 comp.GraphPane.Chart.Border.Color = textColor;
 
+                comp.GraphPane.Legend.FontSpec.FontColor = textColor;
+                comp.GraphPane.Legend.Fill.Color = backColor;
+
                 comp.GraphPane.XAxis.Color = textColor;
                 comp.GraphPane.XAxis.Title.FontSpec.FontColor = textColor;
                 comp.GraphPane.XAxis.MajorGrid.Color = textColor;

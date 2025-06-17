@@ -5,19 +5,19 @@ namespace Rodana.Core.Partias.Materials
 {
     public class StageOriginalMaterial
     {
-        internal Uco Nomenklature; // Номенклатура
-        internal Uco Specification; // Спецификация
-        internal Uco Characteristics; // Характеристика
-        internal double Count; // Количество
-        internal DimensionUnit DataFormat; // ЕдиницаИзмерения
-        internal string WorkType; // ВидВоспроизводства
+        public Uco Nomenklature; // Номенклатура
+        public Uco Specification; // Спецификация
+        public Uco Characteristics; // Характеристика
+        public double Count; // Количество
+        public DimensionUnit DataFormat; // ЕдиницаИзмерения
+        public string WorkType; // ВидВоспроизводства
 
         public override string ToString()
         {
             return $"[{Specification}] [{Nomenklature}] (хар. {Characteristics}, вид воспр. {WorkType}) (кол-во {Count} в {DataFormat})";
         }
 
-        internal bool IsEqualTo(StageOriginalMaterial other)
+        public bool IsEqualTo(StageOriginalMaterial other)
         {
 
             return

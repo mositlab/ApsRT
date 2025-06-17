@@ -1,4 +1,4 @@
-﻿namespace Rodana.SKO
+﻿namespace RodanaCustomComponents
 {
     partial class SqlDataSourceConfigForm
     {

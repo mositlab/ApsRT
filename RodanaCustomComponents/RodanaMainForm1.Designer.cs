@@ -3,9 +3,9 @@ using RodanaCustomComponents;
 using ZedGraph;
 using Label = System.Windows.Forms.Label;
 
-namespace Rodana.ZMK
+namespace RodanaCustomComponents
 {
-    partial class MainForm
+    partial class RodanaMainForm1
     {
         /// <summary>
         ///  Required designer variable.
@@ -34,8 +34,8 @@ namespace Rodana.ZMK
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RodanaMainForm1));
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             OpenPlanningButton = new Button();
             OpenPartiasButton = new Button();
             materialTabSelector1 = new MaterialTabSelector();
@@ -125,6 +125,21 @@ namespace Rodana.ZMK
             label10 = new Label();
             dateTimePickerFrom = new DateTimePicker();
             HandPlanningPage = new TabPage();
+            splitContainer17 = new SplitContainer();
+            splitContainer18 = new SplitContainer();
+            ManualPlanningDataTable = new DataGridView();
+            dataGridViewTextBoxColumn1 = new DataGridViewTextBoxColumn();
+            dataGridViewTextBoxColumn2 = new DataGridViewTextBoxColumn();
+            dataGridViewTextBoxColumn3 = new DataGridViewTextBoxColumn();
+            dataGridViewTextBoxColumn4 = new DataGridViewTextBoxColumn();
+            AnlDescTextBox = new TextBox();
+            panel3 = new Panel();
+            dateTimePickerFromAnl = new DateTimePicker();
+            label45 = new Label();
+            label44 = new Label();
+            dateTimePickerToAnl = new DateTimePicker();
+            ganttANL = new GanttChart();
+            vScrollBarANL = new VScrollBar();
             GraphsTabPage = new TabPage();
             GraphsMaterialTabControl = new MaterialTabControl();
             tabPage8 = new TabPage();
@@ -277,6 +292,10 @@ namespace Rodana.ZMK
             PartiasMaxDaysNumericUpDown = new NumericUpDown();
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
+            TaraListOnGraphics = new ComboBox();
+            label46 = new Label();
+            label47 = new Label();
+            MaterialsListOnGraphics = new ComboBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             PartiasTabPage.SuspendLayout();
@@ -321,6 +340,17 @@ namespace Rodana.ZMK
             splitContainer6.Panel2.SuspendLayout();
             splitContainer6.SuspendLayout();
             panel1.SuspendLayout();
+            HandPlanningPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer17).BeginInit();
+            splitContainer17.Panel1.SuspendLayout();
+            splitContainer17.Panel2.SuspendLayout();
+            splitContainer17.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer18).BeginInit();
+            splitContainer18.Panel1.SuspendLayout();
+            splitContainer18.Panel2.SuspendLayout();
+            splitContainer18.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)ManualPlanningDataTable).BeginInit();
+            panel3.SuspendLayout();
             GraphsTabPage.SuspendLayout();
             GraphsMaterialTabControl.SuspendLayout();
             tabPage8.SuspendLayout();
@@ -358,6 +388,7 @@ namespace Rodana.ZMK
             splitContainer10.Panel1.SuspendLayout();
             splitContainer10.Panel2.SuspendLayout();
             splitContainer10.SuspendLayout();
+            panel2.SuspendLayout();
             tabPage5.SuspendLayout();
             SettingsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
@@ -760,7 +791,7 @@ namespace Rodana.ZMK
             ZadelCheckBox.Depth = 0;
             ZadelCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             ZadelCheckBox.ForeColor = Color.CornflowerBlue;
-            ZadelCheckBox.Location = new Point(301, 33);
+            ZadelCheckBox.Location = new Point(304, 33);
             ZadelCheckBox.Margin = new Padding(0);
             ZadelCheckBox.MouseLocation = new Point(-1, -1);
             ZadelCheckBox.Name = "ZadelCheckBox";
@@ -1379,14 +1410,14 @@ namespace Rodana.ZMK
             PlanningDataTable.BorderStyle = BorderStyle.None;
             PlanningDataTable.CellBorderStyle = DataGridViewCellBorderStyle.None;
             PlanningDataTable.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = SystemColors.Control;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            dataGridViewCellStyle2.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.True;
-            PlanningDataTable.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Control;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            PlanningDataTable.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             PlanningDataTable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             PlanningDataTable.Columns.AddRange(new DataGridViewColumn[] { Column6, Column7, Column8, Column9 });
             PlanningDataTable.Dock = DockStyle.Fill;
@@ -1557,6 +1588,7 @@ namespace Rodana.ZMK
             // 
             // HandPlanningPage
             // 
+            HandPlanningPage.Controls.Add(splitContainer17);
             HandPlanningPage.Location = new Point(4, 29);
             HandPlanningPage.Name = "HandPlanningPage";
             HandPlanningPage.Padding = new Padding(3);
@@ -1564,6 +1596,176 @@ namespace Rodana.ZMK
             HandPlanningPage.TabIndex = 1;
             HandPlanningPage.Text = "Ручной анализ плана";
             HandPlanningPage.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer17
+            // 
+            splitContainer17.Dock = DockStyle.Fill;
+            splitContainer17.Location = new Point(3, 3);
+            splitContainer17.Name = "splitContainer17";
+            // 
+            // splitContainer17.Panel1
+            // 
+            splitContainer17.Panel1.Controls.Add(splitContainer18);
+            splitContainer17.Panel1.Controls.Add(panel3);
+            // 
+            // splitContainer17.Panel2
+            // 
+            splitContainer17.Panel2.Controls.Add(ganttANL);
+            splitContainer17.Panel2.Controls.Add(vScrollBarANL);
+            splitContainer17.Size = new Size(1157, 423);
+            splitContainer17.SplitterDistance = 385;
+            splitContainer17.TabIndex = 0;
+            // 
+            // splitContainer18
+            // 
+            splitContainer18.Dock = DockStyle.Fill;
+            splitContainer18.Location = new Point(0, 68);
+            splitContainer18.Name = "splitContainer18";
+            splitContainer18.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer18.Panel1
+            // 
+            splitContainer18.Panel1.Controls.Add(ManualPlanningDataTable);
+            // 
+            // splitContainer18.Panel2
+            // 
+            splitContainer18.Panel2.Controls.Add(AnlDescTextBox);
+            splitContainer18.Size = new Size(385, 355);
+            splitContainer18.SplitterDistance = 148;
+            splitContainer18.TabIndex = 38;
+            // 
+            // ManualPlanningDataTable
+            // 
+            ManualPlanningDataTable.AllowUserToAddRows = false;
+            ManualPlanningDataTable.AllowUserToDeleteRows = false;
+            ManualPlanningDataTable.BorderStyle = BorderStyle.None;
+            ManualPlanningDataTable.CellBorderStyle = DataGridViewCellBorderStyle.None;
+            ManualPlanningDataTable.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            ManualPlanningDataTable.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            ManualPlanningDataTable.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
+            ManualPlanningDataTable.Dock = DockStyle.Fill;
+            ManualPlanningDataTable.EditMode = DataGridViewEditMode.EditProgrammatically;
+            ManualPlanningDataTable.Location = new Point(0, 0);
+            ManualPlanningDataTable.Name = "ManualPlanningDataTable";
+            ManualPlanningDataTable.ReadOnly = true;
+            ManualPlanningDataTable.RowHeadersWidth = 51;
+            ManualPlanningDataTable.Size = new Size(385, 148);
+            ManualPlanningDataTable.TabIndex = 0;
+            // 
+            // dataGridViewTextBoxColumn1
+            // 
+            dataGridViewTextBoxColumn1.HeaderText = "Критерий";
+            dataGridViewTextBoxColumn1.MinimumWidth = 6;
+            dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            dataGridViewTextBoxColumn1.ReadOnly = true;
+            dataGridViewTextBoxColumn1.SortMode = DataGridViewColumnSortMode.NotSortable;
+            dataGridViewTextBoxColumn1.Width = 125;
+            // 
+            // dataGridViewTextBoxColumn2
+            // 
+            dataGridViewTextBoxColumn2.HeaderText = "Ориг. знач.";
+            dataGridViewTextBoxColumn2.MinimumWidth = 6;
+            dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+            dataGridViewTextBoxColumn2.ReadOnly = true;
+            dataGridViewTextBoxColumn2.SortMode = DataGridViewColumnSortMode.NotSortable;
+            dataGridViewTextBoxColumn2.Width = 125;
+            // 
+            // dataGridViewTextBoxColumn3
+            // 
+            dataGridViewTextBoxColumn3.HeaderText = "Лучш. знач.";
+            dataGridViewTextBoxColumn3.MinimumWidth = 6;
+            dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
+            dataGridViewTextBoxColumn3.ReadOnly = true;
+            dataGridViewTextBoxColumn3.SortMode = DataGridViewColumnSortMode.NotSortable;
+            dataGridViewTextBoxColumn3.Width = 125;
+            // 
+            // dataGridViewTextBoxColumn4
+            // 
+            dataGridViewTextBoxColumn4.HeaderText = "%";
+            dataGridViewTextBoxColumn4.MinimumWidth = 6;
+            dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
+            dataGridViewTextBoxColumn4.ReadOnly = true;
+            dataGridViewTextBoxColumn4.SortMode = DataGridViewColumnSortMode.NotSortable;
+            dataGridViewTextBoxColumn4.Width = 125;
+            // 
+            // AnlDescTextBox
+            // 
+            AnlDescTextBox.Dock = DockStyle.Fill;
+            AnlDescTextBox.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            AnlDescTextBox.Location = new Point(0, 0);
+            AnlDescTextBox.Multiline = true;
+            AnlDescTextBox.Name = "AnlDescTextBox";
+            AnlDescTextBox.ScrollBars = ScrollBars.Both;
+            AnlDescTextBox.Size = new Size(385, 203);
+            AnlDescTextBox.TabIndex = 0;
+            // 
+            // panel3
+            // 
+            panel3.Controls.Add(dateTimePickerFromAnl);
+            panel3.Controls.Add(label45);
+            panel3.Controls.Add(label44);
+            panel3.Controls.Add(dateTimePickerToAnl);
+            panel3.Dock = DockStyle.Top;
+            panel3.Location = new Point(0, 0);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(385, 68);
+            panel3.TabIndex = 39;
+            // 
+            // dateTimePickerFromAnl
+            // 
+            dateTimePickerFromAnl.CustomFormat = "dd.MM.yyyy HH:mm:ss";
+            dateTimePickerFromAnl.Format = DateTimePickerFormat.Custom;
+            dateTimePickerFromAnl.Location = new Point(50, 3);
+            dateTimePickerFromAnl.Name = "dateTimePickerFromAnl";
+            dateTimePickerFromAnl.Size = new Size(209, 26);
+            dateTimePickerFromAnl.TabIndex = 34;
+            // 
+            // label45
+            // 
+            label45.AutoSize = true;
+            label45.Location = new Point(7, 7);
+            label45.Name = "label45";
+            label45.Size = new Size(37, 20);
+            label45.TabIndex = 35;
+            label45.Text = "От:";
+            // 
+            // label44
+            // 
+            label44.AutoSize = true;
+            label44.Location = new Point(7, 39);
+            label44.Name = "label44";
+            label44.Size = new Size(37, 20);
+            label44.TabIndex = 37;
+            label44.Text = "До:";
+            // 
+            // dateTimePickerToAnl
+            // 
+            dateTimePickerToAnl.CustomFormat = "dd.MM.yyyy HH:mm:ss";
+            dateTimePickerToAnl.Format = DateTimePickerFormat.Custom;
+            dateTimePickerToAnl.Location = new Point(50, 35);
+            dateTimePickerToAnl.Name = "dateTimePickerToAnl";
+            dateTimePickerToAnl.Size = new Size(209, 26);
+            dateTimePickerToAnl.TabIndex = 36;
+            // 
+            // ganttANL
+            // 
+            ganttANL.BackColor = Color.White;
+            ganttANL.Dock = DockStyle.Fill;
+            ganttANL.Location = new Point(0, 0);
+            ganttANL.Name = "ganttANL";
+            ganttANL.Size = new Size(742, 423);
+            ganttANL.TabIndex = 2;
+            ganttANL.TimelineHeight = 50;
+            ganttANL.TitleRowHeight = -1;
+            ganttANL.TitleRowWidth = 200;
+            // 
+            // vScrollBarANL
+            // 
+            vScrollBarANL.Dock = DockStyle.Right;
+            vScrollBarANL.Location = new Point(742, 0);
+            vScrollBarANL.Name = "vScrollBarANL";
+            vScrollBarANL.Size = new Size(26, 423);
+            vScrollBarANL.TabIndex = 3;
             // 
             // GraphsTabPage
             // 
@@ -1755,7 +1957,7 @@ namespace Rodana.ZMK
             splitContainer11.Panel2.Controls.Add(splitContainer13);
             splitContainer11.Panel2MinSize = 10;
             splitContainer11.Size = new Size(1149, 355);
-            splitContainer11.SplitterDistance = 1132;
+            splitContainer11.SplitterDistance = 1120;
             splitContainer11.TabIndex = 0;
             // 
             // splitContainer12
@@ -1774,8 +1976,8 @@ namespace Rodana.ZMK
             // 
             splitContainer12.Panel2.Controls.Add(zedGraphControl2);
             splitContainer12.Panel2MinSize = 10;
-            splitContainer12.Size = new Size(1132, 355);
-            splitContainer12.SplitterDistance = 340;
+            splitContainer12.Size = new Size(1120, 355);
+            splitContainer12.SplitterDistance = 326;
             splitContainer12.TabIndex = 0;
             // 
             // BadOffsetsGraphControl
@@ -1791,7 +1993,7 @@ namespace Rodana.ZMK
             BadOffsetsGraphControl.ScrollMinX = 0D;
             BadOffsetsGraphControl.ScrollMinY = 0D;
             BadOffsetsGraphControl.ScrollMinY2 = 0D;
-            BadOffsetsGraphControl.Size = new Size(1132, 340);
+            BadOffsetsGraphControl.Size = new Size(1120, 326);
             BadOffsetsGraphControl.TabIndex = 2;
             BadOffsetsGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -1808,7 +2010,7 @@ namespace Rodana.ZMK
             zedGraphControl2.ScrollMinX = 0D;
             zedGraphControl2.ScrollMinY = 0D;
             zedGraphControl2.ScrollMinY2 = 0D;
-            zedGraphControl2.Size = new Size(1132, 11);
+            zedGraphControl2.Size = new Size(1120, 25);
             zedGraphControl2.TabIndex = 2;
             zedGraphControl2.UseExtendedPrintDialog = true;
             // 
@@ -1828,7 +2030,7 @@ namespace Rodana.ZMK
             // 
             splitContainer13.Panel2.Controls.Add(zedGraphControl3);
             splitContainer13.Panel2MinSize = 10;
-            splitContainer13.Size = new Size(13, 355);
+            splitContainer13.Size = new Size(25, 355);
             splitContainer13.SplitterDistance = 183;
             splitContainer13.TabIndex = 0;
             // 
@@ -1845,7 +2047,7 @@ namespace Rodana.ZMK
             zedGraphControl1.ScrollMinX = 0D;
             zedGraphControl1.ScrollMinY = 0D;
             zedGraphControl1.ScrollMinY2 = 0D;
-            zedGraphControl1.Size = new Size(13, 183);
+            zedGraphControl1.Size = new Size(25, 183);
             zedGraphControl1.TabIndex = 2;
             zedGraphControl1.UseExtendedPrintDialog = true;
             // 
@@ -1862,7 +2064,7 @@ namespace Rodana.ZMK
             zedGraphControl3.ScrollMinX = 0D;
             zedGraphControl3.ScrollMinY = 0D;
             zedGraphControl3.ScrollMinY2 = 0D;
-            zedGraphControl3.Size = new Size(13, 168);
+            zedGraphControl3.Size = new Size(25, 168);
             zedGraphControl3.TabIndex = 2;
             zedGraphControl3.UseExtendedPrintDialog = true;
             // 
@@ -1969,6 +2171,10 @@ namespace Rodana.ZMK
             // 
             // panel2
             // 
+            panel2.Controls.Add(label47);
+            panel2.Controls.Add(MaterialsListOnGraphics);
+            panel2.Controls.Add(label46);
+            panel2.Controls.Add(TaraListOnGraphics);
             panel2.Dock = DockStyle.Top;
             panel2.Location = new Point(0, 0);
             panel2.Name = "panel2";
@@ -3607,7 +3813,7 @@ namespace Rodana.ZMK
             AfterXMinsRadioButton.MouseLocation = new Point(-1, -1);
             AfterXMinsRadioButton.Name = "AfterXMinsRadioButton";
             AfterXMinsRadioButton.Ripple = true;
-            AfterXMinsRadioButton.Size = new Size(179, 24);
+            AfterXMinsRadioButton.Size = new Size(207, 24);
             AfterXMinsRadioButton.TabIndex = 20;
             AfterXMinsRadioButton.Text = "После Х минут, где Х:";
             AfterXMinsRadioButton.UseVisualStyleBackColor = false;
@@ -3624,7 +3830,7 @@ namespace Rodana.ZMK
             AfterXItersRadioButton.MouseLocation = new Point(-1, -1);
             AfterXItersRadioButton.Name = "AfterXItersRadioButton";
             AfterXItersRadioButton.Ripple = true;
-            AfterXItersRadioButton.Size = new Size(197, 24);
+            AfterXItersRadioButton.Size = new Size(207, 24);
             AfterXItersRadioButton.TabIndex = 19;
             AfterXItersRadioButton.TabStop = true;
             AfterXItersRadioButton.Text = "После Х итераций, где Х:";
@@ -3771,7 +3977,43 @@ namespace Rodana.ZMK
             openFileDialog1.FileName = "openFileDialog1";
             openFileDialog1.Filter = "Текстовые таблицы (TXT)|*.txt|Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
             // 
-            // MainForm
+            // TaraListOnGraphics
+            // 
+            TaraListOnGraphics.FormattingEnabled = true;
+            TaraListOnGraphics.Location = new Point(103, 2);
+            TaraListOnGraphics.Name = "TaraListOnGraphics";
+            TaraListOnGraphics.Size = new Size(304, 28);
+            TaraListOnGraphics.TabIndex = 31;
+            // 
+            // label46
+            // 
+            label46.AutoSize = true;
+            label46.Location = new Point(3, 5);
+            label46.Name = "label46";
+            label46.Size = new Size(56, 20);
+            label46.TabIndex = 32;
+            label46.Text = "Тары:";
+            // 
+            // label47
+            // 
+            label47.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label47.AutoSize = true;
+            label47.Location = new Point(733, 5);
+            label47.Name = "label47";
+            label47.Size = new Size(110, 20);
+            label47.TabIndex = 34;
+            label47.Text = "Материалы:";
+            // 
+            // MaterialsListOnGraphics
+            // 
+            MaterialsListOnGraphics.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            MaterialsListOnGraphics.FormattingEnabled = true;
+            MaterialsListOnGraphics.Location = new Point(849, 2);
+            MaterialsListOnGraphics.Name = "MaterialsListOnGraphics";
+            MaterialsListOnGraphics.Size = new Size(304, 28);
+            MaterialsListOnGraphics.TabIndex = 33;
+            // 
+            // RodanaMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
             BackColor = SystemColors.Control;
@@ -3781,7 +4023,7 @@ namespace Rodana.ZMK
             Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
             KeyPreview = true;
             MinimumSize = new Size(1195, 604);
-            Name = "MainForm";
+            Name = "RodanaMainForm1";
             Text = "APS «Родана»";
             MainTabControl.ResumeLayout(false);
             MainTabPage.ResumeLayout(false);
@@ -3834,6 +4076,19 @@ namespace Rodana.ZMK
             splitContainer6.ResumeLayout(false);
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            HandPlanningPage.ResumeLayout(false);
+            splitContainer17.Panel1.ResumeLayout(false);
+            splitContainer17.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer17).EndInit();
+            splitContainer17.ResumeLayout(false);
+            splitContainer18.Panel1.ResumeLayout(false);
+            splitContainer18.Panel2.ResumeLayout(false);
+            splitContainer18.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer18).EndInit();
+            splitContainer18.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)ManualPlanningDataTable).EndInit();
+            panel3.ResumeLayout(false);
+            panel3.PerformLayout();
             GraphsTabPage.ResumeLayout(false);
             GraphsMaterialTabControl.ResumeLayout(false);
             tabPage8.ResumeLayout(false);
@@ -3871,6 +4126,8 @@ namespace Rodana.ZMK
             splitContainer10.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer10).EndInit();
             splitContainer10.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
             tabPage5.ResumeLayout(false);
             SettingsTabPage.ResumeLayout(false);
             splitContainer2.Panel1.ResumeLayout(false);
@@ -4186,5 +4443,24 @@ namespace Rodana.ZMK
         private ZedGraphControl TarasGraphControl;
         private ZedGraphControl MaterialsGraphControl;
         private ZedGraphControl ProductionGraphControl;
+        private SplitContainer splitContainer17;
+        private GanttChart ganttANL;
+        private VScrollBar vScrollBarANL;
+        private Label label44;
+        private DateTimePicker dateTimePickerToAnl;
+        private Label label45;
+        private DateTimePicker dateTimePickerFromAnl;
+        private SplitContainer splitContainer18;
+        private DataGridView ManualPlanningDataTable;
+        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
+        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+        private TextBox AnlDescTextBox;
+        private Panel panel3;
+        private Label label47;
+        private ComboBox MaterialsListOnGraphics;
+        private Label label46;
+        private ComboBox TaraListOnGraphics;
     }
 }

@@ -28,11 +28,19 @@ namespace Rodana.SKO
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "";
 
 
-            MainForm form = null;
+            RodanaCustomComponents.RodanaMainForm1 form = null;
             if (!sessionLink.SessionOptions.IsSilent)
             {
+                var color1 = Color.Blue;
+                var color2 = Color.Orange;
                 ApplicationConfiguration.Initialize();
-                form = new MainForm(sessionLink); // Подписываем тут все события
+                form = new RodanaCustomComponents.RodanaMainForm1(sessionLink, new Color[]
+                {
+                    color1,
+                    color2,
+                    Color.FromArgb((int)(color1.R * 0.7), (int)(color1.G * 0.7), (int)(color1.B * 0.7)),
+                    Color.FromArgb((int)(color2.R * 0.7), (int)(color2.G * 0.7), (int)(color2.B * 0.7))
+                }); // Подписываем тут все события
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();

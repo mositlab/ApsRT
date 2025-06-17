@@ -31,10 +31,12 @@ using Rodana.Core.Rechanges.RechangesEngine;
 using Rodana.Core.Planning.PlanningClasses.PoolClasses;
 using ZedGraph;
 using Label = System.Windows.Forms.Label;
+using System.Collections.Generic;
+using TextBox = System.Windows.Forms.TextBox;
 
-namespace Rodana.ZMK
+namespace RodanaCustomComponents
 {
-    public partial class MainForm : Form
+    public partial class RodanaMainForm1 : Form
     {
         Session sessionLink;
 
@@ -64,9 +66,10 @@ namespace Rodana.ZMK
             sessionLink.DataErrors.NewDataErrors.Clear();
         }
 
-        public MainForm(Session sessionLink)
+        public RodanaMainForm1(Session sessionLink, Color[] colors)
         {
             InitializeComponent();
+            this.colors = colors;
 
             CreatePlanningTable();
 
@@ -95,6 +98,20 @@ namespace Rodana.ZMK
 
             ganttOLD.ChangedDatesDelegate = updateAlldateTimePicker;
             ganttNEW.ChangedDatesDelegate = updateAlldateTimePicker;
+
+            //ganttOLD.Dock = DockStyle.Fill;
+            //ganttANL.BorderStyle = BorderStyle.FixedSingle;
+            //ganttANL.BringToFront();
+            ganttANL.BackColor = Color.FromArgb(210, 210, 210);
+            ganttANL.AssignScrollBar(vScrollBarANL);
+            ganttANL.From = DateTime.Now;
+            ganttANL.To = DateTime.Now.AddDays(1);
+            ganttANL.AssignedTextBox = AnlDescTextBox;
+
+            dateTimePickerFromAnl.Value = DateTime.Now;
+            dateTimePickerToAnl.Value = DateTime.Now.AddDays(1);
+
+            ganttANL.ChangedDatesDelegate = updateAlldateTimePicker2;
 
             AllForAllOrdersComboBox.ValueMember = "ValueIndex";
             AllForAllOrdersComboBox.DisplayMember = "StringLabel";
@@ -172,6 +189,24 @@ namespace Rodana.ZMK
             //ganttAnalysis.DrawChart();
             ganttNEW.DrawChart();
             ganttOLD.DrawChart();
+        }
+
+        void updateAlldateTimePicker2(DateTime From, DateTime To)
+        {
+            dateTimePickerFromAnl.SuspendLayout();
+            dateTimePickerFromAnl.Value = From;
+            dateTimePickerFromAnl.ResumeLayout();
+
+            dateTimePickerToAnl.SuspendLayout();
+            dateTimePickerToAnl.Value = To;
+            dateTimePickerToAnl.ResumeLayout();
+
+            /*ganttAnalysis.To =*/
+            ganttANL.To =  To;
+            /*ganttAnalysis.From = */
+            ganttANL.From = From;
+            //ganttAnalysis.DrawChart();
+            ganttANL.DrawChart();
         }
 
         private void SaveSettingsButton_Click(object? sender, EventArgs e)
@@ -421,11 +456,13 @@ namespace Rodana.ZMK
             SetTheme(sessionLink.SettingsController.CurrentSettings.CurrentTheme);
         }
 
+        Color[] colors;
+
         Color color, colorDark, textColor, backColor;
         void SetTheme(FormTheme theme)
         {
-            color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED : MOSITLAB_BLUE;
-            colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? MOSITLAB_RED_DARK : MOSITLAB_BLUE_DARK;
+            color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? colors[1] : colors[0];
+            colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? colors[3] : colors[2];
             textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
             backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64, 64, 64) : Color.White;
 
@@ -1027,7 +1064,6 @@ namespace Rodana.ZMK
             {
                 LaunchPlanningButton.Enabled = false;
                 StopPlanningButton.Enabled = true;
-
                 planningAlgorithm = Task.Run(() => PlanningAlgorithm(algorithm));
             }
         }
@@ -1042,15 +1078,15 @@ namespace Rodana.ZMK
                 }
                 if (arg1 == PlanningAlgorithmStage.FailedV)
                 {
-                    BarDescTextBox.Text = $"V не дошёл, осталось {arg2}.";
+                    BarDescTextBox.Text = $"Шаг 1 не дошёл, осталось {arg2}.";
                 }
                 PlanningProcessLabel.Text = arg1 switch
                 {
                     PlanningAlgorithmStage.None => "...",
                     PlanningAlgorithmStage.Preparing => "1. Подготовка",
                     PlanningAlgorithmStage.Prepared => "Данные подготовлены",
-                    PlanningAlgorithmStage.RunningV => "V",
-                    PlanningAlgorithmStage.RunningG => "G",
+                    PlanningAlgorithmStage.RunningV => "Шаг 1...",
+                    PlanningAlgorithmStage.RunningG => "Шаг 2...",
                     PlanningAlgorithmStage.FailedV => "V завершен с ошибкой",
                     PlanningAlgorithmStage.Complete => "Завершено.",
                     PlanningAlgorithmStage.Failed => "Ошибка."
@@ -1158,6 +1194,19 @@ namespace Rodana.ZMK
                 PlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
                 PlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
                 PlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+
+                PrepareGraphsForPlanning(sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+
+                if (OriginalProductionCurve != null)
+                {
+                    GraphsOutput.GrowingOutput(OriginalProductionCurve, res.FirstStagesStartDate);
+                    ProductionGraphControl.AxisChange();
+                    ProductionGraphControl.Invalidate();
+                }
+
+                tarasList(res, pool);
+
+                matsList(res, pool);
                 //PlanningDataTable.Rows[5].Cells[1].Value = res.DaysRuinedValue;
                 //PlanningDataTable.Rows[6].Cells[1].Value = res.;
             });
@@ -1410,11 +1459,54 @@ namespace Rodana.ZMK
         {
             var algorithm = sessionLink.AssignedPlanningAlgorithm;
             if (algorithm == null) return;
-            var outData = sessionLink.SessionOutputEngine.Output(ForcedToRecreate: false);
-            ganttNEW.Invoke(delegate
+            lock (algorithm.LockerObject)
             {
-                OutputToGanttChart(ganttNEW, outData.copy, outData.result);
-            });
+                var outData = sessionLink.SessionOutputEngine.Output(ForcedToRecreate: false);
+                ganttNEW.Invoke(delegate
+                {
+                    OutputToGanttChart(ganttNEW, outData.copy, outData.result);
+
+                    if (NewProductionCurve != null && resToShow != null)
+                    {
+                        GraphsOutput.GrowingOutput(NewProductionCurve, outData.result.FirstStagesStartDate);
+                        ProductionGraphControl.AxisChange();
+                        ProductionGraphControl.Invalidate();
+                    }
+
+
+                    tarasList(outData.result, outData.copy);
+
+                    matsList(outData.result, outData.copy);
+                });
+            }
+        }
+
+        void matsList(PlanningCalculatorEngineResult result, OpersPool poolToWorkWith)
+        {
+            var matsHere = GraphsOutput.UsageOutput<string>(MaterialsGraphControl.GraphPane, result.FirstStagesStartDate, result.FirstStagesFullDurations,
+                poolToWorkWith.Blocks.SelectMany(block =>
+                block.Lists.Select(list =>
+                (list.FirstOper.Index, (list.FirstOper.StageMaterialsInfo == null ? Array.Empty<string>() : list.FirstOper.StageMaterialsInfo.UsedMaterials.Select(x => x.Nomenklature.Label).ToArray(), list.Count))
+                )).ToDictionary(x => x.Index, x => x.Item2), 10
+                );
+            MaterialsListOnGraphics.Items.Clear();
+            MaterialsListOnGraphics.Items.AddRange(matsHere.Select(x => x.element ?? "пусто").ToArray());
+            MaterialsGraphControl.AxisChange();
+            MaterialsGraphControl.Invalidate();
+        }
+
+        void tarasList(PlanningCalculatorEngineResult result, OpersPool poolToWorkWith)
+        {
+            var tarasHere = GraphsOutput.UsageOutput<string>(TarasGraphControl.GraphPane, result.FirstStagesStartDate, result.FirstStagesFullDurations,
+                poolToWorkWith.Blocks.SelectMany(block =>
+                block.Lists.Select(list =>
+                (id: list.FirstOper.Index, (list.FirstOper.CurrentTara.Label, 1.0))
+                )).ToDictionary(x => x.id, x => x.Item2), 10
+                );
+            TaraListOnGraphics.Items.Clear();
+            TaraListOnGraphics.Items.AddRange(tarasHere.Select(x => x.element ?? "пусто").ToArray());
+            TarasGraphControl.AxisChange();
+            TarasGraphControl.Invalidate();
         }
 
         private void StopPlanningButton_Click(object sender, EventArgs e)
@@ -1526,6 +1618,21 @@ namespace Rodana.ZMK
             pane.Title.Text = "Размотка тары";
             pane.XAxis.Title.Text = "Итерация";
             pane.YAxis.Title.Text = "Время (ч.)";
+        }
+
+        LineItem
+            OriginalProductionCurve = null, // старая продукция
+            NewProductionCurve = null; // новая продукция
+        private void PrepareGraphsForPlanning(DateTime minDateTime)
+        {
+            var pane = ProductionGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            var list = new PointPairList();
+            OriginalProductionCurve = pane.AddCurve("Оригинал", list, Color.Red, SymbolType.None);
+            pane.XAxis.Scale.Min = new XDate(minDateTime);
+            pane.XAxis.Scale.Max = new XDate(minDateTime + sessionLink.MasterDataLinks.StagesMasterData.OneDay);
+            list = new PointPairList();
+            NewProductionCurve = pane.AddCurve("Лучшее", list, Color.Blue, SymbolType.None);
         }
     }
 }

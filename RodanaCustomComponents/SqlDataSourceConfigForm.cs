@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using UniversalPack.Configuration;
 using UniversalPack.Extensions;
 
-namespace Rodana.ZMK
+namespace RodanaCustomComponents
 {
     /// <summary>
     /// Форма редактирования источника данных SQL

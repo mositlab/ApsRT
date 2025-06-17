@@ -8,6 +8,7 @@ using System.Configuration;
 using System.Data;
 using System.Windows;
 using Rodana.Core.Session;
+using UniversalPack.Common.Drawing;
 
 namespace Rodana.ZMK
 {
@@ -28,11 +29,17 @@ namespace Rodana.ZMK
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
 
 
-            MainForm form = null;
+            RodanaCustomComponents.RodanaMainForm1 form = null;
             if (!sessionLink.SessionOptions.IsSilent)
             {
                 ApplicationConfiguration.Initialize();
-                form = new MainForm(sessionLink); // Подписываем тут все события
+                form = new RodanaCustomComponents.RodanaMainForm1(sessionLink, new Color[]
+                {
+                    Colors.MOSITLAB_BLUE,
+                    Colors.MOSITLAB_RED,
+                    Colors.MOSITLAB_BLUE_DARK,
+                    Colors.MOSITLAB_RED_DARK
+                }); // Подписываем тут все события
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();
