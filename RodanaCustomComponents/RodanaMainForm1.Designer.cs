@@ -1593,7 +1593,7 @@ namespace RodanaCustomComponents
             HandPlanningPage.Location = new Point(4, 24);
             HandPlanningPage.Name = "HandPlanningPage";
             HandPlanningPage.Padding = new Padding(3);
-            HandPlanningPage.Size = new Size(1163, 439);
+            HandPlanningPage.Size = new Size(1163, 438);
             HandPlanningPage.TabIndex = 1;
             HandPlanningPage.Text = "Ручной анализ плана";
             HandPlanningPage.UseVisualStyleBackColor = true;
@@ -1613,7 +1613,7 @@ namespace RodanaCustomComponents
             // 
             splitContainer17.Panel2.Controls.Add(ganttANL);
             splitContainer17.Panel2.Controls.Add(vScrollBarANL);
-            splitContainer17.Size = new Size(1157, 433);
+            splitContainer17.Size = new Size(1157, 432);
             splitContainer17.SplitterDistance = 385;
             splitContainer17.TabIndex = 0;
             // 
@@ -1631,8 +1631,8 @@ namespace RodanaCustomComponents
             // splitContainer18.Panel2
             // 
             splitContainer18.Panel2.Controls.Add(AnlDescTextBox);
-            splitContainer18.Size = new Size(385, 365);
-            splitContainer18.SplitterDistance = 151;
+            splitContainer18.Size = new Size(385, 364);
+            splitContainer18.SplitterDistance = 150;
             splitContainer18.TabIndex = 38;
             // 
             // ManualPlanningDataTable
@@ -1650,7 +1650,7 @@ namespace RodanaCustomComponents
             ManualPlanningDataTable.Name = "ManualPlanningDataTable";
             ManualPlanningDataTable.ReadOnly = true;
             ManualPlanningDataTable.RowHeadersWidth = 51;
-            ManualPlanningDataTable.Size = new Size(385, 151);
+            ManualPlanningDataTable.Size = new Size(385, 150);
             ManualPlanningDataTable.TabIndex = 0;
             // 
             // dataGridViewTextBoxColumn1
@@ -1754,7 +1754,7 @@ namespace RodanaCustomComponents
             ganttANL.Dock = DockStyle.Fill;
             ganttANL.Location = new Point(0, 0);
             ganttANL.Name = "ganttANL";
-            ganttANL.Size = new Size(742, 433);
+            ganttANL.Size = new Size(742, 432);
             ganttANL.TabIndex = 2;
             ganttANL.TimelineHeight = 50;
             ganttANL.TitleRowHeight = -1;
@@ -1765,16 +1765,16 @@ namespace RodanaCustomComponents
             vScrollBarANL.Dock = DockStyle.Right;
             vScrollBarANL.Location = new Point(742, 0);
             vScrollBarANL.Name = "vScrollBarANL";
-            vScrollBarANL.Size = new Size(26, 433);
+            vScrollBarANL.Size = new Size(26, 432);
             vScrollBarANL.TabIndex = 3;
             // 
             // GraphsTabPage
             // 
             GraphsTabPage.Controls.Add(GraphsMaterialTabControl);
             GraphsTabPage.Controls.Add(materialTabSelector4);
-            GraphsTabPage.Location = new Point(4, 24);
+            GraphsTabPage.Location = new Point(4, 25);
             GraphsTabPage.Name = "GraphsTabPage";
-            GraphsTabPage.Size = new Size(1163, 439);
+            GraphsTabPage.Size = new Size(1163, 437);
             GraphsTabPage.TabIndex = 2;
             GraphsTabPage.Text = "Графики эффективности";
             GraphsTabPage.UseVisualStyleBackColor = true;
@@ -1789,7 +1789,7 @@ namespace RodanaCustomComponents
             GraphsMaterialTabControl.Location = new Point(0, 35);
             GraphsMaterialTabControl.Name = "GraphsMaterialTabControl";
             GraphsMaterialTabControl.SelectedIndex = 0;
-            GraphsMaterialTabControl.Size = new Size(1163, 404);
+            GraphsMaterialTabControl.Size = new Size(1163, 402);
             GraphsMaterialTabControl.TabIndex = 2;
             // 
             // tabPage8
@@ -1798,7 +1798,7 @@ namespace RodanaCustomComponents
             tabPage8.Location = new Point(4, 25);
             tabPage8.Name = "tabPage8";
             tabPage8.Padding = new Padding(3);
-            tabPage8.Size = new Size(1155, 375);
+            tabPage8.Size = new Size(1155, 373);
             tabPage8.TabIndex = 0;
             tabPage8.Text = "Основное";
             tabPage8.UseVisualStyleBackColor = true;
@@ -1818,7 +1818,7 @@ namespace RodanaCustomComponents
             // 
             splitContainer14.Panel2.Controls.Add(splitContainer16);
             splitContainer14.Panel2MinSize = 10;
-            splitContainer14.Size = new Size(1149, 369);
+            splitContainer14.Size = new Size(1149, 367);
             splitContainer14.SplitterDistance = 551;
             splitContainer14.TabIndex = 1;
             // 
@@ -1838,8 +1838,8 @@ namespace RodanaCustomComponents
             // 
             splitContainer15.Panel2.Controls.Add(ProstoiGraphControl);
             splitContainer15.Panel2MinSize = 10;
-            splitContainer15.Size = new Size(551, 369);
-            splitContainer15.SplitterDistance = 189;
+            splitContainer15.Size = new Size(551, 367);
+            splitContainer15.SplitterDistance = 187;
             splitContainer15.TabIndex = 0;
             // 
             // OrdersGraphControl
@@ -1856,7 +1856,7 @@ namespace RodanaCustomComponents
             OrdersGraphControl.ScrollMinX = 0D;
             OrdersGraphControl.ScrollMinY = 0D;
             OrdersGraphControl.ScrollMinY2 = 0D;
-            OrdersGraphControl.Size = new Size(551, 189);
+            OrdersGraphControl.Size = new Size(551, 187);
             OrdersGraphControl.TabIndex = 2;
             OrdersGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -1893,8 +1893,8 @@ namespace RodanaCustomComponents
             // 
             splitContainer16.Panel2.Controls.Add(TotalTimeGraphControl);
             splitContainer16.Panel2MinSize = 10;
-            splitContainer16.Size = new Size(594, 369);
-            splitContainer16.SplitterDistance = 189;
+            splitContainer16.Size = new Size(594, 367);
+            splitContainer16.SplitterDistance = 187;
             splitContainer16.TabIndex = 0;
             // 
             // RechangesGraphControl
@@ -1910,7 +1910,7 @@ namespace RodanaCustomComponents
             RechangesGraphControl.ScrollMinX = 0D;
             RechangesGraphControl.ScrollMinY = 0D;
             RechangesGraphControl.ScrollMinY2 = 0D;
-            RechangesGraphControl.Size = new Size(594, 189);
+            RechangesGraphControl.Size = new Size(594, 187);
             RechangesGraphControl.TabIndex = 2;
             RechangesGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -1937,7 +1937,7 @@ namespace RodanaCustomComponents
             tabPage9.Location = new Point(4, 24);
             tabPage9.Name = "tabPage9";
             tabPage9.Padding = new Padding(3);
-            tabPage9.Size = new Size(1155, 375);
+            tabPage9.Size = new Size(1155, 374);
             tabPage9.TabIndex = 1;
             tabPage9.Text = "Основное (ч. 2)";
             tabPage9.UseVisualStyleBackColor = true;
@@ -1957,7 +1957,7 @@ namespace RodanaCustomComponents
             // 
             splitContainer11.Panel2.Controls.Add(splitContainer13);
             splitContainer11.Panel2MinSize = 10;
-            splitContainer11.Size = new Size(1149, 369);
+            splitContainer11.Size = new Size(1149, 368);
             splitContainer11.SplitterDistance = 1120;
             splitContainer11.TabIndex = 0;
             // 
@@ -1977,8 +1977,8 @@ namespace RodanaCustomComponents
             // 
             splitContainer12.Panel2.Controls.Add(zedGraphControl2);
             splitContainer12.Panel2MinSize = 10;
-            splitContainer12.Size = new Size(1120, 369);
-            splitContainer12.SplitterDistance = 337;
+            splitContainer12.Size = new Size(1120, 368);
+            splitContainer12.SplitterDistance = 335;
             splitContainer12.TabIndex = 0;
             // 
             // BadOffsetsGraphControl
@@ -1994,7 +1994,7 @@ namespace RodanaCustomComponents
             BadOffsetsGraphControl.ScrollMinX = 0D;
             BadOffsetsGraphControl.ScrollMinY = 0D;
             BadOffsetsGraphControl.ScrollMinY2 = 0D;
-            BadOffsetsGraphControl.Size = new Size(1120, 337);
+            BadOffsetsGraphControl.Size = new Size(1120, 335);
             BadOffsetsGraphControl.TabIndex = 2;
             BadOffsetsGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2011,7 +2011,7 @@ namespace RodanaCustomComponents
             zedGraphControl2.ScrollMinX = 0D;
             zedGraphControl2.ScrollMinY = 0D;
             zedGraphControl2.ScrollMinY2 = 0D;
-            zedGraphControl2.Size = new Size(1120, 28);
+            zedGraphControl2.Size = new Size(1120, 29);
             zedGraphControl2.TabIndex = 2;
             zedGraphControl2.UseExtendedPrintDialog = true;
             // 
@@ -2031,8 +2031,8 @@ namespace RodanaCustomComponents
             // 
             splitContainer13.Panel2.Controls.Add(zedGraphControl3);
             splitContainer13.Panel2MinSize = 10;
-            splitContainer13.Size = new Size(25, 369);
-            splitContainer13.SplitterDistance = 189;
+            splitContainer13.Size = new Size(25, 368);
+            splitContainer13.SplitterDistance = 187;
             splitContainer13.TabIndex = 0;
             // 
             // zedGraphControl1
@@ -2048,7 +2048,7 @@ namespace RodanaCustomComponents
             zedGraphControl1.ScrollMinX = 0D;
             zedGraphControl1.ScrollMinY = 0D;
             zedGraphControl1.ScrollMinY2 = 0D;
-            zedGraphControl1.Size = new Size(25, 189);
+            zedGraphControl1.Size = new Size(25, 187);
             zedGraphControl1.TabIndex = 2;
             zedGraphControl1.UseExtendedPrintDialog = true;
             // 
@@ -2065,7 +2065,7 @@ namespace RodanaCustomComponents
             zedGraphControl3.ScrollMinX = 0D;
             zedGraphControl3.ScrollMinY = 0D;
             zedGraphControl3.ScrollMinY2 = 0D;
-            zedGraphControl3.Size = new Size(25, 176);
+            zedGraphControl3.Size = new Size(25, 177);
             zedGraphControl3.TabIndex = 2;
             zedGraphControl3.UseExtendedPrintDialog = true;
             // 
@@ -2073,9 +2073,9 @@ namespace RodanaCustomComponents
             // 
             tabPage4.Controls.Add(splitContainer9);
             tabPage4.Controls.Add(panel2);
-            tabPage4.Location = new Point(4, 24);
+            tabPage4.Location = new Point(4, 25);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(1155, 375);
+            tabPage4.Size = new Size(1155, 373);
             tabPage4.TabIndex = 2;
             tabPage4.Text = "Особые графики";
             tabPage4.UseVisualStyleBackColor = true;
@@ -2096,8 +2096,8 @@ namespace RodanaCustomComponents
             // 
             splitContainer9.Panel2.Controls.Add(ProductionGraphControl);
             splitContainer9.Panel2MinSize = 10;
-            splitContainer9.Size = new Size(1155, 345);
-            splitContainer9.SplitterDistance = 163;
+            splitContainer9.Size = new Size(1155, 343);
+            splitContainer9.SplitterDistance = 162;
             splitContainer9.TabIndex = 1;
             // 
             // splitContainer10
@@ -2115,7 +2115,7 @@ namespace RodanaCustomComponents
             // 
             splitContainer10.Panel2.Controls.Add(MaterialsGraphControl);
             splitContainer10.Panel2MinSize = 10;
-            splitContainer10.Size = new Size(1155, 163);
+            splitContainer10.Size = new Size(1155, 162);
             splitContainer10.SplitterDistance = 584;
             splitContainer10.TabIndex = 0;
             // 
@@ -2132,7 +2132,7 @@ namespace RodanaCustomComponents
             TarasGraphControl.ScrollMinX = 0D;
             TarasGraphControl.ScrollMinY = 0D;
             TarasGraphControl.ScrollMinY2 = 0D;
-            TarasGraphControl.Size = new Size(584, 163);
+            TarasGraphControl.Size = new Size(584, 162);
             TarasGraphControl.TabIndex = 2;
             TarasGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2149,7 +2149,7 @@ namespace RodanaCustomComponents
             MaterialsGraphControl.ScrollMinX = 0D;
             MaterialsGraphControl.ScrollMinY = 0D;
             MaterialsGraphControl.ScrollMinY2 = 0D;
-            MaterialsGraphControl.Size = new Size(567, 163);
+            MaterialsGraphControl.Size = new Size(567, 162);
             MaterialsGraphControl.TabIndex = 2;
             MaterialsGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2166,7 +2166,7 @@ namespace RodanaCustomComponents
             ProductionGraphControl.ScrollMinX = 0D;
             ProductionGraphControl.ScrollMinY = 0D;
             ProductionGraphControl.ScrollMinY2 = 0D;
-            ProductionGraphControl.Size = new Size(1155, 178);
+            ProductionGraphControl.Size = new Size(1155, 177);
             ProductionGraphControl.TabIndex = 2;
             ProductionGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2200,6 +2200,7 @@ namespace RodanaCustomComponents
             MaterialsListOnGraphics.Name = "MaterialsListOnGraphics";
             MaterialsListOnGraphics.Size = new Size(304, 24);
             MaterialsListOnGraphics.TabIndex = 33;
+            MaterialsListOnGraphics.TextChanged += MaterialsListOnGraphics_TextChanged;
             // 
             // label46
             // 
@@ -2217,13 +2218,14 @@ namespace RodanaCustomComponents
             TaraListOnGraphics.Name = "TaraListOnGraphics";
             TaraListOnGraphics.Size = new Size(304, 24);
             TaraListOnGraphics.TabIndex = 31;
+            TaraListOnGraphics.TextChanged += TaraListOnGraphics_TextChanged;
             // 
             // tabPage5
             // 
             tabPage5.Controls.Add(AllPercentagesGraphControl);
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
-            tabPage5.Size = new Size(1155, 375);
+            tabPage5.Size = new Size(1155, 374);
             tabPage5.TabIndex = 3;
             tabPage5.Text = "Оптимизация (в %)";
             tabPage5.UseVisualStyleBackColor = true;
@@ -2241,7 +2243,7 @@ namespace RodanaCustomComponents
             AllPercentagesGraphControl.ScrollMinX = 0D;
             AllPercentagesGraphControl.ScrollMinY = 0D;
             AllPercentagesGraphControl.ScrollMinY2 = 0D;
-            AllPercentagesGraphControl.Size = new Size(1155, 375);
+            AllPercentagesGraphControl.Size = new Size(1155, 374);
             AllPercentagesGraphControl.TabIndex = 1;
             AllPercentagesGraphControl.UseExtendedPrintDialog = true;
             // 

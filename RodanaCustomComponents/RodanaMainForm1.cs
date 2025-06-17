@@ -210,7 +210,7 @@ namespace RodanaCustomComponents
             dateTimePickerToAnl.ResumeLayout();
 
             /*ganttAnalysis.To =*/
-            ganttANL.To =  To;
+            ganttANL.To = To;
             /*ganttAnalysis.From = */
             ganttANL.From = From;
             //ganttAnalysis.DrawChart();
@@ -1612,6 +1612,36 @@ namespace RodanaCustomComponents
 
         #region ГРАФИКИ
 
+        private void TaraListOnGraphics_TextChanged(object sender, EventArgs e) => ChoseTara(TaraListOnGraphics.Text);
+
+        private void MaterialsListOnGraphics_TextChanged(object sender, EventArgs e) => ChoseMat(MaterialsListOnGraphics.Text);
+
+        // Поставить одну из тар
+        void ChoseTara(string Tara)
+        {
+            var all = string.IsNullOrEmpty(Tara);
+            foreach (var item in TarasGraphControl.GraphPane.CurveList)
+            {
+                item.IsVisible = all || item.Label.Text == Tara;
+            }
+            //This.zedGraphControl7.GraphPane.XAxis.Scale.Max = new XDate(RESULT_G);
+            TarasGraphControl.AxisChange();
+            TarasGraphControl.Invalidate();
+        }
+
+        // Поставить одну из матов
+        void ChoseMat(string Mat)
+        {
+            var all = string.IsNullOrEmpty(Mat);
+            foreach (var item in MaterialsGraphControl.GraphPane.CurveList)
+            {
+                item.IsVisible = all || item.Label.Text == Mat;
+            }
+            //This.zedGraphControl7.GraphPane.XAxis.Scale.Max = new XDate(RESULT_G);
+            MaterialsGraphControl.AxisChange();
+            MaterialsGraphControl.Invalidate();
+        }
+
         private void PrepareGraphs()
         {
             zedGraphControl1.GraphPane.Title.Text = "Пустой график";
@@ -1840,5 +1870,6 @@ namespace RodanaCustomComponents
             OriginalManualResult = res;
         }
         #endregion
+
     }
 }
