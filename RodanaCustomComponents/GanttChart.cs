@@ -1190,6 +1190,8 @@ namespace RodanaCustomComponents
             }
         }
 
+        public event Action<int, int, Uco> OnAnalysis;
+
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
@@ -1201,7 +1203,7 @@ namespace RodanaCustomComponents
                 var index = Bars[NearestBarToInsert].OperID;
                 var res1 = SavedOpersLink.Find(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == index))).ActualRC;
                 var ind = Bars[CurrentPressedBar].OperID;
-                //Planning.UpdateAnalysis(ind, index, res1);
+                OnAnalysis?.Invoke(ind, index, res1);
                 CurrentPressedBar = Bars.FindIndex(x => x.OperID == ind);
             }
             //CurrentHoveredBar = -1;

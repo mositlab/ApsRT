@@ -124,15 +124,15 @@ namespace Rodana.Core.Planning.PlanningAlgorithm
 
                 CurrentStage = PlanningAlgorithmStage.RunningV;
                 CurrentStageChanged?.Invoke(CurrentStage, BestBlocksList.Count);
-                var V = new AlgorithmV(this);
+                //var V = new AlgorithmV(this);
 
-                V.Start(UsedWorkflow);
-                if (WannaStop)
-                {
-                    CurrentStage = PlanningAlgorithmStage.Failed;
-                    CurrentStageChanged?.Invoke(CurrentStage, 0);
-                    return false;
-                }
+                //V.Start(UsedWorkflow);
+                //if (WannaStop)
+                //{
+                //    CurrentStage = PlanningAlgorithmStage.Failed;
+                //    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                //    return false;
+                //}
 
                 CurrentStage = PlanningAlgorithmStage.RunningG;
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));

@@ -98,7 +98,7 @@ namespace Rodana.Core.Planning.PlanningCalculatorEngine
             ModellingsWithBrokenFreeNaladLengths = new();
         }
 
-        internal static PlanningCalculatorEngineResult CreateFullInstance(Session.Session session, DateTime StartTime)
+        public static PlanningCalculatorEngineResult CreateFullInstance(Session.Session session, DateTime StartTime)
         {
             PlanningCalculatorEngineResult result = new PlanningCalculatorEngineResult(session, StartTime);
             //result.CentersTimes = new Dictionary<CodedObject<string>, CenterTimesClass>();

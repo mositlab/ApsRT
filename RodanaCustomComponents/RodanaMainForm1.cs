@@ -55,7 +55,6 @@ namespace RodanaCustomComponents
 
         #region Настройки и действия формы
 
-
         private void HandSessionPostDataProcessButton_Click(object sender, EventArgs e)
         {
             sessionLink.PostDataProcess();
@@ -75,6 +74,11 @@ namespace RodanaCustomComponents
 
             PrepareGraphs();
 
+
+            var analysisMenuItem = new ToolStripMenuItem("Анализировать");
+            analysisMenuItem.Click += AnalysisMenuItem_Click;
+            contextMenuStrip1.Items.Add(analysisMenuItem);
+
             ganttOLD.Dock = DockStyle.Fill;
             ganttOLD.BorderStyle = BorderStyle.FixedSingle;
             ganttOLD.BringToFront();
@@ -83,6 +87,7 @@ namespace RodanaCustomComponents
             ganttOLD.From = DateTime.Now;
             ganttOLD.To = DateTime.Now.AddDays(1);
             ganttOLD.AssignedTextBox = BarDescTextBox;
+            ganttOLD.ContextMenuStrip = contextMenuStrip1;
 
             ganttNEW.Dock = DockStyle.Fill;
             ganttNEW.BorderStyle = BorderStyle.FixedSingle;
@@ -92,6 +97,7 @@ namespace RodanaCustomComponents
             ganttNEW.From = DateTime.Now;
             ganttNEW.To = DateTime.Now.AddDays(1);
             ganttNEW.AssignedTextBox = BarDescTextBox;
+            ganttNEW.ContextMenuStrip = contextMenuStrip1;
 
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now.AddDays(1);
@@ -107,6 +113,8 @@ namespace RodanaCustomComponents
             ganttANL.From = DateTime.Now;
             ganttANL.To = DateTime.Now.AddDays(1);
             ganttANL.AssignedTextBox = AnlDescTextBox;
+            ganttANL.CanMoveOperations = true; // В отличие от других, эта может двигать операции
+            ganttANL.OnAnalysis += UpdateAnalysis;
 
             dateTimePickerFromAnl.Value = DateTime.Now;
             dateTimePickerToAnl.Value = DateTime.Now.AddDays(1);
@@ -458,18 +466,19 @@ namespace RodanaCustomComponents
 
         Color[] colors;
 
-        Color color, colorDark, textColor, backColor;
+        Color color, colorDark, textColor, backColor, backColor2;
         void SetTheme(FormTheme theme)
         {
             color = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? colors[1] : colors[0];
             colorDark = theme == FormTheme.LightRed || theme == FormTheme.DarkRed ? colors[3] : colors[2];
             textColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.White : Color.Black;
             backColor = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.FromArgb(64, 64, 64) : Color.White;
+            backColor2 = theme == FormTheme.DarkBlue || theme == FormTheme.DarkRed ? Color.Black : Color.White;
 
             PanelNearMainLabel.BackColor = textColor;
             //mainlabel.ForeColor = textColor;
 
-            this.SetFormStyle(color, colorDark, textColor, backColor);
+            this.SetFormStyle(color, colorDark, textColor, backColor, backColor2);
         }
 
         private void MainForm_FormClosed(object? sender, FormClosedEventArgs e)
@@ -625,7 +634,7 @@ namespace RodanaCustomComponents
                 {
                     using (var dialog = new SqlDataSourceConfigForm(textBox.Text))
                     {
-                        dialog.SetFormStyle(color, colorDark, textColor, backColor);
+                        dialog.SetFormStyle(color, colorDark, textColor, backColor, backColor2);
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
                             textBox.Text = dialog.CrutchPath;
@@ -1055,7 +1064,6 @@ namespace RodanaCustomComponents
 
         #endregion
 
-
         #region ПЛАНИРОВАНИЕ
         Task planningAlgorithm;
         private void LaunchPlanningButton_Click(object sender, EventArgs e)
@@ -1143,11 +1151,46 @@ namespace RodanaCustomComponents
                     PlanningDataTable.Rows[3].Cells[2].Value = resToShow.ProductionSeconds;
                     PlanningDataTable.Rows[4].Cells[2].Value = resToShow.BadOffsets;
 
-                    PlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100.0 - (resToShow.DaysRuinedValue / algorithm.OriginalValue.DaysRuinedValue * 100f), 2) + "%";
-                    PlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100.0 - (resToShow.RechangesSeconds / algorithm.OriginalValue.RechangesSeconds * 100f), 2) + "%";
-                    PlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100.0 - (resToShow.ProstoiSeconds / algorithm.OriginalValue.ProstoiSeconds * 100f), 2) + "%";
-                    PlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100.0 - (resToShow.ProductionSeconds / algorithm.OriginalValue.ProductionSeconds * 100f), 2) + "%";
-                    PlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2) + "%";
+                    OrdersCurve.AddPoint(algorithm.LastGen, resToShow.DaysRuinedValue);
+                    OrdersGraphControl.AxisChange();
+                    OrdersGraphControl.Invalidate();
+
+                    RechangesCurve.AddPoint(algorithm.LastGen, resToShow.RechangesSeconds.TotalHours);
+                    RechangesGraphControl.AxisChange();
+                    RechangesGraphControl.Invalidate();
+
+                    ProstoiCurve.AddPoint(algorithm.LastGen, resToShow.ProstoiSeconds.TotalHours);
+                    ProstoiGraphControl.AxisChange();
+                    ProstoiGraphControl.Invalidate();
+
+                    TotalTimeCurve.AddPoint(algorithm.LastGen, resToShow.ProductionSeconds.TotalDays);
+                    TotalTimeGraphControl.AxisChange();
+                    TotalTimeGraphControl.Invalidate();
+
+                    BadOffsetsCurve.AddPoint(algorithm.LastGen, resToShow.BadOffsets);
+                    BadOffsetsGraphControl.AxisChange();
+                    BadOffsetsGraphControl.Invalidate();
+
+                    var v0 = Math.Round(100.0 - (resToShow.DaysRuinedValue / algorithm.OriginalValue.DaysRuinedValue * 100f), 2);
+                    var v1 = Math.Round(100.0 - (resToShow.RechangesSeconds / algorithm.OriginalValue.RechangesSeconds * 100f), 2);
+                    var v2 = Math.Round(100.0 - (resToShow.ProstoiSeconds / algorithm.OriginalValue.ProstoiSeconds * 100f), 2);
+                    var v3 = Math.Round(100.0 - (resToShow.ProductionSeconds / algorithm.OriginalValue.ProductionSeconds * 100f), 2);
+                    var v4 = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2);
+
+                    OrdersCurveOnBig.AddPoint(algorithm.LastGen, v0);
+                    RechangesCurveOnBig.AddPoint(algorithm.LastGen, v1);
+                    ProstoiCurveOnBig.AddPoint(algorithm.LastGen, v2);
+                    TotalTimeCurveOnBig.AddPoint(algorithm.LastGen, v3);
+                    BadOffsetsCurveOnBig.AddPoint(algorithm.LastGen, v4);
+
+                    AllPercentagesGraphControl.AxisChange();
+                    AllPercentagesGraphControl.Invalidate();
+
+                    PlanningDataTable.Rows[0].Cells[3].Value = v0 + "%";
+                    PlanningDataTable.Rows[1].Cells[3].Value = v1 + "%";
+                    PlanningDataTable.Rows[2].Cells[3].Value = v2 + "%";
+                    PlanningDataTable.Rows[3].Cells[3].Value = v3 + "%";
+                    PlanningDataTable.Rows[4].Cells[3].Value = v4 + "%";
                     //if (!IsSilent)
                     //{
 
@@ -1445,14 +1488,14 @@ namespace RodanaCustomComponents
         {
             ganttOLD.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
             ganttNEW.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
-            //ganttAnalysis.UpdateColorsInfoAndPaint(MoreColorsCheckBox.Checked, MoreModColorsCheckBox.Checked, ShowFixedOpersCheckBox.Checked, ShowFreeOpersCheckBox.Checked, ShowAltRCsCheckBox.Checked);
+            ganttANL.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
         }
 
         private void StagesColorCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             ganttOLD.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
             ganttNEW.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
-            //ganttAnalysis.UpdateColorsInfoAndPaint(MoreColorsCheckBox.Checked, MoreModColorsCheckBox.Checked, ShowFixedOpersCheckBox.Checked, ShowFreeOpersCheckBox.Checked, ShowAltRCsCheckBox.Checked);
+            ganttANL.UpdateColorsInfoAndPaint(StagesColorCheckBox.Checked, ModsColorCheckBox.Checked, true, true, true);
         }
 
         private void OutputButton_Click(object sender, EventArgs e)
@@ -1518,7 +1561,12 @@ namespace RodanaCustomComponents
 
         private void CreatePlanningTable()
         {
+            CreatePlanningTableConcrete(PlanningDataTable);
+            CreatePlanningTableConcrete(ManualPlanningDataTable);
+        }
 
+        private void CreatePlanningTableConcrete(DataGridView PlanningDataTable)
+        {
             for (int i = 0; i < 7; i++)
             {
                 PlanningDataTable.Rows.Add();
@@ -1535,7 +1583,7 @@ namespace RodanaCustomComponents
             row2.Cells[0].Value = "Переналадки";
 
             var row3 = PlanningDataTable.Rows[2];
-            row3.DefaultCellStyle.ForeColor = Color.DarkViolet;
+            row3.DefaultCellStyle.ForeColor = Color.Violet;
             row3.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
             row3.Cells[0].Value = "Простои";
 
@@ -1560,9 +1608,10 @@ namespace RodanaCustomComponents
             row7.Cells[0].Value = "Соответствие";
         }
 
-#endregion
+        #endregion
 
-    
+        #region ГРАФИКИ
+
         private void PrepareGraphs()
         {
             zedGraphControl1.GraphPane.Title.Text = "Пустой график";
@@ -1618,11 +1667,20 @@ namespace RodanaCustomComponents
             pane.Title.Text = "Размотка тары";
             pane.XAxis.Title.Text = "Итерация";
             pane.YAxis.Title.Text = "Время (ч.)";
+
+            pane = AllPercentagesGraphControl.GraphPane;
+            pane.Title.Text = "Общий процент оптимизации";
+            pane.XAxis.Title.Text = "Итерация";
+            pane.YAxis.Title.Text = "%";
         }
 
         LineItem
             OriginalProductionCurve = null, // старая продукция
             NewProductionCurve = null; // новая продукция
+
+        LineItem OrdersCurve, RechangesCurve, ProstoiCurve, TotalTimeCurve, BadOffsetsCurve;
+        LineItem OrdersCurveOnBig, RechangesCurveOnBig, ProstoiCurveOnBig, TotalTimeCurveOnBig, BadOffsetsCurveOnBig;
+
         private void PrepareGraphsForPlanning(DateTime minDateTime)
         {
             var pane = ProductionGraphControl.GraphPane;
@@ -1633,6 +1691,154 @@ namespace RodanaCustomComponents
             pane.XAxis.Scale.Max = new XDate(minDateTime + sessionLink.MasterDataLinks.StagesMasterData.OneDay);
             list = new PointPairList();
             NewProductionCurve = pane.AddCurve("Лучшее", list, Color.Blue, SymbolType.None);
+
+
+            pane = OrdersGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            list = new PointPairList();
+            OrdersCurve = pane.AddCurve("Просрочено", list, PlanningDataTable.Rows[0].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = RechangesGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            list = new PointPairList();
+            RechangesCurve = pane.AddCurve("Переналадки", list, PlanningDataTable.Rows[1].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = ProstoiGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            list = new PointPairList();
+            ProstoiCurve = pane.AddCurve("Простои", list, PlanningDataTable.Rows[2].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = TotalTimeGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            list = new PointPairList();
+            TotalTimeCurve = pane.AddCurve("Общее время", list, PlanningDataTable.Rows[3].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = BadOffsetsGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            list = new PointPairList();
+            BadOffsetsCurve = pane.AddCurve("Размотка тары", list, PlanningDataTable.Rows[4].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            #region Большой график
+            pane = AllPercentagesGraphControl.GraphPane;
+            pane.CurveList.Clear();
+            list = new PointPairList();
+            OrdersCurveOnBig = pane.AddCurve("Просрочено", list, PlanningDataTable.Rows[0].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = AllPercentagesGraphControl.GraphPane;
+            list = new PointPairList();
+            RechangesCurveOnBig = pane.AddCurve("Переналадки", list, PlanningDataTable.Rows[1].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = AllPercentagesGraphControl.GraphPane;
+            list = new PointPairList();
+            ProstoiCurveOnBig = pane.AddCurve("Простои", list, PlanningDataTable.Rows[2].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = AllPercentagesGraphControl.GraphPane;
+            list = new PointPairList();
+            TotalTimeCurveOnBig = pane.AddCurve("Общее время", list, PlanningDataTable.Rows[3].DefaultCellStyle.ForeColor, SymbolType.None);
+
+            pane = AllPercentagesGraphControl.GraphPane;
+            list = new PointPairList();
+            BadOffsetsCurveOnBig = pane.AddCurve("Размотка тары", list, PlanningDataTable.Rows[4].DefaultCellStyle.ForeColor, SymbolType.None);
+            #endregion
         }
+
+        #endregion
+
+        #region РУЧНОЙ АНАЛИЗ ГРАФИКА
+
+        PlanningCalculatorEngineResult OriginalManualResult;
+
+
+        private void AnalysisMenuItem_Click(object? sender, EventArgs e)
+        {
+            // Try to cast the sender to a ToolStripItem
+            ToolStripItem menuItem = sender as ToolStripItem;
+            if (menuItem != null)
+            {
+                // Retrieve the ContextMenuStrip that owns this ToolStripItem
+                ContextMenuStrip owner = menuItem.Owner as ContextMenuStrip;
+                if (owner != null)
+                {
+                    // Get the control that is displaying this context menu
+                    Control sourceControl = owner.SourceControl;
+                    SetAnalysis((GanttChart)sourceControl);
+                    MainTabControl.SelectTab(PlanningTabPage);
+                    PlanningTabControl.SelectTab(HandPlanningPage);
+                }
+            }
+        }
+
+        void SetAnalysis(GanttChart chart)
+        {
+            var ops = chart.SavedOpersLink;
+            var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+
+            var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+
+            res = OriginalManualResult = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
+
+            ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+            ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+            ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+            ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+            ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+
+            OutputToGanttChart(ganttANL, pool, res);
+
+        }
+
+        void UpdateAnalysis(int OperIndex, int InsertBeforeThisIndex, Uco ActualRC)
+        {
+            var ops = ganttANL.SavedOpersLink;
+            var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            var operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == OperIndex)));
+            var oper = ops[operInd];
+            ops.RemoveAt(operInd);
+            oper.ActualRC = ActualRC;
+            operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == InsertBeforeThisIndex)));
+
+            ops.Insert(operInd, oper);
+            ganttANL.ClearBars();
+            //var orders_dic = ops.SelectMany(x => x.Lists.SelectMany(z => z.Select(y => y.OrderN))).Distinct().ToDictionary(x => x, x => (DateTime.MinValue, -1, Time: 0.0, TimeWithK: 0.0));
+            //var dates_dic = ops.SelectMany(x => x.Lists.SelectMany(z => z.Select(y => y.ID))).ToDictionary(x => x, x => (DateTime.MinValue, (-1, -1, -1, -1), -1));
+
+            var newDic = new Dictionary<GanttChart.DoubleID, (int R, int P, int T)>();
+            //foreach (var cent in centers_choosen)
+            //{
+            //    for (int gg = 0; gg < CentersData[CentersIntToStr[cent]].MaxParallelOpersCount; gg++)
+            //        newDic.Add(new GanttChart.DoubleID(cent, gg), (0, 0, 0));
+            //}
+
+            var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+
+            res = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
+
+            OutputToGanttChart(ganttANL, pool, res);
+
+            ganttANL.FindAllPrevsHere(OperIndex, true); // все нахрен стираем
+
+
+            ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+            ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+            ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+            ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+            ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+
+
+            ManualPlanningDataTable.Rows[0].Cells[2].Value = OriginalManualResult.DaysRuinedValue;
+            ManualPlanningDataTable.Rows[1].Cells[2].Value = OriginalManualResult.RechangesSeconds;
+            ManualPlanningDataTable.Rows[2].Cells[2].Value = OriginalManualResult.ProstoiSeconds;
+            ManualPlanningDataTable.Rows[3].Cells[2].Value = OriginalManualResult.ProductionSeconds;
+            ManualPlanningDataTable.Rows[4].Cells[2].Value = OriginalManualResult.BadOffsets;
+
+            ManualPlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100 - (res.DaysRuinedValue * 100f / OriginalManualResult.DaysRuinedValue), 2) + "%";
+            ManualPlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100 - (res.RechangesSeconds * 100f / OriginalManualResult.RechangesSeconds), 2) + "%";
+            ManualPlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100 - (res.ProstoiSeconds * 100f / OriginalManualResult.ProstoiSeconds), 2) + "%";
+            ManualPlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100 - (res.ProductionSeconds * 100f / OriginalManualResult.ProductionSeconds), 2) + "%";
+            ManualPlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100 - (res.BadOffsets * 100f / OriginalManualResult.BadOffsets), 2) + "%";
+
+            OriginalManualResult = res;
+        }
+        #endregion
     }
 }

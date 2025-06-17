@@ -30,7 +30,7 @@ namespace RodanaCustomComponents
             }
         }
 
-        public static void SetFormStyle(this Form form, Color color, Color colorDark, Color textColor, Color backColor)
+        public static void SetFormStyle(this Form form, Color color, Color colorDark, Color textColor, Color backColor, Color backColor2)
         {
 
             form.BackColor = backColor;
@@ -76,14 +76,15 @@ namespace RodanaCustomComponents
             {
                 //comp.GraphPane.Chart.Fill.Color = backColor;
                 //comp.GraphPane.Title. = backColor;
-                comp.GraphPane.Chart.Fill.Brush = new System.Drawing.SolidBrush(backColor);
+                comp.GraphPane.Chart.Fill.Brush = new System.Drawing.SolidBrush(backColor2);
                 comp.GraphPane.Fill.Color = backColor;
                 comp.GraphPane.Title.FontSpec.FontColor = textColor;
 
                 comp.GraphPane.Chart.Border.Color = textColor;
 
                 comp.GraphPane.Legend.FontSpec.FontColor = textColor;
-                comp.GraphPane.Legend.Fill.Color = backColor;
+                comp.GraphPane.Legend.Fill.Color = backColor2;
+                comp.GraphPane.Legend.Fill.Brush = new System.Drawing.SolidBrush(backColor2);
 
                 comp.GraphPane.XAxis.Color = textColor;
                 comp.GraphPane.XAxis.Title.FontSpec.FontColor = textColor;
