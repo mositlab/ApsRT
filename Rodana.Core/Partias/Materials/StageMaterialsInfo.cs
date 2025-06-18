@@ -31,12 +31,12 @@ namespace Rodana.Core.Partias.Materials
             }
             for (int i = 0; i < UsedMaterials.Count; i++)
             {
-                if (UsedLeftovers[i] != null || other.UsedLeftovers[i] != null)
-                {
-                    // пока это заглушка. Потом надо узнать
-                    return false;
-                }
-                if (!UsedMaterials[i].IsEqualTo(other.UsedMaterials[i])) return false;
+                //if (UsedLeftovers[i] != null || other.UsedLeftovers[i] != null)
+                //{
+                //    // пока это заглушка. Потом надо узнать
+                //    return false;
+                //}
+                if (!UsedMaterials[i].IsBuying && !other.UsedMaterials[i].IsBuying && !UsedMaterials[i].IsEqualTo(other.UsedMaterials[i])) return false;
             }
             return true;
             //return UsedMaterials.All(x => other.UsedMaterials.Any(y => y.IsEqualTo(x)));

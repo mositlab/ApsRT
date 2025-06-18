@@ -50,8 +50,14 @@ namespace Rodana.Core.Partias.Materials
         /// <summary>
         /// Вид воспроизводства
         /// </summary>
-        [DataRecordColumn("ВидВоспроизводства")]
-        public string WorkType { get; set; }
+        //[DataRecordColumn("ВидВоспроизводства")]
+        //public string WorkType { get; set; }
+
+        /// <summary>
+        /// Вид воспроизводства
+        /// </summary>
+        [DataRecordColumn("Покупка", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
+        public bool IsBuying { get; set; }
 
         /// <summary>
         /// Количество

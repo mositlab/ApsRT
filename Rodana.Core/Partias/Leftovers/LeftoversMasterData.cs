@@ -153,7 +153,7 @@ namespace Rodana.Core.Partias.Leftovers
                 )
             )
                 .Where(item => CurrentLeftoversCount.ContainsKey(item.MatNomen)
-                && item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].WorkType == "Покупка") // Второе ограничение.
+                && item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].IsBuying) // Второе ограничение.
                 .Select((x, index) => (elementIndex: index, stageLink: x.stageLink, MatNomen: x.MatNomen, MatIndex: x.MatIndex, MatWeight: x.MatWeight))
                 .ToList();
 

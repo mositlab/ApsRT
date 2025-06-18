@@ -10,11 +10,12 @@ namespace Rodana.Core.Partias.Materials
         public Uco Characteristics; // Характеристика
         public double Count; // Количество
         public DimensionUnit DataFormat; // ЕдиницаИзмерения
-        public string WorkType; // ВидВоспроизводства
+        //public string WorkType; // ВидВоспроизводства
+        public bool IsBuying; 
 
         public override string ToString()
         {
-            return $"[{Specification}] [{Nomenklature}] (хар. {Characteristics}, вид воспр. {WorkType}) (кол-во {Count} в {DataFormat})";
+            return $"[{Specification}] [{Nomenklature}] (хар. {Characteristics}, покупка: {IsBuying}) (кол-во {Count} в {DataFormat})";
         }
 
         public bool IsEqualTo(StageOriginalMaterial other)
@@ -38,7 +39,7 @@ namespace Rodana.Core.Partias.Materials
             Characteristics = model.Characteristics;
             Count = model.Count;
             DataFormat = model.Unit;
-            WorkType = model.WorkType;
+            IsBuying = model.IsBuying;
         }
     }
 }

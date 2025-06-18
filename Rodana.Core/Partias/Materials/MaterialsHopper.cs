@@ -69,7 +69,7 @@ namespace Rodana.Core.Partias.Materials
                     .OrderBy(mat => mat.Nomenklature.Code)
                     .ThenBy(mat => mat.Specification.Code)
                     .ThenBy(mat => mat.Characteristics.Code)
-                    .ThenBy(mat => mat.WorkType)
+                    .ThenBy(mat => mat.IsBuying)
                     .ToList();
 
                 op.Value.StageMaterialsInfo.UsedLeftovers = op.Value.StageMaterialsInfo.UsedMaterials.Select(mat => (StageLeftover)null).ToList();
