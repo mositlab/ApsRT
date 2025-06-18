@@ -36,7 +36,9 @@ namespace Rodana.Core.Partias.Materials
                 //    // пока это заглушка. Потом надо узнать
                 //    return false;
                 //}
-                if (!UsedMaterials[i].IsBuying && !other.UsedMaterials[i].IsBuying && !UsedMaterials[i].IsEqualTo(other.UsedMaterials[i])) return false;
+                if (
+                    //!UsedMaterials[i].IsBuying && !other.UsedMaterials[i].IsBuying &&
+                    !UsedMaterials[i].IsEqualTo(other.UsedMaterials[i])) return false;
             }
             return true;
             //return UsedMaterials.All(x => other.UsedMaterials.Any(y => y.IsEqualTo(x)));
