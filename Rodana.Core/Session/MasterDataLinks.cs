@@ -33,6 +33,7 @@ namespace Rodana.Core.Session
             ZadelsMasterData = new ZadelsMasterData(SessionLink);
             OrdersMasterData = new OrdersMasterData(SessionLink);
             NaladLengthsMasterData = new NaladLengthsMasterData(SessionLink);
+            LeftoversMasterData = new LeftoversMasterData(SessionLink);
         }
 
         public NaladLengthsMasterData NaladLengthsMasterData { get; set; }
@@ -43,7 +44,7 @@ namespace Rodana.Core.Session
 
         public OrdersMasterData OrdersMasterData { get; set; }
 
-        public LeftoversMasterData LeftoversMasterData { get; set; } = new();
+        public LeftoversMasterData LeftoversMasterData { get; set; }
 
         public MergeConditionsMasterData MergeConditionsMasterData { get; set; } = new();
 

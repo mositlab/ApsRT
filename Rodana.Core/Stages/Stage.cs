@@ -55,7 +55,7 @@ namespace Rodana.Core.Stages
 
         public override string ToString()
         {
-            return $"Оп. {(GetEasyFlag() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{GUID}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
+            return $"Оп. {(GetEasyFlagToOutput() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{GUID}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
         }
 
         /// <summary>
@@ -219,7 +219,7 @@ namespace Rodana.Core.Stages
         /// </summary>
         //public bool EasyFlagIsFromMes;
 
-        public Guid GetEasyFlag() => EasyFlag ?? EasyFlagOriginal ?? Guid.Empty;
+        public Guid GetEasyFlagToOutput() => EasyFlag ?? EasyFlagOriginal ?? Guid.Empty;
 
         /// <summary>
         /// Это флаг для вывода - общий этап, для упрощения.

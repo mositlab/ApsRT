@@ -18,6 +18,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Rodana.Core.Partias.PartiasClasses;
 using Rodana.Core.Partias.PartiasConnectorEngine;
+using System.Drawing;
 
 namespace Rodana.Core.Session
 {
@@ -145,7 +146,7 @@ namespace Rodana.Core.Session
 
                 SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
 
-                OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, localCopy, result);
+                OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, localCopy, result.FirstStagesStartDate);
 
                 OutputRechangesToFile(sessionPath + (asOld ? RechangesFileNameOld : RechangesFileName), result.RechangesBeforeFirstStages, result.FirstStagesStartDate);
 
@@ -471,7 +472,7 @@ namespace Rodana.Core.Session
                                     $";" +
                                     (!IsSilent || LaunchPlan ? $"{start + maxTimeWithFixes:G}" : "") +//$"{(centStruct.LastDate + offset + secs:G)}" +
                                     $";{maxTimeWithFixes.TotalHours}" +
-                                    $";{operLoc.EdIzm.DimensionUnitToString()};{operLoc.GetEasyFlag()}" +
+                                    $";{operLoc.EdIzm.DimensionUnitToString()};{operLoc.GetEasyFlagToOutput()}" +
                                     $";{(partiasAlgorithm != null && partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}");
                             }
                         }
@@ -696,10 +697,9 @@ namespace Rodana.Core.Session
 
         public string MaterialsDeficitsFileName { get; set; } = "matsErrors.csv";
 
-        public void OutputMaterialsDeficitsToFile(string filename, OpersPool pool, PlanningCalculatorEngineResult resultToOutput)
+        public void OutputMaterialsDeficitsToFile(string filename, OpersPool pool, IDictionary<int, DateTime> firstStageStartData)
         {
             var MaterialsMasterData = SessionLink.MasterDataLinks.LeftoversMasterData;
-            var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
 
             if (MaterialsMasterData.CurrentLeftoversCount == null) return;
 
@@ -712,86 +712,23 @@ namespace Rodana.Core.Session
             sw.WriteLine("N;Номенклатура;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
             var D = 0;
 
-            var points = pool.Blocks.SelectMany(block =>
-                block.Lists.SelectMany(
-                    list => list.FirstOper.StageMaterialsInfo == null ? Array.Empty<(int, DateTime, Uco, double)>() : list.FirstOper.StageMaterialsInfo.UsedMaterials.Select(x => (list.FirstOper.Index, When: resultToOutput.FirstStagesStartDate[list.FirstOper.Index], x.Nomenklature, list.Count))
-                )
-                );
+            var data = MaterialsMasterData.PlanAndFixMaterialsInfo(pool, firstStageStartData);
 
-            var groups = points.GroupBy(x => x.Nomenklature);
-
-
-            foreach (var group in groups)
+            foreach (var element in data)
             {
-                var material = group.Key;
-
-                if (MaterialsMasterData.CurrentLeftoversCount.TryGetValue(material, out var howMuchAtStart))
-                {
-                    if (MaterialsMasterData.LeftoversArrivalInfo.TryGetValue(material, out var arrivalList))
-                    {
-                        // -1 означает приход
-                        var sortedPoints = group.Union(arrivalList.Select(x => (ID: -1, When: x.When, material: material, Count: x.Count))).OrderBy(x => x.When).ToList();
-
-                        for (int i = 0; i < sortedPoints.Count; i++)
-                        {
-                            var point = sortedPoints[i];
-
-                            if (point.Item1 == -1) // это приход?
-                            {
-                                howMuchAtStart += point.Count;
-                            }
-                            else
-                            {
-                                howMuchAtStart -= point.Count;
-                                if (howMuchAtStart < 0)
-                                {
-                                    /*
-                                     •	N – Уникальный идентификатор записи о дефиците. Будет полезно при записи в базы данных SQL.
-                        •	Номенклатура – GUID и наименование недостающего материала.
-                        •	ИдентификаторПартииПФ – GUID партии ПФ.
-                        •	КоличествоПотребность - Сколько требуется на момент времени (количество этапа, общего, объединенного, или исходного, с учётом наладочных длин).
-                        •	КоличествоДоступно - Сколько есть в наличии на данный момент свободного остатка.
-                        •	ДатаПотребности - Когда требуется данный материал (дата начала выполнения этапа), это дата дефицита.
-                        •	ДатаПоступления - Если есть заказанный материал — когда он прибудет, для сравнения. Допускает пустое значение – поступлений может вообще не быть.
-                        •	GUID – исходного этапа, который спровоцировал дефицит.
-                        •	GUIDОбъединения, если оно есть.
-                        •	GUIDОбщегоЭтапа, если оно есть.
-
-                                     */
-
-                                    var n = sortedPoints.FindIndex(i + 1, x => x.Item1 == -1); // найдем следующий приход
-                                    DateTime? nextPrihod = n == -1 ? null : sortedPoints[n].When;
-
-                                    var op = ALL[point.Item1];
-                                    sw.WriteLine(
-                                        $"{D};" +
-                                        $"{material};" +
-                                        $"{op.GetPartiaCode() ?? Guid.Empty};" +
-                                        $"{point.Count};" +
-                                        $"{(howMuchAtStart + point.Count)};" + // вернем на место
-                                        $"{point.When};" +
-                                        $"{nextPrihod};" +
-                                        $"{op.GUID};" +
-                                        $"{(op.IsCustomModelling ? op.CustomModelling : op.MesModelling.Code)};" +
-                                        $"{op.GetEasyFlag()}"
-                                        );
-                                    D++;
-                                }
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        sw.WriteLine("-200");
-                        D++;
-                    }
-                }
-                else
-                {
-                    sw.WriteLine("-100");
-                    D++;
-                }
+                sw.WriteLine(
+                    $"{D};" +
+                    $"{element.Nomenklature};" +
+                    $"{element.PartiaPF};" +
+                    $"{element.CountNeeded};" +
+                    $"{element.CountExists};" + // вернем на место
+                    $"{element.DateWhenNeeded};" +
+                    $"{(element.NextArrivalDate?.ToString() ?? "")};" +
+                    $"{element.StageGuid};" +
+                    $"{element.ModellingGuid};" +
+                    $"{element.EasyLifeGuid}"
+                    );
+                D++;
             }
 
             sw.Close();
@@ -822,7 +759,7 @@ namespace Rodana.Core.Session
                     {
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
                         var modGuid = opLink.IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
-                        sw.WriteLine($"{zadel.Key};{opLink.GUID};{modGuid};{(opLink.GetEasyFlag())};{etap.count};"); // последняя скобка это пустота
+                        sw.WriteLine($"{zadel.Key};{opLink.GUID};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
                     }
                 }
                 else
