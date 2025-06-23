@@ -73,10 +73,10 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
 
             var DoneIDS = engineData.DoneIDS;
-            var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
+            //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
             var RestrictionsVia74110 = engineData.RestrictionsVia74110;
-            var OpersToSdvigs = engineData.OpersToSdvigs;
-            var prevs = engineData.prevs;
+            //var OpersToSdvigs = engineData.OpersToSdvigs;
+            //var prevs = engineData.prevs;
             engineData.Color = col;
 
 
@@ -164,7 +164,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             }
 
             // Устроим себе создание ЗАДЕЛОВ
-            ZadelsCreation(partia1, engineData, WithLog, partiaPFguid);
+            ZadelsCreation(partia1, engineData, partiaPFguid);
 
 
             return partia1;
@@ -280,7 +280,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             }
         }
 
-        static void ZadelsCreation(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, bool WithLog, Guid? partiaPFguid)
+        static void ZadelsCreation(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, Guid? partiaPFguid)
         {
             var Zadels = engineData.Session.MasterDataLinks.ZadelsMasterData;
             if (engineData.Session.SessionOptions.LaunchZadel && partiaPFguid.HasValue && Zadels.ZadelsData.TryGetValue(partiaPFguid.Value, out var zadelsGPsHere))
@@ -371,7 +371,7 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
         {
             var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
             var OpersToSdvigs = engineData.OpersToSdvigs;
-            var prevs = engineData.prevs;
+            //var prevs = engineData.prevs;
             var Zadels = engineData.Session.MasterDataLinks.ZadelsMasterData;
             foreach (var prev in sdvig.Opers[0].Prevs) // смотрим предков
             {

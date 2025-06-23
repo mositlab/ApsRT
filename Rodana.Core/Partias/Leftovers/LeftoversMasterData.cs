@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Rodana.Core.Orders;
 using Rodana.Core.Partias.PartiasClasses;
 using Rodana.Core.Planning.PlanningClasses;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Rodana.Core.Partias.Leftovers
 {
@@ -67,6 +68,47 @@ namespace Rodana.Core.Partias.Leftovers
             LeftoversGroupsInfo[key][model.MaterialsGroup].Add(new LeftoverReplacementInfo(model));
         }
 
+
+        Dictionary<Uco, double> FindAnaloguesAll(Dictionary<Stages.Stage, Dictionary<Guid, List<LeftoverReplacementInfo>>> opsPossibleLeftoversForOne, Stages.Stage op, (Uco MatNomen, double MatWeight) item)
+        {
+            if (!opsPossibleLeftoversForOne.ContainsKey(op)) // Посмотрим, находил ли я для этой операции данные
+            {
+                Dictionary<Guid, List<LeftoverReplacementInfo>> dic = GetReplacementInfo(op, x => true/*x.Value.Count == 1*/); // Найдём все группы возможной замены для этого этапчика, даже не взирая на то, что они могут быть групповыми
+                opsPossibleLeftoversForOne.Add(op, dic);
+            }
+
+            //var possibleAnaloguesButInversed = opsPossibleLeftoversForOne[op]
+            //    .SelectMany(x => x.Value) // У нас появятся вообще все группы
+            //    .Where(x => x.Analogue == item.MatNomen) // Сначала выберем только те, у которых та же номенклатура, что и у предмета текущего
+
+            //    // ЭТО НЕПРАВИЛЬНО!!! Строчка выше выберет только сами аналоги (например ), но не 
+
+            //    .GroupBy(x => x.Original) // Группируем по оригиналу - надо выудить из группы информацию
+            //    .SelectMany(group =>
+            //    {
+            //        var data = group.First(x => x.Analogue == item.MatNomen); // найдем первую ячейку, где аналогом выступает нужный нам материал, чтоб взять у него инфу по 
+            //        var koeff = 1.0 / data.AnalogueCount * data.OriginalCount; // для удобства написано так. Коэффициент будет юзаться так, чтобы мы количество аналога превратили в количество оригинала, и вот от оригинала уже будем плясать.
+
+            //        return group.Select(gr => (Key: gr.Analogue, Value: koeff * item.MatWeight / gr.OriginalCount * gr.AnalogueCount));
+            //    });
+
+            // А это вообще обычная группа, которая работает, начиная с аналогов
+            var possibleAnalogues = opsPossibleLeftoversForOne[op]
+                .SelectMany(x => x.Value) // У нас появятся вообще все группы
+                .Where(x => x.Original == item.MatNomen) // Сначала выберем только те, у которых та же номенклатура, что и у предмета текущего
+
+                .Select(analogue =>
+                {
+                    // Получаем инфу об аналоге
+                    return (Key: analogue.Analogue, Value: item.MatWeight / analogue.OriginalCount * analogue.AnalogueCount); // Получаем пару: ключом служит мат-аналог, а значением - подсчитанное количество, посчитанное формулой
+                })
+                //.Union(possibleAnaloguesButInversed)
+                .Where(x => x.Key != item.MatNomen) // Уберем те, что равны моей номенклатуре, они нафиг не нужны
+                .GroupBy(x => x.Key) // Теперь сгруппируем по этим самым остаткам-аналогам
+                .ToDictionary(x => x.Key, x => x.Max(y => y.Value)); // Поздравляю, у нас появился словарь где есть инфа, какие остатки можно юзать, и какой вес у них будет из-за этого. Вес при этом берется максимальный
+
+            return possibleAnalogues;
+        }
 
         internal Dictionary<Guid, List<LeftoverReplacementInfo>> GetReplacementInfo(Stages.Stage op, Func<KeyValuePair<Guid, List<LeftoverReplacementInfo>>, bool> comparer)
         {
@@ -147,10 +189,11 @@ namespace Rodana.Core.Partias.Leftovers
             // Создадим решатель
             CpModel model = new CpModel();
 
-            var SessionLink = partias[0].OpersHere[0][0].Opers[0].SessionLink;
+            //var SessionLink = partias[0].OpersHere[0][0].Opers[0].SessionLink;
 
             // TO DO: А что делать с моделированиями из МЕС??? там же 2+ этапчика
             var allItems = partias.SelectMany(x => PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(x.OpersHere)) // Возьмём этапы со всех партий
+                .Where(sdvig => sdvig.Opers[0].StageMaterialsInfo != null)
                 .SelectMany(sdvig =>
 
                 sdvig.Opers[0].StageMaterialsInfo.UsedMaterials.Select(
@@ -174,38 +217,8 @@ namespace Rodana.Core.Partias.Leftovers
             {
                 var item = allItems[i];
                 var op = item.stageLink;
-                if (!opsPossibleLeftoversForOne.ContainsKey(op)) // Посмотрим, находил ли я для этой операции данные
-                {
-                    Dictionary<Guid, List<LeftoverReplacementInfo>> dic = GetReplacementInfo(op, x => true/*x.Value.Count == 1*/); // Найдём все группы возможной замены для этого этапчика, даже не взирая на то, что они могут быть групповыми
-                    opsPossibleLeftoversForOne.Add(op, dic);
-                }
 
-                var possibleAnaloguesButInversed = opsPossibleLeftoversForOne[op]
-                    .SelectMany(x => x.Value) // У нас появятся вообще все группы
-                    .Where(x => x.Analogue == item.MatNomen) // Сначала выберем только те, у которых та же номенклатура, что и у предмета текущего
-                    .GroupBy(x => x.Original) // Группируем по оригиналу - надо выудить из группы информацию
-                    .SelectMany(group =>
-                    {
-                        var data = group.First(x => x.Analogue == item.MatNomen); // найдем первую ячейку, где аналогом выступает нужный нам материал, чтоб взять у него инфу по 
-                        var koeff = 1.0 / data.AnalogueCount * data.OriginalCount; // для удобства написано так. Коэффициент будет юзаться так, чтобы мы количество аналога превратили в количество оригинала, и вот от оригинала уже будем плясать.
-
-                        return group.Select(gr => (Key: gr.Analogue, Value: koeff * item.MatWeight / gr.OriginalCount * gr.AnalogueCount));
-                    });
-
-                // А это вообще обычная группа, которая работает, начиная с аналогов
-                var possibleAnalogues = opsPossibleLeftoversForOne[op]
-                    .SelectMany(x => x.Value) // У нас появятся вообще все группы
-                    .Where(x => x.Original == item.MatNomen) // Сначала выберем только те, у которых та же номенклатура, что и у предмета текущего
-
-                    .Select(analogue =>
-                {
-                    // Получаем инфу об аналоге
-                    return (Key: analogue.Analogue, Value: item.MatWeight / analogue.OriginalCount * analogue.AnalogueCount); // Получаем пару: ключом служит мат-аналог, а значением - подсчитанное количество, посчитанное формулой
-                })
-                    .Union(possibleAnaloguesButInversed)
-                    .Where(x => x.Key != item.MatNomen) // Уберем те, что равны моей номенклатуре, они нафиг не нужны
-                    .GroupBy(x => x.Key) // Теперь сгруппируем по этим самым остаткам-аналогам
-                    .ToDictionary(x => x.Key, x => x.Max(y => y.Value)); // Поздравляю, у нас появился словарь где есть инфа, какие остатки можно юзать, и какой вес у них будет из-за этого. Вес при этом берется максимальный
+                var possibleAnalogues = FindAnaloguesAll(opsPossibleLeftoversForOne, op, (item.MatNomen, item.MatWeight));
 
                 AllPossibleAnaloguesForMats.Add(possibleAnalogues); // Добавляю информацию об этом в копию
             }
@@ -391,7 +404,7 @@ namespace Rodana.Core.Partias.Leftovers
             var dt1 = DateTime.Now;
             var delta = dt1 - dt0;
             Console.WriteLine($"total time wasted on cpSolver is {delta}");
-            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"total time wasted on cpSolver is {delta}");
+            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"total time wasted on solver is {delta}");
             if (status == CpSolverStatus.Optimal || status == CpSolverStatus.Feasible)
             {
                 for (int i = 0; i < allItems.Count; i++)
@@ -403,20 +416,15 @@ namespace Rodana.Core.Partias.Leftovers
                             var list = allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers;
                             // Назначим ту номенклатуру, что у рюкзака - это может быть как оригинал, так и аналог.
                             list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatNomen, IBtable[i, b] / 1000.0);
-
-                            //if (allBins[b].MatNomen == allItems[i].MatNomen)
-                            //{
-                            //    list[allItems[i].MatIndex] = new StageLeftover(allItems[i].MatNomen, IBtable[i, b] / 1000.0);
-                            //}
-                            //else
-                            //{
-                            //    // Тут другой материал
-                            //}
                         }
                     }
                 }
             }
-
+            else
+            {
+                Console.WriteLine($"cpSolver ended with {status}");
+                SessionLink.AssignedLogger.LogQueue.Enqueue($"solver for leftovers ended with {status}");
+            }
         }
 
         public List<LeftoverLackData> PlanAndFixMaterialsInfo(OpersPool pool, IDictionary<int, DateTime> firstStageStartData)
@@ -426,66 +434,123 @@ namespace Rodana.Core.Partias.Leftovers
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
 
             var points = pool.Blocks.SelectMany(block =>
-                block.Lists.SelectMany(
-                    list => list.FirstOper.StageMaterialsInfo == null ? Array.Empty<(int, DateTime, Uco, double)>() : list.FirstOper.StageMaterialsInfo.UsedMaterials.Select(x => (list.FirstOper.Index, When: firstStageStartData[list.FirstOper.Index], x.Nomenklature, list.Count))
+                block.Lists.Select(list => (Date: firstStageStartData[list.FirstOper.Index], Object: (object)list)
+                    //list => list.FirstOper.StageMaterialsInfo == null ? Array.Empty<(int, DateTime, Uco, double)>() : list.FirstOper.StageMaterialsInfo.UsedMaterials.Select(x => (list.FirstOper.Index, When: firstStageStartData[list.FirstOper.Index], x.Nomenklature, list.Count))
                 )
                 );
 
-            var groups = points.GroupBy(x => x.Nomenklature);
+            var arrivalInfo = LeftoversArrivalInfo.SelectMany(pair => pair.Value.Select(x => (Date: x.When, Object: (object)(Material: pair.Key, Count: x.Count))));
 
+            var pointsToAnalyze = points
+                .Union(arrivalInfo)
+                .OrderBy(point => point.Date).ToList();
 
-            foreach (var group in groups)
+            var howMuchAtStart = CurrentLeftoversCount.ToDictionary();
+
+            Dictionary<Stages.Stage, Dictionary<Guid, List<LeftoverReplacementInfo>>> opsPossibleLeftoversForOne = new Dictionary<Stages.Stage, Dictionary<Guid, List<LeftoverReplacementInfo>>>();
+
+            for (int currentPoint = 0; currentPoint < pointsToAnalyze.Count; currentPoint++)
             {
-                var material = group.Key;
-
-                if (CurrentLeftoversCount.TryGetValue(material, out var howMuchAtStart))
+                var point = pointsToAnalyze[currentPoint];
+                if (point.Object is PlanningModelling mod)
                 {
-                    if (LeftoversArrivalInfo.TryGetValue(material, out var arrivalList))
+                    var startDate = firstStageStartData[mod.FirstOper.Index];
+                    foreach (var oper in mod.OpersList)
                     {
-                        // -1 означает приход
-                        var sortedPoints = group.Union(arrivalList.Select(x => (ID: -1, When: x.When, material: material, Count: x.Count))).OrderBy(x => x.When).ToList();
-
-                        for (int i = 0; i < sortedPoints.Count; i++)
+                        var matsClass = oper.StageMaterialsInfo;
+                        var matsList = matsClass.UsedMaterials;
+                        var leftoversList = matsClass.UsedLeftovers;
+                        if (matsList == null) continue;
+                        for (int i = 0; i < matsList.Count; i++)
                         {
-                            var point = sortedPoints[i];
+                            if (!matsList[i].IsBuying) continue;
+                            (Uco Material, double Count) whatWillDecrease;
+                            if (matsClass.UsedLeftovers[i] == null)
+                                whatWillDecrease = (matsList[i].Nomenklature, matsList[i].Count);
+                            else
+                                whatWillDecrease = (leftoversList[i].Nomenklature, leftoversList[i].CalculatedCount);
 
-                            if (point.Item1 == -1) // это приход?
+                            if (howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var currentCount))
                             {
-                                howMuchAtStart += point.Count;
+                                if (currentCount < whatWillDecrease.Count)
+                                {
+                                    // Слишком мало, будет ошибка. Надо найти что-то.
+                                    var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
+                                    var found = analoguesDictionaries.FirstOrDefault(x => howMuchAtStart.TryGetValue(x.Key, out var currCount) && currCount >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));//TryFixIt();
+                                    whatWillDecrease = (found.Key, found.Value);
+                                    leftoversList[i].Nomenklature = whatWillDecrease.Material;
+                                    leftoversList[i].CalculatedCount = whatWillDecrease.Count;
+                                }
                             }
                             else
                             {
-                                howMuchAtStart -= point.Count;
-                                if (howMuchAtStart < 0)
+                                var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
+
+                                var onlyWhichExists = analoguesDictionaries.Where(x => howMuchAtStart.ContainsKey(x.Key));
+
+                                if (onlyWhichExists.Count() == 0)
                                 {
-                                    /*
-                                     •	N – Уникальный идентификатор записи о дефиците. Будет полезно при записи в базы данных SQL.
-                        •	Номенклатура – GUID и наименование недостающего материала.
-                        •	ИдентификаторПартииПФ – GUID партии ПФ.
-                        •	КоличествоПотребность - Сколько требуется на момент времени (количество этапа, общего, объединенного, или исходного, с учётом наладочных длин).
-                        •	КоличествоДоступно - Сколько есть в наличии на данный момент свободного остатка.
-                        •	ДатаПотребности - Когда требуется данный материал (дата начала выполнения этапа), это дата дефицита.
-                        •	ДатаПоступления - Если есть заказанный материал — когда он прибудет, для сравнения. Допускает пустое значение – поступлений может вообще не быть.
-                        •	GUID – исходного этапа, который спровоцировал дефицит.
-                        •	GUIDОбъединения, если оно есть.
-                        •	GUIDОбщегоЭтапа, если оно есть.
-
-                                     */
-
-                                    var n = sortedPoints.FindIndex(i + 1, x => x.Item1 == -1); // найдем следующий приход
-                                    DateTime? nextPrihod = n == -1 ? null : sortedPoints[n].When;
-
-                                    var op = ALL[point.Item1];
-
-                                    var lack = new LeftoverLackData(material, op.GetPartiaCode() ?? Guid.Empty, point.Count, howMuchAtStart + point.Count, point.When, nextPrihod, op.GUID, op.IsCustomModelling ? op.CustomModelling : op.MesModelling.Code, op.GetEasyFlagToOutput());
-
+                                    // это ОЧЕНЬ странно. Выходим
+                                    continue;
                                 }
+
+                                var found = onlyWhichExists
+                                    .OrderByDescending(x => howMuchAtStart[x.Key] - x.Value) // Отсортируем так, чтобы найти самый крупный остаток
+                                    .FirstOrDefault(x => howMuchAtStart[x.Key] >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));
+
+                                // Если номенклатура та же, значит я ничего не нашёл, значит просто любой аналог пихаем, который есть, уже не обращая внимания на вместимость.
+                                if (found.Key == whatWillDecrease.Material)
+                                {
+                                    found = onlyWhichExists.First();
+                                }
+
+                                whatWillDecrease = (found.Key, found.Value);
+                                leftoversList[i].Nomenklature = whatWillDecrease.Material;
+                                leftoversList[i].CalculatedCount = whatWillDecrease.Count;
+                            }
+
+
+                            var howMuchNow = howMuchAtStart[whatWillDecrease.Material];
+                            howMuchNow -= whatWillDecrease.Count;
+                            if (howMuchNow < 0)
+                            {
+                                var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
+                                {
+                                    if (x.Object is PlanningModelling) return false;
+                                    (Uco Material, double Count) info = ((Uco Material, double Count))x.Object;
+                                    return whatWillDecrease.Material == info.Material; // Нам нужен приход того же материала
+                                }); // найдем следующий приход
+                                DateTime? nextPrihod = n == -1 ? null : pointsToAnalyze[n].Date;
+
+
+                                var lack = new LeftoverLackData(
+                                    whatWillDecrease.Material,
+                                    oper.GetPartiaCode() ?? Guid.Empty,
+                                    whatWillDecrease.Count,
+                                    howMuchNow + whatWillDecrease.Count,
+                                    point.Date,
+                                    nextPrihod,
+                                    oper.GUID,
+                                    oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
+                                    oper.GetEasyFlagToOutput()
+                                    );
+
+                            }
+                            else
+                            {
+                                howMuchAtStart[whatWillDecrease.Material] = howMuchNow; // Подсчитанное количество вбиваем, если оно все ещё больше 0.
                             }
                         }
-
                     }
                 }
+                else
+                {
+                    // Это просто приход
+                    (Uco Material, double Count) info = ((Uco Material, double Count))point.Object;
+                    howMuchAtStart[info.Material] += info.Count;
+                }
             }
+
 
             return result;
         }

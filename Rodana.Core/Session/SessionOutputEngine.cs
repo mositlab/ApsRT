@@ -185,6 +185,7 @@ namespace Rodana.Core.Session
             foreach (var operPair in SessionLink.MasterDataLinks.StagesMasterData.AllStages)
             {
                 var oper = operPair.Value;
+                if (oper.StageMaterialsInfo.UsedMaterials == null) continue;
                 for (int i = 0; i < oper.StageMaterialsInfo.UsedLeftovers.Count; i++)
                 {
                     var element = oper.StageMaterialsInfo.UsedLeftovers[i];
