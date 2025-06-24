@@ -215,7 +215,6 @@ namespace Rodana.Core.Session
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
             MasterDataLinks.NaladLengthsMasterData.SetNeededParamName(SettingsController.SpecialSettings.NaladLengthsCriteriaName);
 
-            MasterDataLinks.LeftoversMasterData.PostProcess();
 
             // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
             foreach (var op in MasterDataLinks.StagesMasterData.AllStages)

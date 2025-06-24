@@ -21,7 +21,7 @@ namespace Rodana.Core.Partias.Leftovers
 
         void IHopperInterface.AfterLoading()
         {
-
+            LeftoversMasterData.PostProcess();
         }
 
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)

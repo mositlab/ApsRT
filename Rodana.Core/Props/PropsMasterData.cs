@@ -42,7 +42,8 @@ namespace Rodana.Core.Props
 
         void WorkWith(Dictionary<string, int> propsDic, string toAdd)
         {
-            if (propsDic.ContainsKey(toAdd)) return;
+            if (propsDic.ContainsKey(toAdd))
+                return;
             propsDic.Add(toAdd, propsDic.Count); // Индекс будет постепенно возрастать, что позволит обращаться к индексам реквизитов и использовать массивы в дальнейшем.
         }
 

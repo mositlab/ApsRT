@@ -163,8 +163,6 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
                 }
             }
 
-            // Устроим себе создание ЗАДЕЛОВ
-            ZadelsCreation(partia1, engineData, partiaPFguid);
 
 
             return partia1;
@@ -280,116 +278,5 @@ namespace Rodana.Core.Partias.PartiasGeneratorEngine
             }
         }
 
-        static void ZadelsCreation(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, Guid? partiaPFguid)
-        {
-            var Zadels = engineData.Session.MasterDataLinks.ZadelsMasterData;
-            if (engineData.Session.SessionOptions.LaunchZadel && partiaPFguid.HasValue && Zadels.ZadelsData.TryGetValue(partiaPFguid.Value, out var zadelsGPsHere))
-            {
-                if (zadelsGPsHere.TryGetValue(engineData.Stages[0].OrderLink.OrderID, out var zadelsLevelsHere))
-                {
-                    // Нужно нафиг эту систему переделать, чтоб потом удобнее искать было
-                    for (int i = 0; i < partia1.Count; i++) // Проходимся по всем уровням
-                    {
-                        var levelHere = partia1[i][0].Opers[0].Level;
-                        if (zadelsLevelsHere.TryGetValue(levelHere, out var zadelsNomensHere))
-                        {
-                            for (int j = 0; j < partia1[i].Count; j++)
-                            {
-                                var opHere = partia1[i][j].Opers[0]; // потому что они тут всё равно всегда одни.
-                                if (zadelsNomensHere.TryGetValue(opHere.Nomenklature, out var zadelsPovivsHere))
-                                {
-                                    // Номенклатуру нашли, теперь ищем повивы, и если находим - находим наконец-то заделы.
-                                    if (zadelsPovivsHere.TryGetValue(opHere.Poviv, out var finalZadelsHere))
-                                    {
-                                        // теперь тут надо найти ЛИБО гуид этого этапа, либо гуид нулевой
-                                        //var guidToFind = Zadels.USE_CONCRETE_ETAPS_GUIDS ? opHere.GUID.Value : Guid.Empty;
-
-                                        // Нашли? значит переходим к заделам
-                                        foreach (var zadelV in finalZadelsHere)
-                                        {
-                                            var zadel = zadelV.Value;
-                                            // Чекаем, сколько у нас тут осталось
-                                            if (zadel.WhereCanUsed.TryGetValue(opHere.GUID, out var countToSet))//zadel.CalcCount >= opHere.Count) // сюда можно сунуть толерантность ещё. 18.06: внезапно выяснилось, что есть право выдать задел, который совершенно не подходит по количеству - и мол может встать, под ответственность юзера.
-                                                                                                                      // 19.06: если задела вообще не осталось, то операции назначить его не получится.
-                                            {
-                                                if (partia1[i][j].ZadelsGUIDs.Count == opHere.PlacesCount)
-                                                {
-                                                    // Он уже сюда не влезет. Другие заделы использовали
-                                                    zadel.ZadelStatus = ZadelStatus.AnotherUsed;
-                                                }
-                                                else
-                                                {
-                                                    // Место ещё есть. Суем
-                                                    //var finalCount = Math.Max(0, opHere.Count);
-
-                                                    zadel.WhereIsUsed.Add((opHere.Index, countToSet)); // добавляем моделирования (теперь уже - ссылка на первую операцию, все равно они там объединяются в одно моделирование) и количество
-
-                                                    //zadel.CalcCount -= finalCount; // отнимает из общего количества
-
-                                                    zadel.ZadelStatus = ZadelStatus.SussesfullyUsed;
-
-                                                    var code = partia1[i][j].ZadelCode;
-
-                                                    var guid = zadelV.Key;
-
-                                                    var codeToAdd = guid.GetHashCode();
-
-                                                    if (code == 0)
-                                                        code = codeToAdd;
-                                                    else
-                                                        code = HashCode.Combine(code, codeToAdd);
-
-                                                    partia1[i][j].ZadelsGUIDs.Add(guid);
-                                                    partia1[i][j].ZadelCode = code;
-
-                                                    partia1[i][j].Tara = zadel.UsedTara;
-                                                    partia1[i][j].Max = countToSet;
-
-                                                    EraseZadelsTree(partia1[i][j], code, engineData);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (zadel.WhereIsUsed.Count == 0) // Она нигде ещё не юзалась?
-                                                {
-                                                    zadel.ZadelStatus = ZadelStatus.NotEnoughCount;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        // У всех предыдущих стираем всё
-        static void EraseZadelsTree(PartiaModelling sdvig, int zadelCode, PartiasGeneratorEngineData engineData)
-        {
-            var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
-            var OpersToSdvigs = engineData.OpersToSdvigs;
-            //var prevs = engineData.prevs;
-            var Zadels = engineData.Session.MasterDataLinks.ZadelsMasterData;
-            foreach (var prev in sdvig.Opers[0].Prevs) // смотрим предков
-            {
-                if (OpersToSdvigs.TryGetValue(prev, out var sdvigP))
-                {
-                    sdvigP.ZadelCode = zadelCode;
-                    sdvigP.Tara = OriginallyTaraWasThis[prev].Tara; // Возвращаем тару на месту, если там была перезапись
-                    sdvigP.Max = OriginallyTaraWasThis[prev].namot; // Возвращаем тару на месту, если там была перезапись
-                    foreach (var zadelGuid in sdvigP.ZadelsGUIDs)
-                    {
-                        //Zadels.LinearZadelsDictionary[zadelGuid].CalcCount = Zadels.LinearZadelsDictionary[zadelGuid].Count; // Очищаем инфу в заделах
-                        Zadels.LinearZadelsDictionary[zadelGuid].WhereIsUsed.Clear(); // всё стираем
-                        Zadels.LinearZadelsDictionary[zadelGuid].ZadelStatus = ZadelStatus.HigherZadelUsed;
-                    }
-                    sdvigP.ZadelsGUIDs.Clear();
-                    EraseZadelsTree(sdvigP, zadelCode, engineData);
-                }
-            }
-        }
     }
 }

@@ -810,6 +810,7 @@ namespace RodanaCustomComponents
                     PartiasAlgorithmStage.None => "...",
                     PartiasAlgorithmStage.PreparingSession => "1. Подготовка сессии",
                     PartiasAlgorithmStage.PreparingPartias => "2. Подготовка партий",
+                    PartiasAlgorithmStage.PreparingZadels => "3. Подготовка заделов",
                     PartiasAlgorithmStage.PreparingLeftovers => "4. Подготовка остатков",
                     PartiasAlgorithmStage.FiilingDeadlineTables => "5. Заполнение таблиц дедлайнов",
                     PartiasAlgorithmStage.FillingDeepTables => "6. Заполнение таблиц глубин",

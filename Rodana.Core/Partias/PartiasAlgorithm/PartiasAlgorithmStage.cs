@@ -11,7 +11,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
         None = 0,
         PreparingSession = 1,
         PreparingPartias = 2,
-        //PreapringZadels = 3,
+        PreparingZadels = 3,
         PreparingLeftovers = 4,
         FiilingDeadlineTables = 5,
         FillingDeepTables = 6,

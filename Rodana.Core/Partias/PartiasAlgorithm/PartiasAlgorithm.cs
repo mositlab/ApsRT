@@ -90,6 +90,11 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
                 PreparePartias(WithLog);
 
+                // 3. ЗАДЕЛЫ
+                CurrentStage = PartiasAlgorithmStage.PreparingZadels;
+                CurrentStageChanged?.Invoke(CurrentStage, 0);
+                SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForZadels(PartiiList);
+
                 // 4. Подготавливаем партии к остаткам
                 CurrentStage = PartiasAlgorithmStage.PreparingLeftovers;
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
@@ -182,11 +187,7 @@ namespace Rodana.Core.Partias.PartiasAlgorithm
 
             SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Clear();
 
-            foreach (var zadel in SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary)
-            {
-                //zadel.Value.CalcCount = zadel.Value.Count;
-                zadel.Value.WhereIsUsed.Clear();
-            }
+            SessionLink.MasterDataLinks.ZadelsMasterData.ClearZadelsUsageInfo();
         }
 
         List<PartiaClass> PartiiList;
