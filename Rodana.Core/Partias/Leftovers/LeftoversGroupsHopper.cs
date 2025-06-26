@@ -19,7 +19,7 @@ namespace Rodana.Core.Partias.Leftovers
 
         void IHopperInterface.AfterLoading()
         {
-            LeftoversMasterData.DoubleInputData();
+
         }
 
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)

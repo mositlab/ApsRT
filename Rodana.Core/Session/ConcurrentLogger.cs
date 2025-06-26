@@ -63,7 +63,7 @@ namespace Rodana.Core.Session
             exitLogSW.Close();
         }
 
-        string logPath;
+        string logPath = "";
 
         internal void LogThread()
         {

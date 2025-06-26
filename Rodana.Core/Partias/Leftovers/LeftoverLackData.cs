@@ -5,14 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 
 namespace Rodana.Core.Partias.Leftovers
 {
     public class LeftoverLackData
     {
-        public LeftoverLackData(Uco nomenklature, Guid partiaPF, double countNeeded, double countExists, DateTime dateWhenNeeded, DateTime? nextArrivalDate, Guid stageGuid, Guid modellingGuid, Guid easyLifeGuid)
+        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, DateTime dateWhenNeeded, DateTime? nextArrivalDate, Guid stageGuid, Guid modellingGuid, Guid easyLifeGuid)
         {
-            Nomenklature = nomenklature;
+            LeftoverData = leftoverData;
             PartiaPF = partiaPF;
             CountNeeded = countNeeded;
             CountExists = countExists;
@@ -23,7 +24,7 @@ namespace Rodana.Core.Partias.Leftovers
             EasyLifeGuid = easyLifeGuid;
         }
 
-        public Uco Nomenklature { get; set; }
+        public LeftoverUco LeftoverData { get; set; }
         public Guid PartiaPF { get; set; }
         public double CountNeeded { get; set; }
         public double CountExists { get; set; }

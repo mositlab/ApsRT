@@ -33,6 +33,7 @@ using ZedGraph;
 using Label = System.Windows.Forms.Label;
 using System.Collections.Generic;
 using TextBox = System.Windows.Forms.TextBox;
+using Rodana.Core.Stages.MasterData;
 
 namespace RodanaCustomComponents
 {
@@ -1872,5 +1873,37 @@ namespace RodanaCustomComponents
         }
         #endregion
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+            var allMats = sessionLink.MasterDataLinks.StagesMasterData.AllStages.Where(x => x.Value.StageMaterialsInfo != null && x.Value.StageMaterialsInfo.UsedMaterials != null).SelectMany(x => x.Value.StageMaterialsInfo.UsedMaterials).DistinctBy(x => x.Nomenklature)
+                .Where(x => Random.Shared.NextDouble() < 0.75)
+                .Select(x => (Mat: x, Count: Random.Shared.Next(0, 1000000) / 1000.0));
+
+            var allSubdivisions = sessionLink.MasterDataLinks.StagesMasterData.AllStages.Select(x => x.Value.Subdivision).Distinct().ToList();
+
+            var streamWriter = new StreamWriter("ОстаткиНаСкладе.txt");
+            streamWriter.WriteLine("Номенклатура\tНоменклатура_GUID\tХарактеристика\tХарактеристика_GUID\tПодразделение\tПодразделение_GUID\tКоличество");
+            var arrivalInfo = new StreamWriter("ПриходМатериалов.txt");
+            arrivalInfo.WriteLine("Номенклатура\tНоменклатура_GUID\tХарактеристика\tХарактеристика_GUID\tДатаПоступления\tПодразделение\tПодразделение_GUID\tКоличество");
+            foreach (var mat in allMats)
+            {
+                var sub = allSubdivisions[Random.Shared.Next(0, allSubdivisions.Count)];
+                streamWriter.WriteLine($"{mat.Mat.Nomenklature.Label}\t{mat.Mat.Nomenklature.Code}\t{mat.Mat.Characteristics.Label}\t{mat.Mat.Characteristics.Code}\t{sub.Label}\t{sub.Code}\t{mat.Count}");
+                int count = Random.Shared.Next(0, 20);
+                double totalTime = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    var doubler = Random.Shared.NextDouble() * 7.0;
+                    totalTime += doubler;
+                    var time = DateTime.Now.AddDays(totalTime);
+                    var willArrive = Random.Shared.Next(0, 1000000) / 1000.0;
+                    var sub2 = allSubdivisions[Random.Shared.Next(0, allSubdivisions.Count)];
+                    arrivalInfo.WriteLine($"{mat.Mat.Nomenklature.Label}\t{mat.Mat.Nomenklature.Code}\t{mat.Mat.Characteristics.Label}\t{mat.Mat.Characteristics.Code}\t{time}\t{sub2.Label}\t{sub2.Code}\t{willArrive}");
+                }
+            }
+            streamWriter.Close();
+            arrivalInfo.Close();
+        }
     }
 }

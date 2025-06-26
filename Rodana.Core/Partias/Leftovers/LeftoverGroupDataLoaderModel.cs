@@ -22,8 +22,10 @@ namespace Rodana.Core.Partias.Leftovers
         /// <summary>
         /// Характеристика
         /// </summary>
-        [DataRecordCodedObjectColumn("ОсновнойМатериал_GUID", "ОсновнойМатериал")]
-        public Uco OriginalMaterial { get; set; }
+        [DataRecordCodedObjectColumn("ОсновнойМатериалНоменклатура_GUID", "ОсновнойМатериалНоменклатура")]
+        public Uco OriginalMaterialNomenklature { get; set; }
+        [DataRecordCodedObjectColumn("ОсновнойМатериалХарактеристика_GUID", "ОсновнойМатериалХарактеристика")]
+        public Uco OriginalMaterialCharacteristics { get; set; }
 
         [DataRecordColumn("КоличествоОсновногоМатериала")]
         public double OriginalCount { get; set; }
@@ -31,8 +33,10 @@ namespace Rodana.Core.Partias.Leftovers
         /// <summary>
         /// Характеристика
         /// </summary>
-        [DataRecordCodedObjectColumn("Аналог_GUID", "Аналог")]
-        public Uco AnalogueMaterial { get; set; }
+        [DataRecordCodedObjectColumn("АналогНоменклатура_GUID", "АналогНоменклатура")]
+        public Uco AnalogueMaterialNomenklature { get; set; }
+        [DataRecordCodedObjectColumn("АналогХарактеристика_GUID", "АналогХарактеристика")]
+        public Uco AnalogueMaterialCharacteristics { get; set; }
 
         [DataRecordColumn("КоличествоАналога")]
         public double AnalogueCount { get; set; }

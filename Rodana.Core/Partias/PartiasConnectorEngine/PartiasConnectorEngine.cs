@@ -667,6 +667,47 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
             }
         }
 
+
+        static void PreZadelsConnection(PartiaClass partia1, PartiaClass partia2, bool withHerself)
+        {
+            var myPartiaSdvigs = SeeSdvigsAsDic(partia1.OpersHere).Where(x => x.Value.ZadelsGUIDs.Count > 0); // Получаем все сдвиги с заделами
+
+            var allOtherSdvigs = SeeSdvigsAsDic(partia2.OpersHere);
+
+            foreach (var sdvigWithZadel in myPartiaSdvigs)
+            {
+                var mod = sdvigWithZadel.Value;
+                var firstOp = mod.Opers[0];
+                var possibleOtherPartiaSdvigs = allOtherSdvigs.Where(x =>
+                {
+                    var othermod = x.Value;
+                    var firstOpOther = othermod.Opers[0];
+
+                    return firstOpOther.SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(firstOp, firstOpOther, out _, out _, out _)
+                    && firstOpOther.IsVspom == firstOp.IsVspom // Вспомогательные только друг с другом
+                    && firstOpOther.UsesVspomTara == firstOp.UsesVspomTara; // Вспомогательные тары только друг с другом
+                }
+                );
+                if (possibleOtherPartiaSdvigs.Count() > 0)
+                {
+                    // Где-то тут нужны проверки на сумму, чтобы задел не был больше положенного
+                    // в whereIsUsed по идее тоже надо добавить
+                    SetZadelCodes(possibleOtherPartiaSdvigs.First().Value, mod.ZadelCode, mod.ZadelsGUIDs); // Назначаем пока только самому первому
+
+
+                    void SetZadelCodes(PartiaModelling mod, int zadelCode, List<Guid> zadelsGUIDs)
+                    {
+                        mod.ZadelCode = zadelCode;
+                        mod.ZadelsGUIDs = zadelsGUIDs;
+                        var prevMods = mod.Opers.SelectMany(x => x.Prevs).Select(x => allOtherSdvigs[x]).Distinct();
+                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, zadelsGUIDs);
+                    }
+                }
+            }
+
+            
+        }
+
         public static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself)
         {
             if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
@@ -678,6 +719,12 @@ namespace Rodana.Core.Partias.PartiasConnectorEngine
 
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
             var CentersData = SessionLink.MasterDataLinks.CentersMasterData.CentersData;
+
+            if (!SessionLink.SessionOptions.LaunchZadel)
+            {
+                PreZadelsConnection(firstPartia, secondPartia, withHerself);
+                PreZadelsConnection(secondPartia, firstPartia, withHerself); // Друг для друга создаём инфу о заделах
+            }
 
             // Сначала находим время
             var wannaMergeOps1 = firstPartia.GetLongestOpers();

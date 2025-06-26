@@ -7,13 +7,13 @@ namespace Rodana.Core.Partias.Leftovers
     /// <summary>
     /// Модель материала для МЕС 1.2
     /// </summary>
-    internal class LeftoverBaseModel : BaseDataLoaderModel
+    public class LeftoverCountDataLoaderModel : BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 
-        static LeftoverBaseModel()
+        static LeftoverCountDataLoaderModel()
         {
-            _fieldConverters = DefineFieldConverters<LeftoverBaseModel>();
+            _fieldConverters = DefineFieldConverters<LeftoverCountDataLoaderModel>();
         }
 
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
@@ -36,11 +36,11 @@ namespace Rodana.Core.Partias.Leftovers
         [DataRecordCodedObjectColumn("Подразделение_GUID", "Подразделение")]
         public Uco Subdivision { get; set; }
 
-        [DataRecordColumn("ДатаПоступления", defaultIfFail: true)]
-        public DateTime? DateArrival { get; set; }
+        //[DataRecordColumn("ДатаПоступления", defaultIfFail: true)]
+        //public DateTime? DateArrival { get; set; }
 
-        [DataRecordColumn("КоличествоПоступления", defaultIfFail: true)]
-        public double CountArrival { get; set; }
+        //[DataRecordColumn("КоличествоПоступления", defaultIfFail: true)]
+        //public double CountArrival { get; set; }
 
     }
 }

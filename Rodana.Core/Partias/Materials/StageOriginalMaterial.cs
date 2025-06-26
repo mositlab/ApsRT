@@ -1,5 +1,6 @@
 ﻿using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 
 namespace Rodana.Core.Partias.Materials
 {
@@ -11,7 +12,9 @@ namespace Rodana.Core.Partias.Materials
         public double Count; // Количество
         public DimensionUnit DataFormat; // ЕдиницаИзмерения
         //public string WorkType; // ВидВоспроизводства
-        public bool IsBuying; 
+        public bool IsBuying;
+
+        public LeftoverUco AsLeftoverData() => (Nomenklature, Characteristics);
 
         public override string ToString()
         {

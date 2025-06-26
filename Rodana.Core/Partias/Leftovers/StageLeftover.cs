@@ -4,18 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 
 namespace Rodana.Core.Partias.Leftovers
 {
     public class StageLeftover
     {
-        public StageLeftover(Uco nomenklature, double calculatedCount)
+        public StageLeftover(LeftoverUco leftoverData, double calculatedCount)
         {
-            Nomenklature = nomenklature;
+            LeftoverData = leftoverData;
             CalculatedCount = calculatedCount;
         }
 
-        public Uco Nomenklature { get; set; }
+        public LeftoverUco LeftoverData { get; set; }
         public double CalculatedCount { get; set; }
     }
 }

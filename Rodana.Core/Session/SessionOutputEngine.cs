@@ -106,17 +106,16 @@ namespace Rodana.Core.Session
 
         public (PlanningCalculatorEngineResult result, OpersPool copy) Output(bool ForcedToRecreate, bool asOld = false)
         {
+            SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+
             // Вызов вывода заделов
-            if (SessionLink.SessionOptions.LaunchZadel)
+            try
             {
-                try
-                {
-                    OutputZadelsToFile(ZadelsFileName);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Что-то не то с выводом заделов: {e.Message}");
-                }
+                OutputZadelsToFile(sessionPath + ZadelsFileName);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Что-то не то с выводом заделов: {e.Message}");
             }
 
             // Вывод всего
@@ -144,7 +143,6 @@ namespace Rodana.Core.Session
 
                 PlanningCalculatorEngine.CalculatePlan(localCopy, algorithm.MinAcceptableDate, result);
 
-                SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
 
                 OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, localCopy, result.FirstStagesStartDate);
 
@@ -178,8 +176,18 @@ namespace Rodana.Core.Session
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
             StreamWriter swBig = string.IsNullOrEmpty(filenameBig) ? null : new StreamWriter(filenameBig, false, Encoding.UTF8);
 
-            sw.WriteLine($"GUID;Материал_GUID;Количество;ОригМатериал_GUID;ОригКоличество;ДатаПланирования");
-            swBig?.WriteLine($"GUID;Материал_GUID;Материал;Количество;ОригМатериал_GUID;ОригМатериал;ОригКоличество;ДатаПланирования");
+            sw.WriteLine($"GUID;" +
+                $"МатериалНоменклатура_GUID;МатериалХарактеристика_GUID;" +
+                $"Количество;" +
+                $"ОригМатериалНоменклатура_GUID;ОригМатериалХарактеристика_GUID;" +
+                $"ОригКоличество;ДатаПланирования");
+            swBig?.WriteLine($"GUID;" +
+                $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
+                $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
+                $"Количество;" +
+                $"ОригМатериалНоменклатура_GUID;ОригМатериалНоменклатура;" +
+                $"ОригМатериалХарактеристика_GUID;ОригМатериалХарактеристика;" +
+                $"ОригКоличество;ДатаПланирования");
 
 
             foreach (var operPair in SessionLink.MasterDataLinks.StagesMasterData.AllStages)
@@ -195,10 +203,12 @@ namespace Rodana.Core.Session
                     sw.WriteLine($"" +
                         $"{oper.GUID};" +
 
-                        $"{element.Nomenklature.Code};" +
+                        $"{element.LeftoverData.Nomenklature.Code};" +
+                        $"{element.LeftoverData.Characteristics.Code};" +
                         $"{element.CalculatedCount};" +
 
                         $"{origMat.Nomenklature.Code};" +
+                        $"{origMat.Characteristics.Code};" +
                         $"{origMat.Count};" +
 
                         $"{DateTime.Now}");
@@ -206,12 +216,16 @@ namespace Rodana.Core.Session
                     swBig?.WriteLine($"" +
                         $"{oper.GUID};" +
 
-                        $"{element.Nomenklature.Code};" +
-                        $"{element.Nomenklature.Label};" +
+                        $"{element.LeftoverData.Nomenklature.Code};" +
+                        $"{element.LeftoverData.Nomenklature.Label};" +
+                        $"{element.LeftoverData.Characteristics.Code};" +
+                        $"{element.LeftoverData.Characteristics.Label};" +
                         $"{element.CalculatedCount};" +
 
                         $"{origMat.Nomenklature.Code};" +
                         $"{origMat.Nomenklature.Label};" +
+                        $"{origMat.Characteristics.Code};" +
+                        $"{origMat.Characteristics.Label};" +
                         $"{origMat.Count};" +
 
                         $"{DateTime.Now}");
@@ -700,26 +714,23 @@ namespace Rodana.Core.Session
 
         public void OutputMaterialsDeficitsToFile(string filename, OpersPool pool, IDictionary<int, DateTime> firstStageStartData)
         {
-            var MaterialsMasterData = SessionLink.MasterDataLinks.LeftoversMasterData;
-
-            if (MaterialsMasterData.CurrentLeftoversCount == null) return;
-
             if (File.Exists(filename))
             {
                 File.Delete(filename);
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("N;Номенклатура;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
+            sw.WriteLine("N;Номенклатура;Характеристика;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
             var D = 0;
 
-            var data = MaterialsMasterData.PlanAndFixMaterialsInfo(pool, firstStageStartData);
+            var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(pool, firstStageStartData);
 
             foreach (var element in data)
             {
                 sw.WriteLine(
                     $"{D};" +
-                    $"{element.Nomenklature};" +
+                    $"{element.LeftoverData.Nomenklature.Code};" +
+                    $"{element.LeftoverData.Characteristics.Code};" +
                     $"{element.PartiaPF};" +
                     $"{element.CountNeeded};" +
                     $"{element.CountExists};" + // вернем на место

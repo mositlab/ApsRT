@@ -2,25 +2,26 @@
 using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 
 namespace Rodana.Core.Partias.Leftovers
 {
     internal class LeftoverReplacementInfo
     {
-        public Uco Original { get; }
+        public LeftoverUco Original { get; }
         public double OriginalCount { get; }
-        public Uco Analogue { get; }
+        public LeftoverUco Analogue { get; }
         public double AnalogueCount { get; }
 
         public LeftoverReplacementInfo(LeftoverGroupDataLoaderModel model)
         {
-            Original = model.OriginalMaterial;
+            Original = (model.OriginalMaterialNomenklature, model.OriginalMaterialCharacteristics);
             OriginalCount = model.OriginalCount;
-            Analogue = model.AnalogueMaterial;
+            Analogue = (model.AnalogueMaterialNomenklature, model.AnalogueMaterialCharacteristics);
             AnalogueCount = model.AnalogueCount;
         }
 
-        public LeftoverReplacementInfo(Uco original, double originalCount, Uco analogue, double analogueCount)
+        public LeftoverReplacementInfo(LeftoverUco original, double originalCount, LeftoverUco analogue, double analogueCount)
         {
             Original = original;
             OriginalCount = originalCount;
