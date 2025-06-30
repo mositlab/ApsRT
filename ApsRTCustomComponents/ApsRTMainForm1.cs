@@ -66,10 +66,15 @@ namespace ApsRTCustomComponents
             sessionLink.DataErrors.NewDataErrors.Clear();
         }
 
-        public ApsRTMainForm1(Session sessionLink, Color[] colors)
+        public ApsRTMainForm1(Session sessionLink, string versionName, Color[] colors)
         {
             InitializeComponent();
             this.colors = colors;
+
+            if (!string.IsNullOrEmpty(versionName))
+            {
+                VersionLabel.Text = versionName;
+            }
 
             CreatePlanningTable();
 
@@ -421,6 +426,17 @@ namespace ApsRTCustomComponents
         {
             MainTabControl.SelectTab(PlanningTabPage);
             PlanningTabControl.SelectTab(GraphsTabPage);
+        }
+
+
+        private void label49_Click(object sender, EventArgs e)
+        {
+            MainTabControl.SelectTab(AuthorsTabPage);
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            MainTabControl.SelectTab(AuthorsTabPage);
         }
 
         private void OpenHandPlanButton_Click(object? sender, EventArgs e)

@@ -9,6 +9,7 @@ using System.Data;
 using System.Windows;
 using ApsRT.Core.Session;
 using UniversalPack.Common.Drawing;
+using System.Reflection;
 
 namespace ApsRT.ZMK
 {
@@ -27,6 +28,7 @@ namespace ApsRT.ZMK
             sessionLink.Start();
             sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = false;
             sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = false;
+            sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = false;
             sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "Сечение";
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
 
@@ -35,13 +37,15 @@ namespace ApsRT.ZMK
             if (!sessionLink.SessionOptions.IsSilent)
             {
                 ApplicationConfiguration.Initialize();
-                form = new ApsRTCustomComponents.ApsRTMainForm1(sessionLink, new Color[]
+                form = new ApsRTCustomComponents.ApsRTMainForm1(sessionLink, "Производство: Завод МосКабель", new Color[]
                 {
                     Colors.MOSITLAB_BLUE,
                     Colors.MOSITLAB_RED,
                     Colors.MOSITLAB_BLUE_DARK,
                     Colors.MOSITLAB_RED_DARK
                 }); // Подписываем тут все события
+                Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
+                form.Icon = appIcon;
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();

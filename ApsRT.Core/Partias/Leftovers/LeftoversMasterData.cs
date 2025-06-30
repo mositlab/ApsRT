@@ -186,6 +186,17 @@ namespace ApsRT.Core.Partias.Leftovers
         //}
         //sw.Close();
 
+
+        double GetMatSumFromMod(IAbleForTaraCalcInterface mod, LeftoverUco mat)
+        {
+            return mod.AllOpers.Sum(x =>
+            {
+                var index = x.StageMaterialsInfo.UsedMaterials.FindIndex(y => y.AsLeftoverData() == mat);
+                if (index < 0) return 0;
+                return x.StageMaterialsInfo.UsedMaterials[index].Count;
+            });
+        }
+
         internal void PreparePartiasForLeftovers(List<PartiaClass> partias)
         {
             if (CurrentLeftoversCount == null || CurrentLeftoversCount.Count == 0) return;
@@ -203,7 +214,7 @@ namespace ApsRT.Core.Partias.Leftovers
                 sdvig.Opers[0].StageMaterialsInfo.UsedMaterials.Select(
                     (mat, index) =>
                     
-                    (stageLink: sdvig.Opers[0], modLink: sdvig, MatData: (mat.Nomenklature, mat.Characteristics), MatIndex: index, MatWeight: (int)(mat.Count * 1000.0))
+                    (stageLink: sdvig.Opers[0], modLink: sdvig, MatData: mat.AsLeftoverData(), MatIndex: index, MatWeight: (int)(GetMatSumFromMod(sdvig, mat.AsLeftoverData()) * 1000.0))
                 )
             )
                 .Where(
@@ -473,202 +484,216 @@ namespace ApsRT.Core.Partias.Leftovers
                 {
                     var startDate = firstStageStartData[mod.FirstOper.Index];
 
+                    var oper = mod.OpersList[0];
 
+                    //foreach (var oper in mod.OpersList)
+                    //{
+                    var matsClass = oper.StageMaterialsInfo;
+                    var matsList = matsClass.UsedMaterials;
 
-                    foreach (var oper in mod.OpersList)
+                    var originalCount = new List<double>();
+                    //var matsList = matsClass.UsedMaterials.Select(x =>
+                    //{
+                    //    var nomen = x.AsLeftoverData();
+                    //    return (Data: nomen, IsBying:  Count: GetMatSumFromMod(mod, nomen));
+                    //    }
+                    //).ToList();
+                    var leftoversList = matsClass.UsedLeftovers;
+                    if (matsList == null) continue;
+
+                    bool hasAnyErrorsHere = false;
+
+                    for (int i = 0; i < matsList.Count; i++)
                     {
-                        var matsClass = oper.StageMaterialsInfo;
-                        var matsList = matsClass.UsedMaterials;
-                        var leftoversList = matsClass.UsedLeftovers;
-                        if (matsList == null) continue;
+                        if (!matsList[i].IsBuying)
+                        {
+                            originalCount.Add(0); // Для правильной индексации добавляем пустоту
+                            continue;
+                        }
 
-                        bool hasAnyErrorsHere = false;
+                        originalCount.Add(GetMatSumFromMod(mod, matsList[i].AsLeftoverData()));
 
+                        if (leftoversList[i] == null && !howMuchAtStart.ContainsKey(matsList[i].AsLeftoverData()))
+                        {
+                            hasAnyErrorsHere = true;
+                            break; // Ошибки тут очевидно есть, и надо назначить этому материалу аналог. Выходим отсюда и идём в заменялку.
+                        }
+                        if (howMuchAtStart.TryGetValue(leftoversList[i]?.LeftoverData ?? matsList[i].AsLeftoverData(), out var existingCounts) && existingCounts.MaxBy(x => x.Value).Value < (leftoversList[i]?.CalculatedCount ?? originalCount[i]))
+                        {
+                            hasAnyErrorsHere = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasAnyErrorsHere)
+                    {
+                        // Вычитаем всю информацию
                         for (int i = 0; i < matsList.Count; i++)
                         {
                             if (!matsList[i].IsBuying) continue;
-
-                            if (leftoversList[i] == null && !howMuchAtStart.ContainsKey(matsList[i].AsLeftoverData()))
+                            var key = leftoversList[i]?.LeftoverData ?? matsList[i].AsLeftoverData();
+                            var valueToMinus = leftoversList[i]?.CalculatedCount ?? originalCount[i];
+                            if (howMuchAtStart.TryGetValue(key, out var neededCount))
                             {
-                                hasAnyErrorsHere = true;
-                                break; // Ошибки тут очевидно есть, и надо назначить этому материалу аналог. Выходим отсюда и идём в заменялку.
+                                var pair = neededCount.Where(x => x.Value >= valueToMinus).OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
+                                howMuchAtStart[key][pair.Key] -= valueToMinus;
                             }
-                            if (howMuchAtStart.TryGetValue(leftoversList[i]?.LeftoverData ?? matsList[i].AsLeftoverData(), out var existingCounts) && existingCounts.MaxBy(x => x.Value).Value < (leftoversList[i]?.CalculatedCount ?? matsList[i].Count))
+                        }
+                        continue; // Если тут никаких ошибок нет, то забиваем болт и идём дальше
+                    }
+
+                    // Сначала вообще все возможные замены представим себе
+
+                    FillPossibleAnalogueGroupsForMod(opsPossibleLeftoversForOne, mod);
+                    //if (!opsPossibleLeftoversForOne.ContainsKey(oper)) // Посмотрим, находил ли я для этой операции данные
+                    //{
+                    //    Dictionary<Guid, List<LeftoverReplacementInfo>> dic = GetReplacementInfo(oper, x => true/*x.Value.Count == 1*/); // Найдём все группы возможной замены для этого этапчика, даже не взирая на то, что они могут быть групповыми
+                    //    opsPossibleLeftoversForOne.Add(oper, dic);
+                    //}
+
+                    var mats = matsList.Select((x, index) => (ElementIndex: index, Material: x)).Where(x => x.Material.IsBuying).ToList();
+
+                    // Получаем список всех замен, и отсортируем ещё и по общей сумме оставшегося количества на складе
+                    var dictionariesReplacement = opsPossibleLeftoversForOne[mod].OrderByDescending(x => x.Value.Count).ThenByDescending(x => x.Value.Sum(y => howMuchAtStart[y.Analogue].Sum(x => x.Value)));
+
+                    foreach (var someGroup in dictionariesReplacement)
+                    {
+                        var listHere = someGroup.Value;
+                        var resultedIndexes = listHere.Select(x => mats.FindIndex(mat => mat.Material.AsLeftoverData() == x.Original)).ToArray(); // Найдём сначала оригиналы.
+
+                        // ElementIndex внутри mats = ссылка на индексы в основном массиве для простого поиска после фильтрации по IsBuying.
+                        // resultedIndexes = индексы внутри mats после того как была найдена номенклатура
+                        // resultedIndexes[i] - проход по всем найденным индексам
+                        // mats[resultedIndexes[i]] - обращение к элементу в отфильтрованном списке
+                        // mats[resultedIndexes[i]].ElementIndex - обращение к глобальному элементу
+
+                        if (resultedIndexes.Any(x => x == -1)) continue; // Это значит, группа не подходит.
+
+                        var analogues = listHere.Select((x, index) => (AnalogueToSet: x.Analogue, CountToSet: originalCount[mats[resultedIndexes[index]].ElementIndex] / x.OriginalCount * x.AnalogueCount)).ToArray(); // Создаём аналоги для каждого мата и вычисляем новое количество. В качестве аргумента originalCount[mats[resultedIndexes[index]].ElementIndex] - это количество уже моделирования, а не исходного этапчика. Пригодится для объединенных длин.
+
+                        bool bad = false;
+                        for (int i = 0; i < analogues.Length; i++)
+                        {
+                            if (!howMuchAtStart.TryGetValue(analogues[i].AnalogueToSet, out var howLeft))
                             {
-                                hasAnyErrorsHere = true;
+                                bad = true;
+                                break;
+                            }
+
+                            var globalIndex = mats[resultedIndexes[i]].ElementIndex;
+
+                            if (howLeft.Any(x => x.Value >= analogues[i].CountToSet) || (leftoversList[globalIndex] == null && !howMuchAtStart.ContainsKey(matsList[globalIndex].AsLeftoverData()))) // Назначеннный остаток пуст + оригинальный мат не может быть выбран, так как не является остатком
+                            {
+                                // По идее это норм, можно идти дальше...
+                            }
+                            else
+                            {
+                                bad = true;
                                 break;
                             }
                         }
 
-                        if (!hasAnyErrorsHere)
+                        if (bad) continue; // Тоже не подходит!
+
+                        // Задаём уже наконец-то данные
+                        for (int i = 0; i < analogues.Length; i++)
                         {
-                            // Вычитаем всю информацию
-                            for (int i = 0; i < matsList.Count; i++)
-                            {
-                                if (!matsList[i].IsBuying) continue;
-                                var key = leftoversList[i]?.LeftoverData ?? matsList[i].AsLeftoverData();
-                                var valueToMinus = leftoversList[i]?.CalculatedCount ?? matsList[i].Count;
-                                if (howMuchAtStart.TryGetValue(key, out var neededCount))
-                                {
-                                    var pair = neededCount.Where(x => x.Value >= valueToMinus).OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
-                                    howMuchAtStart[key][pair.Key] -= valueToMinus;
-                                }
-                            }
-                            continue; // Если тут никаких ошибок нет, то забиваем болт и идём дальше
+                            var globalIndex = mats[resultedIndexes[i]].ElementIndex;
+                            leftoversList[globalIndex] = new StageLeftover(analogues[i].AnalogueToSet, analogues[i].CountToSet);
                         }
+                        resultedIndexes = resultedIndexes.OrderByDescending(x => x).ToArray();
+                        foreach (var index in resultedIndexes) mats.RemoveAt(index); // Отсортировав по убыванию, можно безопасно удалить элементы
+                    }
 
-                        // Сначала вообще все возможные замены представим себе
+                    for (int i = 0; i < matsList.Count; i++)
+                    {
+                        if (!matsList[i].IsBuying) continue;
+                        (LeftoverUco Material, double Count) whatWillDecrease;
+                        if (matsClass.UsedLeftovers[i] == null)
+                            whatWillDecrease = (matsList[i].AsLeftoverData(), originalCount[i]);
+                        else
+                            whatWillDecrease = (leftoversList[i].LeftoverData, leftoversList[i].CalculatedCount);
 
-                        FillPossibleAnalogueGroupsForMod(opsPossibleLeftoversForOne, mod);
-                        //if (!opsPossibleLeftoversForOne.ContainsKey(oper)) // Посмотрим, находил ли я для этой операции данные
-                        //{
-                        //    Dictionary<Guid, List<LeftoverReplacementInfo>> dic = GetReplacementInfo(oper, x => true/*x.Value.Count == 1*/); // Найдём все группы возможной замены для этого этапчика, даже не взирая на то, что они могут быть групповыми
-                        //    opsPossibleLeftoversForOne.Add(oper, dic);
-                        //}
-
-                        var mats = matsList.Select((x, index) => (ElementIndex: index, Material: x)).Where(x => x.Material.IsBuying).ToList();
-
-                        // Получаем список всех замен, и отсортируем ещё и по общей сумме оставшегося количества на складе
-                        var dictionariesReplacement = opsPossibleLeftoversForOne[mod].OrderByDescending(x => x.Value.Count).ThenByDescending(x => x.Value.Sum(y => howMuchAtStart[y.Analogue].Sum(x => x.Value)));
-
-                        foreach (var someGroup in dictionariesReplacement)
+                        if (howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var howMuchNow))
                         {
-                            var listHere = someGroup.Value;
-                            var resultedIndexes = listHere.Select(x => mats.FindIndex(mat => mat.Material.AsLeftoverData() == x.Original)).ToArray(); // Найдём сначала оригиналы.
+                            /*
 
-                            // ElementIndex внутри mats = ссылка на индексы в основном массиве для простого поиска после фильтрации по IsBuying.
-                            // resultedIndexes = индексы внутри mats после того как была найдена номенклатура
-                            // resultedIndexes[i] - проход по всем найденным индексам
-                            // mats[resultedIndexes[i]] - обращение к элементу в отфильтрованном списке
-                            // mats[resultedIndexes[i]].ElementIndex - обращение к глобальному элементу
-
-                            if (resultedIndexes.Any(x => x == -1)) continue; // Это значит, группа не подходит.
-
-                            var analogues = listHere.Select((x, index) => (AnalogueToSet: x.Analogue, CountToSet: mats[resultedIndexes[index]].Material.Count / x.OriginalCount * x.AnalogueCount)).ToArray(); // Создаём аналоги для каждого мата и вычисляем новое количество.
-
-                            bool bad = false;
-                            for (int i = 0; i < analogues.Length; i++)
-                            {
-                                if (!howMuchAtStart.TryGetValue(analogues[i].AnalogueToSet, out var howLeft))
-                                {
-                                    bad = true;
-                                    break;
-                                }
-
-                                var globalIndex = mats[resultedIndexes[i]].ElementIndex;
-
-                                if (howLeft.Any(x => x.Value >= analogues[i].CountToSet) || (leftoversList[globalIndex] == null && !howMuchAtStart.ContainsKey(matsList[globalIndex].AsLeftoverData()))) // Назначеннный остаток пуст + оригинальный мат не может быть выбран, так как не является остатком
-                                {
-                                    // По идее это норм, можно идти дальше...
-                                }
-                                else
-                                {
-                                    bad = true;
-                                    break;
-                                }
-                            }
-
-                            if (bad) continue; // Тоже не подходит!
-
-                            // Задаём уже наконец-то данные
-                            for (int i = 0; i < analogues.Length; i++)
-                            {
-                                var globalIndex = mats[resultedIndexes[i]].ElementIndex;
-                                leftoversList[globalIndex] = new StageLeftover(analogues[i].AnalogueToSet, analogues[i].CountToSet);
-                            }
-                            resultedIndexes = resultedIndexes.OrderByDescending(x => x).ToArray();
-                            foreach (var index in resultedIndexes) mats.RemoveAt(index); // Отсортировав по убыванию, можно безопасно удалить элементы
-                        }
-
-                        for (int i = 0; i < matsList.Count; i++)
                         {
-                            if (!matsList[i].IsBuying) continue;
-                            (LeftoverUco Material, double Count) whatWillDecrease;
-                            if (matsClass.UsedLeftovers[i] == null)
-                                whatWillDecrease = (matsList[i].AsLeftoverData(), matsList[i].Count);
-                            else
-                                whatWillDecrease = (leftoversList[i].LeftoverData, leftoversList[i].CalculatedCount);
-
-                            if (howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var howMuchNow))
+                            if (currentCount < whatWillDecrease.Count)
                             {
-                                /*
-                                 
-                            {
-                                if (currentCount < whatWillDecrease.Count)
-                                {
-                                    // Слишком мало, будет ошибка. Надо найти что-то.
-                                    var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
-                                    var found = analoguesDictionaries.FirstOrDefault(x => howMuchAtStart.TryGetValue(x.Key, out var currCount) && currCount >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));//TryFixIt();
-                                    whatWillDecrease = (found.Key, found.Value);
-                                    leftoversList[i].Nomenklature = whatWillDecrease.Material;
-                                    leftoversList[i].CalculatedCount = whatWillDecrease.Count;
-                                }
-                            }
-                            else
-                            {
+                                // Слишком мало, будет ошибка. Надо найти что-то.
                                 var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
-
-                                var onlyWhichExists = analoguesDictionaries.Where(x => howMuchAtStart.ContainsKey(x.Key));
-
-                                if (onlyWhichExists.Count() == 0)
-                                {
-                                    // это ОЧЕНЬ странно. Выходим
-                                    continue;
-                                }
-
-                                var found = onlyWhichExists
-                                    .OrderByDescending(x => howMuchAtStart[x.Key] - x.Value) // Отсортируем так, чтобы найти самый крупный остаток
-                                    .FirstOrDefault(x => howMuchAtStart[x.Key] >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));
-
-                                // Если номенклатура та же, значит я ничего не нашёл, значит просто любой аналог пихаем, который есть, уже не обращая внимания на вместимость.
-                                if (found.Key == whatWillDecrease.Material)
-                                {
-                                    found = onlyWhichExists.First();
-                                }
-
+                                var found = analoguesDictionaries.FirstOrDefault(x => howMuchAtStart.TryGetValue(x.Key, out var currCount) && currCount >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));//TryFixIt();
                                 whatWillDecrease = (found.Key, found.Value);
                                 leftoversList[i].Nomenklature = whatWillDecrease.Material;
                                 leftoversList[i].CalculatedCount = whatWillDecrease.Count;
                             }
-                                 */
+                        }
+                        else
+                        {
+                            var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
 
-                                var pair = howMuchNow/*.Where(x => x.Value >= valueToMinus)*/.OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
-                                var howMuchNowCount = pair.Value;
-                                howMuchNowCount -= whatWillDecrease.Count;
-                                if (howMuchNowCount < 0)
-                                {
-                                    var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
-                                    {
-                                        if (x.Object is PlanningModelling) return false;
-                                        (LeftoverUco Material, Uco Subdivision, double Count) info = ((LeftoverUco Material, Uco Subdivision, double Count))x.Object;
-                                        return whatWillDecrease.Material == info.Material; // Нам нужен приход того же материала
-                                    }); // найдем следующий приход
-                                    DateTime? nextPrihod = n == -1 ? null : pointsToAnalyze[n].Date;
+                            var onlyWhichExists = analoguesDictionaries.Where(x => howMuchAtStart.ContainsKey(x.Key));
 
-
-                                    var lack = new LeftoverLackData(
-                                        whatWillDecrease.Material,
-                                        oper.GetPartiaCode() ?? Guid.Empty,
-                                        whatWillDecrease.Count,
-                                        howMuchNowCount + whatWillDecrease.Count,
-                                        point.Date,
-                                        nextPrihod,
-                                        oper.GUID,
-                                        oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
-                                        oper.GetEasyFlagToOutput()
-                                        );
-
-                                }
-                                else
-                                {
-                                    howMuchAtStart[whatWillDecrease.Material][pair.Key] = howMuchNowCount; // Подсчитанное количество вбиваем, если оно все ещё больше 0.
-                                }
-
+                            if (onlyWhichExists.Count() == 0)
+                            {
+                                // это ОЧЕНЬ странно. Выходим
+                                continue;
                             }
 
+                            var found = onlyWhichExists
+                                .OrderByDescending(x => howMuchAtStart[x.Key] - x.Value) // Отсортируем так, чтобы найти самый крупный остаток
+                                .FirstOrDefault(x => howMuchAtStart[x.Key] >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));
+
+                            // Если номенклатура та же, значит я ничего не нашёл, значит просто любой аналог пихаем, который есть, уже не обращая внимания на вместимость.
+                            if (found.Key == whatWillDecrease.Material)
+                            {
+                                found = onlyWhichExists.First();
+                            }
+
+                            whatWillDecrease = (found.Key, found.Value);
+                            leftoversList[i].Nomenklature = whatWillDecrease.Material;
+                            leftoversList[i].CalculatedCount = whatWillDecrease.Count;
+                        }
+                             */
+
+                            var pair = howMuchNow/*.Where(x => x.Value >= valueToMinus)*/.OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
+                            var howMuchNowCount = pair.Value;
+                            howMuchNowCount -= whatWillDecrease.Count;
+                            if (howMuchNowCount < 0)
+                            {
+                                var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
+                                {
+                                    if (x.Object is PlanningModelling) return false;
+                                    (LeftoverUco Material, Uco Subdivision, double Count) info = ((LeftoverUco Material, Uco Subdivision, double Count))x.Object;
+                                    return whatWillDecrease.Material == info.Material; // Нам нужен приход того же материала
+                                }); // найдем следующий приход
+                                DateTime? nextPrihod = n == -1 ? null : pointsToAnalyze[n].Date;
+
+
+                                var lack = new LeftoverLackData(
+                                    whatWillDecrease.Material,
+                                    oper.GetPartiaCode() ?? Guid.Empty,
+                                    whatWillDecrease.Count,
+                                    howMuchNowCount + whatWillDecrease.Count,
+                                    point.Date,
+                                    nextPrihod,
+                                    oper.GUID,
+                                    oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
+                                    oper.GetEasyFlagToOutput()
+                                    );
+
+                            }
+                            else
+                            {
+                                howMuchAtStart[whatWillDecrease.Material][pair.Key] = howMuchNowCount; // Подсчитанное количество вбиваем, если оно все ещё больше 0.
+                            }
 
                         }
+
+
                     }
+                    //}
                 }
                 else
                 {
