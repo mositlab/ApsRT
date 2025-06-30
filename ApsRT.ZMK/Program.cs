@@ -19,7 +19,7 @@ namespace ApsRT.ZMK
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        public static int Main()
         {
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
@@ -59,13 +59,15 @@ namespace ApsRT.ZMK
 
             if (sessionLink.SessionOptions.IsSilent)
             {
-                //Application.Run();
+                Application.Run();
             }
             else
             {
                 
                 Application.Run(form);
             }
+
+            return Environment.ExitCode;
 
         }
 

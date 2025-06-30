@@ -128,7 +128,7 @@ namespace ApsRT.Core.Centers.MasterData
         internal (CachedInterval Prostoi, CachedInterval Rechanges) RechangesNonWorkingIntervalsCorrelation(Uco RC, DateTime endLast, DateTime startNext, int Duration, int startSearchFrom, int lastInterval)
         {
             var durRech = TimeSpan.FromSeconds(Duration);
-            if (/*true || */CentersFixingTime == null || !CentersFixingTime.TryGetValue(RC, out var list) || startSearchFrom >= list.Count || lastInterval >= list.Count)
+            if (/*true || */CentersFixingTime == null || !CentersFixingTime.TryGetValue(RC, out var list) || startSearchFrom >= list.Count || lastInterval >= list.Count || startSearchFrom == -1)
             {
                 var prostoiAll = startNext - endLast - durRech;
                 if (prostoiAll.Ticks < 0) prostoiAll = TimeSpan.Zero;

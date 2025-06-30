@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
 using static System.Collections.Specialized.BitVector32;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ApsRT.Core.Session
 {
@@ -177,11 +178,13 @@ namespace ApsRT.Core.Session
         {
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            //AppDomain.CurrentDomain.ProcessExit += delegate { EndSession(0); };
 
             // Запускаем логгер
             Task.Run(AssignedLogger.LogThread);
             var process = Process.GetCurrentProcess();
             AssignedLogger.LogQueue.Enqueue($"process ID: {process.Id} [session ID {process.SessionId}]\r\n");
+            AssignedLogger.LogQueue.Enqueue($"flags: silent {SessionOptions.IsSilent}, part {SessionOptions.LaunchPartia}, plan {SessionOptions.LaunchPlan}, zadel {SessionOptions.LaunchZadel}\r\n");
 
             SettingsController.Load(data);
 
@@ -229,9 +232,9 @@ namespace ApsRT.Core.Session
                 if (SessionOptions.IsSilent) EndSession(600); // Пустая табличка операций!
             }
 
-            if (SessionOptions.IsSilent && SessionOptions.PartOrZadel)
+            if (SessionOptions.IsSilent)
             {
-                // Если она тихая. то ПРИСТУПАЕМ
+                // Если она тихая. то ПРИСТУПАЕМ - ВСЕГДА начиная с партий, какие бы настройки там ни были.
                 if (TryCreateNewPartiasAlgorithmInstance(out var newPartiasAlgorithmInstance)
                     && newPartiasAlgorithmInstance.Start(false))
                 {
@@ -241,10 +244,13 @@ namespace ApsRT.Core.Session
                     {
                         if (newPartiasAlgorithmInstance.CurrentStage == PartiasAlgorithmStage.Complete && SessionOptions.LaunchPlan)
                         {
-                            if (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
-                                && newPlanningAlgorithmInstance.Start())
+                            if (
+                                (AssignedPlanningAlgorithm != null && AssignedPlanningAlgorithm.Start())
+                                ||
+                                    (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
+                                && newPlanningAlgorithmInstance.Start()))
                             {
-                                bool result2 = await newPlanningAlgorithmInstance.Process;
+                                bool result2 = await AssignedPlanningAlgorithm.Process;
 
                                 if (result2)
                                 {
