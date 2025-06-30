@@ -236,7 +236,8 @@ namespace ApsRT.Core.Partias.Zadels
                                                 if (partia1[i][j].ZadelsGUIDs.Count == opHere.PlacesCount)
                                                 {
                                                     // Он уже сюда не влезет. Другие заделы использовали
-                                                    if (freeZadels && zadel.ZadelStatus == ZadelStatus.CannotBeFound) zadel.ZadelStatus = ZadelStatus.AnotherUsed;
+                                                    //if (freeZadels && zadel.ZadelStatus == ZadelStatus.CannotBeFound)
+                                                    zadel.ZadelStatus = ZadelStatus.AnotherUsed;
                                                 }
                                                 else
                                                 {
