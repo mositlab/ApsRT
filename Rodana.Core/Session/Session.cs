@@ -76,14 +76,6 @@ namespace Rodana.Core.Session
         Stopper KillMe;
         Stopper StopMe;
 
-        static bool FirstInvoked = false;
-        static void StaticStart()
-        {
-            if (FirstInvoked) return;
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            FirstInvoked = true;
-        }
-
         public Session()
         {
             SettingsController = new SettingsController();
@@ -185,8 +177,6 @@ namespace Rodana.Core.Session
         {
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            StaticStart();
 
             // Запускаем логгер
             Task.Run(AssignedLogger.LogThread);

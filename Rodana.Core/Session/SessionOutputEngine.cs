@@ -158,6 +158,7 @@ namespace Rodana.Core.Session
 
                 OutputMods(sessionPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
 
+                // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
                 OutputLeftovers(sessionPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (sessionPath + UsedLeftoversFileNameBig));
 
                 return (result, localCopy);
@@ -720,15 +721,15 @@ namespace Rodana.Core.Session
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("N;Номенклатура;Характеристика;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
-            var D = 0;
+            sw.WriteLine("Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
+            //var D = 0;
 
             var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(pool, firstStageStartData);
 
             foreach (var element in data)
             {
                 sw.WriteLine(
-                    $"{D};" +
+                    //$"{D};" +
                     $"{element.LeftoverData.Nomenklature.Code};" +
                     $"{element.LeftoverData.Characteristics.Code};" +
                     $"{element.PartiaPF};" +
@@ -740,7 +741,7 @@ namespace Rodana.Core.Session
                     $"{element.ModellingGuid};" +
                     $"{element.EasyLifeGuid}"
                     );
-                D++;
+                //D++;
             }
 
             sw.Close();

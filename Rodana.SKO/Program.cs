@@ -19,6 +19,8 @@ namespace Rodana.SKO
         [STAThread]
         static void Main()
         {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
             var sessionLink = new Rodana.Core.Session.Session(Environment.GetCommandLineArgs());
             sessionLink.SessionOutputEngine.ClassicSettingsByOptions(sessionLink.SessionOptions);
             sessionLink.Start();
