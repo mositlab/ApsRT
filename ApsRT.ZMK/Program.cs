@@ -44,8 +44,15 @@ namespace ApsRT.ZMK
                     Colors.MOSITLAB_BLUE_DARK,
                     Colors.MOSITLAB_RED_DARK
                 }); // Подписываем тут все события
-                Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
-                form.Icon = appIcon;
+                try
+                {
+                    Icon appIcon = Icon.ExtractAssociatedIcon(Environment.GetCommandLineArgs()[0]);
+                    form.Icon = appIcon;
+                }
+                catch
+                {
+
+                }
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();

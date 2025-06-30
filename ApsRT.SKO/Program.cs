@@ -45,8 +45,15 @@ namespace ApsRT.SKO
                     Color.FromArgb((int)(color1.R * 0.7), (int)(color1.G * 0.7), (int)(color1.B * 0.7)),
                     Color.FromArgb((int)(color2.R * 0.7), (int)(color2.G * 0.7), (int)(color2.B * 0.7))
                 }); // Подписываем тут все события
-                Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
-                form.Icon = appIcon;
+                try
+                {
+                    Icon appIcon = Icon.ExtractAssociatedIcon(Environment.GetCommandLineArgs()[0]);
+                    form.Icon = appIcon;
+                }
+                catch
+                {
+
+                }
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();
