@@ -1,7 +1,6 @@
 ﻿using Google.Protobuf.Compiler;
 using ApsRT.Core.DataErrors;
 using ApsRT.Core.Hoppers;
-using ApsRT.Core.Partias.Leftovers;
 using ApsRT.Core.Partias.PartiasAlgorithm;
 using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.Settings;

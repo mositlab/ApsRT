@@ -3,7 +3,6 @@ using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Props;
 using ApsRT.Core.Session;
 using UniversalPack.Common.Drawing;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using ApsRT.Core.Planning.PlanningClasses;
 using static UniversalPack.Extensions.EnumExtensions;
 

@@ -12,7 +12,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
         PreparingSession = 1,
         PreparingPartias = 2,
         PreparingZadels = 3,
-        PreparingLeftovers = 4,
+        //PreparingLeftovers = 4,
         FiilingDeadlineTables = 5,
         FillingDeepTables = 6,
         Searching = 7,

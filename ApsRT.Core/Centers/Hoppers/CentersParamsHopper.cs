@@ -1,6 +1,5 @@
 ﻿using ApsRT.Core.Centers.MasterData;
 using ApsRT.Core.Hoppers;
-using ApsRT.Core.Partias.Leftovers;
 using System;
 using System.Collections.Generic;
 using System.Data;
