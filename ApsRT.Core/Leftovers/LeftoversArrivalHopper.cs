@@ -1,5 +1,4 @@
 ﻿using ApsRT.Core.Hoppers;
-using ApsRT.Core.Partias.Leftovers;
 using ApsRT.Core.Session;
 using System;
 using System.Data;
@@ -7,10 +6,10 @@ using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Partias.Leftovers
+namespace ApsRT.Core.Leftovers
 {
-    [Hopper(Label = "Остатки на складе", LoadWhenOnlyPart = true, IsDirectory = false, IsMultiple = true, UsesGuid = false )]
-    internal class LeftoversCountHopper : IHopperInterface
+    [Hopper(Label = "Поступление остатков", LoadWhenOnlyPart = true, IsDirectory = false, IsMultiple = true, UsesGuid = false )]
+    internal class LeftoversArrivalHopper : IHopperInterface
     {
         LeftoversMasterData LeftoversMasterData;
 
@@ -27,7 +26,7 @@ namespace ApsRT.Core.Partias.Leftovers
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
         {
             LeftoversMasterData = session.MasterDataLinks.LeftoversMasterData;
-            LeftoversMasterData.ClearLeftoversCount();
+            LeftoversMasterData.ClearLeftoversArrivalData();
         }
 
         void IHopperInterface.BeforeLoading(string filename, DataLoaderOptions options)
@@ -37,9 +36,9 @@ namespace ApsRT.Core.Partias.Leftovers
 
         void IHopperInterface.OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            var model = new LeftoverCountDataLoaderModel();
+            var model = new LeftoverArrivalDataLoaderModel();
             model.LoadFromDataRecord(data, options);
-            LeftoversMasterData.AddLeftoverCountData(model);
+            LeftoversMasterData.AddLeftoverArrivalData(model);
         }
     }
 }

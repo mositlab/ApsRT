@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Partias.TaraSearchEngine
+namespace ApsRT.Core.Taras.TaraSearchEngine
 {
     public class SumIsPossibleOptions
     {

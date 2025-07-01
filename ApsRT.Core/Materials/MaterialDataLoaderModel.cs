@@ -6,7 +6,7 @@ using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Partias.Materials
+namespace ApsRT.Core.Materials
 {
     /// <summary>
     /// Модель материала для МЕС 1.2

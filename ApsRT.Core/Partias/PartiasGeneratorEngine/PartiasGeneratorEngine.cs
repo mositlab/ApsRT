@@ -1,6 +1,5 @@
 ﻿using Azure;
 using ApsRT.Core.Partias.PartiasClasses;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using ApsRT.Core.Stages;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,7 @@ using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using ApsRT.Core.Partias.Zadels;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 {
@@ -140,7 +140,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     {
                         List<(bool Can, Uco Tara, PartiaModelling sdvig)> analysis = prevsSdvigs.Select(sdvigToCheck =>
                         {
-                            bool can = TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, NextRCsMustBeThese = new() { rc } });
+                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, NextRCsMustBeThese = new() { rc } });
                             return (can, tara, sdvigToCheck);
                         }).ToList();
 
@@ -206,7 +206,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // Основная функция - поиск тары
 
             Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvigWas, out var rtara) ? rtara : null);
-            if (TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out var tara, out var rc, out var max, out var form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr, LogSomeErrors = false }))
+            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out var tara, out var rc, out var max, out var form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr, LogSomeErrors = false }))
             {
                 // Нашлась, отработала хорошо.
                 // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
@@ -221,7 +221,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
             else
             {
-                if (TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out tara, out rc, out max, out form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs }))
+                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out tara, out rc, out max, out form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs }))
                 {
                     // Нашлась, отработала хорошо.
                     // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.

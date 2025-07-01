@@ -3,8 +3,8 @@ using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Props;
 using ApsRT.Core.Session;
 using UniversalPack.Common.Drawing;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using static UniversalPack.Extensions.EnumExtensions;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRTCustomComponents
 {

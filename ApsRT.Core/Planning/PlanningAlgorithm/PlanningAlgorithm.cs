@@ -1,6 +1,5 @@
 ﻿using Azure;
 using ApsRT.Core.Partias.PartiasAlgorithm;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using ApsRT.Core.Planning.PlanningCalculatorEngine;
 using ApsRT.Core.Planning.PlanningClasses;
 using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
@@ -19,6 +18,8 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using System.Collections;
+using ApsRT.Core.Taras.TaraSearchEngine;
+using ApsRT.Core.Leftovers;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -206,6 +207,30 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
             var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
             OriginalValue = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(localCopy, MinAcceptableDate, result);
+
+            // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
+            foreach (var op in stages)
+            {
+                op.StageMaterialsInfo.UsedLeftovers = op.StageMaterialsInfo.UsedMaterials.Select(x => (StageLeftover)null).ToList();
+            }
+            SessionLink.MasterDataLinks.LeftoversMasterData.PreparePartiasForLeftovers(ops.SelectMany(block => block.Lists.SelectMany(list =>
+            {
+                if (list.ObshEtapData == null) return new List<IAbleForTaraCalcInterface>() { list as IAbleForTaraCalcInterface };
+                return list.ObshEtapData.Select(x => x.Value.AsMod);
+                //List<IAbleForTaraCalcInterface> result = new();
+                //foreach (var modGuid in list.ObshEtapData)
+                //{
+                //    var range = new Range(modGuid.Value.FirstElementIndex, modGuid.Value.FirstElementIndex + modGuid.Value.Count);
+                //    result.Add( new Partias.PartiasClasses.PartiaModellingSmall(list.OpersList.Take(range).ToList()));
+                //}
+                //return result;
+            }
+                /*
+                 list => list.ObshEtapData != null ? ((list.ObshEtapData.Select(easy => new Partias.PartiasClasses.PartiaModellingSmall(list.OpersList.Take(new Range()))) : list) as IAbleForTaraCalcInterface)
+                 */
+
+                )
+            ).ToList());
 
             FoundSmth = false;
             FoundGlobal = false;

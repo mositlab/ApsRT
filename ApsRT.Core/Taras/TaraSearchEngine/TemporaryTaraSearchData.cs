@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Partias.TaraSearchEngine
+namespace ApsRT.Core.Taras.TaraSearchEngine
 {
     public class TemporaryTaraSearchData
     {

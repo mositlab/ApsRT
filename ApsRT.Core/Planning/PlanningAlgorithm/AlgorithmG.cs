@@ -19,6 +19,8 @@ using ApsRT.Core.NaladLengths;
 using System.Diagnostics.Metrics;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Partias.PartiasClasses;
+using ApsRT.Core.TaraSearchEngine;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {

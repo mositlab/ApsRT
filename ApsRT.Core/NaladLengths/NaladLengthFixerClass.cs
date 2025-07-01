@@ -1,4 +1,4 @@
-﻿using ApsRT.Core.Partias.TaraSearchEngine;
+﻿using ApsRT.Core.Taras.TaraSearchEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;

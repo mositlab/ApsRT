@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApsRT.Core.Partias.Leftovers
+namespace ApsRT.Core.Leftovers
 {
     internal class CustomCpSolverSolutionCallback: CpSolverSolutionCallback
     {
@@ -19,7 +19,7 @@ namespace ApsRT.Core.Partias.Leftovers
             solution_count_++;
             if (solution_count_ >= solution_limit_)
             {
-                Console.WriteLine(String.Format("Stopping search after {0} solutions", solution_limit_));
+                Console.WriteLine(string.Format("Stopping search after {0} solutions", solution_limit_));
                 StopSearch();
             }
         }

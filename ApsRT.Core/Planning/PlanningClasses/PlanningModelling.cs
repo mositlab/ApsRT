@@ -1,5 +1,4 @@
 ﻿using Azure;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using ApsRT.Core.Stages;
 using System;
 using System.Collections.Frozen;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Planning.PlanningClasses
 {
@@ -34,7 +34,7 @@ namespace ApsRT.Core.Planning.PlanningClasses
 
         int IAbleForTaraCalcInterface.ZadelCode => 0;
 
-        public Dictionary<Guid, (Stage FirstOper, int Count, double Sum)> ObshEtapData;
+        public Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum)> ObshEtapData;
 
         public int ModID; // чисто номер мода. Попытка оптимизации
         public List<int> NextMods = new();
@@ -48,7 +48,20 @@ namespace ApsRT.Core.Planning.PlanningClasses
                 // если это общий этап, то стоит отсортировать операции, чтобы в выходной таблице они не перемешивались (моделирования перемешивались до 04.06)
                 list = list.OrderBy(x => x.EasyFlag).ThenBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code).ToList();
                 var modsHere = list.GroupBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code);
-                ObshEtapData = modsHere.ToDictionary(x => x.Key, x => (x.First(), x.Count(), /*type == ModellingType.Obch_ETAP_FromMES ? x.First().Count : */x.Sum(x => x.Count))); // создаем словарь чтоб он помогал нам понять, что в этом общем этапе есть
+
+                Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum)> final = new();
+                var listFinal = new List<Stage>();
+                foreach (var group in modsHere)
+                {
+                    var listToAdd = group.ToList();
+                    final.Add(group.Key, (listToAdd[0], new Partias.PartiasClasses.PartiaModellingSmall(listToAdd), listFinal.Count, listToAdd.Count, listToAdd.Sum(x => x.Count)));
+                    listFinal.AddRange(listToAdd);
+                }
+
+                ObshEtapData = final;
+                list = listFinal;
+                
+                //modsHere.ToDictionary(x => x.Key, x => (x.First(), x.Count(), /*type == ModellingType.Obch_ETAP_FromMES ? x.First().Count : */x.Sum(x => x.Count))); // создаем словарь чтоб он помогал нам понять, что в этом общем этапе есть
             }
 
             OpersList = list;

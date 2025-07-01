@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApsRT.Core.Partias.TaraSearchEngine
+namespace ApsRT.Core.Taras.TaraSearchEngine
 {
     public interface IAbleForTaraCalcInterface
     {

@@ -2,7 +2,7 @@
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 
-namespace ApsRT.Core.Partias.Materials
+namespace ApsRT.Core.Materials
 {
     public class StageOriginalMaterial
     {

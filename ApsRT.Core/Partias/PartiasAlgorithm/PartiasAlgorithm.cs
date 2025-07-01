@@ -16,9 +16,7 @@ using UniversalPack.Common.Drawing;
 using System.Xml.Linq;
 using System.Security.Cryptography;
 using System.Drawing;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using UniversalPack;
-using ApsRT.Core.Partias.Leftovers;
 using System.Collections.Concurrent;
 using ApsRT.Core.Partias.PartiasConnectorEngine;
 using System.Diagnostics.Metrics;
@@ -29,6 +27,8 @@ using System.Data;
 using UniversalPack.Extensions;
 using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.NaladLengths;
+using ApsRT.Core.Leftovers;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Partias.PartiasAlgorithm
 {
@@ -96,9 +96,9 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForZadels(PartiiList);
 
                 // 4. Подготавливаем партии к остаткам
-                CurrentStage = PartiasAlgorithmStage.PreparingLeftovers;
-                CurrentStageChanged?.Invoke(CurrentStage, 0);
-                SessionLink.MasterDataLinks.LeftoversMasterData.PreparePartiasForLeftovers(PartiiList);
+                //CurrentStage = PartiasAlgorithmStage.PreparingLeftovers;
+                //CurrentStageChanged?.Invoke(CurrentStage, 0);
+                //SessionLink.MasterDataLinks.LeftoversMasterData.PreparePartiasForLeftovers(PartiiList);
                 //SessionLink.MasterDataLinks.LeftoversMasterData.OutputLeftovers(PartiiList); // И сразу же их и выводим
 
                 // 5. Готовим таблицу дедлайнов
@@ -181,7 +181,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 op.CurrentTaraMaxCapacity = 0;
                 op.EasyFlag = op.EasyFlagOriginal;
                 op.CustomPartiaGuid = null;
-                op.StageMaterialsInfo.UsedLeftovers = op.StageMaterialsInfo.UsedMaterials.Select(x => (Leftovers.StageLeftover)null).ToList();
+                
 
             }
 
@@ -826,7 +826,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                         // Попробуем их совместить
                                         var l = s.Opers.Union(s2.Opers).ToList();
 
-                                        if (TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out _, out _, out _, out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false }))
+                                        if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out _, out _, out _, out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false }))
                                         {
                                             // Можно? ну тогда я не знаю...
                                             var dem = searchData.dataErrorMore;

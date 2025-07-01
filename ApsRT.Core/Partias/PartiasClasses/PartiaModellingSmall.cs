@@ -1,10 +1,10 @@
 ﻿using Azure;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Partias.PartiasClasses
 {

@@ -11,7 +11,7 @@ using UniversalPack;
 using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Partias.TaraSearchEngine
+namespace ApsRT.Core.Taras.TaraSearchEngine
 {
     public class TaraSearchEngine
     {
@@ -53,7 +53,7 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                     (!possibleTara.Any() || possibleTara.All(tara => TaraDataSet.GetNeededTaras(center, CurrentOpers.FirstOperLink.OperationVid, tara.isVspom).otd.TryGetValue(tara.isVspom, out var has) && has.Contains(tara.tara))) // первое условие: все тары в списке предков есть (если эти предки вообще существуют, и есть тара для этого)
                     &&
                     (
-                        (TaraNeedsToBeHere == null || TaraNeedsToBeHere.Count == 0)
+                        TaraNeedsToBeHere == null || TaraNeedsToBeHere.Count == 0
                         ||
                         TaraDataSet.GetNeededTaras(center, CurrentOpers.FirstOperLink.OperationVid, null).priem.TryGetValue(false, out var has) && TaraNeedsToBeHere.All(x => x.IsEmpty || has.Contains(x))
                     ) // второе условие: тара, которую надо чекнуть, не пустая, и есть в списке приемных
@@ -149,10 +149,10 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                 }
 
 
-                if (TaraHereMustBeThis != null) searchData.dataErrorMore.NeededOtdTarasOnThisEtap = (
+                if (TaraHereMustBeThis != null) searchData.dataErrorMore.NeededOtdTarasOnThisEtap = 
                     searchData.dataErrorMore.NeededOtdTarasOnThisEtap == null ? TaraHereMustBeThis/*.Select(x => x.Tara)*/.Distinct().ToList() :
                     searchData.dataErrorMore.NeededOtdTarasOnThisEtap.Union(TaraHereMustBeThis/*.Select(x => x.Tara)*/).ToList()
-                    );
+                    ;
 
                 //bool VspomTara = first.Prevs.Count > 0 && ALL[first.Prevs[0]].UsesVspomTara;
                 if (first.PossibleCenters == null)
@@ -204,15 +204,15 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                 }
 
 
-                searchData.dataErrorMore.RCsOnThisEtap = (
+                searchData.dataErrorMore.RCsOnThisEtap = 
                     searchData.dataErrorMore.RCsOnThisEtap == null ? rcs.ToList() :
                     searchData.dataErrorMore.RCsOnThisEtap.Union(rcs).ToList()
-                    );
+                    ;
 
-                searchData.dataErrorMore.TarasOnThisEtap = (
+                searchData.dataErrorMore.TarasOnThisEtap = 
                     searchData.dataErrorMore.TarasOnThisEtap == null ? res.Select(x => x.Tara).ToList() :
                     searchData.dataErrorMore.TarasOnThisEtap.Union(res.Select(x => x.Tara)).ToList()
-                    );
+                    ;
 
                 // Проверим конечную тару
                 if (!WantThisOrigTara.IsEmpty && !res.Any(X => X.Tara == WantThisOrigTara))
@@ -408,7 +408,7 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
 
                         // А вот теперь все остальное
                         if (TaraDataSet.FromAndToTara.ContainsKey(first.op.OriginalCenter) //&& (!first.IsVspom || CentersData[first.Center].NotChangeTara)
-                            && (options.NextRCsMustBeThese == null || /*!first.isFirst ||*/ (first.op.NoChangeTara && options.NextRCsExcludeNoChangeTara) || options.NextRCsMustBeThese.Contains(first.op.OriginalCenter)) // Если есть ограничение по РЦ детей, то нужно чекнуть, входит ли он сюда (это для G используется)
+                            && (options.NextRCsMustBeThese == null || /*!first.isFirst ||*/ first.op.NoChangeTara && options.NextRCsExcludeNoChangeTara || options.NextRCsMustBeThese.Contains(first.op.OriginalCenter)) // Если есть ограничение по РЦ детей, то нужно чекнуть, входит ли он сюда (это для G используется)
                                                                                                                                                                                                                    //&& first.op.Prevs.All(x => !PrevsInfo.TryGetValue(x, out var prevTara) || )
                             )
                         {
@@ -447,10 +447,10 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                                 dem.DataToInsert = first.op.EndTara.Label;
 
                                 var rcsToIns = first.op.PossibleCenters ?? new() { first.op.OriginalCenter };
-                                dem.RCsOnNextEtap = (
+                                dem.RCsOnNextEtap = 
                                     dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                     dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
-                                    );
+                                    ;
 
                                 dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                                 foundOtdTara = new();
@@ -494,13 +494,13 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
 
                             HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
-                            var res01 = rcs1.Where(x => (localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara))));
+                            var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara)));
 
                             if (res01.Count() > 0)
                             {
                                 foundOtdTara = res01.Where(x =>
                                  //&& (!first.IsVspom || CentersData[x].AbleToVspom)
-                                 (options.NextRCsMustBeThese == null || /*!first.isFirst ||*/ (first.op.NoChangeTara && options.NextRCsExcludeNoChangeTara) || options.NextRCsMustBeThese.Contains(x)) // Если есть ограничение по РЦ детей, то нужно чекнуть, входит ли он сюда
+                                 options.NextRCsMustBeThese == null || /*!first.isFirst ||*/ first.op.NoChangeTara && options.NextRCsExcludeNoChangeTara || options.NextRCsMustBeThese.Contains(x) // Если есть ограничение по РЦ детей, то нужно чекнуть, входит ли он сюда
                                 ).SelectMany(y => TaraDataSet.GetNeededTaras(y, first.op.OperationVid, FirVsp ? null : willVspom)/*.FromAndToTara[y]*/.otd.TryGetValue(FirVsp ? false : willVspom, out var has)
                                     //&&
                                     //        first.op.Prevs.All(x => PrevsInfo == null || !PrevsInfo.TryGetValue(x, out var t) || has.Contains(t)) // Нужно ещё чекнуть, чтоб все тары у предыдущих этапов были тут (полная проверка)
@@ -521,10 +521,10 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                             dem.DataToInsert = first.op.EndTara.Label;
 
                             var rcsToIns = first.op.PossibleCenters ?? new() { first.op.OriginalCenter };
-                            dem.RCsOnNextEtap = (
+                            dem.RCsOnNextEtap = 
                                 dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                 dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
-                                );
+                                ;
 
                             dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                             foundOtdTara = new();
@@ -548,16 +548,16 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                     //    ;
                     //}
 
-                    searchData.dataErrorMore.TarasOnNextEtap = (
+                    searchData.dataErrorMore.TarasOnNextEtap = 
                         searchData.dataErrorMore.TarasOnNextEtap == null ? foundOtdTara.Select(x => x.Tara).Distinct().ToList() :
                         searchData.dataErrorMore.TarasOnNextEtap.Union(foundOtdTara.Select(x => x.Tara)).Distinct().ToList()
-                        );
+                        ;
 
                     var rcs = first.op.PossibleCenters ?? new() { first.op.OriginalCenter };
-                    searchData.dataErrorMore.RCsOnNextEtap = (
+                    searchData.dataErrorMore.RCsOnNextEtap = 
                         searchData.dataErrorMore.RCsOnNextEtap == null ? rcs.ToList() :
                         searchData.dataErrorMore.RCsOnNextEtap.Union(rcs).Distinct().ToList()
-                        );
+                        ;
 
                     // Если есть отдающая тара, проверим её
                     if (!WantThisOrigTara.IsEmpty && !foundOtdTara.Any(X => X.Tara == WantThisOrigTara))
@@ -626,7 +626,7 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
 
             if (checkBarabanasCount && (searchData.BARABANAS == null || searchData.BARABANAS.Length == 0))
             {
-                if (LogErrorsBySettings && (allOpers.AllOpers.Count == 1 /*|| allOpers.FirstOperLink.Modelling != Guid.Empty*/) && options.NextRCsMustBeThese == null)
+                if (LogErrorsBySettings && allOpers.AllOpers.Count == 1 /*|| allOpers.FirstOperLink.Modelling != Guid.Empty*/ && options.NextRCsMustBeThese == null)
                 {
                     //AddPartiaError(allOpers.FirstOperLink.Index, PartiaErrorLogType.No_RC_Tara_Intersect);
                     dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index, willVspom ? NewDataErrorType.NoTaraNMaxIntersectionVspom : NewDataErrorType.NoTaraNMaxIntersection, searchData.dataErrorMore);
@@ -813,7 +813,7 @@ namespace ApsRT.Core.Partias.TaraSearchEngine
                         if (
                             (namot.Namot >= sum
                             || someOpers.ZadelCode != 0) // Не меньше суммы должна быть намотка, ну либо это что с ЗАДЕЛАМИ, поэтому тут проверять на макс намотку не следует (Алёна, 17.06)
-                            && ((!options.SearchForMaxTara && namot.Namot < Max) || (options.SearchForMaxTara && namot.Namot > Max))) // Должен быть меньше уже предложенного
+                            && (!options.SearchForMaxTara && namot.Namot < Max || options.SearchForMaxTara && namot.Namot > Max)) // Должен быть меньше уже предложенного
                         {
                             if (!FinalRC.IsEmpty
                                 && someOpers.FirstOperLink.RecommendedRC.HasValue

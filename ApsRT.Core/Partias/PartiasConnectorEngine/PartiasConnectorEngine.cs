@@ -1,7 +1,6 @@
 ﻿using Azure;
 using Microsoft.VisualBasic;
 using ApsRT.Core.Partias.PartiasClasses;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Partias.PartiasConnectorEngine
 {
@@ -423,9 +423,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                     if (!isVspom && !isZadel)
                     {
-                        sum = TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })
+                        sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })
                             &&
-                            TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out gotTara, out gotRc, out gotMax, out use_format, out _, new SumIsPossibleOptions(withLog)
+                            Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out gotTara, out gotRc, out gotMax, out use_format, out _, new SumIsPossibleOptions(withLog)
                             {
                                 PrevsInfo = resultToFill.IDToTara,
 
@@ -614,7 +614,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             {
                                 // Ищем по старинке
 
-                                if (TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara })) // ошибки - только если она сама с собой, на последнем этапе
+                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, newTara, newRC, newMax, newUnit, resultToFill);
                                     //sdvig.RC = RC;
@@ -643,7 +643,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             else
                             {
                                 //Поищем РЦ, у которого среди отдающих тар только те, что были у предков
-                                if (TaraSearchEngine.TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, null, resultToFill.IDToTara, new() { fop.EndTara }, out var RC, out var allRCs, out var allOtdTaras, true))
+                                if (Taras.TaraSearchEngine.TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, null, resultToFill.IDToTara, new() { fop.EndTara }, out var RC, out var allRCs, out var allOtdTaras, true))
                                 {
                                     sdvig.RC = RC;
                                     sdvig.RCIsChecked = true;
@@ -764,7 +764,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 List<Uco> allowedRCs = group.First().Opers[0].PossibleCenters ?? new List<Uco>() { group.First().Opers[0].OriginalCenter };
                 allowedRCs = allowedRCs.Where(rc =>
                     group.All(
-                        mod => TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false)
+                        mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false)
                         {
                             LogSomeErrors = false, // ошибки не фиксируем
                             RCMustBeThis = rc // РЦ должен быть именно такой

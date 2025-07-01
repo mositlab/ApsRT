@@ -1,6 +1,5 @@
 ﻿using Azure;
 using ApsRT.Core.Partias.PartiasConnectorEngine;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Partias.PartiasClasses
 {
@@ -230,7 +230,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
                         var centers = currentSdvig.Opers[0].PossibleCenters ?? new List<Uco>() { currentSdvig.Opers[0].OriginalCenter };
                         results[i] = centers.Select(center =>
                         {
-                            var b = TaraSearchEngine.TaraSearchEngine.SumIsPossible(currentSdvig, out var tara, out var rc, out var max, out var format, out _, out _, new SumIsPossibleOptions(false)
+                            var b = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(currentSdvig, out var tara, out var rc, out var max, out var format, out _, out _, new SumIsPossibleOptions(false)
                             {
                                 PrevsInfo = previousData.IDToTara,
                                 NextRCsMustBeThese = currentSdvig.Opers

@@ -2,18 +2,18 @@
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Partias.Leftovers
+namespace ApsRT.Core.Leftovers
 {
     /// <summary>
     /// Модель материала для МЕС 1.2
     /// </summary>
-    public class LeftoverArrivalDataLoaderModel : BaseDataLoaderModel
+    public class LeftoverCountDataLoaderModel : BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 
-        static LeftoverArrivalDataLoaderModel()
+        static LeftoverCountDataLoaderModel()
         {
-            _fieldConverters = DefineFieldConverters<LeftoverArrivalDataLoaderModel>();
+            _fieldConverters = DefineFieldConverters<LeftoverCountDataLoaderModel>();
         }
 
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
@@ -30,17 +30,17 @@ namespace ApsRT.Core.Partias.Leftovers
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
 
-        //[DataRecordColumn("Количество")]
-        //public double CountNow { get; set; }
+        [DataRecordColumn("Количество")]
+        public double CountNow { get; set; }
 
         [DataRecordCodedObjectColumn("Подразделение_GUID", "Подразделение")]
         public Uco Subdivision { get; set; }
 
-        [DataRecordColumn("ДатаПоступления", defaultIfFail: true)]
-        public DateTime DateArrival { get; set; }
+        //[DataRecordColumn("ДатаПоступления", defaultIfFail: true)]
+        //public DateTime? DateArrival { get; set; }
 
-        [DataRecordColumn("КоличествоПоступления", defaultIfFail: true)]
-        public double CountArrival { get; set; }
+        //[DataRecordColumn("КоличествоПоступления", defaultIfFail: true)]
+        //public double CountArrival { get; set; }
 
     }
 }

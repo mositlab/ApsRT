@@ -16,8 +16,8 @@ using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.Dimens
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
 using ApsRT.Core.Centers.MasterData;
-using ApsRT.Core.Partias.TaraSearchEngine;
 using System.Collections.Frozen;
+using ApsRT.Core.Taras.TaraSearchEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {

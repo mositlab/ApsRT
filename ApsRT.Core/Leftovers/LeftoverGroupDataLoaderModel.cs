@@ -3,7 +3,7 @@ using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 
-namespace ApsRT.Core.Partias.Leftovers
+namespace ApsRT.Core.Leftovers
 {
     /// <summary>
     /// Модель материала для МЕС 1.2

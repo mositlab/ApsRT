@@ -1,7 +1,7 @@
-﻿using ApsRT.Core.Partias.Leftovers;
+﻿using ApsRT.Core.Leftovers;
 using ApsRT.Core.Stages;
 
-namespace ApsRT.Core.Partias.Materials
+namespace ApsRT.Core.Materials
 {
     public class StageMaterialsInfo
     {
