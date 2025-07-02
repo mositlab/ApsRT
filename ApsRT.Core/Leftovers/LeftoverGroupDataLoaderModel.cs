@@ -8,7 +8,7 @@ namespace ApsRT.Core.Leftovers
     /// <summary>
     /// Модель материала для МЕС 1.2
     /// </summary>
-    internal class LeftoverGroupDataLoaderModel : BaseDataLoaderModel
+    public class LeftoverGroupDataLoaderModel : BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 

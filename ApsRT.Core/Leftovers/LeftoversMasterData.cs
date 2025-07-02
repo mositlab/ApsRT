@@ -66,7 +66,7 @@ namespace ApsRT.Core.Leftovers
 
 
         internal Dictionary<(OrderID Order, Uco Nomenklature, Uco Specification),
-            Dictionary<Guid, List<LeftoverReplacementInfo>>
+            Dictionary<Guid, LeftoversReplacementClass>
             > LeftoversGroupsInfo { get; private set; } = new();
 
 
@@ -75,19 +75,19 @@ namespace ApsRT.Core.Leftovers
             (OrderID Order, Uco Nomenklature, Uco Specification) key = (model.Order, model.Nomenklature, model.Specification);
             LeftoversGroupsInfo.TryAdd(key, new());
             LeftoversGroupsInfo[key].TryAdd(model.MaterialsGroup, new());
-            LeftoversGroupsInfo[key][model.MaterialsGroup].Add(new LeftoverReplacementInfo(model));
+            LeftoversGroupsInfo[key][model.MaterialsGroup].List.Add(new LeftoverReplacementInfo(model));
         }
 
-        void FillPossibleAnalogueGroupsForMod(Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, List<LeftoverReplacementInfo>>> opsPossibleLeftoversForOne, IAbleForTaraCalcInterface mod)
+        void FillPossibleAnalogueGroupsForMod(Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>> opsPossibleLeftoversForOne, IAbleForTaraCalcInterface mod)
         {
             if (!opsPossibleLeftoversForOne.ContainsKey(mod)) // Посмотрим, находил ли я для этой операции данные
             {
-                Dictionary<Guid, List<LeftoverReplacementInfo>> dic = null;// GetReplacementInfo(op, x => true/*x.Value.Count == 1*/); // Найдём все группы возможной замены для этого этапчика, даже не взирая на то, что они могут быть групповыми
+                Dictionary<Guid, LeftoversReplacementClass> dic = null;// GetReplacementInfo(op, x => true/*x.Value.Count == 1*/); // Найдём все группы возможной замены для этого этапчика, даже не взирая на то, что они могут быть групповыми
 
                 foreach (var opMod in mod.AllOpers)
                 {
                     var result = GetReplacementInfo(opMod, x => true/*x.Value.Count == 1*/);
-                    dic = dic == null ? result : dic.Intersect(result).ToDictionary();
+                    dic = dic == null ? result : dic.Intersect(result/*result.Select(x => x.Value.Hash), keySelector => keySelector.Value.Hash*/).ToDictionary();
                 }
 
                 opsPossibleLeftoversForOne.Add(mod, dic);
@@ -95,13 +95,13 @@ namespace ApsRT.Core.Leftovers
         }
 
 
-        Dictionary<LeftoverUco, double> FindAnaloguesAll(Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, List<LeftoverReplacementInfo>>> opsPossibleLeftoversForOne, IAbleForTaraCalcInterface mod, (LeftoverUco MatNomen, double MatWeight) item)
+        Dictionary<LeftoverUco, double> FindAnaloguesAll(Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>> opsPossibleLeftoversForOne, IAbleForTaraCalcInterface mod, (LeftoverUco MatNomen, double MatWeight) item)
         {
             FillPossibleAnalogueGroupsForMod(opsPossibleLeftoversForOne, mod);
 
             // А это вообще обычная группа, которая работает, начиная с аналогов
             var possibleAnalogues = opsPossibleLeftoversForOne[mod]
-                .SelectMany(x => x.Value) // У нас появятся вообще все группы
+                .SelectMany(x => x.Value.List) // У нас появятся вообще все группы
                 .Where(x => x.Original == item.MatNomen) // Сначала выберем только те, у которых та же номенклатура, что и у предмета текущего
 
                 .Select(analogue =>
@@ -116,9 +116,9 @@ namespace ApsRT.Core.Leftovers
             return possibleAnalogues;
         }
 
-        internal Dictionary<Guid, List<LeftoverReplacementInfo>> GetReplacementInfo(Stages.Stage op, Func<KeyValuePair<Guid, List<LeftoverReplacementInfo>>, bool> comparer)
+        internal Dictionary<Guid, LeftoversReplacementClass> GetReplacementInfo(Stages.Stage op, Func<KeyValuePair<Guid, LeftoversReplacementClass>, bool> comparer)
         {
-            var dicAll = new List<KeyValuePair<Guid, List<LeftoverReplacementInfo>>>();
+            var dicAll = new List<KeyValuePair<Guid, LeftoversReplacementClass>>();
 
             // Найдем группу заменяемости по полным данным
 
@@ -199,9 +199,40 @@ namespace ApsRT.Core.Leftovers
             });
         }
 
-        internal void PreparePartiasForLeftovers(List<IAbleForTaraCalcInterface> modsToArrange)
+        public void PrepareModsForLeftovers(List<OpersBlock> ops)
+        {
+            
+            PrepareModsForLeftovers(ops.SelectMany(block => block.Lists.SelectMany(list =>
+            {
+                if (list.ObshEtapData == null) return new List<IAbleForTaraCalcInterface>() { list as IAbleForTaraCalcInterface };
+                return list.ObshEtapData.Select(x => x.Value.AsMod);
+                //List<IAbleForTaraCalcInterface> result = new();
+                //foreach (var modGuid in list.ObshEtapData)
+                //{
+                //    var range = new Range(modGuid.Value.FirstElementIndex, modGuid.Value.FirstElementIndex + modGuid.Value.Count);
+                //    result.Add( new Partias.PartiasClasses.PartiaModellingSmall(list.OpersList.Take(range).ToList()));
+                //}
+                //return result;
+            }
+                /*
+                 list => list.ObshEtapData != null ? ((list.ObshEtapData.Select(easy => new Partias.PartiasClasses.PartiaModellingSmall(list.OpersList.Take(new Range()))) : list) as IAbleForTaraCalcInterface)
+                 */
+
+                )
+            ).ToList());
+        }
+
+
+        public void PrepareModsForLeftovers(List<IAbleForTaraCalcInterface> modsToArrange)
         {
             if (CurrentLeftoversCount == null || CurrentLeftoversCount.Count == 0) return;
+
+            // Сначала всё очищаем
+            foreach (var mod in modsToArrange)
+            {
+                var op = mod.FirstOperLink;
+                op.StageMaterialsInfo.UsedLeftovers = op.StageMaterialsInfo.UsedMaterials.Select(x => (StageLeftover)null).ToList();
+            }
 
             // Создадим решатель
             CpModel model = new CpModel();
@@ -209,19 +240,19 @@ namespace ApsRT.Core.Leftovers
             //var SessionLink = partias[0].OpersHere[0][0].Opers[0].SessionLink;
 
             // TO DO: А что делать с моделированиями из МЕС??? там же 2+ этапчика
-            var allItems = 
+            var allItems =
 
                 modsToArrange
-                
+
                 //partias.SelectMany(x => PartiasConnectorEngine.SeeSdvigsAsList(x.OpersHere)) // Возьмём этапы со всех партий
-                
-                
+
+
                 .Where(sdvig => sdvig.FirstOperLink.StageMaterialsInfo != null)
                 .SelectMany(sdvig =>
 
                 sdvig.FirstOperLink.StageMaterialsInfo.UsedMaterials.Select(
                     (mat, index) =>
-                    
+
                     (stageLink: sdvig.FirstOperLink, modLink: sdvig, MatData: mat.AsLeftoverData(), MatIndex: index, MatWeight: (int)(GetMatSumFromMod(sdvig, mat.AsLeftoverData()) * 1000.0))
                 )
             )
@@ -231,9 +262,12 @@ namespace ApsRT.Core.Leftovers
                 //&&
                 item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].IsBuying) // Второе ограничение.
                 .Select((x, index) => (elementIndex: index, x.stageLink, x.modLink, x.MatData, x.MatIndex, x.MatWeight))
+
+                //.Take(5000)
+
                 .ToList();
 
-            Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, List<LeftoverReplacementInfo>>> opsPossibleLeftoversForOne = new Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, List<LeftoverReplacementInfo>>>();
+            Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>> opsPossibleLeftoversForOne = new Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>>();
 
             List<Dictionary<LeftoverUco, double>> AllPossibleAnaloguesForMats = new();
             for (int i = 0; i < allItems.Count; i++)
@@ -246,6 +280,17 @@ namespace ApsRT.Core.Leftovers
                 AllPossibleAnaloguesForMats.Add(possibleAnalogues); // Добавляю информацию об этом в копию
             }
 
+            bool anyItemHas(LeftoverUco what)
+            {
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    if (allItems[i].MatData == what) return true;
+                    var dic = AllPossibleAnaloguesForMats[i];
+                    if (dic.ContainsKey(what)) return true;
+                }
+                return false;
+            }
+
             // Получаем собственно информацию
             var allBins = CurrentLeftoversCount.SelectMany(x =>
 
@@ -253,6 +298,8 @@ namespace ApsRT.Core.Leftovers
             (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (int)(sub.Value * 1000.0))
 
             )
+
+            .Where(x => anyItemHas(x.MatData)) // Небольшое ограничение, чтоб лишних не хватал
 
             ).ToList();
 
@@ -320,10 +367,10 @@ namespace ApsRT.Core.Leftovers
                 var lists = opsPossibleLeftoversForOne[group.First().modLink]; // Получим все списки остатков для этого этапа, чтобы задать инфу этапам
                 foreach (var list in lists)
                 {
-                    if (list.Value.Count < 2) continue; // Если это одиночная группа, то пофиг на неё.
+                    if (list.Value.List.Count < 2) continue; // Если это одиночная группа, то пофиг на неё.
 
                     // Сначала нам нужно найти внутри этапчика ВСЕ материалы из этой группы, чтобы замена тут была возможна.
-                    int[] indexes = list.Value.Select(listGroupInfo => // Переменная инфы о заменяемости
+                    int[] indexes = list.Value.List.Select(listGroupInfo => // Переменная инфы о заменяемости
 
                     // Мы ищем в группе group первый элемент, чья номенклатура равна "оригиналу" из groupInfo
                     group.FirstOrDefault(item => item.MatData == listGroupInfo.Original, // Сравниваем предмет
@@ -361,7 +408,7 @@ namespace ApsRT.Core.Leftovers
                     List<ILiteral>[] items2 = indexes.Select(
                         (elementIndex, arrayIndex) => // Это сам индекс собственно + индекс массива
                         allBins.Select((bin, binIndex) => (xNew[elementIndex, binIndex], bin)) // Выбираем ща все элементы, связанные с этой корзиной + саму корзину
-                        .Where(x => x.bin.MatData == list.Value[arrayIndex].Analogue) // Фильтруем: оставляем только те предметы, которые влезут в ту корзину, чья номенлкатура равна номенклатуре аналога
+                        .Where(x => x.bin.MatData == list.Value.List[arrayIndex].Analogue) // Фильтруем: оставляем только те предметы, которые влезут в ту корзину, чья номенлкатура равна номенклатуре аналога
                         .Select(x => x.Item1) // Берём переменную.
                         .ToList()
                         )
@@ -379,7 +426,7 @@ namespace ApsRT.Core.Leftovers
 
                             // Для всех индексов, которые есть, надо запретить вставать на аналоги
                             List<ILiteral> deniedItems = allBins.Select((bin, binIndex) => (xNew[index, binIndex], bin)) // Выбираем ща все элементы, связанные с этой корзиной + саму корзину
-                            .Where(x => x.bin.MatData == list.Value[i].Analogue) // Фильтруем: оставляем только те предметы, которые влезут в ту корзину, чья номенлкатура равна номенклатуре аналога
+                            .Where(x => x.bin.MatData == list.Value.List[i].Analogue) // Фильтруем: оставляем только те предметы, которые влезут в ту корзину, чья номенлкатура равна номенклатуре аналога
                             .Select(x => x.Item1) // Берём переменную.
                             .ToList();
 
@@ -486,7 +533,7 @@ namespace ApsRT.Core.Leftovers
 
             var howMuchAtStart = CurrentLeftoversCount.ToDictionary(x => x.Key, x => x.Value.ToDictionary()); // Создаем независимую копию
 
-            Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, List<LeftoverReplacementInfo>>> opsPossibleLeftoversForOne = new Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, List<LeftoverReplacementInfo>>>();
+            Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>> opsPossibleLeftoversForOne = new Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>>();
 
             for (int currentPoint = 0; currentPoint < pointsToAnalyze.Count; currentPoint++)
             {
@@ -571,12 +618,12 @@ namespace ApsRT.Core.Leftovers
                         var mats = matsList.Select((x, index) => (ElementIndex: index, Material: x)).Where(x => x.Material.IsBuying).ToList();
 
                         // Получаем список всех замен, и отсортируем ещё и по общей сумме оставшегося количества на складе
-                        var dictionariesReplacement = opsPossibleLeftoversForOne[mod].OrderByDescending(x => x.Value.Count).ThenByDescending(x => x.Value.Sum(y => howMuchAtStart[y.Analogue].Sum(x => x.Value)));
+                        var dictionariesReplacement = opsPossibleLeftoversForOne[mod].OrderByDescending(x => x.Value.List.Count).ThenByDescending(x => x.Value.List.Sum(y => howMuchAtStart[y.Analogue].Sum(x => x.Value)));
 
                         foreach (var someGroup in dictionariesReplacement)
                         {
                             var listHere = someGroup.Value;
-                            var resultedIndexes = listHere.Select(x => mats.FindIndex(mat => mat.Material.AsLeftoverData() == x.Original)).ToArray(); // Найдём сначала оригиналы.
+                            var resultedIndexes = listHere.List.Select(x => mats.FindIndex(mat => mat.Material.AsLeftoverData() == x.Original)).ToArray(); // Найдём сначала оригиналы.
 
                             // ElementIndex внутри mats = ссылка на индексы в основном массиве для простого поиска после фильтрации по IsBuying.
                             // resultedIndexes = индексы внутри mats после того как была найдена номенклатура
@@ -586,7 +633,7 @@ namespace ApsRT.Core.Leftovers
 
                             if (resultedIndexes.Any(x => x == -1)) continue; // Это значит, группа не подходит.
 
-                            var analogues = listHere.Select((x, index) => (AnalogueToSet: x.Analogue, CountToSet: originalCount[mats[resultedIndexes[index]].ElementIndex] / x.OriginalCount * x.AnalogueCount)).ToArray(); // Создаём аналоги для каждого мата и вычисляем новое количество. В качестве аргумента originalCount[mats[resultedIndexes[index]].ElementIndex] - это количество уже моделирования, а не исходного этапчика. Пригодится для объединенных длин.
+                            var analogues = listHere.List.Select((x, index) => (AnalogueToSet: x.Analogue, CountToSet: originalCount[mats[resultedIndexes[index]].ElementIndex] / x.OriginalCount * x.AnalogueCount)).ToArray(); // Создаём аналоги для каждого мата и вычисляем новое количество. В качестве аргумента originalCount[mats[resultedIndexes[index]].ElementIndex] - это количество уже моделирования, а не исходного этапчика. Пригодится для объединенных длин.
 
                             bool bad = false;
                             for (int i = 0; i < analogues.Length; i++)

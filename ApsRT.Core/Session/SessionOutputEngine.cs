@@ -159,7 +159,7 @@ namespace ApsRT.Core.Session
                 OutputMods(sessionPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
 
                 // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
-                OutputLeftovers(sessionPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (sessionPath + UsedLeftoversFileNameBig));
+                OutputLeftovers(sessionPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (sessionPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
 
                 return (result, localCopy);
             }
@@ -172,7 +172,7 @@ namespace ApsRT.Core.Session
 
         public string UsedLeftoversFileName { get; set; } = "leftoversUsed.csv";
         public string UsedLeftoversFileNameBig { get; set; } = "leftoversUsedBig.csv";
-        public void OutputLeftovers(string filename, string filenameBig)
+        public void OutputLeftovers(string filename, string filenameBig, IDictionary<int, DateTime> startDates)
         {
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
             StreamWriter swBig = string.IsNullOrEmpty(filenameBig) ? null : new StreamWriter(filenameBig, false, Encoding.UTF8);
@@ -195,6 +195,7 @@ namespace ApsRT.Core.Session
             {
                 var oper = operPair.Value;
                 if (oper.StageMaterialsInfo.UsedMaterials == null) continue;
+                if (!startDates.TryGetValue(oper.Index, out var date)) continue;
                 for (int i = 0; i < oper.StageMaterialsInfo.UsedLeftovers.Count; i++)
                 {
                     var element = oper.StageMaterialsInfo.UsedLeftovers[i];
@@ -212,7 +213,7 @@ namespace ApsRT.Core.Session
                         $"{origMat.Characteristics.Code};" +
                         $"{origMat.Count};" +
 
-                        $"{DateTime.Now}");
+                        $"{date}");
 
                     swBig?.WriteLine($"" +
                         $"{oper.GUID};" +
@@ -229,7 +230,7 @@ namespace ApsRT.Core.Session
                         $"{origMat.Characteristics.Label};" +
                         $"{origMat.Count};" +
 
-                        $"{DateTime.Now}");
+                        $"{date}");
                 }
             }
 

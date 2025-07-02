@@ -1100,7 +1100,7 @@ namespace ApsRTCustomComponents
             {
                 if (arg1 == PlanningAlgorithmStage.RunningV)
                 {
-                    OutputButton.Enabled = true;
+                    //OutputButton.Enabled = true;
                 }
                 if (arg1 == PlanningAlgorithmStage.FailedV)
                 {
@@ -1920,6 +1920,13 @@ namespace ApsRTCustomComponents
             }
             streamWriter.Close();
             arrivalInfo.Close();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var algorithm = sessionLink.AssignedPlanningAlgorithm;
+            if (algorithm == null || algorithm.BestBlocksList == null) return;
+            sessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(algorithm.BestBlocksList);
         }
     }
 }

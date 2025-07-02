@@ -5,12 +5,24 @@ using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomen
 
 namespace ApsRT.Core.Leftovers
 {
-    internal class LeftoverReplacementInfo
+    public class LeftoverReplacementInfo
     {
         public LeftoverUco Original { get; }
         public double OriginalCount { get; }
         public LeftoverUco Analogue { get; }
         public double AnalogueCount { get; }
+
+        int _hashCode;
+
+        void SetHashCode()
+        {
+            _hashCode = HashCode.Combine(Original.Nomenklature.Code, Original.Characteristics.Code, Analogue.Nomenklature.Code, Analogue.Characteristics.Code);
+        }
+
+        public override int GetHashCode()
+        {
+            return _hashCode;
+        }
 
         public LeftoverReplacementInfo(LeftoverGroupDataLoaderModel model)
         {
@@ -18,6 +30,7 @@ namespace ApsRT.Core.Leftovers
             OriginalCount = model.OriginalCount;
             Analogue = (model.AnalogueMaterialNomenklature, model.AnalogueMaterialCharacteristics);
             AnalogueCount = model.AnalogueCount;
+            SetHashCode();
         }
 
         public LeftoverReplacementInfo(LeftoverUco original, double originalCount, LeftoverUco analogue, double analogueCount)
@@ -26,6 +39,7 @@ namespace ApsRT.Core.Leftovers
             OriginalCount = originalCount;
             Analogue = analogue;
             AnalogueCount = analogueCount;
+            SetHashCode();
         }
     }
 }

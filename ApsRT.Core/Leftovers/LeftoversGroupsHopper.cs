@@ -19,7 +19,15 @@ namespace ApsRT.Core.Leftovers
 
         void IHopperInterface.AfterLoading()
         {
-
+            // Под конец все данные обновляем
+            foreach (var mainPair in LeftoversMasterData.LeftoversGroupsInfo)
+            {
+                var dic = mainPair.Value;
+                foreach (var element in dic)
+                {
+                    element.Value.PostProcess();
+                }
+            }
         }
 
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
