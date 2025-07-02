@@ -66,10 +66,22 @@ namespace ApsRT.Core.Materials
             foreach (var op in StagesMasterData.AllStages)
             {
                 op.Value.StageMaterialsInfo ??= new(op.Value);
+
+                // Группируем, удаля дубликаты, и просто сумируя их
+                var groups = op.Value.StageMaterialsInfo.UsedMaterials.GroupBy(mat => (mat.Nomenklature.Code, mat.Characteristics.Code/*, mat.Specification.Code*/, mat.IsBuying));
+
+
+                op.Value.StageMaterialsInfo.UsedMaterials = groups.Select(group =>
+                {
+                    var first = group.First();
+                    first.Count = group.Sum(x => x.Count);
+                    return first;//new StageOriginalMaterial();
+                }).ToList();
+
                 op.Value.StageMaterialsInfo.UsedMaterials = op.Value.StageMaterialsInfo.UsedMaterials
                     .OrderBy(mat => mat.Nomenklature.Code)
-                    .ThenBy(mat => mat.Specification.Code)
                     .ThenBy(mat => mat.Characteristics.Code)
+                    .ThenBy(mat => mat.Specification.Code)
                     .ThenBy(mat => mat.IsBuying)
                     .ToList();
 

@@ -414,7 +414,10 @@ namespace ApsRT.Core.Leftovers
                         Weights.Add(IBtable[i, b]);
                     }
                 }
-                model.Add(Google.OrTools.Sat.LinearExpr.WeightedSum(items, Weights) <= allBins[b].BinCapacity);
+                if (items.Count > 0)
+                {
+                    model.Add(Google.OrTools.Sat.LinearExpr.WeightedSum(items, Weights) <= allBins[b].BinCapacity);
+                }
             }
 
             // На основании таблицы задаём удельную ценность
@@ -475,7 +478,7 @@ namespace ApsRT.Core.Leftovers
                 )
                 );
 
-            var arrivalInfo = LeftoversArrivalInfo.SelectMany(pair => pair.Value.Select(x => (Date: x.When, Object: (object)(Material: pair.Key, x.Count))));
+            var arrivalInfo = LeftoversArrivalInfo.SelectMany(pair => pair.Value.Select(x => (Date: x.When, Object: (object)(Material: pair.Key, Subdivision: x.Subdivision, Count: x.Count))));
 
             var pointsToAnalyze = points
                 .Union(arrivalInfo)
@@ -500,7 +503,9 @@ namespace ApsRT.Core.Leftovers
                         var matsClass = oper.StageMaterialsInfo;
                         var matsList = matsClass.UsedMaterials;
 
-                        var originalCount = new List<double>();
+                        var originalCount = matsList.Select(X => X.IsBuying ? GetMatSumFromMod(mod, X.AsLeftoverData()) : 0.0).ToList();//new List<double>();
+                        
+
                         //var matsList = matsClass.UsedMaterials.Select(x =>
                         //{
                         //    var nomen = x.AsLeftoverData();
@@ -516,11 +521,9 @@ namespace ApsRT.Core.Leftovers
                         {
                             if (!matsList[i].IsBuying)
                             {
-                                originalCount.Add(0); // Для правильной индексации добавляем пустоту
+                                //originalCount.Add(0); // Для правильной индексации добавляем пустоту
                                 continue;
                             }
-
-                            originalCount.Add(GetMatSumFromMod(mod, matsList[i].AsLeftoverData()));
 
                             if (leftoversList[i] == null && !howMuchAtStart.ContainsKey(matsList[i].AsLeftoverData()))
                             {
@@ -544,7 +547,12 @@ namespace ApsRT.Core.Leftovers
                                 var valueToMinus = leftoversList[i]?.CalculatedCount ?? originalCount[i];
                                 if (howMuchAtStart.TryGetValue(key, out var neededCount))
                                 {
-                                    var pair = neededCount.Where(x => x.Value >= valueToMinus).OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
+                                    var elements = neededCount.Where(x => x.Value >= valueToMinus).OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value);
+                                    if (elements.Count() == 0)
+                                    {
+                                        ;
+                                    }
+                                    var pair = elements.First();
                                     howMuchAtStart[key][pair.Key] -= valueToMinus;
                                 }
                             }
@@ -625,46 +633,6 @@ namespace ApsRT.Core.Leftovers
 
                             if (howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var howMuchNow))
                             {
-                                /*
-
-                            {
-                                if (currentCount < whatWillDecrease.Count)
-                                {
-                                    // Слишком мало, будет ошибка. Надо найти что-то.
-                                    var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
-                                    var found = analoguesDictionaries.FirstOrDefault(x => howMuchAtStart.TryGetValue(x.Key, out var currCount) && currCount >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));//TryFixIt();
-                                    whatWillDecrease = (found.Key, found.Value);
-                                    leftoversList[i].Nomenklature = whatWillDecrease.Material;
-                                    leftoversList[i].CalculatedCount = whatWillDecrease.Count;
-                                }
-                            }
-                            else
-                            {
-                                var analoguesDictionaries = FindAnaloguesAll(opsPossibleLeftoversForOne, oper, whatWillDecrease);
-
-                                var onlyWhichExists = analoguesDictionaries.Where(x => howMuchAtStart.ContainsKey(x.Key));
-
-                                if (onlyWhichExists.Count() == 0)
-                                {
-                                    // это ОЧЕНЬ странно. Выходим
-                                    continue;
-                                }
-
-                                var found = onlyWhichExists
-                                    .OrderByDescending(x => howMuchAtStart[x.Key] - x.Value) // Отсортируем так, чтобы найти самый крупный остаток
-                                    .FirstOrDefault(x => howMuchAtStart[x.Key] >= x.Value, new KeyValuePair<Uco, double>(whatWillDecrease.Material, whatWillDecrease.Count));
-
-                                // Если номенклатура та же, значит я ничего не нашёл, значит просто любой аналог пихаем, который есть, уже не обращая внимания на вместимость.
-                                if (found.Key == whatWillDecrease.Material)
-                                {
-                                    found = onlyWhichExists.First();
-                                }
-
-                                whatWillDecrease = (found.Key, found.Value);
-                                leftoversList[i].Nomenklature = whatWillDecrease.Material;
-                                leftoversList[i].CalculatedCount = whatWillDecrease.Count;
-                            }
-                                 */
 
                                 var pair = howMuchNow/*.Where(x => x.Value >= valueToMinus)*/.OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
                                 var howMuchNowCount = pair.Value;
@@ -691,6 +659,8 @@ namespace ApsRT.Core.Leftovers
                                         oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
                                         oper.GetEasyFlagToOutput()
                                         );
+
+                                    result.Add(lack);
 
                                 }
                                 else

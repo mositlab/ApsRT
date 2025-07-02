@@ -27,6 +27,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             centerLink.LastStartDate = TimeOfStart; //MinAcceptableDate,
             centerLink.AdditinalConditions = new UniversalBinaryStorage();
             centerLink.OpersTime = centerLink.RechangesTime = centerLink.ProstoiTime = TimeSpan.Zero;
+            centerLink.NextNonWorkingInterval = -1;
             return centerLink;
         }
 

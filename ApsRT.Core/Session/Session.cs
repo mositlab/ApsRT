@@ -50,8 +50,13 @@ namespace ApsRT.Core.Session
                 || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Prepared
                 || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Complete
                 || AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Failed;
-        public bool TryCreateNewPlanningAlgorithmInstance(out PlanningAlgorithm algorithm)
+        public bool TryCreateNewPlanningAlgorithmInstance(out PlanningAlgorithm algorithm, bool ForcedToRecreate = false)
         {
+            if (!ForcedToRecreate && AssignedPlanningAlgorithm != null && AssignedPlanningAlgorithm.CurrentStage == PlanningAlgorithmStage.Prepared)
+            {
+                algorithm = AssignedPlanningAlgorithm;
+                return true;
+            }
             if (PlanningAlgorithmIsNotRunning)
             {
                 AssignedPlanningAlgorithm = new PlanningAlgorithm(this);
@@ -243,13 +248,10 @@ namespace ApsRT.Core.Session
                     {
                         if (newPartiasAlgorithmInstance.CurrentStage == PartiasAlgorithmStage.Complete && SessionOptions.LaunchPlan)
                         {
-                            if (
-                                (AssignedPlanningAlgorithm != null && AssignedPlanningAlgorithm.Start())
-                                ||
-                                    (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
-                                && newPlanningAlgorithmInstance.Start()))
+                            if (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
+                                && newPlanningAlgorithmInstance.Start())
                             {
-                                bool result2 = await AssignedPlanningAlgorithm.Process;
+                                bool result2 = await newPlanningAlgorithmInstance.Process;
 
                                 if (result2)
                                 {
@@ -303,7 +305,7 @@ namespace ApsRT.Core.Session
 
 
 
-        internal static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
+        internal void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
         {
             var ex = (Exception)e.Exception;
             var t = new System.Diagnostics.StackTrace(true);
@@ -316,15 +318,14 @@ namespace ApsRT.Core.Session
             Console.WriteLine(mes);
             try
             {
-
-                // ConcurrentLogger.AddToLogQueue.Enqueue(mes + "\r\n");
+                AssignedLogger.LogQueue.Enqueue(mes + "\r\n");
             }
             catch
             {
 
             }
         }
-        internal static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        internal void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = (Exception)e.ExceptionObject;
             var mes = $"=== Unhandled EXCEPTION ({ex.HResult}) ===" +
@@ -335,15 +336,14 @@ namespace ApsRT.Core.Session
             Console.WriteLine(mes);
             try
             {
-
-                //ConcurrentLogger.AddToLogQueue.Enqueue(mes + "\r\n");
+                AssignedLogger.LogQueue.Enqueue(mes + "\r\n");
             }
             catch
             {
 
             }
         }
-        internal static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        internal void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
             var ex = (Exception)e.Exception;
             var mes = $"=== Thread EXCEPTION ({ex.HResult}) ===" +
@@ -353,8 +353,7 @@ namespace ApsRT.Core.Session
                 $"\r\nStack trace: {ex.StackTrace}";
             try
             {
-
-                //ConcurrentLogger.AddToLogQueue.Enqueue(mes + "\r\n");
+                AssignedLogger.LogQueue.Enqueue(mes + "\r\n");
             }
             catch
             {

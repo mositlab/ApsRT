@@ -120,7 +120,7 @@ namespace ApsRT.Core.Session
 
             // Вывод всего
             var algorithm = SessionLink.AssignedPlanningAlgorithm;
-            if (algorithm == null || ForcedToRecreate) SessionLink.TryCreateNewPlanningAlgorithmInstance(out algorithm); // Сначала просто получим текущий алгоритм планирования, потому что именно там хранится всё, что нам надо для вывода
+            if (algorithm == null || ForcedToRecreate) SessionLink.TryCreateNewPlanningAlgorithmInstance(out algorithm, ForcedToRecreate); // Сначала просто получим текущий алгоритм планирования, потому что именно там хранится всё, что нам надо для вывода
             if (algorithm.BestBlocksList == null)
             {
                 // Значит, алгоритм не работает. Подготовить его

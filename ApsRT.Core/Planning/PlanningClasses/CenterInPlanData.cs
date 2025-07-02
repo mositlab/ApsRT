@@ -40,6 +40,7 @@ namespace ApsRT.Core.Planning.PlanningClasses
                 LastBlock = this.LastBlock,
                 LastDate = this.LastDate,
                 LastStartDate = this.LastStartDate,
+                NextNonWorkingInterval = this.NextNonWorkingInterval,
                 //NextFixingIndex = this.NextFixingIndex,
                 //HasToProcessAdditionalConditions = this.HasToProcessAdditionalConditions,
                 //Params = this.Params == null ? null : new(this.Params),

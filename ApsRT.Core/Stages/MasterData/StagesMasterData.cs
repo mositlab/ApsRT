@@ -95,6 +95,7 @@ namespace ApsRT.Core.Stages.MasterData
             #endregion
 
             // А ещё предыдущую дату
+            //stage.PrevDateTime = null;
             if (!PrevTimeDelta.HasValue || PrevTimeDelta.Value > stage.PrevDateTime) PrevTimeDelta = stage.PrevDateTime;
 
             // Теперь смотрим обычное время

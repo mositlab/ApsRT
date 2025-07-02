@@ -58,7 +58,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public bool Start()
         {
-            if (CurrentStage == PlanningAlgorithmStage.None)
+            if (CurrentStage == PlanningAlgorithmStage.None || CurrentStage == PlanningAlgorithmStage.Prepared)
             {
                 if (SessionLink.PartiasAlgorithmIsNotRunning)
                 {

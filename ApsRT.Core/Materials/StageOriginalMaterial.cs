@@ -44,5 +44,15 @@ namespace ApsRT.Core.Materials
             DataFormat = model.Unit;
             IsBuying = model.IsBuying;
         }
+
+        public StageOriginalMaterial(Uco nomenklature, Uco specification, Uco characteristics, double count, DimensionUnit dataFormat, bool isBuying)
+        {
+            Nomenklature = nomenklature;
+            Specification = specification;
+            Characteristics = characteristics;
+            Count = count;
+            DataFormat = dataFormat;
+            IsBuying = isBuying;
+        }
     }
 }
