@@ -113,7 +113,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 {
                     CurrentStage = PartiasAlgorithmStage.PreparingZadelsFree;
                     CurrentStageChanged?.Invoke(CurrentStage, 0);
-                    SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForFreeZadels(PartiiList);
+                    SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForFreeZadels(PartiiList, DEEP);
                 }
 
                 // 7. Непосредственно поиска
@@ -138,6 +138,11 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                 CurrentStage = PartiasAlgorithmStage.Output;
                 CurrentStageChanged?.Invoke(CurrentStage, fin.Length);
+                // Перед записью в сессию обновляем заделы
+                if (!/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
+                {
+                    SessionLink.MasterDataLinks.ZadelsMasterData.UpdateFreeZadelsStatuses(PartiiList);
+                }
                 WriteToSession(fin, easyFlags);
 
                 var dateOfEnd = DateTime.Now;
@@ -229,7 +234,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
         public Dictionary<Guid, HashSet<int>> SavedPartias { get; private set; } = new();
 
         SortedList<double, List<(PartiaClass from, PartiaClass to)>> DEAD = new();
-        ConcurrentDictionary<PartiaClass, ConcurrentDictionary<PartiaClass, (int Total, float K, int Diff, int LongestModsMaxCount)>> DEEP = new(); // TODO: нужен оптимальный concurrencyLevel (поискать в IlSpy)
+        ConcurrentDictionary<PartiaClass, ConcurrentDictionary<PartiaClass, (int Total, float K, int Diff, int LongestModsMaxCount, int LastLevel)>> DEEP = new(); // TODO: нужен оптимальный concurrencyLevel (поискать в IlSpy)
 
         void PreparePartias(bool WithLog)
         {
@@ -476,7 +481,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                         DEEP.TryAdd(prt1, new());
                     }
 
-                    DEEP[prt1].TryAdd(prt2, (res.Total, res.FilledK, res.Diff, res.LongestModsMaxCount));// res.K - был недавно, и работало
+                    DEEP[prt1].TryAdd(prt2, (res.Total, res.FilledK, res.Diff, res.LongestModsMaxCount, res.LastLevel));// res.K - был недавно, и работало
 
                     N++;
                     AlgorithmCallback?.Invoke(CurrentStage, N);
@@ -695,7 +700,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             DEEP.TryAdd(remain, new());
                         }
 
-                        DEEP[remain].TryAdd(partia1, (mergedRes.Total, mergedRes.FilledK, mergedRes.Diff, mergedRes.LongestModsMaxCount));
+                        DEEP[remain].TryAdd(partia1, (mergedRes.Total, mergedRes.FilledK, mergedRes.Diff, mergedRes.LongestModsMaxCount, mergedRes.LastLevel));
                     });
                     while (!resp0.IsCompleted)
                     {

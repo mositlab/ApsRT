@@ -27,7 +27,10 @@ namespace ApsRT.Core.Leftovers
             foreach (LeftoverReplacementInfo replacement in List)
             {
                 var hash = replacement.GetHashCode();
-                Hash = HashCode.Combine(Hash, hash);
+                if (Hash == 0)
+                    Hash = hash;
+                else
+                    Hash = HashCode.Combine(Hash, hash);
             }
         }
 

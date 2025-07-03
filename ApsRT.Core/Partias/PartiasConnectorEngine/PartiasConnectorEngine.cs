@@ -726,11 +726,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     void SetZadelCodes(PartiaModelling mod, int zadelCode, List<Guid> zadelsGUIDs)
                     {
                         // TO DO: А что если тут какой-то другой задел оказался???
-                        // в whereIsUsed по идее тоже надо добавить
                         mod.ZadelCode = zadelCode;
                         mod.ZadelsGUIDs = zadelsGUIDs;
                         var prevMods = mod.Opers.SelectMany(x => x.Prevs).Select(x => allOtherSdvigs[x]).Distinct();
-                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, null /*потому что уровням выше нужно пустоту задать*/);
+                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, new() /*потому что уровням выше нужно пустоту задать*/);
                     }
                 }
             }

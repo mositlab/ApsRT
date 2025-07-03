@@ -7,19 +7,20 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Partias.Zadels
 {
-    internal class ConcreteZadel
+    public class ConcreteZadel
     {
-        public ConcreteZadel(Uco usedTara/*, double count*/)
+        public ConcreteZadel(Uco usedTara, int level)
         {
             UsedTara = usedTara;
-            //Count = count;
-            //CalcCount = count;
-            //RelatedGPs = new List<OrderID>(); // пока хз, насколько это тут надо
+            Count = 0;
+            Level = level;
         }
+
+        public int Level { get; }
 
         public double Count { get; set; }
 
-        internal Uco UsedTara { get; init; } // на какой таре задел намотан
+        internal Uco UsedTara { get; } // на какой таре задел намотан
                                                              //internal double Count { get; init; } // количество этого задела
 
         //internal List<OrderID> RelatedGPs { get; set; } // пока не уверен надо ли

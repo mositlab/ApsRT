@@ -785,6 +785,7 @@ namespace ApsRT.Core.Session
                 }
                 else
                 {
+                    if (!SessionLink.SessionOptions.LaunchZadel) continue; // При свободных заделах не вывожу - апс не ищет.
                     foreach (var etap in zadel.Value.WhereCanUsed)
                     {
                         sw.WriteLine($"{zadel.Key};{etap.Key};{Guid.Empty};{Guid.Empty};0;{ZadelToString(zadel.Value.ZadelStatus)}");
