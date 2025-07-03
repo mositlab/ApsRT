@@ -17,6 +17,8 @@ namespace ApsRT.Core.Partias.Zadels
             //RelatedGPs = new List<OrderID>(); // пока хз, насколько это тут надо
         }
 
+        public double Count { get; set; }
+
         internal Uco UsedTara { get; init; } // на какой таре задел намотан
                                                              //internal double Count { get; init; } // количество этого задела
 

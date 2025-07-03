@@ -105,6 +105,7 @@ namespace ApsRT.Core.Partias.Zadels
                         {
                             zadel.WhereCanUsed.Add(finalEtap, model.Count);
                         }
+                        zadel.Count = Math.Max(zadel.Count, model.Count); // Обновляем количество.
 
                         if (!ZadelsData[partiaPF][order][level][nomen][poviv]/*[finalEtap]*/.ContainsKey(zadelGuid)) // Если такого задела нет, то мы его создаём
                         {
@@ -122,13 +123,18 @@ namespace ApsRT.Core.Partias.Zadels
             LinearZadelsDictionary.Clear();
         }
     
-        public void PreparePartiasForZadels(List<PartiaClass> partias)
+        public void PreparePartiasForLockedZadels(List<PartiaClass> partias)
         {
             bool freeZadels = !SessionLink.SessionOptions.LaunchZadel;
             foreach (var partia in partias)
             {
                 ZadelsCreation(partia.OpersHere, freeZadels, partia.MyGuid);
             }
+        }
+
+        public void PreparePartiasForFreeZadels(List<PartiaClass> partias)
+        {
+
         }
 
         void ZadelsCreation(List<List<PartiaModelling>> partia1, bool freeZadels, Guid partiaPFguid)

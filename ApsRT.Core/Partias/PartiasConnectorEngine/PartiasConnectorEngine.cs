@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ApsRT.Core.Taras.TaraSearchEngine;
+using Google.OrTools.Algorithms;
 
 namespace ApsRT.Core.Partias.PartiasConnectorEngine
 {
@@ -668,9 +669,13 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         }
 
 
-        static void PreZadelsConnection(PartiaClass partia1, PartiaClass partia2, bool withHerself)
+        static void PreZadelsConnection(PartiaClass partia1, PartiaClass partia2, bool withHerself/*пока низачем не нужен, но мб потом пригодится*/)
         {
-            var myPartiaSdvigs = SeeSdvigsAsDic(partia1.OpersHere).Where(x => x.Value.ZadelsGUIDs.Count > 0); // Получаем все сдвиги с заделами
+            var dic1 = SeeSdvigsAsDic(partia1.OpersHere);
+
+            var myPartiaSdvigs = dic1.Where(x => x.Value.ZadelsGUIDs.Count > 0); // Получаем все сдвиги с заделами
+
+            if (myPartiaSdvigs.Count() == 0) return;
 
             var allOtherSdvigs = SeeSdvigsAsDic(partia2.OpersHere);
 
@@ -683,24 +688,49 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     var othermod = x.Value;
                     var firstOpOther = othermod.Opers[0];
 
-                    return firstOpOther.SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(firstOp, firstOpOther, out _, out _, out _)
+                    return othermod.ZadelCode == 0 // Нужно искать те, которым вообще ничего не назначено
+                    && firstOpOther.SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(firstOp, firstOpOther, out _, out _, out _) // Равны по настройкам
+                    && firstOpOther.Level == firstOp.Level // Одинаковый уровень
                     && firstOpOther.IsVspom == firstOp.IsVspom // Вспомогательные только друг с другом
                     && firstOpOther.UsesVspomTara == firstOp.UsesVspomTara; // Вспомогательные тары только друг с другом
                 }
-                );
-                if (possibleOtherPartiaSdvigs.Count() > 0)
+                ).ToArray();
+                if (possibleOtherPartiaSdvigs.Length > 0)
                 {
-                    // Где-то тут нужны проверки на сумму, чтобы задел не был больше положенного
-                    // в whereIsUsed по идее тоже надо добавить
-                    SetZadelCodes(possibleOtherPartiaSdvigs.First().Value, mod.ZadelCode, mod.ZadelsGUIDs); // Назначаем пока только самому первому
+                    // Получаем список УЖЕ зарезервированных модов, которые в моей партии при объединении схлопнутся.
+                    var alreadyReserved = dic1.Where(x => x.Value.Opers[0].Level == firstOp.Level && x.Value.ZadelCode == mod.ZadelCode).Select(x => x.Value as IAbleForTaraCalcInterface).ToHashSet();
 
+                    // Получаем количество задела, и вычитаем из него то количество, которое я уже зарезервировал за другими этапчиками.
+                    var allCount = mod.ZadelsGUIDs.Min(x => firstOp.SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary[x].Count); // Возьмем минимальный из заделов здесь
+                    var reservedCount = alreadyReserved.Count() > 0 ? alreadyReserved.Sum(x => x.Sum) : 0;
+                    var availableCount = allCount - reservedCount;
+
+                    // проверки на сумму, чтобы задел не был больше положенного. Решение задачи о рюкзаке
+                    long[] values = possibleOtherPartiaSdvigs.Select(x => (long)((x.Value as IAbleForTaraCalcInterface).Sum * 1000.0)).ToArray();
+                    long[,] weights = new long[1, values.Length];
+                    weights.SetValue(0, values);
+
+                    KnapsackSolver solver = new KnapsackSolver(KnapsackSolver.SolverType.KNAPSACK_DYNAMIC_PROGRAMMING_SOLVER, $"KnapsackZadelsFor: {mod.ZadelCode}");
+                    solver.Init(values, weights, new long[1] { (long)(availableCount * 1000.0) });
+                    solver.set_time_limit(1.0);
+                    long result = solver.Solve();
+                    if (result > 0)
+                    {
+                        var packedItems = possibleOtherPartiaSdvigs.Where((x, index) => solver.BestSolutionContains(index)).Select(x => x.Value).ToArray();
+                        for (int i = 0; i < packedItems.Length; i++)
+                        {
+                            SetZadelCodes(packedItems[i], mod.ZadelCode, mod.ZadelsGUIDs); // Назначаем
+                        }
+                    }
 
                     void SetZadelCodes(PartiaModelling mod, int zadelCode, List<Guid> zadelsGUIDs)
                     {
+                        // TO DO: А что если тут какой-то другой задел оказался???
+                        // в whereIsUsed по идее тоже надо добавить
                         mod.ZadelCode = zadelCode;
                         mod.ZadelsGUIDs = zadelsGUIDs;
                         var prevMods = mod.Opers.SelectMany(x => x.Prevs).Select(x => allOtherSdvigs[x]).Distinct();
-                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, zadelsGUIDs);
+                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, null /*потому что уровням выше нужно пустоту задать*/);
                     }
                 }
             }

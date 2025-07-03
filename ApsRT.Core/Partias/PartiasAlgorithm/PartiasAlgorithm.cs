@@ -90,26 +90,31 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
                 PreparePartias(WithLog);
 
-                // 3. ЗАДЕЛЫ
-                CurrentStage = PartiasAlgorithmStage.PreparingZadels;
-                CurrentStageChanged?.Invoke(CurrentStage, 0);
-                SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForZadels(PartiiList);
+                // 3. ЗАДЕЛЫ (по ключу)
+                if (SessionLink.SessionOptions.LaunchZadel)
+                {
+                    CurrentStage = PartiasAlgorithmStage.PreparingZadelsLocked;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                    SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForLockedZadels(PartiiList);
+                }
 
-                // 4. Подготавливаем партии к остаткам
-                //CurrentStage = PartiasAlgorithmStage.PreparingLeftovers;
-                //CurrentStageChanged?.Invoke(CurrentStage, 0);
-                //SessionLink.MasterDataLinks.LeftoversMasterData.PreparePartiasForLeftovers(PartiiList);
-                //SessionLink.MasterDataLinks.LeftoversMasterData.OutputLeftovers(PartiiList); // И сразу же их и выводим
-
-                // 5. Готовим таблицу дедлайнов
+                // 4. Готовим таблицу дедлайнов
                 CurrentStage = PartiasAlgorithmStage.FiilingDeadlineTables;
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
                 PrepareDeadlinesTable();
 
-                // 6. Готовим таблицу глубин
+                // 5. Готовим таблицу глубин
                 CurrentStage = PartiasAlgorithmStage.FillingDeepTables;
                 CurrentStageChanged?.Invoke(CurrentStage, (allGPToCheckNow.Length * allGPToCheckNow.Length - allGPToCheckNow.Length) / 2);
                 PrepareDeepTable(WithLog);
+
+                // 6. ЗАДЕЛЫ (без ключа) - сработает только при полном планировании
+                if (!/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
+                {
+                    CurrentStage = PartiasAlgorithmStage.PreparingZadelsFree;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                    SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForFreeZadels(PartiiList);
+                }
 
                 // 7. Непосредственно поиска
                 CurrentStage = PartiasAlgorithmStage.Searching;
