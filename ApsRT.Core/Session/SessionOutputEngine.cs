@@ -196,11 +196,18 @@ namespace ApsRT.Core.Session
                 var oper = operPair.Value;
                 if (oper.StageMaterialsInfo.UsedMaterials == null) continue;
                 if (!startDates.TryGetValue(oper.Index, out var date)) continue;
+
+                IEnumerable<Stages.Stage> mod = oper.IsCustomModelling ? SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo[oper.CustomModelling].RelatedOpers.Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x]) : (oper.MesModelling.IsEmpty ? (new Stages.Stage[] {oper }) : SessionLink.MasterDataLinks.StagesMasterData.MesModellingsInfo[oper.MesModelling.Code].RelatedOpers.Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x]));
+
+                var smallMod = new PartiaModellingSmall(mod.ToList());
+
                 for (int i = 0; i < oper.StageMaterialsInfo.UsedLeftovers.Count; i++)
                 {
                     var element = oper.StageMaterialsInfo.UsedLeftovers[i];
                     var origMat = oper.StageMaterialsInfo.UsedMaterials[i];
                     if (element == null) continue;
+
+                    var modCount = SessionLink.MasterDataLinks.LeftoversMasterData.GetMatSumFromMod(smallMod, origMat.AsLeftoverData());
 
                     sw.WriteLine($"" +
                         $"{oper.GUID};" +
@@ -211,7 +218,7 @@ namespace ApsRT.Core.Session
 
                         $"{origMat.Nomenklature.Code};" +
                         $"{origMat.Characteristics.Code};" +
-                        $"{origMat.Count};" +
+                        $"{modCount};" +
 
                         $"{date}");
 
@@ -228,7 +235,7 @@ namespace ApsRT.Core.Session
                         $"{origMat.Nomenklature.Label};" +
                         $"{origMat.Characteristics.Code};" +
                         $"{origMat.Characteristics.Label};" +
-                        $"{origMat.Count};" +
+                        $"{modCount};" +
 
                         $"{date}");
                 }

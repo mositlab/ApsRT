@@ -87,7 +87,7 @@ namespace ApsRT.Core.Leftovers
                 foreach (var opMod in mod.AllOpers)
                 {
                     var result = GetReplacementInfo(opMod, x => true/*x.Value.Count == 1*/);
-                    dic = dic == null ? result : dic.Intersect(result/*result.Select(x => x.Value.Hash), keySelector => keySelector.Value.Hash*/).ToDictionary();
+                    dic = dic == null ? result : dic.IntersectBy(result.Select(x => x.Value.Hash), keySelector => keySelector.Value.Hash).ToDictionary();
                 }
 
                 opsPossibleLeftoversForOne.Add(mod, dic);
@@ -189,7 +189,7 @@ namespace ApsRT.Core.Leftovers
         //sw.Close();
 
 
-        double GetMatSumFromMod(IAbleForTaraCalcInterface mod, LeftoverUco mat)
+        public double GetMatSumFromMod(IAbleForTaraCalcInterface mod, LeftoverUco mat)
         {
             return mod.AllOpers.Sum(x =>
             {
@@ -600,6 +600,24 @@ namespace ApsRT.Core.Leftovers
                                         ;
                                     }
                                     var pair = elements.First();
+
+                                    //var lack = new LeftoverLackData(
+                                    //    key,
+                                    //    oper.GetPartiaCode() ?? Guid.Empty,
+                                    //    valueToMinus,
+                                    //    howMuchAtStart[key][pair.Key],
+                                    //    pair.Key,
+                                    //    point.Date,
+                                    //    null,
+                                    //    null,
+                                    //    oper.GUID,
+                                    //    oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
+                                    //    oper.GetEasyFlagToOutput()
+                                    //    );
+
+                                    //result.Add(lack);
+
+
                                     howMuchAtStart[key][pair.Key] -= valueToMinus;
                                 }
                             }
@@ -693,15 +711,17 @@ namespace ApsRT.Core.Leftovers
                                         return whatWillDecrease.Material == info.Material; // Нам нужен приход того же материала
                                     }); // найдем следующий приход
                                     DateTime? nextPrihod = n == -1 ? null : pointsToAnalyze[n].Date;
-
+                                    //Uco? nextPrihodSub = n == -1 ? null : (((LeftoverUco Material, Uco Subdivision, double Count))pointsToAnalyze[n].Object).Subdivision;
 
                                     var lack = new LeftoverLackData(
                                         whatWillDecrease.Material,
                                         oper.GetPartiaCode() ?? Guid.Empty,
                                         whatWillDecrease.Count,
                                         howMuchNowCount + whatWillDecrease.Count,
+                                        //pair.Key,
                                         point.Date,
-                                        nextPrihod,
+                                        nextPrihod ?? DateTime.MinValue,
+                                        //nextPrihodSub,
                                         oper.GUID,
                                         oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
                                         oper.GetEasyFlagToOutput()
@@ -712,6 +732,23 @@ namespace ApsRT.Core.Leftovers
                                 }
                                 else
                                 {
+
+                                    //var lack = new LeftoverLackData(
+                                    //    whatWillDecrease.Material,
+                                    //    oper.GetPartiaCode() ?? Guid.Empty,
+                                    //    whatWillDecrease.Count,
+                                    //    howMuchNowCount + whatWillDecrease.Count,
+                                    //    pair.Key,
+                                    //    point.Date,
+                                    //    null,
+                                    //    null,
+                                    //    oper.GUID,
+                                    //    oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
+                                    //    oper.GetEasyFlagToOutput()
+                                    //    );
+
+                                    //result.Add(lack);
+
                                     howMuchAtStart[whatWillDecrease.Material][pair.Key] = howMuchNowCount; // Подсчитанное количество вбиваем, если оно все ещё больше 0.
                                 }
 

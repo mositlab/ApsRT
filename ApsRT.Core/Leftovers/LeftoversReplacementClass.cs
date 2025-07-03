@@ -9,7 +9,7 @@ namespace ApsRT.Core.Leftovers
     public class LeftoversReplacementClass
     {
         public List<LeftoverReplacementInfo> List { get; private set; }
-        int Hash { get; set; }
+        public int Hash { get; private set; }
 
         public override int GetHashCode()
         {
