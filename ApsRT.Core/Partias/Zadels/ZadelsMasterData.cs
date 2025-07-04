@@ -267,6 +267,13 @@ namespace ApsRT.Core.Partias.Zadels
                     {
                         for (int j = 0; j < partia1[i].Count; j++)
                         {
+
+                            if (partia1[i][j].ZadelsGUIDs.Count > 0 && LinearZadelsDictionary[partia1[i][j].ZadelsGUIDs[0]].UsedTara != zadel.Value.UsedTara)
+                            {
+                                // Этот задел нельзя тут поставить, потому что тут другая тара.
+                                continue;
+                            }
+
                             var opHere = partia1[i][j].Opers[0]; // потому что они тут всё равно всегда одни.
 
                             if ((partia1[i][j] as IAbleForTaraCalcInterface).Sum <= zadel.Value.Count) // Задел может сюда влезть по количеству?

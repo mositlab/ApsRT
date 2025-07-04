@@ -942,82 +942,89 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     opsForEasyLife[0]
                 };
                     opsForEasyLife.RemoveAt(0);
-                    var sps1 = sdvigF.Opers
-                        .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у моделирования
-                        .Distinct() // убираем дубликаты
-                        .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null) // превращаем в сдвиги
-                        .ToList();
-                    var nxt = sdvigF.Opers
-                        .SelectMany(x => x.Nexts)
-                        .Distinct()
-                        .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null)
-                        .ToList();
-                    //var nxt = string.Join(",", first.Nexts.OrderBy(x => x));
-                    for (var i = 0; i < opsForEasyLife.Count; i++)
+
+                    if (IdsHere[0].ZadelCode == 0) // Если НЕТ задела - то тогда МОЖНО
                     {
-                        var idhere = opsForEasyLife[i];
-                        var idhere1 = idhere.Opers[0];
-
-                        //ALL[idhere].Prevs.Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null).ToList();
-                        if (SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(first, idhere1, out _, out _, out _, true) && first.Level == idhere1.Level) // общ этапам нужно обязательно чекать альт рц, поэтому true
+                        var sps1 = sdvigF.Opers
+                            .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у моделирования
+                            .Distinct() // убираем дубликаты
+                            .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null) // превращаем в сдвиги
+                            .ToList();
+                        var nxt = sdvigF.Opers
+                            .SelectMany(x => x.Nexts)
+                            .Distinct()
+                            .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null)
+                            .ToList();
+                        //var nxt = string.Join(",", first.Nexts.OrderBy(x => x));
+                        for (var i = 0; i < opsForEasyLife.Count; i++)
                         {
-                            if (first.IsFictive && first.NoChangeTara && idhere1.NoChangeTara)
-                            {
-                                // Если они фиктивные, и у них есть признак "не менять тару", то вместо классической проверки,
-                                // достаточно проверить, чтоб гуиды общих этапов выше совпадали (и вообще были).
-                                var sps0 = sdvigF.Opers
-                                .SelectMany(x => x.Prevs); // Берём ВСЕХ предков у этого первого моделирования
+                            var idhere = opsForEasyLife[i];
+                            var idhere1 = idhere.Opers[0];
 
-                                var sps2 = idhere.Opers
-                                    .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у этого моделирования
-                                    .Union(sps0) // СМЕШИВАЕМ с первым моделированием
-                                    .Select(x => IDtoGroup.TryGetValue(x, out var l) ? l : (Guid?)null) // превращаем в номера общих этапов
-                                    .Distinct().ToArray();
-                                if (sps2.Length == 1 && sps2[0] != null) // Должен быть один одинаковый обший этап, и при этом не пустой
-                                {
-                                    IdsHere.Add(opsForEasyLife[i]);
-                                    opsForEasyLife.RemoveAt(i);
-                                    i--;
-                                }
-                            }
-                            else
+                            if (idhere.ZadelCode != 0) continue; // Если задел есть, то пропускаю его.
+
+                            //ALL[idhere].Prevs.Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null).ToList();
+                            if (SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(first, idhere1, out _, out _, out _, true) && first.Level == idhere1.Level) // общ этапам нужно обязательно чекать альт рц, поэтому true
                             {
-                                // Рабоаем по старинке, сравниваем все условия.
-                                var nxt2 = idhere.Opers
-                                .SelectMany(x => x.Nexts)
-                                .Distinct()
-                                .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null)
-                                .ToList();
-                                //ALL[idhere].Nexts.Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null).ToList();
-                                if ((nxt.All(x => nxt2.Contains(x))
-                                    &&
-                                    nxt2.All(x => nxt.Contains(x)))
-                                    || // Второй вариант - чекаем, чтоб они были схожи технически, у них были одинаковые РЦ (понятно с предыдущей проверки выше) + не менять тару у ребенка
-                                    (nxt2.All(x => x.Opers[0].NoChangeTara))
-                                    )
+                                if (first.IsFictive && first.NoChangeTara && idhere1.NoChangeTara)
                                 {
+                                    // Если они фиктивные, и у них есть признак "не менять тару", то вместо классической проверки,
+                                    // достаточно проверить, чтоб гуиды общих этапов выше совпадали (и вообще были).
+                                    var sps0 = sdvigF.Opers
+                                    .SelectMany(x => x.Prevs); // Берём ВСЕХ предков у этого первого моделирования
+
                                     var sps2 = idhere.Opers
-                                    .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у моделирования
-                                    .Distinct() // убираем дубликаты
-                                    .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null) // превращаем в сдвиги
-                                    .ToList();
-                                    //var inter = sps1.Intersect(sps2).Count();
-                                    if (sps1.All(x => sps2.Contains(x))
-                                        &&
-                                        sps2.All(x => sps1.Contains(x))
-                                        //first.Prevs.All(x => ALL[opsForEasyLife[i]].Prevs.Contains(x))
-                                        //&&
-                                        //ALL[opsForEasyLife[i]].Prevs.All(x => first.Prevs.Contains(x))
-                                        )
+                                        .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у этого моделирования
+                                        .Union(sps0) // СМЕШИВАЕМ с первым моделированием
+                                        .Select(x => IDtoGroup.TryGetValue(x, out var l) ? l : (Guid?)null) // превращаем в номера общих этапов
+                                        .Distinct().ToArray();
+                                    if (sps2.Length == 1 && sps2[0] != null) // Должен быть один одинаковый обший этап, и при этом не пустой
                                     {
                                         IdsHere.Add(opsForEasyLife[i]);
                                         opsForEasyLife.RemoveAt(i);
                                         i--;
                                     }
                                 }
+                                else
+                                {
+                                    // Рабоаем по старинке, сравниваем все условия.
+                                    var nxt2 = idhere.Opers
+                                    .SelectMany(x => x.Nexts)
+                                    .Distinct()
+                                    .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null)
+                                    .ToList();
+                                    //ALL[idhere].Nexts.Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null).ToList();
+                                    if ((nxt.All(x => nxt2.Contains(x))
+                                        &&
+                                        nxt2.All(x => nxt.Contains(x)))
+                                        || // Второй вариант - чекаем, чтоб они были схожи технически, у них были одинаковые РЦ (понятно с предыдущей проверки выше) + не менять тару у ребенка
+                                        (nxt2.All(x => x.Opers[0].NoChangeTara))
+                                        )
+                                    {
+                                        var sps2 = idhere.Opers
+                                        .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у моделирования
+                                        .Distinct() // убираем дубликаты
+                                        .Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null) // превращаем в сдвиги
+                                        .ToList();
+                                        //var inter = sps1.Intersect(sps2).Count();
+                                        if (sps1.All(x => sps2.Contains(x))
+                                            &&
+                                            sps2.All(x => sps1.Contains(x))
+                                            //first.Prevs.All(x => ALL[opsForEasyLife[i]].Prevs.Contains(x))
+                                            //&&
+                                            //ALL[opsForEasyLife[i]].Prevs.All(x => first.Prevs.Contains(x))
+                                            )
+                                        {
+                                            IdsHere.Add(opsForEasyLife[i]);
+                                            opsForEasyLife.RemoveAt(i);
+                                            i--;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+
                     if (IdsHere.Count > 1/* && IdsHere.Select(x => IDtoSdvig.TryGetValue(x, out var grp) ? grp : null).Distinct().Count() > 1*/)
                     {
                         var guid = Guid.NewGuid();
