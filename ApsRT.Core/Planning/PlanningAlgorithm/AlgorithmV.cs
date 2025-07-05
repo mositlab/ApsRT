@@ -219,7 +219,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             return false;
                         }
 
-                        var list = OpersCopy[j].Lists[0].OpersList[0].PossibleCenters;
+                        var list = OpersCopy[j].Lists[0].PossibleRCsHere;//.OpersList[0].PossibleCenters;
                         var alt = (list != null) && false;
 
                         //var taraList = Tara.GetOperTara(OpersCopy[j].Lists[0].FirstOper, false);

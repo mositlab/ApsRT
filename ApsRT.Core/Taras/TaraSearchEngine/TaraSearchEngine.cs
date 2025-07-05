@@ -119,9 +119,16 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             if (allOpers.FirstOperLink.NoCheckNamotka)
             {
                 searchData.errorMessage?.Append($"{allOpers.FirstOperLink}: не проверяет намотку. Сразу ухожу.\r\n");
-                var rcs = allOpers.FirstOperLink.PossibleCenters ?? new List<Uco>() { allOpers.FirstOperLink.OriginalCenter };
+
+                List<Uco> rcs = null;
+
+                foreach (var element in allOpers.AllOpers)
+                {
+                    var res = element.PossibleCenters ?? new List<Uco>() { element.OriginalCenter };
+                    rcs = (rcs == null) ? res : rcs.Intersect(res).ToList();
+                }
                 searchData.PossibleCentersAndTaras = rcs.Select(x => (RC: x, Tara: new Uco(Guid.Empty, ""))).ToArray();
-                return true;
+                return searchData.PossibleCentersAndTaras.Length > 0;
             }
 
             var doNotCheckWindings = SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(allOpers.FirstOperLink.OperationVid.Code, allOpers.FirstOperLink.Subdivision.Code);//allOpers.Select(e => e.oper.OperationVid.Code).First());
