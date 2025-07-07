@@ -173,8 +173,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             Console.WriteLine($"planning start: {MinAcceptableDate}");
 
-            // Сюда можно ещё фильтр потом вставить
+            // Формируем список этапчиков
             List<Stage> stages = SessionLink.MasterDataLinks.StagesMasterData.AllStages.Select(x => x.Value).ToList();
+
+            // Фильтр этапчиков
+            stages = stages.Where(x => x != null && !x.ClosedByZadels).ToList();
 
             if (stages.Count == 0)
             {

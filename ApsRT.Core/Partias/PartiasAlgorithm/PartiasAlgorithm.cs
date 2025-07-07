@@ -191,8 +191,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 op.CurrentTaraMaxCapacity = 0;
                 op.EasyFlag = op.EasyFlagOriginal;
                 op.CustomPartiaGuid = null;
-                
-
+                op.ZadelsInherited = 0; // Инфу по заделам убираем
             }
 
             SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Clear();

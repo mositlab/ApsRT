@@ -469,6 +469,12 @@ namespace ApsRT.Core.Stages
         /// </summary>
         public Dictionary<Uco, int> ParallelPlanningIDs;
         #endregion
+
+        #region Заделы
+        public int ZadelsInherited { get; set; }
+
+        public bool ClosedByZadels => ZadelsInherited >= PlacesCount;
+        #endregion
     }
 
 }

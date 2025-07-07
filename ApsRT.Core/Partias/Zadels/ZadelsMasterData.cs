@@ -212,7 +212,7 @@ namespace ApsRT.Core.Partias.Zadels
                 // У всех предыдущих стираем всё
                 void EraseZadelsTree(PartiaModelling sdvig, int zadelCode)
                 {
-                    foreach (var prev in sdvig.Opers[0].Prevs) // смотрим предков
+                    foreach (var prev in sdvig.Opers.SelectMany(x => x.Prevs)) // смотрим предков
                     {
                         if (OpersToSdvigs.TryGetValue(prev, out var sdvigP))
                         {
@@ -315,7 +315,7 @@ namespace ApsRT.Core.Partias.Zadels
                     // У всех предыдущих стираем всё
                     void EraseZadelsTree(PartiaModelling sdvig, int zadelCode)
                     {
-                        foreach (var prev in sdvig.Opers[0].Prevs) // смотрим предков
+                        foreach (var prev in sdvig.Opers.SelectMany(x => x.Prevs)) // смотрим предков
                         {
                             if (OpersToSdvigs.TryGetValue(prev, out var sdvigP))
                             {
@@ -333,15 +333,43 @@ namespace ApsRT.Core.Partias.Zadels
 
         public void UpdateFreeZadelsStatuses(List<PartiaClass> partiasToCheck)
         {
-            var ModsWithUsedZadels = partiasToCheck.SelectMany(x => x.SeeSdvigsAsDic().Where(y => y.Value.ZadelsGUIDs != null && y.Value.ZadelsGUIDs.Count > 0).Select(x => x.Value)).ToList();
-
-            foreach (var mod in ModsWithUsedZadels)
+            foreach (var partia in partiasToCheck)
             {
-                foreach (var zadel in mod.ZadelsGUIDs)
+                var OpersToSdvigs = partia.SeeSdvigsAsDic();
+                var ModsWithUsedZadels = OpersToSdvigs.Where(y => y.Value.ZadelsGUIDs != null && y.Value.ZadelsGUIDs.Count > 0).Select(x => x.Value).ToList();
+
+                foreach (var mod in ModsWithUsedZadels)
                 {
-                    var zadelClass = LinearZadelsDictionary[zadel];
-                    zadelClass.ZadelStatus = ZadelStatus.SussesfullyUsed;
-                    zadelClass.WhereIsUsed.Add((mod.Opers[0].Index, (mod as IAbleForTaraCalcInterface).Sum));
+                    foreach (var zadel in mod.ZadelsGUIDs)
+                    {
+                        var zadelClass = LinearZadelsDictionary[zadel];
+                        zadelClass.ZadelStatus = ZadelStatus.SussesfullyUsed;
+                        foreach (var oper in mod.Opers)
+                        {
+                            //oper.ZadelsInherited = zadelsCount;
+                            zadelClass.WhereIsUsed.Add((oper.Index, oper.Count/*(mod as IAbleForTaraCalcInterface).Sum*/));
+                        }
+                    }
+
+                    // Записываем инфу о закрытых заделах
+                    WriteZadelsTree(mod, mod.ZadelsGUIDs.Count);
+                }
+
+                // У всех предыдущих стираем всё
+                void WriteZadelsTree(PartiaModelling sdvig, int zadelsCount)
+                {
+                    foreach (var oper in sdvig.Opers)
+                    {
+                        oper.ZadelsInherited = zadelsCount;
+                    }
+                    var prevs = sdvig.Opers.SelectMany(x => x.Prevs).Distinct();
+                    foreach (var prev in prevs) // смотрим предков
+                    {
+                        if (OpersToSdvigs.TryGetValue(prev, out var sdvigP))
+                        {
+                            WriteZadelsTree(sdvigP, zadelsCount);
+                        }
+                    }
                 }
             }
         }
