@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using ZLinq;
 
 namespace ApsRT.Core.Partias.MergeConditions
 {
@@ -77,6 +78,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             MergeConditions.Clear();
             MergeConditionsByOperationTypeGuid?.Clear();
             DoNotCheckWindingsByOperationTypeGuid?.Clear();
+            CentersIntersectionCache = null;
         }
 
         /// <summary>
@@ -102,6 +104,30 @@ namespace ApsRT.Core.Partias.MergeConditions
                 .Select(e => e.Key)
                 .Distinct()
                 .ToHashSet();
+        }
+
+        bool?[,] CentersIntersectionCache;
+        bool FindCentersIntersectionData(Stage op1, Stage op2)
+        {
+            var i = op1.Index;
+            var j = op2.Index;
+            if (i > j)
+            {
+                var tmp = i;
+                i = j;
+                j = tmp;
+            }
+            if (CentersIntersectionCache[i, j].HasValue) return CentersIntersectionCache[i, j].Value;
+            var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
+            var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
+            CentersIntersectionCache[i, j] = op1Centers.AsValueEnumerable().Intersect(op2Centers).Any();
+            return CentersIntersectionCache[i, j].Value;
+        }
+        public void Prepare(Session.Session session)
+        {
+            var stages = session.MasterDataLinks.StagesMasterData.AllStages;
+            var count = stages.Count;
+            CentersIntersectionCache = new bool?[count, count];
         }
 
         #region Метод для проверки, обращающийся к НСИ для выяснения, могут ли объединяться эти два этапчика
@@ -271,10 +297,11 @@ namespace ApsRT.Core.Partias.MergeConditions
             // проверка группы заменяемости
             if (condition.CheckWorkCenterRoute || forObshEtaps)
             {
-                var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
-                var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
+                var op1Centers = (op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter }).AsValueEnumerable();
+                var op2Centers = (op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter }).AsValueEnumerable();
 
                 if (!op1Centers.Intersect(op2Centers).Any())
+                //if (!FindCentersIntersectionData(op1, op2))
                 {
                     reasonBuilder.Append("нет пересечения по РЦ");
                     reason = reasonBuilder.ToString();

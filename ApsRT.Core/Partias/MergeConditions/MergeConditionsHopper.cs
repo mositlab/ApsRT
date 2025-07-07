@@ -4,16 +4,17 @@ using ApsRT.Core.Props;
 using System.Data;
 using UniversalPack.Common.DataLoader;
 using UniversalPack.Extensions;
+using ApsRT.Core.Stages.Hoppers;
 
 namespace ApsRT.Core.Partias.MergeConditions
 {
     /// <summary>
     /// Загрузчик условий объединения
     /// </summary>
-    [Hopper(Label = "Усл. объединения", IsDirectory = false, IsMultiple = false, UsesGuid = true, NeededHoppers = new string[] {nameof(MergeConditionsListHopper) })]
+    [Hopper(Label = "Усл. объединения", IsDirectory = false, IsMultiple = false, UsesGuid = true, NeededHoppers = new string[] {nameof(MergeConditionsListHopper), nameof(StagesHopper) })]
     internal sealed class MergeConditionsHopper : IHopperInterface
     {
-
+        Session.Session session;
         MergeConditionsMasterData MergeConditionsMasterData;
 
         public void ActionFile(string filename) { }
@@ -21,10 +22,12 @@ namespace ApsRT.Core.Partias.MergeConditions
         public void AfterLoading()
         {
             MergeConditionsMasterData.MakeIndexes();
+            MergeConditionsMasterData.Prepare(session);
         }
 
         public void BeforeAllLoading(Session.Session session, string[] filenames)
         {
+            this.session = session;
             MergeConditionsMasterData = session.MasterDataLinks.MergeConditionsMasterData;
             MergeConditionsMasterData.ClearMergeConditions();
         }

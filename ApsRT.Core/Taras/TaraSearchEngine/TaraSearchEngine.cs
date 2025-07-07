@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using UniversalPack;
 using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using ZLinq;
 
 namespace ApsRT.Core.Taras.TaraSearchEngine
 {
@@ -31,7 +32,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var ALL = sessionLink.MasterDataLinks.StagesMasterData.AllStages;
             var TaraDataSet = sessionLink.MasterDataLinks.TarasMasterData;
 
-            var prevs = CurrentOpers.AllOpers.SelectMany(x => x.Prevs).Distinct(); // находим предков
+            var prevs = CurrentOpers.AllOpers.AsValueEnumerable().SelectMany(x => x.Prevs).Distinct(); // находим предков
             var possibleTara = prevs
                 .Where(x => IDToTara.TryGetValue(x, out var tar) && !tar.IsEmpty) // выбираем тех, про кого есть инфа в словаре о предках
                 .Select(x => (isVspom: ALL[x].UsesVspomTara, tara: IDToTara[x])) // выбираем тару из них
@@ -47,7 +48,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             else
                 rcs = new List<Uco>();
             otdTara = possibleTara.Select(x => x.tara).ToList();
-            foreach (var center in possibleCenters.Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)))
+            foreach (var center in possibleCenters.AsValueEnumerable().Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)))
             {
                 if (
                     (!possibleTara.Any() || possibleTara.All(tara => TaraDataSet.GetNeededTaras(center, CurrentOpers.FirstOperLink.OperationVid, tara.isVspom).otd.TryGetValue(tara.isVspom, out var has) && has.Contains(tara.tara))) // первое условие: все тары в списке предков есть (если эти предки вообще существуют, и есть тара для этого)
@@ -90,7 +91,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 return resu != null;
             }
 
-            bool willVspom = allOpers.FirstOperLink.UsesVspomTara || allOpers.AllOpers.Any(x => x.Nexts.Any(y => ALL[y].UsesVspomTara && ALL[y].NoChangeTara)); // Признак "вспом. тару" должен быть у текущего, либо у ребенка (и у ребенка должен быть признак не менять тару)
+            bool willVspom = allOpers.FirstOperLink.UsesVspomTara || allOpers.AllOpers.AsValueEnumerable().Any(x => x.Nexts.AsValueEnumerable().Any(y => ALL[y].UsesVspomTara && ALL[y].NoChangeTara)); // Признак "вспом. тару" должен быть у текущего, либо у ребенка (и у ребенка должен быть признак не менять тару)
 
             searchData = new()
             {
@@ -106,7 +107,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 //notChangeTara = false
             };
 
-            searchData.dataErrorMore.RCsOnPrevEtap = allOpers.AllOpers.SelectMany(x => x.Prevs).SelectMany(Index =>
+            searchData.dataErrorMore.RCsOnPrevEtap = allOpers.AllOpers.AsValueEnumerable().SelectMany(x => x.Prevs).SelectMany(Index =>
             {
                 var op = ALL[Index];
                 return op.PossibleCenters ?? new List<Uco> { op.OriginalCenter };
@@ -125,9 +126,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 foreach (var element in allOpers.AllOpers)
                 {
                     var res = element.PossibleCenters ?? new List<Uco>() { element.OriginalCenter };
-                    rcs = (rcs == null) ? res : rcs.Intersect(res).ToList();
+                    rcs = (rcs == null) ? res : rcs.AsValueEnumerable().Intersect(res).ToList();
                 }
-                searchData.PossibleCentersAndTaras = rcs.Select(x => (RC: x, Tara: new Uco(Guid.Empty, ""))).ToArray();
+                searchData.PossibleCentersAndTaras = rcs.AsValueEnumerable().Select(x => (RC: x, Tara: new Uco(Guid.Empty, ""))).ToArray();
                 return searchData.PossibleCentersAndTaras.Length > 0;
             }
 
@@ -151,7 +152,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 HashSet<(Uco Tara, bool WasVspom)> TaraHereMustBeThis = null;
                 if (options.PrevsInfo != null && first.Prevs.Count > 0)
                 {
-                    TaraHereMustBeThis = new(first.Prevs.Select(x => options.PrevsInfo.TryGetValue(x, out var taraMax) ? (taraMax, first.NoChangeTara ? false : ALL[x].UsesVspomTara) : (new(Guid.Empty, ""), false)).Distinct().Where(x => !x.Item1.IsEmpty));
+                    TaraHereMustBeThis = first.Prevs.AsValueEnumerable().Select(x => options.PrevsInfo.TryGetValue(x, out var taraMax) ? (taraMax, first.NoChangeTara ? false : ALL[x].UsesVspomTara) : (new(Guid.Empty, ""), false)).Distinct().Where(x => !x.Item1.IsEmpty).ToHashSet();
                     searchData.errorMessage?.Append($"Отд. тары у {first.Index}: {string.Join(", ", TaraHereMustBeThis)}\r\n");
                 }
 
@@ -172,7 +173,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     {
                         if (TaraHereMustBeThis == null || TaraHereMustBeThis.Count == 0 || TaraHereMustBeThis.All(x => TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, x.WasVspom)/*.FromAndToTara[first.Center]*/.otd.TryGetValue(x.WasVspom, out var has) && has.Contains(x.Tara)))
                         {
-                            res = (TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, null).priem.TryGetValue(false, out var has) ? has.Select(x => (RC: first.OriginalCenter, Tara: x)) : new (Uco, Uco)[] { }).ToArray();
+                            res = (TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, null).priem.TryGetValue(false, out var has) ? has.AsValueEnumerable().Select(x => (RC: first.OriginalCenter, Tara: x)).ToArray() : new (Uco, Uco)[] { });
                         }
                         else
                         {
@@ -186,7 +187,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 {
                     rcs.AddRange(first.PossibleCenters);
                     res = Array.Empty<(Uco RC, Uco Tara)>();
-                    var res00 = first.PossibleCenters.Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)
+                    var res00 = first.PossibleCenters.AsValueEnumerable().Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)
                     && (!first.IsVspom || CentersData[x].AbleToVspom));
                     if (res00.Count() > 0)
                     {
@@ -222,7 +223,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     ;
 
                 // Проверим конечную тару
-                if (!WantThisOrigTara.IsEmpty && !res.Any(X => X.Tara == WantThisOrigTara))
+                if (!WantThisOrigTara.IsEmpty && !res.AsValueEnumerable().Any(X => X.Tara == WantThisOrigTara))
                 {
                     // Тут нет ни единой тары, которая подойдёт как конечная
                     if (LogErrorsBySettings)
@@ -286,11 +287,11 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     }
                     else
                     {
-                        var set1 = new HashSet<Uco>(res0.Select(x => x.Tara));
-                        searchData.BARABANAS = searchData.BARABANAS.Where(x => set1.Contains(x.Tara)).ToArray();//.Add(poss2);
+                        var set1 =/* new HashSet<Uco>(*/res0.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
+                        searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set1.Contains(x.Tara)).ToArray();//.Add(poss2);
                     }
 
-                    searchData.dataErrorMore.MaxNamotka = searchData.BARABANAS.Select(x => (x.Tara, x.Namot)).ToList();
+                    searchData.dataErrorMore.MaxNamotka = searchData.BARABANAS.AsValueEnumerable().Select(x => (x.Tara, x.Namot)).ToList();
 
                     //if (withUI) This.MergeTextBox.Text += $"Намотки для {first.oper}: {string.Join(", ", poss2.Select(x => x.Tara))}\r\n";
                     searchData.errorMessage?.Append(string.Join("\r\n", res0.Select(x => $"{x.Tara} ({x.Namot} {x.Format.DimensionUnitToString()})")) + "\r\n");
@@ -356,7 +357,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 }
                 else
                 {
-                    searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.Intersect(res/*, new CodedObjectTaraEqualityComparer()*/).ToArray();
+                    searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.AsValueEnumerable().Intersect(res/*, new CodedObjectTaraEqualityComparer()*/).ToArray();
                 }
 
                 if (searchData.PossibleCentersAndTaras.Length == 0)
@@ -387,7 +388,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             if (true/*CheckChildren*/)
             {
                 // У самых первых детей есть булевый признак, который врубает проверку на РЦ. Если там дальше будет "не менять тару", этот признак позволяет отключить лишние проверки.
-                var childs = allOpers.AllOpers.SelectMany(x => x.Nexts).Distinct().Select(y => (op: ALL[y], isFirst: true))
+                var childs = allOpers.AllOpers.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(y => (op: ALL[y], isFirst: true))
                     //.Where(x => !x.op.IsLast)
                     .ToList();
 
@@ -406,7 +407,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         // Сначала проверим момент "НеМенятьТару"
                         if (first.op.NoChangeTara)
                         {
-                            childs.AddRange(first.op.Nexts.Where(x => ALL.ContainsKey(x)).Select(x => (op: ALL[x], isFirst: false)));
+                            childs.AddRange(first.op.Nexts.AsValueEnumerable().Where(x => ALL.ContainsKey(x)).Select(x => (op: ALL[x], isFirst: false)).ToArray());
                             if (!first.isFirst) // если это первый раз, то не проходим мимо, а отдающую тару чекаем
                             {
                                 continue;
@@ -427,9 +428,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             {
                                 bool FirVsp = first.isFirst && first.op.NoChangeTara;
 
-                                HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                                HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
-                                var res01 = localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara));
+                                var res01 = localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara));
 
                                 if (res01)
                                 {
@@ -437,7 +438,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                         .TryGetValue(FirVsp ? false : willVspom, out var has) // вот как у этапа выше вспом. тара назначена - вот здесь она себя и проявляет
                                                                                               //&&
                                                                                               //first.op.Prevs.All(x => PrevsInfo == null || !PrevsInfo.TryGetValue(x, out var t) || has.Contains(t)) // Нужно ещё чекнуть, чтоб все тары у предыдущих этапов были тут (полная проверка)
-                                        ? has.Select(x => (RC: first.op.OriginalCenter, Tara: x)).ToList()
+                                        ? has.AsValueEnumerable().Select(x => (RC: first.op.OriginalCenter, Tara: x)).ToList()
                                         : new (Uco, Uco)[] { }.ToList();
                                 }
                                 else
@@ -480,7 +481,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         // Сначала проверим момент "НеМенятьТару" - если она есть,
                         if (first.op.NoChangeTara/*PossibleCenters.All(x => CentersData[x].NotChangeTara)*/)
                         {
-                            childs.AddRange(first.op.Nexts.Where(x => ALL.ContainsKey(x)).Select(x => (op: ALL[x], isFirst: false)));
+                            childs.AddRange(first.op.Nexts.AsValueEnumerable().Where(x => ALL.ContainsKey(x)).Select(x => (op: ALL[x], isFirst: false)).ToArray());
                             if (!first.isFirst) // если это первый раз, то не проходим мимо, а отдающую тару чекаем
                             {
                                 continue;
@@ -490,7 +491,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         // А вот теперь все остальное
                         bool FirVsp = first.isFirst && first.op.NoChangeTara;
 
-                        var rcs1 = first.op.PossibleCenters.Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)
+                        var rcs1 = first.op.PossibleCenters.AsValueEnumerable().Where(x => TaraDataSet.FromAndToTara.ContainsKey(x)
                         && (first.op.EndTara.IsEmpty || TaraDataSet.GetNeededTaras(x, first.op.OperationVid, null)/*.FromAndToTara[x]*/.priem.TryGetValue(false, out var taras) && taras.Contains(first.op.EndTara))); // у него должна спец приемная тара в случае чего
                         //);
 
@@ -499,9 +500,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         if (rcs1.Count() > 0)
                         {
 
-                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
-                            var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara)));
+                            var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara)));
 
                             if (res01.Count() > 0)
                             {
@@ -582,9 +583,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         return false;
                     }
 
-                    var set2 = new HashSet<Uco>(foundOtdTara.Select(x => x.Tara));
-                    var setRC = new HashSet<Uco>(searchData.PossibleCentersAndTaras.Select(x => x.RC));
-                    searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.Where(x => set2.Contains(x.Tara)).ToArray();//.Add(poss2);
+                    var set2 = foundOtdTara.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
+                    var setRC = searchData.PossibleCentersAndTaras.AsValueEnumerable().Select(x => x.RC).ToHashSet();
+                    searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.AsValueEnumerable().Where(x => set2.Contains(x.Tara)).ToArray();//.Add(poss2);
 
                     //PossibleCentersAndTaras = PossibleCentersAndTaras.IntersectBy(res.Select(x => x.Tara), x => x.Tara).ToList();
                     if (searchData.PossibleCentersAndTaras.Length == 0)
@@ -624,10 +625,10 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             }
 
 
-            var set = new HashSet<Uco>(searchData.PossibleCentersAndTaras.Select(x => x.Tara));
-            if (searchData.BARABANAS != null) searchData.BARABANAS = searchData.BARABANAS.Where(x => set.Contains(x.Tara)).ToArray();//.Add(poss2);
+            var set = searchData.PossibleCentersAndTaras.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
+            if (searchData.BARABANAS != null) searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set.Contains(x.Tara)).ToArray();//.Add(poss2);
 
-            if (searchData.BARABANAS != null) searchData.dataErrorMore.MaxPlusUsedTaras = searchData.BARABANAS.Select(x => x.Tara).Distinct().ToList();
+            if (searchData.BARABANAS != null) searchData.dataErrorMore.MaxPlusUsedTaras = searchData.BARABANAS.AsValueEnumerable().Select(x => x.Tara).Distinct().ToList();
             //BARABANAS = BARABANAS.IntersectBy(PossibleCentersAndTaras.Select(x => x.Tara), x => x.Tara).ToList();// в конце концов пересекаем.
 
 

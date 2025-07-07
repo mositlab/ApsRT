@@ -10,6 +10,7 @@ using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Google.OrTools.Algorithms;
+using ZLinq;
 
 namespace ApsRT.Core.Partias.PartiasConnectorEngine
 {
@@ -18,13 +19,13 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
         public static Dictionary<int, PartiaModelling> SeeSdvigsAsDic(List<List<PartiaModelling>> opers)
         {
-            var list = opers.SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.Index, y))));
+            var list = opers.AsValueEnumerable().SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.Index, y))));
             return list.ToDictionary(x => x.Index, x => x.y);
         }
 
         public static List<PartiaModelling> SeeSdvigsAsList(List<List<PartiaModelling>> opers)
         {
-            var list = opers.SelectMany(x => x).ToList();
+            var list = opers.AsValueEnumerable().SelectMany(x => x).ToList();
             return list;
         }
 
@@ -673,7 +674,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         {
             var dic1 = SeeSdvigsAsDic(partia1.OpersHere);
 
-            var myPartiaSdvigs = dic1.Where(x => x.Value.ZadelsGUIDs.Count > 0); // Получаем все сдвиги с заделами
+            var myPartiaSdvigs = dic1.AsValueEnumerable().Where(x => x.Value.ZadelsGUIDs.Count > 0); // Получаем все сдвиги с заделами
 
             if (myPartiaSdvigs.Count() == 0) return;
 
@@ -683,7 +684,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             {
                 var mod = sdvigWithZadel.Value;
                 var firstOp = mod.Opers[0];
-                var possibleOtherPartiaSdvigs = allOtherSdvigs.Where(x =>
+                var possibleOtherPartiaSdvigs = allOtherSdvigs.AsValueEnumerable().Where(x =>
                 {
                     var othermod = x.Value;
                     var firstOpOther = othermod.Opers[0];
@@ -694,15 +695,15 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     && firstOpOther.IsVspom == firstOp.IsVspom // Вспомогательные только друг с другом
                     && firstOpOther.UsesVspomTara == firstOp.UsesVspomTara; // Вспомогательные тары только друг с другом
                 }
-                ).ToArray();
-                if (possibleOtherPartiaSdvigs.Length > 0)
+                );
+                if (possibleOtherPartiaSdvigs.Count() > 0)
                 {
                     // Получаем список УЖЕ зарезервированных модов, которые в моей партии при объединении схлопнутся.
-                    var alreadyReserved = dic1.Where(x => x.Value.Opers[0].Level == firstOp.Level && x.Value.ZadelCode == mod.ZadelCode).Select(x => x.Value as IAbleForTaraCalcInterface).ToHashSet();
+                    var alreadyReserved = dic1.AsValueEnumerable().Where(x => x.Value.Opers[0].Level == firstOp.Level && x.Value.ZadelCode == mod.ZadelCode).Select(x => x.Value as IAbleForTaraCalcInterface).ToHashSet();
 
                     // Получаем количество задела, и вычитаем из него то количество, которое я уже зарезервировал за другими этапчиками.
-                    var allCount = mod.ZadelsGUIDs.Min(x => firstOp.SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary[x].Count); // Возьмем минимальный из заделов здесь
-                    var reservedCount = alreadyReserved.Count() > 0 ? alreadyReserved.Sum(x => x.Sum) : 0;
+                    var allCount = mod.ZadelsGUIDs.AsValueEnumerable().Min(x => firstOp.SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary[x].Count); // Возьмем минимальный из заделов здесь
+                    var reservedCount = alreadyReserved.Count > 0 ? alreadyReserved.Sum(x => x.Sum) : 0;
                     var availableCount = allCount - reservedCount;
 
                     // проверки на сумму, чтобы задел не был больше положенного. Решение задачи о рюкзаке
@@ -728,7 +729,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         // TO DO: А что если тут какой-то другой задел оказался???
                         mod.ZadelCode = zadelCode;
                         mod.ZadelsGUIDs = zadelsGUIDs;
-                        var prevMods = mod.Opers.SelectMany(x => x.Prevs).Select(x => allOtherSdvigs[x]).Distinct();
+                        var prevMods = mod.Opers.AsValueEnumerable().SelectMany(x => x.Prevs).Select(x => allOtherSdvigs[x]).Distinct();
                         foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, new() /*потому что уровням выше нужно пустоту задать*/);
                     }
                 }

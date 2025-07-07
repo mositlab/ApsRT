@@ -20,6 +20,7 @@
     <PackageReference Include="Google.OrTools" Version="9.12.4544" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+    <PackageReference Include="ZLinq" Version="1.4.12" />
   </ItemGroup>
 
   <ItemGroup>
