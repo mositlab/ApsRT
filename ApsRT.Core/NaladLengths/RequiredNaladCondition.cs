@@ -9,7 +9,7 @@ namespace ApsRT.Core.NaladLengths
     public enum RequiredNaladCondition
     {
         FirstLaunch, // первый запуск
-        OtherLaunch, // второй запуск
-        AnyLaunch // любой запуск
+        //OtherLaunch, // второй запуск
+        OtherLaunch // любой запуск
     }
 }

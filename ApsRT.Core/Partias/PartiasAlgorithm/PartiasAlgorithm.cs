@@ -235,6 +235,9 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
         SortedList<double, List<(PartiaClass from, PartiaClass to)>> DEAD = new();
         ConcurrentDictionary<PartiaClass, ConcurrentDictionary<PartiaClass, (int Total, float K, int Diff, int LongestModsMaxCount, int LastLevel)>> DEEP = new(); // TODO: нужен оптимальный concurrencyLevel (поискать в IlSpy)
 
+
+        public Dictionary<int, NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
+
         void PreparePartias(bool WithLog)
         {
             PartiiList = new();
@@ -397,6 +400,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 if (tree != null)
                 {
                     var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, flag, guidToSet);
+                    PartiasGeneratorEngine.PartiasGeneratorEngine.PrepareNaladLengths(partiaL, NaladLengthsData); // Подготавливаем налад длины
                     if (!restrictIt)
                     {
                         // Если партия не заблокированная, то добавляется в список копий, с которыми пойдёт дальше.
@@ -473,7 +477,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid);
 
 
-                    var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(partiaClass1, partiaClass2, WithLog, false);
+                    var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData));
 
                     if (!DEEP.ContainsKey(prt1))
                     {
@@ -579,7 +583,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
                 var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
                 var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
-                var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(partia1C, partia2C, WithLog, false);
+                var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData));
                 var finalDead = partia1C.PossibleDeadline;
                 if (final.Total > 0) // И в случае успеха, мы ссылку на partia1 юзаем и копируем туда полученные данные
                 {
@@ -680,7 +684,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                         var dead = Math.Abs((partia.PossibleDeadline - partiaLocal.PossibleDeadline).TotalDays);
 
-                        var mergedRes = PartiasConnectorEngine.PartiasConnectorEngine.Connect(partia, partiaLocal, WithLog/*, CheckChildren*/, false);
+                        var mergedRes = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia, partiaLocal, WithLog/*, CheckChildren*/, false, NaladLengthsData));
 
                         var key1 = (remain, partia1);
 
@@ -906,7 +910,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             var COUNTER = 0;
             var resu = Parallel.ForEach(fin, el =>
             {
-                var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(el, el, WithLog, true);
+                var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(el, el, WithLog, true, NaladLengthsData));
                 if (SessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias) el.SubdivisiosOptimizer(r);
                 Interlocked.Increment(ref COUNTER);
                 AlgorithmCallback?.Invoke(CurrentStage, COUNTER);

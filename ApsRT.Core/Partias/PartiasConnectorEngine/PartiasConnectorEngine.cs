@@ -11,6 +11,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Google.OrTools.Algorithms;
 using ZLinq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ApsRT.Core.Partias.PartiasConnectorEngine
 {
@@ -89,8 +90,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             }
         }
 
-        static bool AbleToMergeLevel(List<PartiaModelling> here1, List<PartiaModelling> here2, int CurrLevel, bool isFirstLevel, bool withHerself, bool withLog, PartiasConnectorEngineResult resultToFill)
+        static bool AbleToMergeLevel(List<PartiaModelling> here1, List<PartiaModelling> here2, int CurrLevel, bool isFirstLevel, PartiaConnectorEngineData data, PartiasConnectorEngineResult resultToFill)
         {
+            (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             if (withHerself)
             {
                 // Сама с собой
@@ -104,7 +106,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             break;
                         }
 
-                        res = AbleToMerge(here1[i], here2, CurrLevel, false, withHerself, withLog, resultToFill); // false - внутри себя никаких проверок внутри себя уже делать НЕ НАДО, поэтому имитирую, что это НЕ первый уровень
+                        res = AbleToMerge(here1[i], here2, CurrLevel, false, data, resultToFill); // false - внутри себя никаких проверок внутри себя уже делать НЕ НАДО, поэтому имитирую, что это НЕ первый уровень
                         for (var j = 0; j < here2.Count; j++)
                         {
                             if (here2[j].Opers.Count == 0)
@@ -136,7 +138,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 for (var i = 0; i < here1.Count; i++)
                 {
                     var h = here1[i];
-                    var res = AbleToMerge(h, here2, CurrLevel, isFirstLevel, withHerself, withLog, resultToFill);
+                    var res = AbleToMerge(h, here2, CurrLevel, isFirstLevel, data, resultToFill);
                     //Debugger.NextDebugTime("connect " + CurrLevel);
                     /*
                     0 ничего
@@ -184,8 +186,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
         static byte AbleToMerge(PartiaModelling here1, // один сдвиг
             List<PartiaModelling> here2, // все остальные тут
-            int currentLevel, bool isFirstLevel, bool withHerself, bool withLog, PartiasConnectorEngineResult resultToFill)
+            int currentLevel, bool isFirstLevel, PartiaConnectorEngineData data, PartiasConnectorEngineResult resultToFill)
         {
+            (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = here1.Opers[0].SessionLink;
             var options = SessionLink.SessionOptions;
             var stagesMasterData = SessionLink.MasterDataLinks.StagesMasterData;
@@ -425,6 +428,21 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                     if (!isVspom && !isZadel)
                     {
+                        float naladLength = 0;
+
+                        if (data.NaladLengthsData != null)
+                        {
+                            var op1 = data.NaladLengthsData.TryGetValue(here1.Opers[0].Index, out var l1) ? l1 : new NaladLengths.GottenNaladLengthStruct();
+                            var op2 = data.NaladLengthsData.TryGetValue(here2[i].Opers[0].Index, out var l2) ? l2 : new NaladLengths.GottenNaladLengthStruct();
+                            var current1 = op1.NaladLengthHere.Value;
+                            var current2 = op2.NaladLengthHere.Value;
+                            var currentF = Math.Max(current1, current2);
+                            var next1 = op1.NaladLengthNexts.Value;
+                            var next2 = op2.NaladLengthNexts.Value;
+                            var nextF = next1 + next2;
+                            naladLength = currentF + nextF;
+                        }
+
                         sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })
                             &&
                             Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out gotTara, out gotRc, out gotMax, out use_format, out _, new SumIsPossibleOptions(withLog)
@@ -441,7 +459,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                 RecommendedSubdivision = resultToFill.RecommendedSubdivision,
 
-                                RCMustBeThis = NeededRC
+                                RCMustBeThis = NeededRC,
+
+                                NaladLength = naladLength
                             });
                         //sum = Merger.SumIsPossible(here01, out gotTara, out gotRc, out gotMax, out use_format, out _, withUI, CheckChildren, IDToTara);
                     }
@@ -522,8 +542,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         }
 
 
-        static float FindFilledK(PartiaClass firstPartia, PartiaClass secondPartia, bool withHerself, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, PartiasConnectorEngineResult resultToFill)
+        static float FindFilledK(PartiaConnectorEngineData data, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, PartiasConnectorEngineResult resultToFill)
         {
+            (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
             var options = SessionLink.SessionOptions;
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
@@ -596,8 +617,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             return filledK;
         }
 
-        static void FinalConnectorChecks(PartiaClass firstPartia, PartiaClass secondPartia, bool withHerself, bool withLog, PartiasConnectorEngineResult resultToFill)
+        static void FinalConnectorChecks(PartiaConnectorEngineData data, PartiasConnectorEngineResult resultToFill)
         {
+            (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
             if (resultToFill.mergedNorm > 0 || withHerself)
             {
@@ -738,8 +760,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             
         }
 
-        public static PartiasConnectorEngineResult Connect(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself)
+        public static PartiasConnectorEngineResult Connect(PartiaConnectorEngineData data)
         {
+            (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
             {
                 return new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue);
@@ -818,7 +841,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             {
                 if (isMerging)
                 {
-                    if (firstPartia.OpersHere.Count - 1 < CurrentLevel || secondPartia.OpersHere.Count - 1 < CurrentLevel || !AbleToMergeLevel(firstPartia.OpersHere[CurrentLevel], secondPartia.OpersHere[CurrentLevel], CurrentLevel, CurrentLevel == 0, withHerself, withLog, finalResult))
+                    if (firstPartia.OpersHere.Count - 1 < CurrentLevel || secondPartia.OpersHere.Count - 1 < CurrentLevel || !AbleToMergeLevel(firstPartia.OpersHere[CurrentLevel], secondPartia.OpersHere[CurrentLevel], CurrentLevel, CurrentLevel == 0, data, finalResult))
                     {
                         if (CurrentLevel == 0) firstLevelBad = true;//merged = 0; // Если я даже на первом уровне не смог объединить что-то, то считаю, что вообще ничего не смог
                         isMerging = false;
@@ -846,10 +869,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             // Теперь - группируем, чтобы для каждого повива/задела было лишь по одному запуску
             //if (What.OpersHere[0].Count > 0) merged = 0; // очевидно что он не схлопнулся до конца, и это плохо
             //float K = 0;
-            float filledK = FindFilledK(firstPartia, secondPartia, withHerself, wannaMergeOps1, wannaMergeOps2, finalResult);
+            float filledK = FindFilledK(data, wannaMergeOps1, wannaMergeOps2, finalResult);
 
             // После всего: проходим по всем уровням, по всем РЦ, и смотрим - кому РЦ не задался, тому пытаемся задать с учётом отдающей тары, чтоб он в выходной таблице норм был.
-            FinalConnectorChecks(firstPartia, secondPartia, withHerself, withLog, finalResult);
+            FinalConnectorChecks(data, finalResult);
 
             if (finalResult.mergedNorm > 0 && secondPartia.PossibleDeadline > firstPartia.PossibleDeadline)
             {

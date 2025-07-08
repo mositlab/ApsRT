@@ -8,7 +8,7 @@ using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.Dimens
 
 namespace ApsRT.Core.NaladLengths
 {
-    public struct NaladLengthValue
+    public struct NaladLengthValue: IComparable<NaladLengthValue>
     {
         public NaladLengthValue(float value, UcoDU edIzm)
         {
@@ -22,6 +22,11 @@ namespace ApsRT.Core.NaladLengths
         public override string ToString()
         {
             return $"{Value} {EdIzm}";
+        }
+
+        public int CompareTo(NaladLengthValue other)
+        {
+            return Value.CompareTo(other.Value);
         }
 
         public static bool operator ==(NaladLengthValue left, NaladLengthValue right)

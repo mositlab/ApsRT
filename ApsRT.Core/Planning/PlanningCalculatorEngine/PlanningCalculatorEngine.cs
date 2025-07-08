@@ -590,17 +590,17 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
                     if (thatEtap.Nexts.Count == 0 && clas.Flag == currentFlag && clas.WillRecalc)
                     {
-                        bool isLocked = GlobalOrders.TryGetValue(thatEtap.OrderLink.OrderID, out var order)
-                                        && order.PartiaPF.HasValue
-                                        && PFPartiasData.TryGetValue(order.PartiaPF.Value, out var partia)
-                                        && partia.IsNotFree;
-                        NaladLengthsRecursiveSet(pool, etapID, 1/*, true*/, currentFlag, result, isLocked);
+                        //bool isLocked = GlobalOrders.TryGetValue(thatEtap.OrderLink.OrderID, out var order)
+                        //                && order.PartiaPF.HasValue
+                        //                && PFPartiasData.TryGetValue(order.PartiaPF.Value, out var partia)
+                        //                && partia.IsNotFree;
+                        NaladLengthsRecursiveSet(pool, etapID, 1/*, true*/, currentFlag, result);
                     }
                 }
             }
         }
 
-        static void NaladLengthsRecursiveSet(OpersPool pool, int etapID, float prevKoeff, int currentFlag, PlanningCalculatorEngineResult result, bool isLocked)
+        static void NaladLengthsRecursiveSet(OpersPool pool, int etapID, float prevKoeff, int currentFlag, PlanningCalculatorEngineResult result)
         {
             var ALL = result.Session.MasterDataLinks.StagesMasterData.AllStages;
 
@@ -678,7 +678,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
                 modData.IsFirst |= stageData.IsFirst; // моду эта инфа, как и коэфф, тоже не оч нужны, но для отладки пусть будет
 
-                NaladLengthsCheckErrors(modData.NaladLengthHere.Value, modData.NaladLengthNexts.Value, countHere, thatEtap, modGuid, result, isLocked);
+                NaladLengthsCheckErrors(modData.NaladLengthHere.Value, modData.NaladLengthNexts.Value, countHere, thatEtap, modGuid, result);
 
             }
 
@@ -686,12 +686,12 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
             for (int i = 0; i < ALL[etapID].Prevs.Count; i++)
             {
-                NaladLengthsRecursiveSet(pool, ALL[etapID].Prevs[i], (float)koeff, currentFlag, result, isLocked);
+                NaladLengthsRecursiveSet(pool, ALL[etapID].Prevs[i], (float)koeff, currentFlag, result);
             }
 
         }
 
-        static void NaladLengthsCheckErrors(float naladLengthHere, float naladLengthNext, double modLength, Stage firstEtap, Guid modGuid, PlanningCalculatorEngineResult resultToFill, bool isLocked)
+        static void NaladLengthsCheckErrors(float naladLengthHere, float naladLengthNext, double modLength, Stage firstEtap, Guid modGuid, PlanningCalculatorEngineResult resultToFill)
         {
             if (!firstEtap.EndTara.IsEmpty) return;
             if (firstEtap.NoChangeTara) return;
@@ -699,7 +699,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             if (firstEtap.NoCheckNamotka) return;
             if (resultToFill.Session.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(firstEtap.OperationVid.Code, firstEtap.Subdivision.Code)) return;
 
-            var length = naladLengthHere + (isLocked ? 0 : naladLengthNext);
+            var length = naladLengthHere + naladLengthNext;
             length = MathF.Round(length, 3);
 
             //if (Planning.IgnoredModellingsByFreeNaladLengths.TryGetValue(modGuid, out var lengths) && lengths.ContainsKey(length))

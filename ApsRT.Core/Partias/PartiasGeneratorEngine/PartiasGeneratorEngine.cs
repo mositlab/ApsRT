@@ -58,6 +58,49 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     new PartiaModelling(group.ToList(), Uco.EmptyObject, 0, DimensionUnit.Unknown, Uco.EmptyObject, 0, null);
             }
         }
+
+        public static void PrepareNaladLengths(PartiaClass partia, Dictionary<int, NaladLengths.GottenNaladLengthStruct> NaladLengthsData)
+        {
+            if (NaladLengthsData == null || partia == null) return;
+            var dic = partia.SeeSdvigsAsDic();
+
+            var session = dic.First().Value.Opers[0].SessionLink;
+
+            var ALL = session.MasterDataLinks.StagesMasterData.AllStages;
+
+            var firsts = dic.Where(x => ALL[x.Key].Nexts.Count == 0);
+
+            foreach (var index in firsts)
+            {
+                RecursiveSet(index.Key, 1);
+            }
+
+            void RecursiveSet(int operIndex, double prevKoeff)
+            {
+                NaladLengthsData.TryAdd(operIndex, new NaladLengths.GottenNaladLengthStruct());
+                // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
+                var stageNaladInfo = NaladLengthsData[operIndex];
+                //ref var stageData = ref stageNaladInfo.data;
+                var thatEtap = ALL[operIndex];
+                //stageData.prevKoeff = prevKoeff;
+
+                // след. налад. длина
+                double nextNalad = (prevKoeff * thatEtap.Count) - thatEtap.Count; // "план. потребность + след. длина"
+                stageNaladInfo.NaladLengthNexts.Value = (float)nextNalad; // уже в нужном нам измерении (было назначено в функции выше)
+
+                stageNaladInfo.NaladLengthHere = session.MasterDataLinks.NaladLengthsMasterData.GetMinimumNaladLengthFromMasterData(thatEtap);
+
+                NaladLengthsData[operIndex] = stageNaladInfo;
+
+                var koeff = (nextNalad + thatEtap.Count + stageNaladInfo.NaladLengthHere.Value) / thatEtap.Count; // к длине даём текущую длину, и делим на плановую потребность, получая новый коээфициент
+
+                foreach (var prev in thatEtap.Prevs)
+                {
+                    RecursiveSet(prev, (float)koeff);
+                }
+            }
+        }
+
         public static List<List<PartiaModelling>> GenerateTree(List<Stage> ops, Color col, bool WithLog, Guid? partiaPFguid)
         {
             if (ops == null || ops.Count == 0)

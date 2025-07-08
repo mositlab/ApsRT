@@ -5,6 +5,7 @@ using ApsRT.Core.Session;
 using UniversalPack.Common.Drawing;
 using static UniversalPack.Extensions.EnumExtensions;
 using ApsRT.Core.Taras.TaraSearchEngine;
+using UniversalPack.Extensions;
 
 namespace ApsRTCustomComponents
 {
@@ -24,6 +25,7 @@ namespace ApsRTCustomComponents
             internal List<(string Label, Color color, double Count)> OpersData;
             //internal double TotalCount;
             internal double MaxCount;
+            internal (double, double) NaladLengths;
             internal Uco UsedTara;
             internal string Data;
             internal HashSet<int> IDs;
@@ -42,7 +44,7 @@ namespace ApsRTCustomComponents
         internal float K = 0;
         internal float GPsNow = 0;
 
-        public void SetThisTree(params PartiaClass[] partiaClasses)
+        public void SetThisTree(Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData, params PartiaClass[] partiaClasses)
         {
             RemoveAll();
             BarabanasCount = partiaClasses.Sum(x => x.OpersHere.Sum(y => y.Count));
@@ -71,6 +73,13 @@ namespace ApsRTCustomComponents
                 {
                     for (var j = 0; j < partiaClass1.OpersHere[i].Count; j++)
                     {
+                        //var naladLengthIndex = partiaClass1.OpersHere[i][j].Opers[0].Index;
+
+                        var n1 = partiaClass1.OpersHere[i][j].Opers.Select(naladLengthIndex => NaladLengthsData != null && NaladLengthsData.TryGetValue(naladLengthIndex.Index, out var nres) ? (nres.NaladLengthHere.Value, nres.NaladLengthNexts.Value) : (0, 0));
+
+                        var curr = n1.Max(x => x.Item1);
+                        var next = n1.Max(x => x.Item2); // не сумма а МАКСИМУМ, потому что сумма актуальна лишь в момент схлопывания
+
                         var node = new Node
                         {
                             //node.Label = string.Join("\r\n", partiaClass1.OpersHere[i][j].Opers.Select(x => $"{x.ID} ({(groups == null ? "" : (groups.TryGetValue(x.ID, out var val) ? val : 0))}): {Operations.OperationsIntToStr[x.Oper]} | {x.SpecificationCode}")).ToString();
@@ -78,6 +87,8 @@ namespace ApsRTCustomComponents
                             UsedTara = partiaClass1.OpersHere[i][j].Tara,
 
                             MaxCount = partiaClass1.OpersHere[i][j].Max,
+
+                            NaladLengths = (curr, next),
 
                             OpersData = partiaClass1.OpersHere[i][j].Opers
                             .Select(x => ($"{Math.Round(x.Count, 3)}\r\n{x.Nomenklature}", x.Color, x.Count)).ToList()
@@ -99,7 +110,8 @@ namespace ApsRTCustomComponents
 
 
                         + $"\r\nпросто сумма: {justSum}"
-                        + $"\r\nMES сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.CountMES)}"
+                        + $"\r\nMES сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.CountMES)}" +
+                        $"\r\nНаладочные длины: {curr} {next}"
                         + $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
                         //+ $"\r\nКгКм сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count * x.KgKm / 1000.0)}"
                         + $"\r\nНезависимо, Сумма возможна: {sum} ('{tara}', {maxhere} {format.DimensionUnitToString()} на РЦ {(rchere.IsEmpty ? "---" : rchere.ToString())})\r\n\r\n"
@@ -578,8 +590,10 @@ namespace ApsRTCustomComponents
                         {
                             float offset = 0;
                             var max = Nodes[key][j].MaxCount;
+                            //var lengths = lengthsBoth.Item1 + lengthsBoth.Item2;
                             if (max > 0 && countHere <= max)
                             {
+                                //offset = DrawIt(offset, lengths, max, Color.Black, $"{lengthsBoth.Item1};{lengthsBoth.Item2}", Color.Orange);
                                 var diff = max - countHere;
                                 if (diff > 0)
                                 {
@@ -593,6 +607,7 @@ namespace ApsRTCustomComponents
                             }
                             else
                             {
+                                //offset = DrawIt(offset, lengths, countHere + lengths, Color.Black, $"{lengthsBoth.Item1};{lengthsBoth.Item2}", Color.Orange);
                                 for (var i = 0; i < Nodes[key][j].OpersData.Count; i++)
                                 {
                                     offset = DrawIt(offset, Nodes[key][j].OpersData[i].Count, countHere, Nodes[key][j].OpersData[i].color, Nodes[key][j].OpersData[i].Label, Nodes[key][j].TextColor);
@@ -605,10 +620,15 @@ namespace ApsRTCustomComponents
 
                     //if (multiple)
                     {
+                        var lengthsBoth = Nodes[key][j].NaladLengths;
                         brush.Color = Nodes[key][j].TextColor == Color.Blue ? Color.Blue : Color.Black;
                         graphics.DrawString(Nodes[key][j].IsVspom ? countHere.ToString() : Nodes[key][j].UsedTara.Label, StandartFontBold, brush,
                             new RectangleF(X - 5,
                             YNow - 12, Math.Max(1, CellWidth + 5), 12), stringFormat);
+
+                        graphics.DrawString($"[ {Math.Round(lengthsBoth.Item1, 3)} ; {Math.Round(lengthsBoth.Item2, 3)} ]", StandartFontBold, brush,
+                            new RectangleF(X - 5,
+                            YNow - 26, Math.Max(1, CellWidth + 5), 12), stringFormat);
 
                         if (Nodes[key][j].ZadelsColors != null)
                         {
@@ -634,7 +654,7 @@ namespace ApsRTCustomComponents
                         var pos = nodesPositions[prevs.Key];
                         pos.X += CellWidth / 2;
                         //pos.Y += CellHeight / 2;
-                        var Start = new PointF(pos.X, pos.Y - 15);
+                        var Start = new PointF(pos.X, pos.Y - 15 - 12);
                         foreach (var val in prevs.Value)
                         {
                             var b = ChosenOps.Any(x => val.IDs.Contains(x.Item1) && !x.Item2);

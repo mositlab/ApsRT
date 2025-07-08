@@ -917,6 +917,9 @@ namespace ApsRTCustomComponents
                 aps.LastK = partiasAlgorithm.SavedPartiasTrees[partia].K;
                 aps.Sort();
 
+                Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
+                PartiasGeneratorEngine.PrepareNaladLengths(aps, NaladLengthsData); // Подготавливаем налад длины
+
                 PartiasDataTable.Rows.Clear();
                 var ALL = sessionLink.MasterDataLinks.StagesMasterData.AllStages;
                 var allOrdersHere = partiasAlgorithm.SavedPartias[partia].Select(index => ALL[index].OrderLink.OrderID).Distinct().ToList();
@@ -937,7 +940,7 @@ namespace ApsRTCustomComponents
                         );
                 }
 
-                CustomTreeViewOnPPanel.SetThisTree(aps);
+                CustomTreeViewOnPPanel.SetThisTree(NaladLengthsData, aps);
             }
         }
 
@@ -1002,37 +1005,44 @@ namespace ApsRTCustomComponents
                     tree2 = PartiasGeneratorEngine.GenerateTree(find, col2, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
                 }
 
+                Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
+
                 var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
                 partiaClass1.Sort();
-                TwoPartiasPartia1View.SetThisTree(partiaClass1);
+                TwoPartiasPartia1View.SetThisTree(NaladLengthsData, partiaClass1);
                 var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
                 partiaClass2.Sort();
-                TwoPartiasPartia2View.SetThisTree(partiaClass2);
+                TwoPartiasPartia2View.SetThisTree(NaladLengthsData, partiaClass2);
+
+
+                PartiasGeneratorEngine.PrepareNaladLengths(partiaClass1, NaladLengthsData); // Подготавливаем налад длины
+
+                PartiasGeneratorEngine.PrepareNaladLengths(partiaClass2, NaladLengthsData); // Подготавливаем налад длины
 
                 PartiasConnectorEngineResult res = new PartiasConnectorEngineResult(0, 0, 0, 0);
                 var areDiff = tree1[0][0].Opers[0].OrderLink.OrderID != tree2[0][0].Opers[0].OrderLink.OrderID;
                 var res0 = -1;
                 if (areDiff)
                 {
-                    res0 = PartiasConnectorEngine.Connect(partiaClass1, partiaClass2, withUI, false).Total;
+                    res0 = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, withUI, false, NaladLengthsData)).Total;
                 }
 
                 if (InGPCheckBox.Checked)
                 {
-                    res = PartiasConnectorEngine.Connect(partiaClass1, partiaClass1, withUI, true);
+                    res = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass1, withUI, true, NaladLengthsData));
                     if (areDiff && res0 == 0 && partiaClass2.OpersHere[0].Count > 0)
                     {
-                        res = PartiasConnectorEngine.Connect(partiaClass2, partiaClass2, withUI, true);
+                        res = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass2, partiaClass2, withUI, true, NaladLengthsData));
                     }
                 }
 
                 if (areDiff)
                 {
-                    TwoPartiasPartiaResView.SetThisTree(partiaClass1, partiaClass2);
+                    TwoPartiasPartiaResView.SetThisTree(NaladLengthsData, partiaClass1, partiaClass2);
                 }
                 else
                 {
-                    TwoPartiasPartiaResView.SetThisTree(partiaClass1);
+                    TwoPartiasPartiaResView.SetThisTree(NaladLengthsData, partiaClass1);
                 }
 
                 if (partiaClass1 != null)

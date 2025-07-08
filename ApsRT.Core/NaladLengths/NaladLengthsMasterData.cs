@@ -87,7 +87,7 @@ namespace ApsRT.Core.NaladLengths
 
             if (model.IsNext)
             {
-                add(RequiredNaladCondition.AnyLaunch);
+                add(RequiredNaladCondition.OtherLaunch);
             }
 
             void add(RequiredNaladCondition cond)
@@ -110,6 +110,26 @@ namespace ApsRT.Core.NaladLengths
         public void SetNeededParamName(string rawCriteriaName)
         {
             criteriaIndex = SessionLink.MasterDataLinks.RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
+        }
+
+        internal NaladLengthValue GetMinimumNaladLengthFromMasterData(Stage op)
+        {
+            //NaladLengthValue final = new NaladLengthValue();
+            //final.Value = float.MaxValue;
+            var list = op.PossibleCenters ?? new List<Uco>() { op.OriginalCenter };
+
+            // Берём худшую длину со всех возможных РЦ, но при этом она должна быть наименьшей для этого РЦ
+            var worstLength = list.Max(center =>
+            {
+                var value1 = GetNaladLengthFromMasterData(op, center, RequiredNaladCondition.FirstLaunch);
+                //if (final.Value > value1.Value) final = value1;
+                var value2 = GetNaladLengthFromMasterData(op, center, RequiredNaladCondition.OtherLaunch);
+                //if (final.Value > value2.Value) final = value2;
+                if (value2.Value > value1.Value) return value1;
+                return value2;
+            });
+
+            return NaladLengthsConverted(worstLength, op.EdIzmClassificator, op.KgKm);
         }
 
         internal NaladLengthValue GetNaladLengthFromMasterData(Stage op, Uco chosenRC, RequiredNaladCondition whichCondition)
@@ -178,7 +198,7 @@ namespace ApsRT.Core.NaladLengths
                 naladLengthSum = firstNL;
                 if (op.PlacesCount > 1)
                 {
-                    otherNL = op.GetNaladLengthFromCache(choosenCenter, RequiredNaladCondition.AnyLaunch);
+                    otherNL = op.GetNaladLengthFromCache(choosenCenter, RequiredNaladCondition.OtherLaunch);
                     //otherNL = NaladLengths.NaladLengthsConverted(otherNL, op.EdIzmClassificator, op.KgKm); // Переводим её в нужные единицы измерений
                     naladLengthSum += otherNL.Value * (op.PlacesCount - 1); // Переведённая уже верна
                 }
@@ -186,7 +206,7 @@ namespace ApsRT.Core.NaladLengths
             }
             else
             {
-                otherNL = op.GetNaladLengthFromCache(choosenCenter, RequiredNaladCondition.AnyLaunch);
+                otherNL = op.GetNaladLengthFromCache(choosenCenter, RequiredNaladCondition.OtherLaunch);
                 //otherNL = NaladLengths.NaladLengthsConverted(otherNL, op.EdIzmClassificator, op.KgKm); // Переводим её в нужные единицы измерений
                 firstNL = otherNL;
                 naladLengthSum = new(otherNL.Value * op.PlacesCount, otherNL.EdIzm);
