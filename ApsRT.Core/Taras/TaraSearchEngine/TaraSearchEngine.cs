@@ -114,6 +114,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             }).Distinct().ToList();
 
             searchData.dataErrorMore.Count = searchData.sum;
+            searchData.dataErrorMore.NaladLength = options.NaladLength;
 
             searchData.errorMessage?.Append($"Поиск тар и рц для: {string.Join("; ", allOpers.AllOpers)}\r\n");
 

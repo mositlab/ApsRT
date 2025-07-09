@@ -12,6 +12,7 @@ using ApsRT.Core.Taras.TaraSearchEngine;
 using Google.OrTools.Algorithms;
 using ZLinq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using UniversalPack.Extensions;
 
 namespace ApsRT.Core.Partias.PartiasConnectorEngine
 {
@@ -432,15 +433,19 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                         if (data.NaladLengthsData != null)
                         {
-                            var op1 = data.NaladLengthsData.TryGetValue(here1.Opers[0].Index, out var l1) ? l1 : new NaladLengths.GottenNaladLengthStruct();
-                            var op2 = data.NaladLengthsData.TryGetValue(here2[i].Opers[0].Index, out var l2) ? l2 : new NaladLengths.GottenNaladLengthStruct();
-                            var current1 = op1.NaladLengthHere.Value;
-                            var current2 = op2.NaladLengthHere.Value;
-                            var currentF = Math.Max(current1, current2);
-                            var next1 = op1.NaladLengthNexts.Value;
-                            var next2 = op2.NaladLengthNexts.Value;
-                            var nextF = next1 + next2;
-                            naladLength = currentF + nextF;
+                            var currentF = here01.Opers.Max(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthHere.Value : new NaladLengths.GottenNaladLengthStruct().NaladLengthHere.Value);
+                            var sumMod = here01.Opers.Sum(x => x.Count);
+                            var nextF = (here01.Opers.Max(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.prevKoeff : 1) * sumMod) - sumMod;
+                            //var nextF = here01.Opers.Sum(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthNexts.Value : new NaladLengths.GottenNaladLengthStruct().NaladLengthNexts.Value);
+                            //var op1 = data.NaladLengthsData.TryGetValue(here1.Opers[0].Index, out var l1) ? l1 : new NaladLengths.GottenNaladLengthStruct();
+                            //var op2 = data.NaladLengthsData.TryGetValue(here2[i].Opers[0].Index, out var l2) ? l2 : new NaladLengths.GottenNaladLengthStruct();
+                            //var current1 = op1.NaladLengthHere.Value;
+                            //var current2 = op2.NaladLengthHere.Value;
+                            //var currentF = Math.Max(current1, current2);
+                            //var next1 = op1.NaladLengthNexts.Value;
+                            //var next2 = op2.NaladLengthNexts.Value;
+                            //var nextF = next1 + next2;
+                            naladLength = currentF + (float)nextF;
                         }
 
                         sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })

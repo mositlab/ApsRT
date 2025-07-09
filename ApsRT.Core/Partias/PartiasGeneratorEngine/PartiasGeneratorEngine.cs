@@ -90,6 +90,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
                 stageNaladInfo.NaladLengthHere = session.MasterDataLinks.NaladLengthsMasterData.GetMinimumNaladLengthFromMasterData(thatEtap);
 
+                stageNaladInfo.prevKoeff = (float)prevKoeff;
+
                 NaladLengthsData[operIndex] = stageNaladInfo;
 
                 var koeff = (nextNalad + thatEtap.Count + stageNaladInfo.NaladLengthHere.Value) / thatEtap.Count; // к длине даём текущую длину, и делим на плановую потребность, получая новый коээфициент

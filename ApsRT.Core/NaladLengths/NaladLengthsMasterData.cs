@@ -129,6 +129,8 @@ namespace ApsRT.Core.NaladLengths
                 return value2;
             });
 
+            worstLength.Value *= op.PlacesCount; // Умножаем на количество мест
+
             return NaladLengthsConverted(worstLength, op.EdIzmClassificator, op.KgKm);
         }
 

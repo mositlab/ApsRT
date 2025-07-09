@@ -6,6 +6,7 @@ using UniversalPack.Common.Drawing;
 using static UniversalPack.Extensions.EnumExtensions;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using UniversalPack.Extensions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ApsRTCustomComponents
 {
@@ -25,7 +26,7 @@ namespace ApsRTCustomComponents
             internal List<(string Label, Color color, double Count)> OpersData;
             //internal double TotalCount;
             internal double MaxCount;
-            internal (double, double) NaladLengths;
+            internal (double, double, double) NaladLengths;
             internal Uco UsedTara;
             internal string Data;
             internal HashSet<int> IDs;
@@ -75,10 +76,15 @@ namespace ApsRTCustomComponents
                     {
                         //var naladLengthIndex = partiaClass1.OpersHere[i][j].Opers[0].Index;
 
-                        var n1 = partiaClass1.OpersHere[i][j].Opers.Select(naladLengthIndex => NaladLengthsData != null && NaladLengthsData.TryGetValue(naladLengthIndex.Index, out var nres) ? (nres.NaladLengthHere.Value, nres.NaladLengthNexts.Value) : (0, 0));
+                        var n1 = partiaClass1.OpersHere[i][j].Opers.Select(naladLengthIndex => NaladLengthsData != null && NaladLengthsData.TryGetValue(naladLengthIndex.Index, out var nres) ? (nres.NaladLengthHere.Value, nres.prevKoeff) : (0, 1));
 
                         var curr = n1.Max(x => x.Item1);
-                        var next = n1.Max(x => x.Item2); // не сумма а МАКСИМУМ, потому что сумма актуальна лишь в момент схлопывания
+
+                        var sumMod = partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count);
+
+                        var k = n1.Max(x => x.Item2);
+
+                        var next = k * sumMod - sumMod;
 
                         var node = new Node
                         {
@@ -88,7 +94,7 @@ namespace ApsRTCustomComponents
 
                             MaxCount = partiaClass1.OpersHere[i][j].Max,
 
-                            NaladLengths = (curr, next),
+                            NaladLengths = (curr, next, k),
 
                             OpersData = partiaClass1.OpersHere[i][j].Opers
                             .Select(x => ($"{Math.Round(x.Count, 3)}\r\n{x.Nomenklature}", x.Color, x.Count)).ToList()
@@ -626,7 +632,7 @@ namespace ApsRTCustomComponents
                             new RectangleF(X - 5,
                             YNow - 12, Math.Max(1, CellWidth + 5), 12), stringFormat);
 
-                        graphics.DrawString($"[ {Math.Round(lengthsBoth.Item1, 3)} ; {Math.Round(lengthsBoth.Item2, 3)} ]", StandartFontBold, brush,
+                        graphics.DrawString($"[ {Math.Round(lengthsBoth.Item1, 3)} ; {Math.Round(lengthsBoth.Item2, 3)} ({Math.Round(lengthsBoth.Item3, 3)}) ]", StandartFontBold, brush,
                             new RectangleF(X - 5,
                             YNow - 26, Math.Max(1, CellWidth + 5), 12), stringFormat);
 

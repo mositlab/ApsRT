@@ -22,6 +22,7 @@ namespace ApsRT.Core.DataErrors
         internal string DataToInsert; // строка, которую можно вставить в основное сообщение
         internal string TechData; // строка, которую можно вставить в основное сообщение
         internal double Count;
+        internal double NaladLength;
         internal string PartiaSettings; // список настроек партий
         internal Guid? PartiaGuid;
         internal List<Guid> customEtapsGuids;
@@ -63,6 +64,7 @@ namespace ApsRT.Core.DataErrors
             RCsOnNextEtap = rCsOnNextEtap;
             TarasOnNextEtap = tarasOnNextEtap;
             Count = 0;
+            NaladLength = 0;
             PartiaSettings = null;
             PartiaGuid = null;
             customEtapsGuids = null;

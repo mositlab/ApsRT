@@ -1007,17 +1007,17 @@ namespace ApsRTCustomComponents
 
                 Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
 
+
                 var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
+                PartiasGeneratorEngine.PrepareNaladLengths(partiaClass1, NaladLengthsData); // Подготавливаем налад длины
                 partiaClass1.Sort();
                 TwoPartiasPartia1View.SetThisTree(NaladLengthsData, partiaClass1);
                 var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
+                PartiasGeneratorEngine.PrepareNaladLengths(partiaClass2, NaladLengthsData); // Подготавливаем налад длины
                 partiaClass2.Sort();
                 TwoPartiasPartia2View.SetThisTree(NaladLengthsData, partiaClass2);
 
 
-                PartiasGeneratorEngine.PrepareNaladLengths(partiaClass1, NaladLengthsData); // Подготавливаем налад длины
-
-                PartiasGeneratorEngine.PrepareNaladLengths(partiaClass2, NaladLengthsData); // Подготавливаем налад длины
 
                 PartiasConnectorEngineResult res = new PartiasConnectorEngineResult(0, 0, 0, 0);
                 var areDiff = tree1[0][0].Opers[0].OrderLink.OrderID != tree2[0][0].Opers[0].OrderLink.OrderID;

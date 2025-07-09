@@ -90,6 +90,7 @@ namespace ApsRT.Core.DataErrors
             bool yesNexts = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].Nexts.Count > 0);
 
             bool yesCount = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.Count != 0);
+            bool yesNalad = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.NaladLength != 0);
 
             bool yesMod = NewDataErrors.Any(x => x.Key >= 0 && x.Value.Any(y => y.Value.Count != 0) && allStages[x.Key].MesModelling.Code != Guid.Empty);
 
@@ -104,7 +105,7 @@ namespace ApsRT.Core.DataErrors
                 $"{BtoS(yes61 || yesCRC)};{BtoS(yes62 || yesCRCR)};" +
                 $"{BtoS(yes6)};{BtoS(yes6)};{BtoS(yes6 || yes54)};" +
                 $"{BtoS(yes53)};" +
-                $"{BtoS(yesCount)};{BtoS(yesMod)};" +// $"{BtoS(yes6 || yesCount)};{BtoS(yesMod)};" +
+                $"{BtoS(yesCount)};{BtoS(yesNalad)};{BtoS(yesMod)};" +// $"{BtoS(yes6 || yesCount)};{BtoS(yesMod)};" +
                 $"ДА;{BtoS(yesdOP)}";
             var str2 = "ДоступныеРЦТекущегоЭтапа;ПриемнаяТараТекущегоЭтапа;ТребуемаяОтдающаяТара;МаксНамоткиТекущегоЭтапа;ПересечениеМаксНамотокПриемнойТары;РЦСледующегоЭтапа;ТараСледующегоЭтапа;" +
                 "РЦПредыдущегоЭтапа;ТараПредыдущегоЭтапа;" +
@@ -113,7 +114,7 @@ namespace ApsRT.Core.DataErrors
                 "РЦ;ГруппаЗаменяемостиРабочихЦентров;" +
                 "Заказ;ПартияГП;ИдентификаторПартииПФ;" +
                 "НастройкиФормированияПартий;" +
-                "Количество;Моделирование;" +
+                "Количество;НаладочнаяДлина;Моделирование;" +
                 "Причина;ДополнительнаяИнформация";
 
             swNew.WriteLine(str1);
@@ -221,7 +222,7 @@ namespace ApsRT.Core.DataErrors
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Code)))};" +
                             $"{op?.OrderLink.OrderID.Object.Code};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +
-                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};" +
+                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};{(error.Value.NaladLength == 0 ? "" : error.Value.NaladLength)}" +
                             $"{(error.Value.Count == 0 || op == null ? "" : (op.MesModelling.Code == Guid.Empty ? "" : op.MesModelling.Code))};" +
                             $"{message};{error.Value.TechData}"
                             );
@@ -239,7 +240,7 @@ namespace ApsRT.Core.DataErrors
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Label : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Label)))};" +
                             $"{op?.OrderLink.OrderID.Object.Label};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +
-                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};" +
+                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};{(error.Value.NaladLength == 0 ? "" : error.Value.NaladLength)}" +
                             $"{(error.Value.Count == 0 || op == null ? "" : (op.MesModelling.Code == Guid.Empty ? "" : op.MesModelling))};" +
                             $"{message};{error.Value.TechData}"
                             );

@@ -165,6 +165,7 @@ namespace ApsRT.Core.Hoppers
             for (int i = 0; i < paths.Length; i++)
             {
                 if (paths[i].StartsWith("SQL:")) continue;
+                //Path.
                 paths[i] = Path.IsPathRooted(paths[i]) ? paths[i] : (sessionPath + paths[i]);
             }
 
