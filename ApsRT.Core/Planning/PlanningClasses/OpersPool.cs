@@ -217,8 +217,10 @@ namespace ApsRT.Core.Planning.PlanningClasses
 
         internal static List<OpersBlock> CopyBlocksDeep(List<OpersBlock> Blocks, bool WithTara)
         {
-            var opersCopy = new List<OpersBlock>(Blocks.Count);
-            for (var i = 0; i < Blocks.Count; i++)
+            //var dt0 = DateTime.Now;
+            var opersCopy = new OpersBlock[Blocks.Count];//new List<OpersBlock>(Blocks.Count);
+            //for (var i = 0; i < Blocks.Count; i++)
+            var res0 = Parallel.For(0, Blocks.Count, i =>
             {
                 var mod = new List<PlanningModelling>(Blocks[i].Lists.Count); // Создаём список моделирований (заготовку)
                 for (var j = 0; j < Blocks[i].Lists.Count; j++)
@@ -233,9 +235,17 @@ namespace ApsRT.Core.Planning.PlanningClasses
                     block.HowMuchPlaceHere = Blocks[i].HowMuchPlaceHere;
                     block.FillKoeff = Blocks[i].FillKoeff;
                 }
-                opersCopy.Add(block); // Добавляем блок, у которого за основу взяты параметры
+                //opersCopy.Add(block); // Добавляем блок, у которого за основу взяты параметры
+                opersCopy[i] = block;
+            });
+            while (!res0.IsCompleted)
+            {
+                ;
             }
-            return opersCopy;
+            //var dt1 = DateTime.Now;
+            var res = opersCopy.ToList();
+            //Console.WriteLine($"copy length: {dt1-dt0}");
+            return res;
 
             //var opersCopy = new OpersBlock[Blocks.Count];
             //Parallel.For(0, Blocks.Count, i =>
