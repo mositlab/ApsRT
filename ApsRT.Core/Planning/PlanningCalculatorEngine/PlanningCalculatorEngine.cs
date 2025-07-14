@@ -31,7 +31,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             return centerLink;
         }
 
-        public static PlanningCalculatorEngineResult CalculatePlan(OpersPool pool, DateTime StartTime, PlanningCalculatorEngineResult resultToFill, PlanningCalculatorEngineResult prevResult = null)
+        public static PlanningCalculatorEngineResult CalculatePlan(OpersPool pool, DateTime StartTime, PlanningCalculatorEngineResult resultToFill, PlanningCalculatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
             int currentFlag = Random.Shared.Next();
 
@@ -50,6 +50,14 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             for (int blockIndex = 0; blockIndex < pool.Blocks.Count; blockIndex++)
             {
                 ProcessBlock(pool, blockIndex, currentFlag, resultToFill);
+                //if (AdditionalBlockIndex == blockIndex)
+                //{
+                //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, AdditionalBlock);
+                //}
+                //else
+                //{
+                //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, null);
+                //}
             }
 
             return resultToFill;
@@ -64,9 +72,9 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="currentFlag">Текущий флаг расчёта</param>
         /// <param name="resultToFill">Поле для заполнения даннымми</param>
         /// <param name="previousResult"></param>
-        static void ProcessBlock(OpersPool pool, int blockIndex, int currentFlag, PlanningCalculatorEngineResult resultToFill)
+        static void ProcessBlock(OpersPool pool, int blockIndex, int currentFlag, PlanningCalculatorEngineResult resultToFill/*, OpersBlock blockToCheckFirst*/)
         {
-            var currentBlock = pool.Blocks[blockIndex];
+            var currentBlock = /*blockToCheckFirst ?? */pool.Blocks[blockIndex];
 
             var NonWorkingIntervalsMasterData = resultToFill.Session.MasterDataLinks.WorkingIntervalsMasterData;
             var CentersMasterData = resultToFill.Session.MasterDataLinks.CentersMasterData;
@@ -159,6 +167,8 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                 centGlobalStruct.LastDate += intervalHere.Duration;
                 var lastDateFinally = centGlobalStruct.LastDate;
 
+                CenterInPlanData binaryCopy = (resultToFill.FirstStagesAdditionalInfos != null) ? centGlobalStruct.Copy() : null;
+
                 // Заполнение данных всяких
                 for (int i = 0; i < ChoosenModellings.Count; i++)
                 {
@@ -181,6 +191,8 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
                     // Попробуем заполнить ранги, если надо
                     if (resultToFill.FirstStagesPositions != null) resultToFill.FirstStagesPositions.TryAdd(firstID, blockIndex);
+
+                    if (resultToFill.FirstStagesAdditionalInfos != null) resultToFill.FirstStagesAdditionalInfos.TryAdd(firstID, binaryCopy);
 
                     resultToFill.CurrentRank += MOD.OpersList.Count; // В ЛЮБОМ СЛУЧАЕ добавляем
                 }
@@ -604,10 +616,13 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         {
             var ALL = result.Session.MasterDataLinks.StagesMasterData.AllStages;
 
+            var thatEtap = ALL[etapID];
+
+            if (thatEtap.ClosedByZadels) return; // Заглушка для закрытых заделом этапов
+
             // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
             var stageNaladInfo = pool.NaladLengthsData[etapID];
             ref var stageData = ref stageNaladInfo.data;
-            var thatEtap = ALL[etapID];
             stageData.prevKoeff = prevKoeff;
 
             // след. налад. длина

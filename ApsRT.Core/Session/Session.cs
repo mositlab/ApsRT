@@ -246,7 +246,7 @@ namespace ApsRT.Core.Session
 
                     if (result)
                     {
-                        if (newPartiasAlgorithmInstance.CurrentStage == PartiasAlgorithmStage.Complete && SessionOptions.LaunchPlan)
+                        if (SessionOptions.LaunchPlan && newPartiasAlgorithmInstance.CurrentStage == PartiasAlgorithmStage.Complete)
                         {
                             if (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
                                 && newPlanningAlgorithmInstance.Start())
@@ -267,6 +267,10 @@ namespace ApsRT.Core.Session
                             {
                                 EndSession(13);
                             }
+                        }
+                        else
+                        {
+                            EndSession(0); // В таком случае можно всё закрывать
                         }
                     }
                     else

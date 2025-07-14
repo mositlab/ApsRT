@@ -34,6 +34,7 @@ using Label = System.Windows.Forms.Label;
 using System.Collections.Generic;
 using TextBox = System.Windows.Forms.TextBox;
 using ApsRT.Core.Stages.MasterData;
+using ApsRT.Core.Planning.PlanSimulator;
 
 namespace ApsRTCustomComponents
 {
@@ -1937,6 +1938,11 @@ namespace ApsRTCustomComponents
             var algorithm = sessionLink.AssignedPlanningAlgorithm;
             if (algorithm == null || algorithm.BestBlocksList == null) return;
             sessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(algorithm.BestBlocksList);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            PlanSimulatorTable table = new PlanSimulatorTable(sessionLink, DateTime.Now, sessionLink.MasterDataLinks.StagesMasterData.AllStages.Values.ToList(), sessionLink.MasterDataLinks.CentersMasterData.CentersData.Keys.ToArray());
         }
     }
 }

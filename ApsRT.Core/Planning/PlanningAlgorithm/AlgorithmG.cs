@@ -151,8 +151,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //WillThis = ChooseSomething(mode1, mode2, mode3, LastOrdersPointsList, LastRechangesPointsList, LastProstoiPointsList);
             bool isFirst = true;
-            bool TriedNaladLengthsFixer = false;
-            bool FixedNaladLengths = false;
+            //bool TriedNaladLengthsFixer = false;
+            //bool FixedNaladLengths = false;
             PlanningCalculatorEngineResult prevResult = workflow.BestValue;
             for (var H = 0; H < depth; H++)
             {
@@ -328,7 +328,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 PlanningCalculatorEngineResult res;
 
                 //var dt1 = DateTime.Now;
-                var res0 = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(opersCopy, basisLink.MinAcceptableDate, new PlanningCalculatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
+                res = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(opersCopy, basisLink.MinAcceptableDate, new PlanningCalculatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
 
 
 
@@ -338,25 +338,25 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     FirstStagesStartDate = mode6 && mode6Counter == 0 ? new Dictionary<int, DateTime>() : null,
                 }, prevResult);
 
-                if (!TriedNaladLengthsFixer)
-                {
-                    FixedNaladLengths = FixSomeNaladLengths(opersCopy, res0);
-                    TriedNaladLengthsFixer = true;
-                    if (FixedNaladLengths)
-                    {
-                        prevResult = res0;
-                        H--;
-                        continue; // Провоцируем вернуться в начало цикла, чтоб изменить РЦ
-                    }
-                    else
-                    {
-                        res = res0;
-                    }
-                }
-                else
-                {
-                    res = res0;
-                }
+                //if (!TriedNaladLengthsFixer)
+                //{
+                //    FixedNaladLengths = FixSomeNaladLengths(opersCopy, res0);
+                //    TriedNaladLengthsFixer = true;
+                //    if (FixedNaladLengths)
+                //    {
+                //        prevResult = res0;
+                //        H--;
+                //        continue; // Провоцируем вернуться в начало цикла, чтоб изменить РЦ
+                //    }
+                //    else
+                //    {
+                //        res = res0;
+                //    }
+                //}
+                //else
+                //{
+                //    res = res0;
+                //}
 
                 if (mode6 && mode6Counter == 0)
                 {
@@ -372,11 +372,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     {
 
                         // (DateTime.MinValue WorstTime, new Dictionary<Uco, TimeSpan>() RCsData)
-                        return (x.Max(mod => res0.FirstStagesStartDate[mod.x.FirstOper.Index] + res0.FirstStagesFullDurations[mod.x.FirstOper.Index].Duration), // макс время окончания берем
+                        return (x.Max(mod => res.FirstStagesStartDate[mod.x.FirstOper.Index] + res.FirstStagesFullDurations[mod.x.FirstOper.Index].Duration), // макс время окончания берем
 
                         x.GroupBy(mod => mod.block.ActualRC) // сначала группируем по РЦ
                         .ToDictionary(mod => mod.Key, // РЦ - ключ
-                        mod => TimeSpan.FromSeconds(mod.Sum(x => res0.FirstStagesFullDurations[x.x.FirstOper.Index].Duration.TotalSeconds))) // сумма всех длительностей с учетом обедов - то, что нужно
+                        mod => TimeSpan.FromSeconds(mod.Sum(x => res.FirstStagesFullDurations[x.x.FirstOper.Index].Duration.TotalSeconds))) // сумма всех длительностей с учетом обедов - то, что нужно
 
                         );
                     });
@@ -666,7 +666,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 }
                 else
                 {
-                    resToCheck = (nonStrictB && OtherCritRestrictions) || FixedNaladLengths;
+                    resToCheck = (nonStrictB && OtherCritRestrictions)/* || FixedNaladLengths*/;
                 }
 
                 if (resToCheck)

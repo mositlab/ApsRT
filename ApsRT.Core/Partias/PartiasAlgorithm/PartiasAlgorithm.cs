@@ -139,7 +139,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 CurrentStage = PartiasAlgorithmStage.Output;
                 CurrentStageChanged?.Invoke(CurrentStage, fin.Length);
                 // Перед записью в сессию обновляем заделы
-                if (!/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
+                if (/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
                 {
                     SessionLink.MasterDataLinks.ZadelsMasterData.UpdateFreeZadelsStatuses(PartiiList);
                 }
@@ -150,14 +150,14 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 Console.WriteLine($"partias algorithm time estimated: {dateOfEnd - dateOfStart}");
 
                 // Вызов функции глобального вывода
-                try
-                {
-                    SessionLink.SessionOutputEngine.Output(ForcedToRecreate: true);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Что-то не то с выводом данных после партий: {e.Message}");
-                }
+                SessionLink.SessionOutputEngine.Output(ForcedToRecreate: true);
+                //try
+                //{
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine($"Что-то не то с выводом данных после партий: {e.Message}");
+                //}
 
                 if (fin.Length == 0 | (SessionLink.SettingsController.CurrentSettings.LogErrors && SessionLink.DataErrors.TryOutputDataErrors())) // если логи велись, и я что-то вывел...
                 {

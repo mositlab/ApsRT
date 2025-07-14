@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack.Common;
 
 namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 {
@@ -33,8 +34,8 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
         public float NaladLengthsTotal { get; set; } // ЕСТЬ
 
-        public double TaraRedutantUsage { get; set; }
-        public double BadOffsets { get; set; }
+        public double TaraRedutantUsage { get; set; } // 5 - размотка тары
+        public double BadOffsets { get; set; } // Это разница от предыдущего времени
 
         public int TaraErrorsCount { get; set; }
 
@@ -70,6 +71,8 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         public IDictionary<int, int> FirstStagesRanks;
 
         public IDictionary<int, int> FirstStagesPositions;
+
+        public IDictionary<int, CenterInPlanData> FirstStagesAdditionalInfos;
 
         /// <summary>
         /// Дата начала плана. Должна быть только для чтения, чтобы не ломать логику.
@@ -108,6 +111,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             result.ProstoiBeforeFirstStages = new Dictionary<int, (DatesPoolClass, CachedInterval)>();
             result.RechangesBeforeFirstStages = new Dictionary<int, (RechangesEngineResult, CachedInterval, int)>();
             result.FirstStagesPositions = new Dictionary<int, int>();
+            result.FirstStagesAdditionalInfos = new Dictionary<int, CenterInPlanData>();
             return result;
         }
 

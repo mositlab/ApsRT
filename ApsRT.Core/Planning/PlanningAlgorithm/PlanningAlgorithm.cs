@@ -20,6 +20,8 @@ using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, s
 using System.Collections;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using ApsRT.Core.Leftovers;
+using ApsRT.Core.Rechanges.MasterData;
+using System.Xml.Linq;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -111,6 +113,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     return true;
                 }
 
+                //PlanFixer(BestBlocksList);
 
                 var LoadedData = SessionLink.SettingsController.CurrentSettings;
 
@@ -210,7 +213,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
             var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
+            var dt0 = DateTime.Now;
             OriginalValue = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(localCopy, MinAcceptableDate, result);
+            var dt1 = DateTime.Now;
+            Console.WriteLine($"plan calc time: {dt1-dt0}");
 
             // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
             SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(ops);
@@ -461,6 +467,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 var block = list[opToFix];
                 list.RemoveAt(opToFix);
                 list.Insert(operN, block);
+                //if (!tried.Add(opToFix)) break;
             }
 
             return (FIXED.Count, vpz);
@@ -589,5 +596,135 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             FoundGlobal = true;
             OnNewResult?.Invoke(t, ops);
         }
+
+        /// <summary>
+        /// Функция, которая пытается по-максимуму исправить план: свести к 0 ошибки длин, и к минимуму - критичные размотки тар и прочего.
+        /// </summary>
+        public bool PlanFixer(List<OpersBlock> blocks)
+        {
+            if (blocks == null) return false;
+
+            var dt0 = DateTime.Now;
+            Console.WriteLine($"fixer start: {dt0}");
+
+            var ops = OpersPool.CopyBlocks(blocks, false);
+
+            var preparedData = new OpersPoolConstructor(ops, MinAcceptableDate);
+
+            var pool = new OpersPool(SessionLink, ops, preparedData, MinAcceptableDate);
+
+            PlanningCalculatorEngineResult res = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
+
+            res = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool, MinAcceptableDate, res);
+
+            if (res.CatchedNaladLengthsErrorsCount > 0)
+            {
+                // Попробуем исправить наладочные длины.
+                ;
+
+                bool ThereIsModInHere(PlanningModelling y, Guid guid) => (y.ObshEtapData != null && y.ObshEtapData.ContainsKey(guid)) || (y.FirstOper.IsCustomModelling ? (y.FirstOper.CustomModelling == guid) : (y.FirstOper.MesModelling.Code == guid));
+
+                foreach (var error in res.ModellingsWithBrokenFixedNaladLengths)
+                {
+                    var dt01 = DateTime.Now;
+                    var guidToFind = error;
+                    var blockIndex = pool.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind))); // Найдем сначала номер блока где была ошибка
+                    var block = pool.Blocks[blockIndex];
+
+
+                    //b8a71b1e-9463-4088-bf21-93176ae78e64
+
+                    var modIndex = block.Lists.FindIndex(y => ThereIsModInHere(y, guidToFind)); // Теперь найдём номер мода
+                    var mod = block.Lists[modIndex];
+
+                    var opToCheck = mod.ObshEtapData != null ? mod.ObshEtapData[guidToFind].FirstOper : mod.FirstOper;
+
+                    if (!opToCheck.NeededNaladLength.HasValue)
+                    {
+                        continue;
+                    }
+
+                    var neededLength = opToCheck.NeededNaladLength.Value;
+
+                    var currentLengthWas = pool.NaladLengthsData[opToCheck.Index];
+
+                    var possibleBlocksGroups = pool.Blocks.Select((x, index) => (Block: x, index)).Where(y => mod.PossibleRCsHere.Any(z => z == y.Block.ActualRC)).GroupBy(x => x.Block.ActualRC);
+
+                    var indexToSet = -1;
+
+                    foreach (var possibleBlockGroup in possibleBlocksGroups)
+                    {
+                        if (indexToSet != -1) break;
+                        var elements = possibleBlockGroup.ToArray();
+                        var ChoosenCenter = possibleBlockGroup.Key;
+
+                        var parr = Parallel.For(0, elements.Length, (index, pls) =>
+                        {
+                            if (indexToSet != -1) return;
+                            PlanningModelling currentMod = elements[index].Block.Lists[0];
+                            Stage operationB = currentMod.FirstOper;
+
+                            var lastIndex = index - 1;
+                            PlanningModelling lastMod = lastIndex == -1 ? null : elements[lastIndex].Block.Lists[0];
+                            Stage operationA = lastMod?.FirstOper;
+
+                            var centGlobalStruct = res.FirstStagesAdditionalInfos[operationB.Index];
+                            var prostoiData = res.ProstoiBeforeFirstStages.TryGetValue(operationB.Index, out var pros) ? pros.ProstoiItself : new DatesPoolClass(res.FirstStagesStartDate[operationB.Index], 0, -1, -1);
+
+                            var rechangesResult = operationA == null ? null : SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA, operationB, ChoosenCenter));
+
+                            var naladLengthsData = SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(rechangesResult, operationB, ChoosenCenter, lastMod);
+
+                            if (naladLengthsData.NaladLengthHere.Value <= neededLength.Length.Value)
+                            {
+                                if (indexToSet != -1) return;
+                                ;
+                                var opsL = OpersPool.CopyBlocks(ops, false);
+                                var poolL = new OpersPool(SessionLink, opsL, preparedData, MinAcceptableDate);
+
+                                poolL.Blocks.Insert(elements[index].index, block);
+
+                                var blockIndexToRemove = poolL.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind)));
+
+                                poolL.Blocks.RemoveAt(blockIndexToRemove); // Убираем
+
+                                var result = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(poolL, MinAcceptableDate, null);
+
+                                if (result.ModellingsWithBrokenFixedNaladLengths.Except(res.ModellingsWithBrokenFixedNaladLengths).Count() == 0)
+                                {
+                                    indexToSet = elements[index].index;
+                                    pls.Stop();
+                                }
+                            }
+
+                        });
+                        while (!parr.IsCompleted)
+                        {
+                            if (indexToSet != -1) break;
+                            ;
+                        }
+                    }
+
+                    
+
+                    var dt02 = DateTime.Now;
+                    Console.WriteLine($"iter: {dt02 - dt01}, index {indexToSet}");
+                    ;
+                }
+            }
+
+            var dt1 = DateTime.Now;
+            Console.WriteLine($"fixer end: {dt1}, total {dt1 - dt0}");
+
+            BestBlocksList = ops;
+
+            return true;
+        }
+
+
+        #region Наладочные длины
+
+        #endregion
+
     }
 }

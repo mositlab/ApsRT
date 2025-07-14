@@ -95,7 +95,7 @@ namespace ApsRT.Core.Stages.MasterData
             #endregion
 
             // А ещё предыдущую дату
-            //stage.PrevDateTime = null;
+            stage.PrevDateTime = null;
             if (!PrevTimeDelta.HasValue || PrevTimeDelta.Value > stage.PrevDateTime) PrevTimeDelta = stage.PrevDateTime;
 
             // Теперь смотрим обычное время
@@ -288,6 +288,7 @@ namespace ApsRT.Core.Stages.MasterData
             }
 
             // Общий этап
+            if (stage.EasyFlagOriginal == Guid.Empty) stage.EasyFlagOriginal = null;
             if (stage.EasyFlagOriginal.HasValue)
             {
                 //stage.EasyFlagIsFromMes = true;
