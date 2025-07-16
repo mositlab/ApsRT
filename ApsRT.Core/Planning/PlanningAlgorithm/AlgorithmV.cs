@@ -332,8 +332,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             new SumIsPossibleOptions(false)
                                             {
                                                 PrevsInfo = PrevsInfoForV,// ПРЕД.
-                                                TaraMustBeThis = tara.Tara,// огр. по таре
-                                                RCMustBeThis = tara.RC,// огр. по РЦ
+                                                TaraMustBeThis = new(1) { tara.Tara },// огр. по таре
+                                                RCMustBeThis = new(1) { tara.RC },// огр. по РЦ
                                                 LogSomeErrors = false,
                                                 ModToTaraInfoLink = basisLink.ModToTaraInfo
                                             });

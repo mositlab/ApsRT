@@ -20,6 +20,7 @@ using System.Diagnostics.Metrics;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Taras.TaraSearchEngine;
+using ZLinq;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -84,7 +85,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 try
                 {
-                    var resu = Parallel.For(0, parallelCount, i =>
+                    var resu = Parallel.For(0, workflow.currentMode == 6 ? 1 : parallelCount, i =>
                     {
                         G_Iteration(poolLoc[i], Randoms[i], workflow, parallelCount, depth, ref ops);
                     });
@@ -113,6 +114,77 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 workflow.RawData[0] = taraCounter;
 
                 if (!workflow.NextIteration()) break;
+            }
+        }
+
+        public void ChangeRC(OpersBlock opertoIns, Random r, OpersPool opersCopy)
+        {
+            var CentersMasterData = basisLink.SessionLink.MasterDataLinks.CentersMasterData;
+
+            var sdvig = new PlanningModelling(opertoIns.Lists.AsValueEnumerable().SelectMany(x => x.OpersList).ToList(), false, PlanningModellingType.AfterPartias, -1, null, null);
+            var prevs = sdvig.OpersList.AsValueEnumerable().SelectMany(x => x.Prevs).Distinct().Where(x => 
+            !basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara.EmptyCheck())
+                .ToDictionary(x => x, x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara);
+
+            var nextRCs = sdvig.OpersList.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
+
+            HashSet<Uco> PossibleRCsHere = null; // Создаём рц, которые могут быть заюзаны для всех операций
+            foreach (var list in opertoIns.Lists)
+            {
+                if (PossibleRCsHere == null)
+                    PossibleRCsHere = new(list.PossibleRCsHere);
+                else
+                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(list.PossibleRCsHere).ToHashSet();
+
+                // А вот здесь ещё и проверим, чтобы КАЖДЫЙ мод из группы "на одном рц" тоже мог работать здесь
+                if (list.FirstOper.OnOneRC
+                && basisLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
+                && basisLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
+                {
+                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(data.PossibleRCs).ToHashSet();
+                }
+
+            }
+
+            var options = new SumIsPossibleOptions(false)
+            {
+                LogSomeErrors = false,
+                TaraMustBeThis = opertoIns.ExistingTaraHere.Select(x => x.Key).ToHashSet(),
+                PrevsInfo = prevs,
+                RCMustBeThis = PossibleRCsHere,
+                NextRCsMustBeThese = nextRCs,
+                SaveAvailableResults = true
+            };
+            if (
+                TaraSearchEngine.SumIsPossible(sdvig, out _, out _, out _, out _, out _, out var searchData, options)
+                && TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere.ToList(), prevs, options.TaraMustBeThis.ToList(), out _, out var allRCs, out _, false)
+                )
+            {
+                var possible = searchData.PossibleCentersAndTaras.AsValueEnumerable().Where((x, index) => (searchData.AvailableResults == null || searchData.AvailableResults[index])
+                &&
+                allRCs.Contains(x.RC)
+                &&
+                x.RC != opertoIns.ActualRC
+                &&
+                (!opertoIns.Lists[0].OpersList[0].IsVspom || CentersMasterData.CentersData[x.RC].AbleToVspom)
+                ).ToArray();
+
+                if (possible.Length > 0)
+                {
+                    //var finalRC = allRCs.OrderBy(x => (rcRoutesData.TryGetValue(rcRouteToWorkWith, out var lvl0) && lvl0.RCsData.TryGetValue(x, out var data) ? data : new TimeSpan())).First();//list[RC /*r.Next(0, possible.Count)*/]; // по итогу выбираем его
+                    var final = possible[r.Next(0, possible.Length)];
+                    opertoIns.ActualRC = final.RC;
+                    basisLink.UpdateOpsOnOneRC(opertoIns, opersCopy);
+                    for (int i = 0; i < opertoIns.Lists.Count; i++)
+                    {
+                        for (int j = 0; j < opertoIns.Lists[i].OpersList.Count; j++)
+                        {
+                            opertoIns.Lists[i].OpersList[j].Center = final.RC;
+                        }
+                    }
+                    //setPos(N);
+                    //ChangedRC = true;
+                }
             }
         }
 
@@ -187,10 +259,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             var neededOffset = dic.Max(x => x.Value);
                                             foreach (var rcRoute in rcRoutesData)
                                             {
-                                                dic[rcRoute.Key] -= neededOffset;
+                                                dic[rcRoute.Key] = 0;
                                             }
                                         }
-                                        var rcRouteToWorkWith0 = dic.Where(x => /*x.Key.Label.Contains("9900")*/x.Value >= 0).OrderByDescending(x => CentersMasterData.RCRoutesToListDic.TryGetValue(x.Key, out var rcs) ? rcs.Count : 0);/*MaxBy(x => rcRoutesData[x.Key].WorstTime)*//*MinBy(x => x.Value*/
+                                        var rcRouteToWorkWith0 = dic.Where(x => /*x.Key.Label.Contains("9900")*/x.Value >= 0).OrderByDescending(x => /*rcRoutesData[x.Key].WorstTime*/CentersMasterData.RCRoutesToListDic.TryGetValue(x.Key, out var rcs) ? rcs.Count : 0);/*MaxBy(x => rcRoutesData[x.Key].WorstTime)*//*MinBy(x => x.Value*/
                                         if (rcRouteToWorkWith0.Count() > 0)
                                         {
                                             var rcRouteToWorkWith1 = rcRouteToWorkWith0.Take(Math.Min(4, rcRouteToWorkWith0.Count()));
@@ -205,55 +277,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             var N = allBlocksHere[r.Next(0, allBlocksHere.Length)];//WillThis > -1 ? WillThis : r.Next(GLOBAL_FIXED_MIN, opersCopy.Blocks.Count); // Берём какую нибудь операцию, ОСНОВЫВАЯСЬ на нашем опыте.
                                             var opertoIns = opersCopy.Blocks[N];
 
-                                            var sdvig = new PlanningModelling(opertoIns.Lists.SelectMany(x => x.OpersList).ToList(), false, PlanningModellingType.AfterPartias, -1, null, null);
-                                            var prevs = sdvig.OpersList.SelectMany(x => x.Prevs).Distinct().ToDictionary(x => x, x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara);
-
-                                            List<Uco> PossibleRCsHere = null; // Создаём рц, которые могут быть заюзаны для всех операций
-                                            foreach (var list in opertoIns.Lists)
-                                            {
-                                                if (PossibleRCsHere == null)
-                                                    PossibleRCsHere = new(list.PossibleRCsHere);
-                                                else
-                                                    PossibleRCsHere = PossibleRCsHere.Intersect(list.PossibleRCsHere).ToList();
-
-                                                // А вот здесь ещё и проверим, чтобы КАЖДЫЙ мод из группы "на одном рц" тоже мог работать здесь
-                                                if (list.FirstOper.OnOneRC
-                                                && basisLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
-                                                && basisLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
-                                                {
-                                                    PossibleRCsHere = PossibleRCsHere.Intersect(data.PossibleRCs).ToList();
-                                                }
-
-                                            }
-
-                                            if (TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere, prevs, opertoIns.ExistingTaraHere.Select(x => x.Key).ToList(), out _, out var allRCs, out _, false))
-                                            {
-                                                if (allRCs?.Count > 1)
-                                                {
-                                                    var possible = new List<Uco>(allRCs)
-                                                        //.Intersect(centers_choosen)
-                                                        .Where(x => !opertoIns.Lists[0].OpersList[0].IsVspom || CentersMasterData.CentersData[x].AbleToVspom)
-                                                        // тут ещё - чекнуть наличие той же самой тары в виде приёмной, наличие отдающей тары как у предков (причем с учётом вспом.)
-                                                        .ToList();
-                                                    possible.Remove(opertoIns.ActualRC);
-                                                    if (possible.Count > 0)
-                                                    {
-                                                        //var finalRC = allRCs.OrderBy(x => (rcRoutesData.TryGetValue(rcRouteToWorkWith, out var lvl0) && lvl0.RCsData.TryGetValue(x, out var data) ? data : new TimeSpan())).First();//list[RC /*r.Next(0, possible.Count)*/]; // по итогу выбираем его
-                                                        var finalRC = possible[r.Next(0, possible.Count)];
-                                                        opertoIns.ActualRC = finalRC;
-                                                        basisLink.UpdateOpsOnOneRC(opertoIns, opersCopy);
-                                                        for (int i = 0; i < opertoIns.Lists.Count; i++)
-                                                        {
-                                                            for (int j = 0; j < opertoIns.Lists[i].OpersList.Count; j++)
-                                                            {
-                                                                opertoIns.Lists[i].OpersList[j].Center = finalRC;
-                                                            }
-                                                        }
-                                                        //setPos(N);
-                                                        //ChangedRC = true;
-                                                    }
-                                                }
-                                            }
+                                            ChangeRC(opertoIns, r, opersCopy);
 
                                         }
                                     }
@@ -319,6 +343,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         r.Next(MIN, Math.Min(MAX + 1, opersCopy.Blocks.Count)) : MIN;
 
                     opersCopy.Blocks.Insert(RangNow, opertoIns);
+
+                    if (!mode6 && r.NextDouble() > 0.75) ChangeRC(opertoIns, r, opersCopy);
 
                     return RangNow;
                 }

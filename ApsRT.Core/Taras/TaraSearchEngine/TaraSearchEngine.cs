@@ -757,6 +757,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.OrderByDescending(x => CentersDataSet.CentersData[x.RC].Subdivision == options.RecommendedSubdivision.Value ? 1 : 0).ToArray();
             }
 
+            if (options.SaveAvailableResults) searchData.AvailableResults = new bool[searchData.PossibleCentersAndTaras.Length];
+
             for (int h = 0; h < searchData.PossibleCentersAndTaras.Length; h++)
             {
                 var center = searchData.PossibleCentersAndTaras[h];
@@ -774,12 +776,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 OrigTaraNonErrorsCount++;
 
 
-                if (options.RCMustBeThis.HasValue && center.RC != options.RCMustBeThis.Value)
+                if (options.RCMustBeThis != null && !options.RCMustBeThis.Contains(center.RC)/*  != options.RCMustBeThis.Value*/)
                 {
                     continue; // две проверки, если надо
                 }
 
-                if (options.TaraMustBeThis.HasValue && center.Tara != options.TaraMustBeThis.Value)
+                if (options.TaraMustBeThis != null && !options.TaraMustBeThis.Contains(center.Tara))
                 {
                     continue;
                 }
@@ -808,6 +810,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     Max = 0;
                     FinalRC = center.RC;
                     used_format = DimensionUnit.Unknown;
+                    if (options.SaveAvailableResults) searchData.AvailableResults[h] = true;
                 }
                 else
                 {
@@ -819,9 +822,13 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             continue; // Отбраковываем
                         }
 
-                        if (
-                            (namot.Namot >= sum
-                            || someOpers.ZadelCode != 0) // Не меньше суммы должна быть намотка, ну либо это что с ЗАДЕЛАМИ, поэтому тут проверять на макс намотку не следует (Алёна, 17.06)
+                        bool technicallyPossible = (namot.Namot >= sum
+                            || someOpers.ZadelCode != 0); // Не меньше суммы должна быть намотка, ну либо это что с ЗАДЕЛАМИ, поэтому тут проверять на макс намотку не следует (Алёна, 17.06);
+
+                        if (options.SaveAvailableResults) searchData.AvailableResults[h] = technicallyPossible;
+
+                        if (technicallyPossible
+
                             && (!options.SearchForMaxTara && namot.Namot < Max || options.SearchForMaxTara && namot.Namot > Max)) // Должен быть меньше уже предложенного
                         {
                             if (!FinalRC.IsEmpty

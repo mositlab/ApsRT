@@ -456,7 +456,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                 TaraMustBeThis =
                                 here1.ZadelsGUIDs.Count > 0 ?
-                                (Zadels.LinearZadelsDictionary[here1.ZadelsGUIDs[0]].UsedTara)
+                                new(1) { Zadels.LinearZadelsDictionary[here1.ZadelsGUIDs[0]].UsedTara }
                                 :
                                 null,
 
@@ -464,7 +464,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                 RecommendedSubdivision = resultToFill.RecommendedSubdivision,
 
-                                RCMustBeThis = NeededRC,
+                                RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
 
                                 NaladLength = naladLength
                             });
@@ -825,7 +825,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false)
                         {
                             LogSomeErrors = false, // ошибки не фиксируем
-                            RCMustBeThis = rc // РЦ должен быть именно такой
+                            RCMustBeThis = new(1) { rc } // РЦ должен быть именно такой
                         })
                     )
                     )

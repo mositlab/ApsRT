@@ -49,7 +49,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             val = ((t.ProductionSeconds * 100.0 / BestValue.ProductionSeconds) - 100.0);
             var R4 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[3];
 
-            val = ((t.BadOffsets * 100.0 / BestValue.BadOffsets) - 100.0);
+            val = ((t.TaraRedutantUsage * 100.0 / BestValue.TaraRedutantUsage) - 100.0);
             var R5 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[4];
 
             return R1 && R2 && R3 && R4 && R5;
@@ -194,11 +194,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             if (LoadedData.UseOnlyMaxCriteriasSettings)
             {
-                maxDynCounter = LoadedData.CriteriasMaxIterations[currentMode];
+                maxDynCounter = LoadedData.CriteriasMaxIterations[currentMode - 1];
             }
             else
             {
-                maxDynCounter = Random.Shared.Next(LoadedData.CriteriasMinIterations[currentMode], LoadedData.CriteriasMaxIterations[currentMode]);
+                maxDynCounter = Random.Shared.Next(LoadedData.CriteriasMinIterations[currentMode - 1], LoadedData.CriteriasMaxIterations[currentMode - 1]);
             }
         }
     }

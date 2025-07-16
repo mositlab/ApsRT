@@ -35,7 +35,7 @@ namespace UniversalPack.Common
         public CodedObject(InputDataType code, ValueType label)
         {
             _code = code;
-            _isEmpty = EqualityComparer<InputDataType>.Default.Equals(_code, default);
+            _isEmpty = EmptyCheck();
             _label = label;
             _hashCode = default;
             UpdateHashCode();
@@ -47,6 +47,12 @@ namespace UniversalPack.Common
         private void UpdateHashCode()
         {
             _hashCode = HashCode.Combine(_code);
+        }
+
+        public bool EmptyCheck()
+        {
+            _isEmpty = EqualityComparer<InputDataType>.Default.Equals(_code, default);
+            return _isEmpty;
         }
 
         public readonly bool IsEmpty => _isEmpty;

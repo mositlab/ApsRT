@@ -176,6 +176,10 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                     var MOD = currentBlock.Lists[index];
                     var firstID = MOD.FirstOper.Index;
 
+
+                    if (pool.DatesData.TryGetValue(MOD.ModID, out var dates) && dates.Flag == currentFlag)
+                        resultToFill.TaraRedutantUsage += (centGlobalStruct.LastDate - dates.MinValue).TotalDays / MOD.FirstOper.Level;
+
                     // Попробуем заполнить длительности центров, если надо
                     centGlobalStruct.OpersTime += intervalHere.Duration;
 

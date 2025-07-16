@@ -154,7 +154,7 @@ namespace ApsRT.Core.Session
 
                 OutputNaladLengths(sessionPath + NaladLengthsFileName, blocksToCopy, localCopy.NaladLengthsData, localCopy.NaladLengthsDataAsMods, null);
 
-                OutputOrdersToFile(sessionPath + (asOld ? OrdersFileNameOld : OrdersFileNameOld), localCopy.OrdersData);
+                OutputOrdersToFile(sessionPath + (asOld ? OrdersFileNameOld : OrdersFileName), localCopy.OrdersData);
 
                 OutputMods(sessionPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
 
@@ -312,7 +312,7 @@ namespace ApsRT.Core.Session
                 }
 
                 var sw = new StreamWriter(filename, false, Encoding.UTF8);
-                sw.WriteLine("N;ID заказа;Метка;Сорван?;Количество дней;Значение");
+                sw.WriteLine("N;ID заказа;Метка;Сорван?;Количество дней;Значение;Дедлайн");
                 var D = 1;
                 foreach (var ord in orders)
                 {
@@ -323,7 +323,7 @@ namespace ApsRT.Core.Session
 
                     var vv = ord.Value.Time;
                     var v = vv > 0 ? "Да" : "Нет";
-                    sw.WriteLine($"{D};{ord.Key};{ord.Key.Object.Label};{v};{vv};{ord.Value.TimeWithK}");
+                    sw.WriteLine($"{D};{ord.Key};{ord.Key.Object.Label};{v};{vv};{ord.Value.TimeWithK};{SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[ord.Key].Deadline}");
                     D++;
                 }
                 sw.Close();

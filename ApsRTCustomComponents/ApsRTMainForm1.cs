@@ -244,7 +244,14 @@ namespace ApsRTCustomComponents
             CriteriasListTextBox.Text = string.Join(",", settings.CriteriasList);
             CriteriasListTextBox.TextChanged += (sender, args) =>
             {
-                settings.CriteriasList = ((TextBox)sender).Text.Replace(" ", "").Split(',').Select(x => int.Parse(x)).ToArray();
+                try
+                {
+                    settings.CriteriasList = ((TextBox)sender).Text.Replace(" ", "").Split(',').Select(x => int.Parse(x)).ToArray();
+                }
+                catch
+                {
+
+                }
             };
 
             CriteriasPossibleWorseNumericUpDown1.Value = (decimal)settings.CriteriasPossibleWorse[0];
@@ -1178,7 +1185,7 @@ namespace ApsRTCustomComponents
                     PlanningDataTable.Rows[1].Cells[2].Value = resToShow.RechangesSeconds;
                     PlanningDataTable.Rows[2].Cells[2].Value = resToShow.ProstoiSeconds;
                     PlanningDataTable.Rows[3].Cells[2].Value = resToShow.ProductionSeconds;
-                    PlanningDataTable.Rows[4].Cells[2].Value = resToShow.BadOffsets;
+                    PlanningDataTable.Rows[4].Cells[2].Value = resToShow.TaraRedutantUsage;
 
                     OrdersCurve.AddPoint(algorithm.LastGen, resToShow.DaysRuinedValue);
                     OrdersGraphControl.AxisChange();
@@ -1204,7 +1211,7 @@ namespace ApsRTCustomComponents
                     var v1 = Math.Round(100.0 - (resToShow.RechangesSeconds / algorithm.OriginalValue.RechangesSeconds * 100f), 2);
                     var v2 = Math.Round(100.0 - (resToShow.ProstoiSeconds / algorithm.OriginalValue.ProstoiSeconds * 100f), 2);
                     var v3 = Math.Round(100.0 - (resToShow.ProductionSeconds / algorithm.OriginalValue.ProductionSeconds * 100f), 2);
-                    var v4 = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2);
+                    var v4 = Math.Round(100.0 - (resToShow.TaraRedutantUsage / algorithm.OriginalValue.TaraRedutantUsage * 100f), 2);
 
                     OrdersCurveOnBig.AddPoint(algorithm.LastGen, v0);
                     RechangesCurveOnBig.AddPoint(algorithm.LastGen, v1);
@@ -1265,7 +1272,7 @@ namespace ApsRTCustomComponents
                 PlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
                 PlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
                 PlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
-                PlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+                PlanningDataTable.Rows[4].Cells[1].Value = res.TaraRedutantUsage;
 
                 PrepareGraphsForPlanning(sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
@@ -1369,7 +1376,7 @@ namespace ApsRTCustomComponents
                         {
                             var start = dateTime - rechanges.interval.Duration - prostoi.interval.Duration;
                             //var name = CentersIntToStr[ChoosenCenter];
-                            var bar = new GanttChart.Bar(start, start + prostoi.interval.Duration, Color.DarkViolet/*Color.LightGray*/, Color.DimGray,//prostInd == -1 ? Color.MediumOrchid : Color.LightGray, prostInd == -1 ? Color.DarkViolet : Color.Silver,//, ,
+                            var bar = new GanttChart.Bar(start, start + prostoi.interval.Duration, Color.FromArgb(255, 243, 188, 255)/*Color.LightGray*/, Color.DimGray,//prostInd == -1 ? Color.MediumOrchid : Color.LightGray, prostInd == -1 ? Color.DarkViolet : Color.Silver,//, ,
                                 "Простой." +
                                 //$"\r\nСмысл: {Desc}" +
                                 (prostoi.data != null && prostoi.data.LastID != -1 ? $"\r\nНазначила: {ALL[prostoi.data.LastID]} с РЦ '{pool.Blocks[prostoi.data.LastBlockIndex].ActualRC}'" : "") +
@@ -1850,13 +1857,13 @@ namespace ApsRTCustomComponents
         {
             var ops = ganttANL.SavedOpersLink;
             var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
-            var operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == OperIndex)));
-            var oper = ops[operInd];
-            ops.RemoveAt(operInd);
+            var operInd0 = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == OperIndex)));
+            var oper = ops[operInd0];
+            ops.RemoveAt(operInd0);
             oper.ActualRC = ActualRC;
-            operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == InsertBeforeThisIndex)));
+            var operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == InsertBeforeThisIndex)));
 
-            ops.Insert(operInd, oper);
+            ops.Insert(operInd == -1 ? operInd0 : operInd, oper);
             ganttANL.ClearBars();
             //var orders_dic = ops.SelectMany(x => x.Lists.SelectMany(z => z.Select(y => y.OrderN))).Distinct().ToDictionary(x => x, x => (DateTime.MinValue, -1, Time: 0.0, TimeWithK: 0.0));
             //var dates_dic = ops.SelectMany(x => x.Lists.SelectMany(z => z.Select(y => y.ID))).ToDictionary(x => x, x => (DateTime.MinValue, (-1, -1, -1, -1), -1));
