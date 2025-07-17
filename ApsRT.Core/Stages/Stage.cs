@@ -175,6 +175,20 @@ namespace ApsRT.Core.Stages
                 return noCheckNamotka.Value;
             }
         }
+
+        private bool? doNotCheckWindings;
+        public bool DoNotCheckWindings
+        {
+            get
+            {
+                if (!doNotCheckWindings.HasValue)
+                {
+                    doNotCheckWindings = SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(OperationVid.Code, Subdivision.Code);
+                }
+                return doNotCheckWindings.Value;
+            }
+        }
+
         #endregion
 
         #region Реквизиты
@@ -404,17 +418,9 @@ namespace ApsRT.Core.Stages
 
         public (NaladLengthValue Length, bool IsFirst)? NeededNaladLength { get; set; }
 
-        FrozenDictionary<Uco,
-            FrozenDictionary<
-            RequiredNaladCondition, NaladLengthValue
-                >
-            > NaladLengthsCache;
+        FrozenDictionary<Guid, NaladLengthValue[]> NaladLengthsCache;
 
-        Dictionary<Uco,
-            Dictionary<
-            RequiredNaladCondition, NaladLengthValue
-                >
-            > NaladLengthsCacheLocal = new();
+        Dictionary<Guid, NaladLengthValue[]> NaladLengthsCacheLocal = new();
 
         internal void CacheNaladLengths()
         {
@@ -425,7 +431,7 @@ namespace ApsRT.Core.Stages
             }
             CacheNaladLengthsRc(OriginalCenter);
 
-            NaladLengthsCache = NaladLengthsCacheLocal.ToFrozenDictionary(x => x.Key, x => x.Value.ToFrozenDictionary(y => y.Key, y => y.Value));
+            NaladLengthsCache = NaladLengthsCacheLocal.ToFrozenDictionary();
 
             //var _items = Enumerable
             //    .Range(0, 100)
@@ -444,14 +450,17 @@ namespace ApsRT.Core.Stages
 
         void CacheNaladLengthsRc(Uco rc)
         {
-            NaladLengthsCacheLocal.TryAdd(rc, new());
-            foreach (var whichCondition in System.Enum.GetValues(typeof(RequiredNaladCondition)))
+            Array array = System.Enum.GetValues(typeof(RequiredNaladCondition));
+            NaladLengthsCacheLocal.TryAdd(rc.Code, new NaladLengthValue[2]);
+            for (int i = 0; i < array.Length; i++)
             {
+                var whichCondition = array.GetValue(i);
                 var cond = (RequiredNaladCondition)whichCondition;
-                NaladLengthsCacheLocal[rc].TryAdd(cond,
-                    SessionLink.MasterDataLinks.NaladLengthsMasterData.NaladLengthsConverted(
-                        SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthFromMasterData(this, rc, cond), EdIzmClassificator, KgKm) // Заодно и конвертируем здесь же
-                    );
+
+                var length = SessionLink.MasterDataLinks.NaladLengthsMasterData.NaladLengthsConverted(
+                        SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthFromMasterData(this, rc, cond), EdIzmClassificator, KgKm); // Заодно и конвертируем здесь же
+
+                NaladLengthsCacheLocal[rc.Code][(int)cond] = length;
             }
         }
 
@@ -459,7 +468,7 @@ namespace ApsRT.Core.Stages
         {
             //var key = (chosenRC.Code, whichCondition);
             //if (!NaladLengthsCash.ContainsKey(key)) NaladLengthsCash.TryAdd(key, GetNaladLengthByData(this, chosenRC, whichCondition));
-            return NaladLengthsCache[chosenRC][whichCondition];
+            return NaladLengthsCache[chosenRC.Code][(int)whichCondition];
         }
         #endregion
 

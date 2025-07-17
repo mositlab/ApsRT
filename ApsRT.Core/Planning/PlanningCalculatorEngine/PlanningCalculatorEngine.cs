@@ -716,8 +716,8 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             if (firstEtap.NoChangeTara) return;
             if (firstEtap.IsVspom) return;
             if (firstEtap.NoCheckNamotka) return;
-            if (resultToFill.Session.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(firstEtap.OperationVid.Code, firstEtap.Subdivision.Code)) return;
-
+            if (firstEtap.DoNotCheckWindings) return;
+            //resultToFill.Session.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(firstEtap.OperationVid.Code, firstEtap.Subdivision.Code)
             var length = naladLengthHere + naladLengthNext;
             length = MathF.Round(length, 3);
 

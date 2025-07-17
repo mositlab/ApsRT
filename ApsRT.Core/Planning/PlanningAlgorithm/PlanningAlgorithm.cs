@@ -113,7 +113,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     return true;
                 }
 
-                //PlanFixer(BestBlocksList);
+                PlanFixer(BestBlocksList);
 
                 var LoadedData = SessionLink.SettingsController.CurrentSettings;
 

@@ -133,7 +133,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 return searchData.PossibleCentersAndTaras.Length > 0;
             }
 
-            var doNotCheckWindings = SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(allOpers.FirstOperLink.OperationVid.Code, allOpers.FirstOperLink.Subdivision.Code);//allOpers.Select(e => e.oper.OperationVid.Code).First());
+            var doNotCheckWindings = allOpers.FirstOperLink.DoNotCheckWindings;// SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(allOpers.FirstOperLink.OperationVid.Code, allOpers.FirstOperLink.Subdivision.Code);//allOpers.Select(e => e.oper.OperationVid.Code).First());
             var checkBarabanasCount = !doNotCheckWindings && !allOpers.FirstOperLink.NoChangeTara && allOpers.FirstOperLink.EndTara.IsEmpty;
             // Ищем тары для них всех
 
@@ -676,8 +676,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var dataErrors = SessionLink.DataErrors;
             bool LogErrorsBySettings = SessionLink.SettingsController.CurrentSettings.LogErrors;
 
-            TaraName = new(Guid.Empty, "");
-            FinalRC = new(Guid.Empty, "");
+            TaraName = Uco.EmptyObject;
+            FinalRC = Uco.EmptyObject;
             used_format = DimensionUnit.Unknown;
             Max = options.SearchForMaxTara ? -1 : double.MaxValue;
             notChangeTara = false;
@@ -744,7 +744,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 }
             }
 
-            var doNotCheckWindings = SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(someOpers.FirstOperLink.OperationVid.Code, someOpers.FirstOperLink.Subdivision.Code);// || TaraDataSet.NotCheckNamotka(someOpers.FirstOperLink);
+            var doNotCheckWindings = someOpers.FirstOperLink.DoNotCheckWindings;// SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(someOpers.FirstOperLink.OperationVid.Code, someOpers.FirstOperLink.Subdivision.Code);// || TaraDataSet.NotCheckNamotka(someOpers.FirstOperLink);
 
             //bool recommendedRCSet = false;
             int NoChangeTaraNonErrorsCount = 0;
