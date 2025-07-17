@@ -22,7 +22,6 @@ using ApsRT.Core.Partias.PartiasConnectorEngine;
 using System.Diagnostics.Metrics;
 using ApsRT.Core.Settings;
 using UniversalPack.Common;
-using ApsRT.Core.Planning.PlanningClasses;
 using System.Data;
 using UniversalPack.Extensions;
 using ApsRT.Core.Planning.PlanningAlgorithm;

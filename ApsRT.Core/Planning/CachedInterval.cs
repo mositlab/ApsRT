@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApsRT.Core.Planning.PlanningClasses
+namespace ApsRT.Core.Planning
 {
     /// <summary>
     /// Универсальный интервал времени, с хранением пойманных нерабочих интервалов на оборудовании. Юзается для кэширования и хранения инфы.

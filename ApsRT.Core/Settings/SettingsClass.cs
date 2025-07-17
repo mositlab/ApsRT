@@ -20,6 +20,7 @@ namespace ApsRT.Core.Settings
             OriginalDurationTime = 1,
             SaveOnSessionEnd = true,
             MaxDaysBetweenPartias = 30,
+            PoolSize = 16,
             OrderCoeffs = new OrderFunctionData[3]
             {
                 new OrderFunctionData()
@@ -50,6 +51,9 @@ namespace ApsRT.Core.Settings
 
 
         #region Для алгоритмов планирования
+
+        [JsonProperty]
+        public int PoolSize { get; set; }
 
         [JsonProperty]
         public double[] VKoeffs { get; set; }

@@ -25,16 +25,15 @@ using System.Windows.Forms;
 using static ApsRTCustomComponents.FormsExtensions;
 using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.Centers.MasterData;
-using ApsRT.Core.Planning.PlanningCalculatorEngine;
-using ApsRT.Core.Planning.PlanningClasses;
 using ApsRT.Core.Rechanges.RechangesEngine;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
 using ZedGraph;
 using Label = System.Windows.Forms.Label;
 using System.Collections.Generic;
 using TextBox = System.Windows.Forms.TextBox;
 using ApsRT.Core.Stages.MasterData;
-using ApsRT.Core.Planning.PlanSimulator;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.Planning;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRTCustomComponents
 {
@@ -1256,18 +1255,18 @@ namespace ApsRTCustomComponents
         }
 
         bool hasNewRes = false;
-        PlanningCalculatorEngineResult resToShow;
-        void onNewRes(PlanningCalculatorEngineResult newRes, List<OpersBlock> list)
+        PlanSimulatorEngineResult resToShow;
+        void onNewRes(PlanSimulatorEngineResult newRes)
         {
             hasNewRes = true;
             resToShow = newRes;
         }
 
-        void onAcquired(PlanningCalculatorEngineResult res, OpersPool pool)
+        void onAcquired(PlanSimulatorEngineResult res, List<PlanSimulatorBlock> blocks, int poolIndex)
         {
             ganttOLD.Invoke(delegate
             {
-                OutputToGanttChart(ganttOLD, pool, res);
+                OutputToGanttChart(ganttOLD, blocks, poolIndex, res);
                 PlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
                 PlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
                 PlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
@@ -1283,9 +1282,9 @@ namespace ApsRTCustomComponents
                     ProductionGraphControl.Invalidate();
                 }
 
-                tarasList(res, pool);
+                tarasList(res, blocks);
 
-                matsList(res, pool);
+                matsList(res, blocks);
                 //PlanningDataTable.Rows[5].Cells[1].Value = res.DaysRuinedValue;
                 //PlanningDataTable.Rows[6].Cells[1].Value = res.;
             });
@@ -1293,7 +1292,7 @@ namespace ApsRTCustomComponents
 
         Font smallFont = new Font("Montserrat", 7f, FontStyle.Bold, GraphicsUnit.Point);
 
-        public void OutputToGanttChart(GanttChart diagram, OpersPool pool, PlanningCalculatorEngineResult dataForHelp)
+        public void OutputToGanttChart(GanttChart diagram, List<PlanSimulatorBlock> blocks, int PoolIndex, PlanSimulatorEngineResult dataForHelp)
         {
 
             diagram.ClearBars();
@@ -1316,6 +1315,7 @@ namespace ApsRTCustomComponents
             var Custom_MODELLING = sessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo;
             var MIN_DATE_TIME_AFTER_FIX = sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate;
             var prevTimeDelta = sessionLink.MasterDataLinks.StagesMasterData.PrevTimeDelta;
+            var pool = blocks[0].PoolLink;
 
             foreach (var el in pool.CentersData/*int i = 0; i < opers.CentersData.Count; i++*/)
             {
@@ -1327,11 +1327,11 @@ namespace ApsRTCustomComponents
                     textRows.Add(new GanttChart.RowTitle(new GanttChart.TextInfo[]
                     {
                             new GanttChart.TextInfo($"[{CentersData[id].RowIndex}] {id}", new Point(12, 0)),
-                            new GanttChart.TextInfo($"R: {el.Value.RechangesTime}", new Point(2, 17), smallFont, Color.Red),
+                            new GanttChart.TextInfo($"R: {el.Value[PoolIndex].RechangesTime}", new Point(2, 17), smallFont, Color.Red),
                             new GanttChart.TextInfo("", new Point(125, 17), smallFont, Color.Red),
-                            new GanttChart.TextInfo($"P: {el.Value.ProstoiTime}", new Point(2, 29), smallFont, Color.DarkViolet),
+                            new GanttChart.TextInfo($"P: {el.Value[PoolIndex].ProstoiTime}", new Point(2, 29), smallFont, Color.DarkViolet),
                             new GanttChart.TextInfo("", new Point(125, 29), smallFont, Color.DarkViolet),
-                            new GanttChart.TextInfo($"T: {el.Value.TotalTime}", new Point(2, 42), smallFont, Color.RoyalBlue),
+                            new GanttChart.TextInfo($"T: {el.Value[PoolIndex].TotalTime}", new Point(2, 42), smallFont, Color.RoyalBlue),
                             new GanttChart.TextInfo("", new Point(125, 42), smallFont, Color.RoyalBlue)
                         //new GanttChart.TextInfo((gg+1).ToString(), new Point(2, 0), smallFont, Color.Black)
                     }, id));
@@ -1344,22 +1344,22 @@ namespace ApsRTCustomComponents
             for (int i = 0; i < pool.Blocks.Count; i++)
             {
                 var block = pool.Blocks[i];
-                var blockRC = block.ActualRC;
+                (var blockRC, _, _) = block.GetCenterData(PoolIndex);
 
-                var groups = block.Lists.GroupBy(x => dataForHelp.FirstStagesStartDate[x.FirstOper.Index]).ToArray(); // Сначала отсортируем по дате. Если она одинаковая, то будет одна группа, где параллельные моделирования.
+                var groups = block.Lists.GroupBy(x => dataForHelp.FirstStagesStartDate[x.FirstOperJust.Index]).ToArray(); // Сначала отсортируем по дате. Если она одинаковая, то будет одна группа, где параллельные моделирования.
 
                 foreach (var group in groups)
                 {
                     var parallelCount = group.Count(); // Сколько их тут
 
-                    var sortedMods = group.OrderBy(x => dataForHelp.FirstStagesRanks[x.FirstOper.Index]).ToArray(); // Получив их ранги, мы можем точно понять, какое моделирование было первым, и так далее. Перед каждым моделированием, мы можем посмотреть, были ли перед ним простои и переналадки, взяв у его первой операции айдишник, а ещё дату начала.
+                    var sortedMods = group.OrderBy(x => x.Ranks[PoolIndex]).ToArray(); // Получив их ранги, мы можем точно понять, какое моделирование было первым, и так далее. Перед каждым моделированием, мы можем посмотреть, были ли перед ним простои и переналадки, взяв у его первой операции айдишник, а ещё дату начала.
 
                     for (int mod = 0; mod < sortedMods.Length; mod++)
                     {
                         var currMod = sortedMods[mod];
-                        var nextOper = currMod.FirstOper;
+                        var nextOper = currMod.FirstOperJust;
                         var firstID = nextOper.Index;
-                        (DatesPoolClass data, CachedInterval interval) prostoi;
+                        (PlanSimulatorDatesData data, CachedInterval interval) prostoi;
                         (RechangesEngineResult data, CachedInterval interval, int last) rechanges;
                         if (!dataForHelp.ProstoiBeforeFirstStages.TryGetValue(firstID, out prostoi)) prostoi = (null, CachedInterval.Empty);
                         if (!dataForHelp.RechangesBeforeFirstStages.TryGetValue(firstID, out rechanges)) rechanges = (null, CachedInterval.Empty, -1);
@@ -1379,7 +1379,7 @@ namespace ApsRTCustomComponents
                             var bar = new GanttChart.Bar(start, start + prostoi.interval.Duration, Color.FromArgb(255, 243, 188, 255)/*Color.LightGray*/, Color.DimGray,//prostInd == -1 ? Color.MediumOrchid : Color.LightGray, prostInd == -1 ? Color.DarkViolet : Color.Silver,//, ,
                                 "Простой." +
                                 //$"\r\nСмысл: {Desc}" +
-                                (prostoi.data != null && prostoi.data.LastID != -1 ? $"\r\nНазначила: {ALL[prostoi.data.LastID]} с РЦ '{pool.Blocks[prostoi.data.LastBlockIndex].ActualRC}'" : "") +
+                                (prostoi.data != null && prostoi.data.LastID != -1 ? $"\r\nНазначила: {ALL[prostoi.data.LastID]} с РЦ '{pool.Blocks[prostoi.data.LastBlockIndex].GetCenterData(PoolIndex).Center}'" : "") +
                                 $"\r\nСледующая: {ALL[nextOper.Index]}", // ну типа она же именно что следующая, поэтому берем эту переменную и вставляем сюда.
                                 GlobalToLocalCenterRows[blockRC],
                                 0, 1,
@@ -1421,13 +1421,14 @@ namespace ApsRTCustomComponents
                         }
 
                         TimeSpan offset = new TimeSpan();
-                        int currentRank = dataForHelp.FirstStagesRanks[firstID];
+                        int currentRank = currMod.Ranks[PoolIndex];//dataForHelp.FirstStagesRanks[firstID];
                         var intervalForOp = dataForHelp.FirstStagesFullDurations[firstID];
 
 
-                        for (int op = 0; op < currMod.OpersList.Count; op++)
+                        for (int op = 0; op < currMod.StagesAsNormal.Count; op++)
                         {
-                            var operLoc = currMod.OpersList[op];
+                            var operLoc = currMod.StagesAsNormal[op];
+                            var operLoc2 = currMod.Stages[op];
                             var duration = TimeSpan.FromSeconds(operLoc.GetDuration(blockRC)) * currMod.TimeK[blockRC];
                             var start = dateTime + offset;
 
@@ -1456,7 +1457,7 @@ namespace ApsRTCustomComponents
                             $"\r\nНоменклатура: {operLoc.Nomenklature}" +
                             //(centerGlobalData.ParallelModelling ? $"\r\n*Сокращённая" : "") +
                             $"\r\nПродукция: {operLoc.Production}" +
-                            $"\r\nНаладочная длина: {pool.NaladLengthsData[operLoc.Index].data.NaladLengthHere.Value}" +
+                            $"\r\nНаладочная длина: {operLoc2.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value}" +
                             $"\r\nРегистратор: {operLoc.Registrator}" +
                             $"\r\nКоличество: {operLoc.Count}" +
                             $"\r\nПовив: {operLoc.Poviv}" +
@@ -1486,7 +1487,7 @@ namespace ApsRTCustomComponents
                             parallelCount > 1 ? (1f / parallelCount) * mod : 0,
                             parallelCount > 1 ? (1f / parallelCount) : 1, // TODO
                             operLoc.Index,
-                            pool.NaladLengthsData[operLoc.Index].data.NaladLengthHere.Value,
+                            operLoc2.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value,
                             operLoc.Fixed ? Color.Maroon : (operLoc.IsFact ? Color.Gray : (operLoc.VPZ ? Color.RoyalBlue : null)),
                             operLoc.Center == blockRC ? null : Color.Orange,
                             operLoc.Prevs.Count == 0 && operLoc.Nexts.Count == 0 ? Color.Lime : (operLoc.CurrentTara.IsEmpty && !operLoc.IsVspom ? Color.Red : (operLoc.ParallelPlanningIDs.All(x => x.Value == -1) && centerGlobalData.CanBeParallel ? Color.OrangeRed : null)),
@@ -1514,8 +1515,9 @@ namespace ApsRTCustomComponents
 
 
             diagram.CurrentHoveredBar = -1;
-            diagram.assignedDataPack = pool.Blocks.SelectMany(x => x.Lists.SelectMany(z => z.OpersList.Select(y => (y.Index, y.Prevs, y.Nexts, x.ActualRC, y.PossibleCenters)))).ToDictionary(x => x.Index, x => (x.Prevs, x.Nexts, x.ActualRC, x.PossibleCenters));
-            diagram.SavedOpersLink = OpersPool.CopyBlocks(pool.Blocks, false);
+            diagram.assignedDataPack = pool.Blocks.SelectMany(x => x.Lists.SelectMany(z => z.StagesAsNormal.Select(y => (y.Index, y.Prevs, y.Nexts, x.GetCenterData(PoolIndex).Center, y.PossibleCenters)))).ToDictionary(x => x.Index, x => (x.Prevs, x.Nexts, x.Center, x.PossibleCenters));
+            diagram.SavedOpersLink = PlanSimulatorPool.CopyBlocksSwallow(pool.Blocks);
+            diagram.PoolIndex = PoolIndex;
             diagram.SetRowTitles(textRows);
             diagram.FindAllPrevsHere(-1, false); // все нахрен стираем
         }
@@ -1543,7 +1545,7 @@ namespace ApsRTCustomComponents
                 var outData = sessionLink.SessionOutputEngine.Output(ForcedToRecreate: false);
                 ganttNEW.Invoke(delegate
                 {
-                    OutputToGanttChart(ganttNEW, outData.copy, outData.result);
+                    OutputToGanttChart(ganttNEW, outData.copy, outData.PoolIndex, outData.result);
 
                     if (NewProductionCurve != null && resToShow != null)
                     {
@@ -1560,12 +1562,12 @@ namespace ApsRTCustomComponents
             }
         }
 
-        void matsList(PlanningCalculatorEngineResult result, OpersPool poolToWorkWith)
+        void matsList(PlanSimulatorEngineResult result, List<PlanSimulatorBlock> Blocks)
         {
             var matsHere = GraphsOutput.UsageOutput<string>(MaterialsGraphControl.GraphPane, result.FirstStagesStartDate, result.FirstStagesFullDurations,
-                poolToWorkWith.Blocks.SelectMany(block =>
+                Blocks.SelectMany(block =>
                 block.Lists.Select(list =>
-                (list.FirstOper.Index, (list.FirstOper.StageMaterialsInfo == null ? Array.Empty<string>() : list.FirstOper.StageMaterialsInfo.UsedMaterials.Select(x => x.Nomenklature.Label).ToArray(), list.Count))
+                (list.FirstOperJust.Index, (list.FirstOperJust.StageMaterialsInfo == null ? Array.Empty<string>() : list.FirstOperJust.StageMaterialsInfo.UsedMaterials.Select(x => x.Nomenklature.Label).ToArray(), list.Count))
                 )).ToDictionary(x => x.Index, x => x.Item2), 10
                 );
             MaterialsListOnGraphics.Items.Clear();
@@ -1574,12 +1576,12 @@ namespace ApsRTCustomComponents
             MaterialsGraphControl.Invalidate();
         }
 
-        void tarasList(PlanningCalculatorEngineResult result, OpersPool poolToWorkWith)
+        void tarasList(PlanSimulatorEngineResult result, List<PlanSimulatorBlock> Blocks)
         {
             var tarasHere = GraphsOutput.UsageOutput<string>(TarasGraphControl.GraphPane, result.FirstStagesStartDate, result.FirstStagesFullDurations,
-                poolToWorkWith.Blocks.SelectMany(block =>
+                Blocks.SelectMany(block =>
                 block.Lists.Select(list =>
-                (id: list.FirstOper.Index, (list.FirstOper.CurrentTara.Label, 1.0))
+                (id: list.FirstOperJust.Index, (list.FirstOperJust.CurrentTara.Label, 1.0))
                 )).ToDictionary(x => x.id, x => x.Item2), 10
                 );
             TaraListOnGraphics.Items.Clear();
@@ -1812,7 +1814,7 @@ namespace ApsRTCustomComponents
 
         #region РУЧНОЙ АНАЛИЗ ГРАФИКА
 
-        PlanningCalculatorEngineResult OriginalManualResult;
+        PlanSimulatorEngineResult OriginalManualResult;
 
 
         private void AnalysisMenuItem_Click(object? sender, EventArgs e)
@@ -1836,74 +1838,67 @@ namespace ApsRTCustomComponents
 
         void SetAnalysis(GanttChart chart)
         {
-            var ops = chart.SavedOpersLink;
-            var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            //var ops = chart.SavedOpersLink;
+            //var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
-            var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            //var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
-            res = OriginalManualResult = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
+            //res = OriginalManualResult = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
 
-            ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
-            ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
-            ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
-            ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
-            ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+            //ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+            //ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+            //ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+            //ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+            //ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
 
-            OutputToGanttChart(ganttANL, pool, res);
+            //OutputToGanttChart(ganttANL, pool, res);
 
         }
 
         void UpdateAnalysis(int OperIndex, int InsertBeforeThisIndex, Uco ActualRC)
         {
-            var ops = ganttANL.SavedOpersLink;
-            var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
-            var operInd0 = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == OperIndex)));
-            var oper = ops[operInd0];
-            ops.RemoveAt(operInd0);
-            oper.ActualRC = ActualRC;
-            var operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == InsertBeforeThisIndex)));
+            //var ops = ganttANL.SavedOpersLink;
+            //var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            //var operInd0 = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == OperIndex)));
+            //var oper = ops[operInd0];
+            //ops.RemoveAt(operInd0);
+            //oper.ActualRC = ActualRC;
+            //var operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == InsertBeforeThisIndex)));
 
-            ops.Insert(operInd == -1 ? operInd0 : operInd, oper);
-            ganttANL.ClearBars();
-            //var orders_dic = ops.SelectMany(x => x.Lists.SelectMany(z => z.Select(y => y.OrderN))).Distinct().ToDictionary(x => x, x => (DateTime.MinValue, -1, Time: 0.0, TimeWithK: 0.0));
-            //var dates_dic = ops.SelectMany(x => x.Lists.SelectMany(z => z.Select(y => y.ID))).ToDictionary(x => x, x => (DateTime.MinValue, (-1, -1, -1, -1), -1));
+            //ops.Insert(operInd == -1 ? operInd0 : operInd, oper);
+            //ganttANL.ClearBars();
 
-            var newDic = new Dictionary<GanttChart.DoubleID, (int R, int P, int T)>();
-            //foreach (var cent in centers_choosen)
-            //{
-            //    for (int gg = 0; gg < CentersData[CentersIntToStr[cent]].MaxParallelOpersCount; gg++)
-            //        newDic.Add(new GanttChart.DoubleID(cent, gg), (0, 0, 0));
-            //}
+            //var newDic = new Dictionary<GanttChart.DoubleID, (int R, int P, int T)>();
 
-            var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            //var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
-            res = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
+            //res = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
 
-            OutputToGanttChart(ganttANL, pool, res);
+            //OutputToGanttChart(ganttANL, pool, res);
 
-            ganttANL.FindAllPrevsHere(OperIndex, true); // все нахрен стираем
+            //ganttANL.FindAllPrevsHere(OperIndex, true); // все нахрен стираем
 
 
-            ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
-            ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
-            ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
-            ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
-            ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+            //ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+            //ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+            //ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+            //ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+            //ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
 
 
-            ManualPlanningDataTable.Rows[0].Cells[2].Value = OriginalManualResult.DaysRuinedValue;
-            ManualPlanningDataTable.Rows[1].Cells[2].Value = OriginalManualResult.RechangesSeconds;
-            ManualPlanningDataTable.Rows[2].Cells[2].Value = OriginalManualResult.ProstoiSeconds;
-            ManualPlanningDataTable.Rows[3].Cells[2].Value = OriginalManualResult.ProductionSeconds;
-            ManualPlanningDataTable.Rows[4].Cells[2].Value = OriginalManualResult.BadOffsets;
+            //ManualPlanningDataTable.Rows[0].Cells[2].Value = OriginalManualResult.DaysRuinedValue;
+            //ManualPlanningDataTable.Rows[1].Cells[2].Value = OriginalManualResult.RechangesSeconds;
+            //ManualPlanningDataTable.Rows[2].Cells[2].Value = OriginalManualResult.ProstoiSeconds;
+            //ManualPlanningDataTable.Rows[3].Cells[2].Value = OriginalManualResult.ProductionSeconds;
+            //ManualPlanningDataTable.Rows[4].Cells[2].Value = OriginalManualResult.BadOffsets;
 
-            ManualPlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100 - (res.DaysRuinedValue * 100f / OriginalManualResult.DaysRuinedValue), 2) + "%";
-            ManualPlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100 - (res.RechangesSeconds * 100f / OriginalManualResult.RechangesSeconds), 2) + "%";
-            ManualPlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100 - (res.ProstoiSeconds * 100f / OriginalManualResult.ProstoiSeconds), 2) + "%";
-            ManualPlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100 - (res.ProductionSeconds * 100f / OriginalManualResult.ProductionSeconds), 2) + "%";
-            ManualPlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100 - (res.BadOffsets * 100f / OriginalManualResult.BadOffsets), 2) + "%";
+            //ManualPlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100 - (res.DaysRuinedValue * 100f / OriginalManualResult.DaysRuinedValue), 2) + "%";
+            //ManualPlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100 - (res.RechangesSeconds * 100f / OriginalManualResult.RechangesSeconds), 2) + "%";
+            //ManualPlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100 - (res.ProstoiSeconds * 100f / OriginalManualResult.ProstoiSeconds), 2) + "%";
+            //ManualPlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100 - (res.ProductionSeconds * 100f / OriginalManualResult.ProductionSeconds), 2) + "%";
+            //ManualPlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100 - (res.BadOffsets * 100f / OriginalManualResult.BadOffsets), 2) + "%";
 
-            OriginalManualResult = res;
+            //OriginalManualResult = res;
         }
         #endregion
 
@@ -1943,13 +1938,13 @@ namespace ApsRTCustomComponents
         private void button2_Click(object sender, EventArgs e)
         {
             var algorithm = sessionLink.AssignedPlanningAlgorithm;
-            if (algorithm == null || algorithm.BestBlocksList == null) return;
-            sessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(algorithm.BestBlocksList);
+            if (algorithm == null || algorithm.UsedPool == null) return;
+            sessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(algorithm.UsedPool.Blocks);
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            PlanSimulatorTable table = new PlanSimulatorTable(sessionLink, DateTime.Now, sessionLink.MasterDataLinks.StagesMasterData.AllStages.Values.ToList(), sessionLink.MasterDataLinks.CentersMasterData.CentersData.Keys.ToArray());
+            //PlanSimulatorTable table = new PlanSimulatorTable(sessionLink, DateTime.Now, sessionLink.MasterDataLinks.StagesMasterData.AllStages.Values.ToList(), sessionLink.MasterDataLinks.CentersMasterData.CentersData.Keys.ToArray());
         }
     }
 }

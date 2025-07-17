@@ -3,8 +3,8 @@ using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Props;
 using ApsRT.Core.Session;
 using UniversalPack.Common.Drawing;
-using ApsRT.Core.Planning.PlanningClasses;
 using static UniversalPack.Extensions.EnumExtensions;
+using ApsRT.Core.PlanSimulator;
 
 namespace ApsRTCustomComponents
 {
@@ -798,7 +798,8 @@ namespace ApsRTCustomComponents
         /// <summary>
         /// Сохранённый список операций конкретно этой диаграммы. Его можно заюзать 
         /// </summary>
-        public List<OpersBlock> SavedOpersLink;
+        public List<PlanSimulatorBlock> SavedOpersLink;
+        public int PoolIndex;
 
         List<int> PossibleOpersForClicked;
 
@@ -1047,16 +1048,16 @@ namespace ApsRTCustomComponents
                     var index = Bars[CurrentPressedBar].OperID;
                     if (index > -1)
                     {
-                        var opers0 = SavedOpersLink.Find(y => y.Lists.Any(x => x.OpersList.Any(z => z.Index == index)));
+                        var opers0 = SavedOpersLink.Find(y => y.Lists.Any(x => x.StagesAsNormal.Any(z => z.Index == index)));
                         var opers = opers0.Lists[0];// тут по идее можно оставить 0, т.к. все равно рц один
-                        var center = opers0.ActualRC;
-                        var possible_centers = opers.OpersList[0].PossibleCenters;
+                        var center = opers0.GetCenterData(PoolIndex).Center;
+                        var possible_centers = opers.StagesAsNormal[0].PossibleCenters;
                         if (possible_centers == null)
                         {
                             possible_centers = new List<Uco>();
                         }
 
-                        foreach (var oper in opers.OpersList)
+                        foreach (var oper in opers.StagesAsNormal)
                         {
                             if (oper.PossibleCenters == null)
                             {
@@ -1079,12 +1080,12 @@ namespace ApsRTCustomComponents
 
                         var ops = SavedOpersLink//x.List[0].Oper.PossibleCenters == null ? (x.List[0].ActualRC == center) : x.List[0].Oper.PossibleCenters.Contains(center)
                             .Where(x => possible_centers == null ?
-                            x.ActualRC == center
-                            : possible_centers.Contains(x.ActualRC))
-                            .SelectMany(x => x.Lists[0].OpersList.Select(y => y)) // тут вместо 0 имеет смысл ставить все рц, которые можно выбрать
+                            x.GetCenterData(PoolIndex).Center == center
+                            : possible_centers.Contains(x.GetCenterData(PoolIndex).Center))
+                            .SelectMany(x => x.Lists[0].StagesAsNormal) // тут вместо 0 имеет смысл ставить все рц, которые можно выбрать
                             .ToList();
 
-                        var allPrevs = opers.OpersList.SelectMany(x => x.Prevs).Distinct().ToList();
+                        var allPrevs = opers.StagesAsNormal.SelectMany(x => x.Prevs).Distinct().ToList();
 
                         if (allPrevs.Count > 0)
                         {
@@ -1092,7 +1093,7 @@ namespace ApsRTCustomComponents
                             ops = ops.Where(x => IndexToBar[x.Index].From >= mindat).ToList();
                         }
 
-                        var allNexts = opers.OpersList.SelectMany(x => x.Nexts).Distinct().ToList();
+                        var allNexts = opers.StagesAsNormal.SelectMany(x => x.Nexts).Distinct().ToList();
 
                         if (allNexts.Count > 0)
                         {
@@ -1200,7 +1201,7 @@ namespace ApsRTCustomComponents
             {
                 // Обновляем это дело
                 var index = Bars[NearestBarToInsert].OperID;
-                var res1 = SavedOpersLink.Find(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == index))).ActualRC;
+                var res1 = SavedOpersLink.Find(x => x.Lists.Any(y => y.StagesAsNormal.Any(z => z.Index == index))).GetCenterData(PoolIndex).Center;
                 var ind = Bars[CurrentPressedBar].OperID;
                 OnAnalysis?.Invoke(ind, index, res1);
                 CurrentPressedBar = Bars.FindIndex(x => x.OperID == ind);

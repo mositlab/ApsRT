@@ -1,4 +1,4 @@
-﻿using ApsRT.Core.Planning.PlanningCalculatorEngine;
+﻿using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Session;
 using ApsRT.Core.Settings;
 using System;
@@ -30,11 +30,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         internal DateTime LastTime;
 
-        internal PlanningCalculatorEngineResult BestValue;
+        internal PlanSimulatorEngineResult BestValue;
 
         //internal bool NeverGraphs;
 
-        internal bool CheckRestrictions(PlanningCalculatorEngineResult t)
+        internal bool CheckRestrictions(PlanSimulatorEngineResult t)
         {
 
             var val = ((t.DaysRuinedValue * 100.0 / BestValue.DaysRuinedValue) - 100.0);
@@ -59,7 +59,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         SettingsClass LoadedData => sessionLink.SettingsController.CurrentSettings;
 
-        internal PlanningAlgorithmWorkflow(Session.Session session, int generations, int cycles, double minutes, PlanningCalculatorEngineResult originalValue, int rawDataCount)
+        internal PlanningAlgorithmWorkflow(Session.Session session, int generations, int cycles, double minutes, PlanSimulatorEngineResult originalValue, int rawDataCount)
         {
             sessionLink = session;
             RawData = new object[rawDataCount];

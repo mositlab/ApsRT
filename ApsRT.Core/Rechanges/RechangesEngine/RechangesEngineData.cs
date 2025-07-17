@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
-using ApsRT.Core.Planning.PlanningClasses;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
+using ApsRT.Core.PlanSimulator;
 
 namespace ApsRT.Core.Rechanges.RechangesEngine
 {
@@ -15,7 +14,7 @@ namespace ApsRT.Core.Rechanges.RechangesEngine
     /// </summary>
     public class RechangesEngineData
     {
-        public RechangesEngineData(CenterInPlanData centerData, DatesPoolClass prostoiData, Stages.Stage operationA, Stages.Stage operationB, Uco actualRC)
+        public RechangesEngineData(PlanSimulatorCenterData centerData, PlanSimulatorDatesData prostoiData, Stages.Stage operationA, Stages.Stage operationB, Uco actualRC)
         {
             CenterData = centerData;
             ProstoiData = prostoiData;
@@ -24,8 +23,8 @@ namespace ApsRT.Core.Rechanges.RechangesEngine
             ActualRC = actualRC;
         }
 
-        public CenterInPlanData CenterData { get; }
-        public DatesPoolClass ProstoiData { get; }
+        public PlanSimulatorCenterData CenterData { get; }
+        public PlanSimulatorDatesData ProstoiData { get; }
         public Stages.Stage ObjectA { get; }
         public Stages.Stage ObjectB { get; }
         public Uco ActualRC { get; }

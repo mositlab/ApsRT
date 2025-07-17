@@ -1,19 +1,21 @@
-﻿using Azure;
-using ApsRT.Core.Stages;
-using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+﻿using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
+using System.Collections.Frozen;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
-namespace ApsRT.Core.Planning.PlanningClasses
+namespace ApsRT.Core.PlanSimulator
 {
-    public class PlanningModelling : IAbleForTaraCalcInterface
+    public class PlanSimulatorMod : IAbleForTaraCalcInterface
     {
-        public List<Stage> OpersList;
+        public PlanSimulatorBlock BlockLink;
+
+        public List<PlanSimulatorStage> Stages;
+        public List<Stage> StagesAsNormal;
+
+        public PlanSimulatorNaladLengthData[] NaladLengthData; // TO DO: ОБОСРЕТСЯ НА ОБЩИХ ЭТАПАХ
+        public PlanSimulatorDatesData[] MinDatesData;
+        public int[] Ranks;
+
         public FrozenDictionary<Uco, TimeSpan> AllTime;
         //public TimeSpan MaxTime;
         public FrozenDictionary<Uco, double> TimeK;
@@ -22,26 +24,27 @@ namespace ApsRT.Core.Planning.PlanningClasses
 
         public List<Uco> PossibleRCsHere; // иногда РЦ могут немного отличаться у того или иного этапа, ибо нет проверки на совпадение маршрутов РЦ. Поэтому создан отдельный список, чтоб можно было чекнуть.
 
-        public Stage FirstOper;
+        public Stage FirstOperJust;
+        public PlanSimulatorStage FirstOper;
 
-        Stage IAbleForTaraCalcInterface.FirstOperLink => FirstOper;
+        Stage IAbleForTaraCalcInterface.FirstOperLink => FirstOperJust;
 
         int IAbleForTaraCalcInterface.ModId => ModID;
 
-        List<Stage> IAbleForTaraCalcInterface.AllOpers => OpersList;
+        List<Stage> IAbleForTaraCalcInterface.AllOpers => StagesAsNormal;
 
         double IAbleForTaraCalcInterface.Sum => Count; // Тут другая реализация, так как все равно пришлось клепать коэффициенты для последующего красивого отображения в гуе.
 
         int IAbleForTaraCalcInterface.ZadelCode => 0;
 
-        public Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum)> ObshEtapData;
+        public Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum)> EasyLifeData;
 
         public int ModID; // чисто номер мода. Попытка оптимизации
-        public List<int> NextMods = new();
-        public List<int> PrevMods = new();
 
-        public PlanningModelling(List<Stage> list, bool parrRC, PlanningModellingType type, int modId,
-            List<int> prevs, List<int> nexts)
+        public List<PlanSimulatorMod> NextMods = new();
+        public List<PlanSimulatorMod> PrevMods = new();
+
+        public PlanSimulatorMod(List<Stage> list, bool parrRC, PlanningModellingType type, int modId)
         {
             if (type == PlanningModellingType.EasyFlagFromMES || type == PlanningModellingType.EasyFlagAfterPartias)
             {
@@ -58,18 +61,21 @@ namespace ApsRT.Core.Planning.PlanningClasses
                     listFinal.AddRange(listToAdd);
                 }
 
-                ObshEtapData = final;
+                EasyLifeData = final;
                 list = listFinal;
-                
+
                 //modsHere.ToDictionary(x => x.Key, x => (x.First(), x.Count(), /*type == ModellingType.Obch_ETAP_FromMES ? x.First().Count : */x.Sum(x => x.Count))); // создаем словарь чтоб он помогал нам понять, что в этом общем этапе есть
             }
 
-            OpersList = list;
-            FirstOper = list[0];
+            StagesAsNormal = list;
+            Stages = list.Select(x => new PlanSimulatorStage()
+            {
+                Stage = x
+            }).ToList();
+            FirstOperJust = list[0];
+            FirstOper = Stages[0];
             ModType = type;
             ModID = modId;
-            PrevMods = prevs;
-            NextMods = nexts;
 
 
             foreach (var oper in list) // Создаём массив тех РЦ, которые однозначно есть на всех этапах
@@ -88,9 +94,9 @@ namespace ApsRT.Core.Planning.PlanningClasses
                 // Исходный этап
                 case PlanningModellingType.Elementar: // Это исходный этапчик
                     {
-                        AllTime = PossibleRCsHere.ToFrozenDictionary(x => x, x => TimeSpan.FromSeconds(FirstOper.GetDuration(x)));
+                        AllTime = PossibleRCsHere.ToFrozenDictionary(x => x, x => TimeSpan.FromSeconds(FirstOperJust.GetDuration(x)));
                         TimeK = AllTime.ToFrozenDictionary(x => x.Key, x => 1.0);
-                        Count = FirstOper.Count;
+                        Count = FirstOperJust.Count;
                         break;
                     }
 
@@ -104,29 +110,29 @@ namespace ApsRT.Core.Planning.PlanningClasses
                         break;
                     }
 
-                // Обработка модов, сформированных АПС-кой
-                //case PlanningModellingType.AfterPartias:
-                //    {
-                //        classic();
-                //        break;
-                //    }
-                //case PlanningModellingType.EasyFlagAfterPartias: // что общий этап, что моделирования - после партий суммируются по старинке
-                //    {
-                //        classic();
-                //        break;
-                //    }
+                    // Обработка модов, сформированных АПС-кой
+                    //case PlanningModellingType.AfterPartias:
+                    //    {
+                    //        classic();
+                    //        break;
+                    //    }
+                    //case PlanningModellingType.EasyFlagAfterPartias: // что общий этап, что моделирования - после партий суммируются по старинке
+                    //    {
+                    //        classic();
+                    //        break;
+                    //    }
 
-                //// Обработка моделирований из меса
-                //case PlanningModellingType.FromMES:
-                //    {
-                //        justSum();
-                //        break;
-                //    }
-                //case PlanningModellingType.EasyFlagFromMES:
-                //    {
-                //        justSum();
-                //        break;
-                //    }
+                    //// Обработка моделирований из меса
+                    //case PlanningModellingType.FromMES:
+                    //    {
+                    //        justSum();
+                    //        break;
+                    //    }
+                    //case PlanningModellingType.EasyFlagFromMES:
+                    //    {
+                    //        justSum();
+                    //        break;
+                    //    }
             }
 
 
@@ -148,6 +154,5 @@ namespace ApsRT.Core.Planning.PlanningClasses
             //    //Count = FirstOper.Count; // совсем недавно была лишь первая но 01.08.24 поправили
             //}
         }
-
     }
 }

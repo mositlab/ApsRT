@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApsRT.Core.Planning.PlanningClasses
+namespace ApsRT.Core.PlanSimulator
 {
     public enum PlanningModellingType
     {

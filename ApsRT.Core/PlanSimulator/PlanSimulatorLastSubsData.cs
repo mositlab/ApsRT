@@ -7,14 +7,14 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 
-namespace ApsRT.Core.Planning.PlanningClasses.PoolClasses
+namespace ApsRT.Core.PlanSimulator
 {
-    public class LastSubdivisionsPoolClass
+    public class PlanSimulatorLastSubsData
     {
         internal Uco LastSubdivision;
         internal int Flag;
 
-        public LastSubdivisionsPoolClass(Uco sub, int flag)
+        public PlanSimulatorLastSubsData(Uco sub, int flag)
         {
             LastSubdivision = sub;
             Flag = flag;

@@ -10,10 +10,11 @@ using System.Collections.Frozen;
 using System.Collections;
 using ZLinq;
 
-namespace ApsRT.Core.Planning.PlanSimulator
+namespace ApsRT.Core.PlanSimulator
 {
     public class PlanSimulatorTable
     {
+        /*
         public PlanSimulatorTable(Session.Session sessionLink, DateTime startDate, List<Stages.Stage> stages, IEnumerable<Uco> possibleCenters): this(sessionLink, startDate, GenerateBlocks(stages), possibleCenters)
         {
 
@@ -21,7 +22,7 @@ namespace ApsRT.Core.Planning.PlanSimulator
 
         static List<PlanSimulatorBlock> GenerateBlocks(List<Stages.Stage> stages)
         {
-            return stages.AsValueEnumerable().OrderBy(x => x.Level)/*.Take(12778)*/.Select(stageBig =>
+            return stages.AsValueEnumerable().OrderBy(x => x.Level).Select(stageBig =>
             {
                 var mod = new PlanSimulatorMod();
                 mod.Stages = new List<PlanSimulatorStage>();
@@ -186,7 +187,7 @@ namespace ApsRT.Core.Planning.PlanSimulator
             //HashSet<PlanSimulatorBlock> block = new();
             while (NeedToRecalcIt.Count > 0)
             {
-                var current = NeedToRecalcIt/*.AsValueEnumerable()*/.First();
+                var current = NeedToRecalcIt.First();
                 if (current.Value.Count == 0)
                 {
                     NeedToRecalcIt.Remove(current.Key);
@@ -205,5 +206,6 @@ namespace ApsRT.Core.Planning.PlanSimulator
             }
             //Console.WriteLine(block.Count.ToString());
         }
+        */
     }
 }

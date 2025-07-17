@@ -1,8 +1,5 @@
 ﻿using Azure;
 using ApsRT.Core.Partias.PartiasAlgorithm;
-using ApsRT.Core.Planning.PlanningCalculatorEngine;
-using ApsRT.Core.Planning.PlanningClasses;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
 using ApsRT.Core.Session;
 using ApsRT.Core.Stages;
 using System;
@@ -22,6 +19,8 @@ using ApsRT.Core.Taras.TaraSearchEngine;
 using ApsRT.Core.Leftovers;
 using ApsRT.Core.Rechanges.MasterData;
 using System.Xml.Linq;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -40,9 +39,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         public DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
         public DateTime StartOfPlanningDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
 
-        public List<OpersBlock> BestBlocksList { get; private set; }
+        public PlanSimulatorPool UsedPool { get; private set; }
 
-        public PlanningCalculatorEngineResult OriginalValue { get; private set; }
+        public PlanSimulatorEngineResult OriginalValue { get; private set; }
 
         public PlanningAlgorithmWorkflow UsedWorkflow { get; private set; }
 
@@ -52,9 +51,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public Action<PlanningAlgorithmStage, int> AlgorithmCallback;
 
-        public Action<PlanningCalculatorEngineResult, OpersPool> OnFirstResultAcquried;
+        public Action<PlanSimulatorEngineResult, List<PlanSimulatorBlock>, int> OnFirstResultAcquried;
 
-        public Action<PlanningCalculatorEngineResult, List<OpersBlock>> OnNewResult;
+        public Action<PlanSimulatorEngineResult> OnNewResult;
 
         public Task<bool> Process { get; private set; }
 
@@ -92,7 +91,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public bool FoundSmth = false, FoundGlobal = false;
 
-        public bool AlgorithmProcess(int parallelCount, int depth)
+        public bool AlgorithmProcess(int poolSize, int depth)
         {
             try
             {
@@ -101,8 +100,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     PrepareEverything();
                 }
 
-                (var result, var localCopy) = SessionLink.SessionOutputEngine.Output(ForcedToRecreate: false, true);
-                OnFirstResultAcquried?.Invoke(result, localCopy);
+                (var result, var localCopy, var index) = SessionLink.SessionOutputEngine.Output(ForcedToRecreate: false, true);
+                OnFirstResultAcquried?.Invoke(result, localCopy, index);
 
                 if (SessionLink.SessionOptions.Jsort)
                 {
@@ -113,7 +112,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     return true;
                 }
 
-                PlanFixer(BestBlocksList);
+                //PlanFixer(BestBlocksList);
 
                 var LoadedData = SessionLink.SettingsController.CurrentSettings;
 
@@ -127,7 +126,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                    );
 
                 CurrentStage = PlanningAlgorithmStage.RunningV;
-                CurrentStageChanged?.Invoke(CurrentStage, BestBlocksList.Count);
+                CurrentStageChanged?.Invoke(CurrentStage, UsedPool.Blocks.Count);
                 var V = new AlgorithmV(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 1 started");
                 V.Start(UsedWorkflow);
@@ -142,7 +141,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
                 var G = new AlgorithmG(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
-                G.Start(parallelCount, depth);
+                G.Start(poolSize, depth);
 
                 if (WannaStop)
                 {
@@ -166,6 +165,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public bool PrepareEverything()
         {
+            int PoolSize = SessionLink.SettingsController.CurrentSettings.PoolSize;
             if (WannaStop)
             {
                 WannaStop = false; // Сбрасываем, если кнопка была нажата ранее
@@ -193,28 +193,30 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             GLOBAL_FIXED_MIN = 0;
             GLOBAL_VPZ_MAX = 0;
             var mods = CreateModsInfo(stages);
-            List<OpersBlock> ops = ConvertToModellings(stages, mods);
+            List<PlanSimulatorBlock> ops = ConvertToModellings(stages, mods, PoolSize);
             Console.WriteLine($"blocks: {ops.Count}");
             Console.WriteLine("4.3 - order them");
             (GLOBAL_FIXED_MIN, GLOBAL_VPZ_MAX) = Order_Fixed_VPZ_Free(ref ops, true/*OpersAreNotHighlyStricted*/);
 
-            Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Count());
-            Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Distinct().Count());
+            Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
+            Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count());
 
-            BestBlocksList = ops;
+            //BestBlocksList = ops;
+
+            UsedPool = new PlanSimulatorPool(SessionLink, ops, MinAcceptableDate, PoolSize);
 
             Console.WriteLine("calc...");
 
-            var pool = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
+            //var pool = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
 
-            SessionLink.MasterDataLinks.WorkingIntervalsMasterData.PrepareCentersForMinDataTime(pool.CentersData.Keys, MinAcceptableDate);
+            SessionLink.MasterDataLinks.WorkingIntervalsMasterData.PrepareCentersForMinDataTime(UsedPool.CentersData.Keys, MinAcceptableDate);
 
-            PrepareOnOneRCData(pool);
+            PrepareOnOneRCData(UsedPool);
 
-            var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
-            var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
+            var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
+            //var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
             var dt0 = DateTime.Now;
-            OriginalValue = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(localCopy, MinAcceptableDate, result);
+            OriginalValue = PlanSimulatorEngine.CalculatePlan(ops, 0, MinAcceptableDate, result);
             var dt1 = DateTime.Now;
             Console.WriteLine($"plan calc time: {dt1-dt0}");
 
@@ -273,12 +275,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return localModellings;
         }
 
-        List<OpersBlock> ConvertToModellings(List<Stage> opers, Dictionary<(PlanningModellingType, Guid), int> mods)//, List<int> FirstOnes)
+        List<PlanSimulatorBlock> ConvertToModellings(List<Stage> opers, Dictionary<(PlanningModellingType, Guid), int> mods, int PoolSize)//, List<int> FirstOnes)
         {
             //var str = string.Join(", ", opers.Select(x => x.ID));
             //Console.WriteLine(str);
             // Создаём объединения на основании всего этого
-            var final = new List<OpersBlock>();
+            var final = new List<PlanSimulatorBlock>();
             var I = 0;
             var HasErrors = false;
             HashSet<int> ClosedIDs = new();
@@ -287,7 +289,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //var index = opers.FindIndex(x => x.ID == 614);
 
-            Dictionary<int, int> OperIdsToModsIds = new(opers.Count);
+            //Dictionary<int, int> OperIdsToModsIds = new(opers.Count);
             int CurrentModId = 0;
 
             while (I < opers.Count)
@@ -350,12 +352,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 void addOne()
                 {
-                    var arr = new OpersBlock(
-                        new List<PlanningModelling>()
+                    var arr = new PlanSimulatorBlock(
+                        new List<PlanSimulatorMod>()
                         {
-                                new PlanningModelling(new List<Stage>(1) { opers[I] }, CentersData[opers[I].Center].CanBeParallel, PlanningModellingType.Elementar, CurrentModId, null, null)
-                        }, opers[I].Center, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true);
-                    OperIdsToModsIds.Add(opers[I].Index, CurrentModId);
+                                new PlanSimulatorMod(new List<Stage>(1) { opers[I] }, CentersData[opers[I].Center].CanBeParallel, PlanningModellingType.Elementar, CurrentModId)
+                        }, opers[I].Center, PoolSize, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true);
+                    //OperIdsToModsIds.Add(opers[I].Index, CurrentModId);
                     ClosedIDs.Add(opers[I].Index);
                     //if (opers[I].ID == 614)
                     //{
@@ -385,14 +387,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         //    ;
                         //}
                         ClosedIDs.Add(opers[N].Index);
-                        OperIdsToModsIds.Add(opers[N].Index, CurrentModId);
+                        //OperIdsToModsIds.Add(opers[N].Index, CurrentModId);
                     }
 
-                    var block = new OpersBlock(
-                        new List<PlanningModelling>()
+                    var block = new PlanSimulatorBlock(
+                        new List<PlanSimulatorMod>()
                         {
-                                new PlanningModelling(arr, CentersData[opers[I].Center].CanBeParallel, type, CurrentModId, null, null)
-                        }, arr[0].Center, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true);
+                                new PlanSimulatorMod(arr, CentersData[opers[I].Center].CanBeParallel, type, CurrentModId)
+                        }, arr[0].Center, PoolSize, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true);
 
                     //block.FillKoeff = CentersDataSet.CentersData[opers[I].Center].CanBeParallel ? 0.25f : -1; // TODO
 
@@ -404,12 +406,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             }
 
-            for (int i = 0; i < final.Count; i++)
-            {
-                var mod = final[i].Lists[0];
-                mod.PrevMods = mod.OpersList.SelectMany(x => x.Prevs).Where(x => OperIdsToModsIds.ContainsKey(x)).Select(x => OperIdsToModsIds[x]).Distinct().ToList(); // TODO: исправить эту залупу
-                mod.NextMods = mod.OpersList.SelectMany(x => x.Nexts).Where(x => OperIdsToModsIds.ContainsKey(x)).Select(x => OperIdsToModsIds[x]).Distinct().ToList();
-            }
+            //for (int i = 0; i < final.Count; i++)
+            //{
+            //    var mod = final[i].Lists[0];
+            //    mod.PrevMods = mod.s.SelectMany(x => x.Prevs).Where(x => OperIdsToModsIds.ContainsKey(x)).Select(x => OperIdsToModsIds[x]).Distinct().ToList(); // TODO: исправить эту залупу
+            //    mod.NextMods = mod.OpersList.SelectMany(x => x.Nexts).Where(x => OperIdsToModsIds.ContainsKey(x)).Select(x => OperIdsToModsIds[x]).Distinct().ToList();
+            //}
 
             //if (HasErrors)
             //{
@@ -422,7 +424,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return final;
         }
 
-        (int Fixed, int VPZ) Order_Fixed_VPZ_Free(ref List<OpersBlock> list, bool SortThem)
+        (int Fixed, int VPZ) Order_Fixed_VPZ_Free(ref List<PlanSimulatorBlock> list, bool SortThem)
         {
             //var str = string.Join(", ", list.SelectMany(y => y.Lists[0].Select(x => x.ID)));
             //Console.WriteLine("а теперь");
@@ -435,16 +437,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             }
 
             //var FIXED = list.Where(x => x.Lists[0].OpersList[0].Fixed).ToList();
-            var FIXED = list.Where(x => x.Lists.Any(y => y.OpersList.Any(z => z.Fixed))).ToList();
+            var FIXED = list.Where(x => x.Lists.Any(y => y.StagesAsNormal.Any(z => z.Fixed))).ToList();
             if (SortThem)
             {
-                FIXED = FIXED.OrderBy(x => x.Lists[0].OpersList[0].StartTimeFact).ToList();
+                FIXED = FIXED.OrderBy(x => x.Lists[0].FirstOperJust.StartTimeFact).ToList();
             }
 
-            var VPZ = list.Where(x => !x.Lists[0].OpersList.Any(z => z.Fixed) && (x.Lists[0].OpersList.Any(z => z.VPZ) || x.Lists[0].OpersList.Any(z => z.IsFact))).ToList();
+            var VPZ = list.Where(x => !x.Lists[0].StagesAsNormal.Any(z => z.Fixed) && (x.Lists[0].StagesAsNormal.Any(z => z.VPZ) || x.Lists[0].StagesAsNormal.Any(z => z.IsFact))).ToList();
             if (SortThem) Sorter(ref VPZ);
 
-            var FREE = list.Where(x => !x.Lists[0].OpersList.Any(z => z.Fixed) && !x.Lists[0].OpersList.Any(z => z.VPZ) && !x.Lists[0].OpersList.Any(z => z.IsFact)).ToList();
+            var FREE = list.Where(x => !x.Lists[0].StagesAsNormal.Any(z => z.Fixed) && !x.Lists[0].StagesAsNormal.Any(z => z.VPZ) && !x.Lists[0].StagesAsNormal.Any(z => z.IsFact)).ToList();
             if (SortThem) Sorter(ref FREE);
 
 
@@ -473,13 +475,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return (FIXED.Count, vpz);
         }
 
-        void Sorter(ref List<OpersBlock> toSort)
+        void Sorter(ref List<PlanSimulatorBlock> toSort)
         {
-            toSort = toSort.OrderBy(x => x.Lists[0].OpersList[0].PrevDateTime.HasValue ? x.Lists[0].OpersList[0].PrevDateTime.Value : DateTime.MaxValue).ThenBy(x => x.Lists[0].OpersList[0].Level).ToList();
+            toSort = toSort.OrderBy(x => x.Lists[0].FirstOperJust.PrevDateTime.HasValue ? x.Lists[0].FirstOperJust.PrevDateTime.Value : DateTime.MaxValue).ThenBy(x => x.Lists[0].FirstOperJust.Level).ToList();
             return;
         }
 
-        bool CheckChronology(List<OpersBlock> opers, out int operN, out int ToFix)
+        bool CheckChronology(List<PlanSimulatorBlock> opers, out int operN, out int ToFix)
         {
             var good = true;
             var Already = new HashSet<int>();
@@ -491,12 +493,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             {
                 for (var o = 0; o < opers[i].Lists.Count; o++)
                 {
-                    for (var j = 0; j < opers[i].Lists[o].OpersList.Count; j++)
+                    for (var j = 0; j < opers[i].Lists[o].StagesAsNormal.Count; j++)
                     {
-                        var id = opers[i].Lists[o].OpersList[j].Index;
-                        for (var h = 0; h < opers[i].Lists[o].OpersList[j].Nexts.Count; h++)
+                        var id = opers[i].Lists[o].StagesAsNormal[j].Index;
+                        for (var h = 0; h < opers[i].Lists[o].StagesAsNormal[j].Nexts.Count; h++)
                         {
-                            var op = opers[i].Lists[o].OpersList[j];
+                            var op = opers[i].Lists[o].StagesAsNormal[j];
                             var n = op.Nexts[h];
                             //var f = opers.FindIndex(x => x.Lists.Any(y => y.Any(z => z.ID == opers[i].Lists[o][j].Prevs[h])));//opers.FindIndex(ref opers, , 0, false);
                             if (Already.Contains(n) && dic[n] != i && !op.Fixed) // Уже есть ребенок???
@@ -530,19 +532,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         public ConcurrentDictionary<int, TemporaryTaraSearchData> ModToTaraInfo = new();
 
         public Dictionary<int, int> ModIDToOnOneRCGroupID = new();
-        public Dictionary<int, (List<int> ModIDs, List<Uco> PossibleRCs)> OnOneRCGroupData = new();
-        public void PrepareOnOneRCData(OpersPool pool)
+        public Dictionary<int, (List<PlanSimulatorMod> ModIDs, List<Uco> PossibleRCs)> OnOneRCGroupData = new();
+        public void PrepareOnOneRCData(PlanSimulatorPool pool)
         {
             ModIDToOnOneRCGroupID.Clear();
             OnOneRCGroupData.Clear();
 
-            var modsToGroup = pool.Blocks.SelectMany(x => x.Lists).Where(x => x.FirstOper.OnOneRC); // Выберем все нужные моды
+            var modsToGroup = pool.Blocks.SelectMany(x => x.Lists).Where(x => x.FirstOperJust.OnOneRC); // Выберем все нужные моды
 
-            var groups = modsToGroup.GroupBy(mod => (mod.FirstOper.GetOrderOrPartiaCode(), mod.FirstOper.Level, mod.FirstOper.OperationVid, mod.FirstOper.Nomenklature));
+            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), mod.FirstOperJust.Level, mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature));
             foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
             {
                 var groupID = OnOneRCGroupData.Count;
-                var modList = group.Select(x => x.ModID).ToList();
+                var modList = group/*.Select(x => x.ModID)*/.ToList();
 
                 List<Uco> rcs = null;
                 foreach (var mod in group)
@@ -557,25 +559,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 OnOneRCGroupData.Add(groupID, (modList, rcs));
                 foreach (var modID in modList)
                 {
-                    ModIDToOnOneRCGroupID.Add(modID, groupID); // Заполняем ссылки на группы
+                    ModIDToOnOneRCGroupID.Add(modID.ModID, groupID); // Заполняем ссылки на группы
                 }
             }
         }
 
-        public void UpdateOpsOnOneRC(OpersBlock blockToStart, OpersPool pool)
+        public void UpdateOpsOnOneRC(PlanSimulatorBlock blockToStart, int PoolIndex)
         {
-            var settedRC = blockToStart.ActualRC;
+            (var settedRC, _, _) = blockToStart.GetCenterData(PoolIndex);
             foreach (var mod in blockToStart.Lists)
             {
-                if (mod.FirstOper.OnOneRC
+                if (mod.FirstOperJust.OnOneRC
                     && ModIDToOnOneRCGroupID.TryGetValue(mod.ModID, out var dataID)
                     && OnOneRCGroupData.TryGetValue(dataID, out var data))
                 {
                     foreach (var neededMod in data.ModIDs)
                     {
-                        if (neededMod == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
-                        var index = pool.Blocks.FindIndex(x => x.Lists.Any(y => y.ModID == neededMod));
-                        if (index != -1) pool.Blocks[index].ActualRC = settedRC;
+                        if (neededMod.ModID == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
+                        neededMod.BlockLink.SetCenter(settedRC, PoolIndex);
+                        //var index = pool.Blocks.FindIndex(x => x.Lists.Any(y => y.ModID == neededMod));
+                        //if (index != -1) pool.Blocks[index].ActualRC = settedRC;
                     }
                 }
             }
@@ -584,142 +587,143 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         public int LastGen { get; private set; } = 0;
         public TimeSpan LastDate { get; private set; } = TimeSpan.MinValue;
 
-        public void UpdateBcsSuccess(PlanningCalculatorEngineResult t, List<OpersBlock> ops)
+        public void UpdateBcsSuccess(PlanSimulatorEngineResult t, List<PlanSimulatorBlock> ops, int indexToWrite)
         {
             //lock (LockerObject)
             //{
             //}
-            BestBlocksList = ops;
+            UsedPool.BestPoolIndex = indexToWrite;
+            UsedPool.Blocks = ops;
             LastGen = UsedWorkflow.Generation;
             LastDate = DateTime.Now - StartOfPlanningDate;
             FoundSmth = true;
             FoundGlobal = true;
-            OnNewResult?.Invoke(t, ops);
+            OnNewResult?.Invoke(t);
         }
 
         /// <summary>
         /// Функция, которая пытается по-максимуму исправить план: свести к 0 ошибки длин, и к минимуму - критичные размотки тар и прочего.
         /// </summary>
-        public bool PlanFixer(List<OpersBlock> blocks)
-        {
-            if (blocks == null) return false;
+        //public bool PlanFixer(List<PlanSimulatorBlock> blocks)
+        //{
+        //    if (blocks == null) return false;
 
-            var dt0 = DateTime.Now;
-            Console.WriteLine($"fixer start: {dt0}");
+        //    var dt0 = DateTime.Now;
+        //    Console.WriteLine($"fixer start: {dt0}");
 
-            var ops = OpersPool.CopyBlocks(blocks, false);
+        //    var ops = OpersPool.CopyBlocks(blocks, false);
 
-            var preparedData = new OpersPoolConstructor(ops, MinAcceptableDate);
+        //    var preparedData = new OpersPoolConstructor(ops, MinAcceptableDate);
 
-            var pool = new OpersPool(SessionLink, ops, preparedData, MinAcceptableDate);
+        //    var pool = new OpersPool(SessionLink, ops, preparedData, MinAcceptableDate);
 
-            PlanningCalculatorEngineResult res = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
+        //    PlanSimulatorEngineResult res = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
 
-            res = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool, MinAcceptableDate, res);
+        //    res = PlanSimulatorEngine.CalculatePlan(pool, MinAcceptableDate, res);
 
-            if (res.CatchedNaladLengthsErrorsCount > 0)
-            {
-                // Попробуем исправить наладочные длины.
-                ;
+        //    if (res.CatchedNaladLengthsErrorsCount > 0)
+        //    {
+        //        // Попробуем исправить наладочные длины.
+        //        ;
 
-                bool ThereIsModInHere(PlanningModelling y, Guid guid) => (y.ObshEtapData != null && y.ObshEtapData.ContainsKey(guid)) || (y.FirstOper.IsCustomModelling ? (y.FirstOper.CustomModelling == guid) : (y.FirstOper.MesModelling.Code == guid));
+        //        bool ThereIsModInHere(PlanSimulatorMod y, Guid guid) => (y.EasyLifeData != null && y.EasyLifeData.ContainsKey(guid)) || (y.FirstOperJust.IsCustomModelling ? (y.FirstOperJust.CustomModelling == guid) : (y.FirstOperJust.MesModelling.Code == guid));
 
-                foreach (var error in res.ModellingsWithBrokenFixedNaladLengths)
-                {
-                    var dt01 = DateTime.Now;
-                    var guidToFind = error;
-                    var blockIndex = pool.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind))); // Найдем сначала номер блока где была ошибка
-                    var block = pool.Blocks[blockIndex];
+        //        foreach (var error in res.ModellingsWithBrokenFixedNaladLengths)
+        //        {
+        //            var dt01 = DateTime.Now;
+        //            var guidToFind = error;
+        //            var blockIndex = pool.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind))); // Найдем сначала номер блока где была ошибка
+        //            var block = pool.Blocks[blockIndex];
 
 
-                    //b8a71b1e-9463-4088-bf21-93176ae78e64
+        //            //b8a71b1e-9463-4088-bf21-93176ae78e64
 
-                    var modIndex = block.Lists.FindIndex(y => ThereIsModInHere(y, guidToFind)); // Теперь найдём номер мода
-                    var mod = block.Lists[modIndex];
+        //            var modIndex = block.Lists.FindIndex(y => ThereIsModInHere(y, guidToFind)); // Теперь найдём номер мода
+        //            var mod = block.Lists[modIndex];
 
-                    var opToCheck = mod.ObshEtapData != null ? mod.ObshEtapData[guidToFind].FirstOper : mod.FirstOper;
+        //            var opToCheck = mod.EasyLifeData != null ? mod.EasyLifeData[guidToFind].FirstOper : mod.FirstOper;
 
-                    if (!opToCheck.NeededNaladLength.HasValue)
-                    {
-                        continue;
-                    }
+        //            if (!opToCheck.NeededNaladLength.HasValue)
+        //            {
+        //                continue;
+        //            }
 
-                    var neededLength = opToCheck.NeededNaladLength.Value;
+        //            var neededLength = opToCheck.NeededNaladLength.Value;
 
-                    var currentLengthWas = pool.NaladLengthsData[opToCheck.Index];
+        //            var currentLengthWas = pool.NaladLengthsData[opToCheck.Index];
 
-                    var possibleBlocksGroups = pool.Blocks.Select((x, index) => (Block: x, index)).Where(y => mod.PossibleRCsHere.Any(z => z == y.Block.ActualRC)).GroupBy(x => x.Block.ActualRC);
+        //            var possibleBlocksGroups = pool.Blocks.Select((x, index) => (Block: x, index)).Where(y => mod.PossibleRCsHere.Any(z => z == y.Block.ActualRC)).GroupBy(x => x.Block.ActualRC);
 
-                    var indexToSet = -1;
+        //            var indexToSet = -1;
 
-                    foreach (var possibleBlockGroup in possibleBlocksGroups)
-                    {
-                        if (indexToSet != -1) break;
-                        var elements = possibleBlockGroup.ToArray();
-                        var ChoosenCenter = possibleBlockGroup.Key;
+        //            foreach (var possibleBlockGroup in possibleBlocksGroups)
+        //            {
+        //                if (indexToSet != -1) break;
+        //                var elements = possibleBlockGroup.ToArray();
+        //                var ChoosenCenter = possibleBlockGroup.Key;
 
-                        var parr = Parallel.For(0, elements.Length, (index, pls) =>
-                        {
-                            if (indexToSet != -1) return;
-                            PlanningModelling currentMod = elements[index].Block.Lists[0];
-                            Stage operationB = currentMod.FirstOper;
+        //                var parr = Parallel.For(0, elements.Length, (index, pls) =>
+        //                {
+        //                    if (indexToSet != -1) return;
+        //                    var currentMod = elements[index].Block.Lists[0];
+        //                    Stage operationB = currentMod.FirstOper;
 
-                            var lastIndex = index - 1;
-                            PlanningModelling lastMod = lastIndex == -1 ? null : elements[lastIndex].Block.Lists[0];
-                            Stage operationA = lastMod?.FirstOper;
+        //                    var lastIndex = index - 1;
+        //                    var lastMod = lastIndex == -1 ? null : elements[lastIndex].Block.Lists[0];
+        //                    Stage operationA = lastMod?.FirstOper;
 
-                            var centGlobalStruct = res.FirstStagesAdditionalInfos[operationB.Index];
-                            var prostoiData = res.ProstoiBeforeFirstStages.TryGetValue(operationB.Index, out var pros) ? pros.ProstoiItself : new DatesPoolClass(res.FirstStagesStartDate[operationB.Index], 0, -1, -1);
+        //                    var centGlobalStruct = res.FirstStagesAdditionalInfos[operationB.Index];
+        //                    var prostoiData = res.ProstoiBeforeFirstStages.TryGetValue(operationB.Index, out var pros) ? pros.ProstoiItself : new PlanSimulatorDatesData(res.FirstStagesStartDate[operationB.Index], 0, -1, -1);
 
-                            var rechangesResult = operationA == null ? null : SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA, operationB, ChoosenCenter));
+        //                    var rechangesResult = operationA == null ? null : SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA, operationB, ChoosenCenter));
 
-                            var naladLengthsData = SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(rechangesResult, operationB, ChoosenCenter, lastMod);
+        //                    var naladLengthsData = SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(rechangesResult, operationB, ChoosenCenter, lastMod);
 
-                            if (naladLengthsData.NaladLengthHere.Value <= neededLength.Length.Value)
-                            {
-                                if (indexToSet != -1) return;
-                                ;
-                                var opsL = OpersPool.CopyBlocks(ops, false);
-                                var poolL = new OpersPool(SessionLink, opsL, preparedData, MinAcceptableDate);
+        //                    if (naladLengthsData.NaladLengthHere.Value <= neededLength.Length.Value)
+        //                    {
+        //                        if (indexToSet != -1) return;
+        //                        ;
+        //                        //var opsL = OpersPool.CopyBlocks(ops, false);
+        //                        //var poolL = new OpersPool(SessionLink, opsL, preparedData, MinAcceptableDate);
 
-                                poolL.Blocks.Insert(elements[index].index, block);
+        //                        //poolL.Blocks.Insert(elements[index].index, block);
 
-                                var blockIndexToRemove = poolL.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind)));
+        //                        //var blockIndexToRemove = poolL.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind)));
 
-                                poolL.Blocks.RemoveAt(blockIndexToRemove); // Убираем
+        //                        //poolL.Blocks.RemoveAt(blockIndexToRemove); // Убираем
 
-                                var result = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(poolL, MinAcceptableDate, null);
+        //                        //var result = PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(poolL, MinAcceptableDate, null);
 
-                                if (result.ModellingsWithBrokenFixedNaladLengths.Except(res.ModellingsWithBrokenFixedNaladLengths).Count() == 0)
-                                {
-                                    indexToSet = elements[index].index;
-                                    pls.Stop();
-                                }
-                            }
+        //                        //if (result.ModellingsWithBrokenFixedNaladLengths.Except(res.ModellingsWithBrokenFixedNaladLengths).Count() == 0)
+        //                        //{
+        //                        //    indexToSet = elements[index].index;
+        //                        //    pls.Stop();
+        //                        //}
+        //                    }
 
-                        });
-                        while (!parr.IsCompleted)
-                        {
-                            if (indexToSet != -1) break;
-                            ;
-                        }
-                    }
+        //                });
+        //                while (!parr.IsCompleted)
+        //                {
+        //                    if (indexToSet != -1) break;
+        //                    ;
+        //                }
+        //            }
 
                     
 
-                    var dt02 = DateTime.Now;
-                    Console.WriteLine($"iter: {dt02 - dt01}, index {indexToSet}");
-                    ;
-                }
-            }
+        //            var dt02 = DateTime.Now;
+        //            Console.WriteLine($"iter: {dt02 - dt01}, index {indexToSet}");
+        //            ;
+        //        }
+        //    }
 
-            var dt1 = DateTime.Now;
-            Console.WriteLine($"fixer end: {dt1}, total {dt1 - dt0}");
+        //    var dt1 = DateTime.Now;
+        //    Console.WriteLine($"fixer end: {dt1}, total {dt1 - dt0}");
 
-            BestBlocksList = ops;
+        //    BestBlocksList = ops;
 
-            return true;
-        }
+        //    return true;
+        //}
 
 
         #region Наладочные длины

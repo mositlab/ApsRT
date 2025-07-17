@@ -1,9 +1,6 @@
 ﻿using ApsRT.Core.DataErrors;
 using ApsRT.Core.NaladLengths;
 using ApsRT.Core.Partias.Zadels;
-using ApsRT.Core.Planning.PlanningCalculatorEngine;
-using ApsRT.Core.Planning.PlanningClasses;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
 using ApsRT.Core.Rechanges.RechangesEngine;
 using System;
 using System.Collections.Concurrent;
@@ -19,6 +16,9 @@ using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, s
 using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Partias.PartiasConnectorEngine;
 using System.Drawing;
+using ApsRT.Core.Planning;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRT.Core.Session
 {
@@ -104,7 +104,7 @@ namespace ApsRT.Core.Session
             }
         }
 
-        public (PlanningCalculatorEngineResult result, OpersPool copy) Output(bool ForcedToRecreate, bool asOld = false)
+        public (PlanSimulatorEngineResult result, List<PlanSimulatorBlock> copy, int PoolIndex) Output(bool ForcedToRecreate, bool asOld = false)
         {
             SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
 
@@ -121,47 +121,47 @@ namespace ApsRT.Core.Session
             // Вывод всего
             var algorithm = SessionLink.AssignedPlanningAlgorithm;
             if (algorithm == null || ForcedToRecreate) SessionLink.TryCreateNewPlanningAlgorithmInstance(out algorithm, ForcedToRecreate); // Сначала просто получим текущий алгоритм планирования, потому что именно там хранится всё, что нам надо для вывода
-            if (algorithm.BestBlocksList == null)
+            if (algorithm.UsedPool == null)
             {
                 // Значит, алгоритм не работает. Подготовить его
                 algorithm.PrepareEverything();
             }
 
-            List<OpersBlock> blocksToCopy = algorithm.BestBlocksList;
+            List<PlanSimulatorBlock> blocksToCopy = algorithm.UsedPool.Blocks.OrderBy(x => x.BlockIndex[algorithm.UsedPool.BestPoolIndex]).ToList();
 
             if (blocksToCopy == null)
             {
-                return (null, null);
+                return (null, null, -1);
             }
 
             lock (algorithm.LockerObject)
             {
 
-                var localCopy = new OpersPool(SessionLink, blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
+                //var localCopy = new PlanSimulatorPool(SessionLink, blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
 
-                var result = PlanningCalculatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);
+                var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);
 
-                PlanningCalculatorEngine.CalculatePlan(localCopy, algorithm.MinAcceptableDate, result);
+                PlanSimulatorEngine.CalculatePlan(blocksToCopy, algorithm.UsedPool.BestPoolIndex, algorithm.MinAcceptableDate, result);
 
 
-                OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, localCopy, result.FirstStagesStartDate);
+                OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, blocksToCopy, result.FirstStagesStartDate);
 
                 OutputRechangesToFile(sessionPath + (asOld ? RechangesFileNameOld : RechangesFileName), result.RechangesBeforeFirstStages, result.FirstStagesStartDate);
 
-                OutputRanksManualToFile(sessionPath + (asOld ? RangesManualFileNameOld : RangesManualFileName), localCopy, result, algorithm.MinAcceptableDate);
+                OutputRanksManualToFile(sessionPath + (asOld ? RangesManualFileNameOld : RangesManualFileName), blocksToCopy, algorithm.UsedPool.BestPoolIndex, result, algorithm.MinAcceptableDate);
 
-                OutputResultToFile(sessionPath + (asOld ? OutputFileNameOld : OutputFileName), localCopy, result);
+                OutputResultToFile(sessionPath + (asOld ? OutputFileNameOld : OutputFileName), blocksToCopy, algorithm.UsedPool.BestPoolIndex, result);
 
-                OutputNaladLengths(sessionPath + NaladLengthsFileName, blocksToCopy, localCopy.NaladLengthsData, localCopy.NaladLengthsDataAsMods, null);
+                OutputNaladLengths(sessionPath + NaladLengthsFileName, blocksToCopy, algorithm.UsedPool.BestPoolIndex, null);
 
-                OutputOrdersToFile(sessionPath + (asOld ? OrdersFileNameOld : OrdersFileName), localCopy.OrdersData);
+                OutputOrdersToFile(sessionPath + (asOld ? OrdersFileNameOld : OrdersFileName), algorithm.UsedPool.OrdersData, algorithm.UsedPool.BestPoolIndex);
 
                 OutputMods(sessionPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
 
                 // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
                 OutputLeftovers(sessionPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (sessionPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
 
-                return (result, localCopy);
+                return (result, blocksToCopy, algorithm.UsedPool.BestPoolIndex);
             }
         }
 
@@ -249,7 +249,7 @@ namespace ApsRT.Core.Session
         public string ModsFileName { get; set; } = "mods.csv";
         public string ModsFileNameOld { get; set; } = "mods_old.csv";
 
-        public void OutputMods(string filename, List<OpersBlock> blocks)
+        public void OutputMods(string filename, List<PlanSimulatorBlock> blocks)
         {
             // Ранги моделирований для алены и алексея
             if (File.Exists(filename))
@@ -270,8 +270,8 @@ namespace ApsRT.Core.Session
             {
                 foreach (var r2 in r.Lists)
                 {
-                    var first = r2.FirstOper;
-                    var allNexts = r2.OpersList.SelectMany(x => x.Nexts).Where(x => ALL.ContainsKey(x)).Select(next1 =>
+                    var first = r2.FirstOperJust;
+                    var allNexts = r2.StagesAsNormal.SelectMany(x => x.Nexts).Where(x => ALL.ContainsKey(x)).Select(next1 =>
                     {
                         var next = ALL[next1];
                         return next.IsCustomModelling ? next.CustomModelling : (next.MesModelling.Code == Guid.Empty ? next.GUID : next.MesModelling.Code);
@@ -301,7 +301,7 @@ namespace ApsRT.Core.Session
         public string OrdersFileName { get; set; } = "orders.csv";
         public string OrdersFileNameOld { get; set; } = "orders_old.csv";
         
-        public void OutputOrdersToFile(string filename, FrozenDictionary<OrderID, OrdersPoolClass> orders)
+        public void OutputOrdersToFile(string filename, FrozenDictionary<OrderID, PlanSimulatorOrderData[]> orders, int PoolIndex)
         {
             //"orders_old.csv"
             try
@@ -321,9 +321,9 @@ namespace ApsRT.Core.Session
                         continue;
                     }
 
-                    var vv = ord.Value.Time;
+                    var vv = ord.Value[PoolIndex].Time;
                     var v = vv > 0 ? "Да" : "Нет";
-                    sw.WriteLine($"{D};{ord.Key};{ord.Key.Object.Label};{v};{vv};{ord.Value.TimeWithK};{SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[ord.Key].Deadline}");
+                    sw.WriteLine($"{D};{ord.Key};{ord.Key.Object.Label};{v};{vv};{ord.Value[PoolIndex].TimeWithK};{SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[ord.Key].Deadline}");
                     D++;
                 }
                 sw.Close();
@@ -336,7 +336,7 @@ namespace ApsRT.Core.Session
 
         public string NaladLengthsFileName { get; set; } = "naladLengths.csv";
 
-        public void OutputNaladLengths(string filename, List<OpersBlock> blocks/*Dictionary<int, ModellingOper> mods*/, FrozenDictionary<int, GottenNaladLengthPoolClass> nalaLengths, FrozenDictionary<Guid, GottenNaladLengthPoolClass> nalaLengthsMods/*, Dictionary<int, HashSet<CatchedErrorType>> CatchedErrors*/, ConcurrentDictionary<Guid, ConcurrentDictionary<float, NaladLengthFixerClass>> naladLengthsErrors)
+        public void OutputNaladLengths(string filename, List<PlanSimulatorBlock> blocks, int PoolIndex, ConcurrentDictionary<Guid, ConcurrentDictionary<float, NaladLengthFixerClass>> naladLengthsErrors)
         {
             if (File.Exists(filename))
             {
@@ -374,11 +374,12 @@ namespace ApsRT.Core.Session
                     bool firstMod = true;
                     bool wasLastFlag = false;
                     Guid? lastEasyFlag = null;
-                    for (int j = 0; j < list.OpersList.Count; j++)
+                    (var center, _, _) = block.GetCenterData(PoolIndex);
+                    for (int j = 0; j < list.StagesAsNormal.Count; j++)
                     {
-                        var op = list.OpersList[j];
-                        var mod = op.IsCustomModelling ? op.CustomModelling : op.MesModelling.Code;
-                        var modNalads = mod == Guid.Empty ? nalaLengths[op.Index] : nalaLengthsMods[mod];
+                        var op = list.Stages[j];
+                        var mod = op.Stage.IsCustomModelling ? op.Stage.CustomModelling : op.Stage.MesModelling.Code;
+                        var modNalads = mod == Guid.Empty ? op.NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
                         if (wasLastFlag && mod != lastEasyFlag)
                         {
                             firstMod = false; // это уже другой мод
@@ -389,27 +390,27 @@ namespace ApsRT.Core.Session
                             lastEasyFlag = mod;
                             wasLastFlag = true;
                         }
-                        var lengths = nalaLengths[op.Index];
-                        for (int place = 1; place <= op.PlacesCount; place++)
+                        var lengths = op.NaladLengthData[PoolIndex];
+                        var OP1 = op.Stage;
+                        for (int place = 1; place <= OP1.PlacesCount; place++)
                         {
 
-                            if (!op.NeededNaladLength.HasValue)
-                                sw.WriteLine($"{D};{op.GUID};{place};{(place == 1 && firstMod ? lengths.data.NaladLengthFirst.Value : lengths.data.NaladLengthOther.Value)};{lengths.data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.data.IsFirst ? "Да" : "Нет")}");
+                            if (!OP1.NeededNaladLength.HasValue)
+                                sw.WriteLine($"{D};{OP1.GUID};{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
 
-
-                            fullOutput?.WriteLine($"{D};\"{op.Registrator}\";{op.GUID};\"{op.OrderLink.OrderID.Object}\";{op.OrderLink.OrderID.Version};{op.CustomPartiaGuid ?? op.OrderLink.PartiaPF ?? Guid.Empty};" +
-                                $"{op.Level};{ToCsvString(op.Nomenklature)};{ToCsvString(op.OperationVid)};{ToCsvString(op.Production)};{op.Center};" +
-                                $"{place};{(place == 1 && firstMod ? lengths.data.NaladLengthFirst.Value : lengths.data.NaladLengthOther.Value)};{lengths.data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.data.IsFirst ? "Да" : "Нет")}" +
-                                $";{op.IsVspom};{lengths.data.prevKoeff};{op.Count};{list.FirstOper.EdIzmClassificator};" +
+                            fullOutput?.WriteLine($"{D};\"{OP1.Registrator}\";{OP1.GUID};\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
+                                $"{OP1.Level};{ToCsvString(OP1.Nomenklature)};{ToCsvString(OP1.OperationVid)};{ToCsvString(OP1.Production)};{center};" +
+                                $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
+                                $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
                                 $"{list.ModID};" +
                                 $"{list.Count};" +
-                                $"{modNalads.data.NaladLengthHere};" +
-                                $"{modNalads.data.NaladLengthNexts};" +
-                                $"{modNalads.data.prevKoeff};" +
-                                $"{op.CurrentTara};" +
-                                $"{op.CurrentTaraMaxCapacity};" +
-                                $"{(op.IsVspom || op.NoChangeTara || !op.EndTara.IsEmpty ? "" : (op.CurrentTaraMaxCapacity >= modNalads.data.NaladLengthHere.Value + list.Count))};" +
-                                $"{op.NeededNaladLength.HasValue}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
+                                $"{modNalads.Data.NaladLengthHere};" +
+                                $"{modNalads.Data.NaladLengthNexts};" +
+                                $"{modNalads.Data.prevKoeff};" +
+                                $"{OP1.CurrentTara};" +
+                                $"{OP1.CurrentTaraMaxCapacity};" +
+                                $"{(OP1.IsVspom || OP1.NoChangeTara || !OP1.EndTara.IsEmpty ? "" : (OP1.CurrentTaraMaxCapacity >= modNalads.Data.NaladLengthHere.Value + list.Count))};" +
+                                $"{OP1.NeededNaladLength.HasValue}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
 
 
                         }
@@ -448,7 +449,7 @@ namespace ApsRT.Core.Session
         public string OutputFileName { get; set; } = "Result.csv";
         public string OutputFileNameOld { get; set; } = "Result_old.csv";
 
-        public void OutputResultToFile(string filename, OpersPool pool, PlanningCalculatorEngineResult dataForHelp)
+        public void OutputResultToFile(string filename, List<PlanSimulatorBlock> Blocks, int PoolIndex, PlanSimulatorEngineResult dataForHelp)
         {
             var outputFile = new StreamWriter(filename, false, Encoding.UTF8);
 
@@ -461,24 +462,24 @@ namespace ApsRT.Core.Session
             bool LaunchPlan = SessionLink.SessionOptions.LaunchPlan;
             var partiasAlgorithm = SessionLink.AssignedPartiasAlgorithm;
 
-            for (int i = 0; i < pool.Blocks.Count; i++)
+            for (int i = 0; i < Blocks.Count; i++)
             {
-                var block = pool.Blocks[i];
-                var blockRC = block.ActualRC;
+                var block = Blocks[i];
+                (var blockRC, _, _) = block.GetCenterData(PoolIndex);
 
                 // Группируем по дате начала (у параллелок она одинаковая), а затем внутри них ещё и по
-                var sortedGroups = block.Lists.GroupBy(x => dataForHelp.FirstStagesStartDate[x.FirstOper.Index]);
+                var sortedGroups = block.Lists.GroupBy(x => dataForHelp.FirstStagesStartDate[x.FirstOperJust.Index]);
 
                 foreach (var group in sortedGroups) // Пробежимся по каждой группе
                 {
                     var start = group.Key;
-                    var maxTimeWithFixes = group.Max(x => dataForHelp.FirstStagesFullDurations[x.FirstOper.Index].Duration);
+                    var maxTimeWithFixes = group.Max(x => dataForHelp.FirstStagesFullDurations[x.FirstOperJust.Index].Duration);
                     foreach (var mod in group)
                     {
 
-                        for (int op = 0; op < mod.OpersList.Count; op++)
+                        for (int op = 0; op < mod.StagesAsNormal.Count; op++)
                         {
-                            var operLoc = mod.OpersList[op];
+                            var operLoc = mod.StagesAsNormal[op];
 
                             var guidToCheck = operLoc.CustomPartiaGuid ?? (operLoc.OrderLink.PartiaPF ?? Guid.Empty);
 
@@ -512,7 +513,7 @@ namespace ApsRT.Core.Session
         public string RechangesFileName { get; set; } = "rechanges.csv";
         public string RechangesFileNameOld { get; set; } = "rechanges_old.csv";
 
-        public void OutputRanksManualToFile(string filename, OpersPool pool, PlanningCalculatorEngineResult dataForHelp, DateTime minAcceptableDate)
+        public void OutputRanksManualToFile(string filename, List<PlanSimulatorBlock> Blocks, int PoolIndex, PlanSimulatorEngineResult dataForHelp, DateTime minAcceptableDate)
         {
             var ExistingCriterias = SessionLink.MasterDataLinks.RechangesMasterData.ExistingCriterias;
             var NonWorkingIntervalsMasterData = SessionLink.MasterDataLinks.WorkingIntervalsMasterData;
@@ -553,17 +554,17 @@ namespace ApsRT.Core.Session
             rangesManual.WriteLine(finalstr);
 
             int fileN = 0;
-            for (int i = 0; i < pool.Blocks.Count; i++)
+            for (int i = 0; i < Blocks.Count; i++)
             {
-                var block = pool.Blocks[i];
-                var blockRC = block.ActualRC;
-                var sortedMods = block.Lists.OrderBy(x => dataForHelp.FirstStagesRanks[x.FirstOper.Index]).ToArray(); // Получив их ранги, мы можем точно понять, какое моделирование было первым, и так далее. Перед каждым моделированием, мы можем посмотреть, были ли перед ним простои и переналадки, взяв у его первой операции айдишник, а ещё дату начала.
+                var block = Blocks[i];
+                (var blockRC, _, _) = block.GetCenterData(PoolIndex);
+                var sortedMods = block.Lists.OrderBy(x => x.Ranks[PoolIndex]).ToArray(); // Получив их ранги, мы можем точно понять, какое моделирование было первым, и так далее. Перед каждым моделированием, мы можем посмотреть, были ли перед ним простои и переналадки, взяв у его первой операции айдишник, а ещё дату начала.
                 for (int mod = 0; mod < sortedMods.Length; mod++)
                 {
                     var currMod = sortedMods[mod];
-                    var nextOper = currMod.FirstOper;
+                    var nextOper = currMod.FirstOperJust;
                     var firstID = nextOper.Index;
-                    (DatesPoolClass data, CachedInterval interval) prostoi;
+                    (PlanSimulatorDatesData data, CachedInterval interval) prostoi;
                     (RechangesEngineResult data, CachedInterval interval, int last) rechanges;
                     if (!dataForHelp.ProstoiBeforeFirstStages.TryGetValue(firstID, out prostoi)) prostoi = (null, CachedInterval.Empty);
                     if (!dataForHelp.RechangesBeforeFirstStages.TryGetValue(firstID, out rechanges)) rechanges = (null, CachedInterval.Empty, -1);
@@ -610,11 +611,11 @@ namespace ApsRT.Core.Session
                     }
 
                     TimeSpan offset = new TimeSpan();
-                    int currentRank = dataForHelp.FirstStagesRanks[firstID];
+                    int currentRank = currMod.Ranks[PoolIndex];//dataForHelp.FirstStagesRanks[firstID];
                     var intervalForOp = dataForHelp.FirstStagesFullDurations[firstID];
-                    for (int op = 0; op < currMod.OpersList.Count; op++)
+                    for (int op = 0; op < currMod.StagesAsNormal.Count; op++)
                     {
-                        var operLoc = currMod.OpersList[op];
+                        var operLoc = currMod.StagesAsNormal[op];
                         var duration = TimeSpan.FromSeconds(operLoc.GetDuration(blockRC)) * currMod.TimeK[blockRC];
                         var start = dateTime + offset;
 
@@ -721,7 +722,7 @@ namespace ApsRT.Core.Session
 
         public string MaterialsDeficitsFileName { get; set; } = "matsErrors.csv";
 
-        public void OutputMaterialsDeficitsToFile(string filename, OpersPool pool, IDictionary<int, DateTime> firstStageStartData)
+        public void OutputMaterialsDeficitsToFile(string filename, List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData)
         {
             if (File.Exists(filename))
             {
@@ -732,7 +733,7 @@ namespace ApsRT.Core.Session
             sw.WriteLine("Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
             //var D = 0;
 
-            var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(pool, firstStageStartData);
+            var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData);
 
             foreach (var element in data)
             {

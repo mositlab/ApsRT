@@ -1,20 +1,19 @@
-﻿using ApsRT.Core.Planning.PlanningClasses;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Common;
 
-namespace ApsRT.Core.Planning.PlanningClasses
+namespace ApsRT.Core.PlanSimulator
 {
     /// <summary>
     /// РЦ, который уже в плане считается, это данные для него
     /// </summary>
-    public class CenterInPlanData // struct
+    public class PlanSimulatorCenterData // struct
     {
-        public PlanningModelling LastMod;
-        public OpersBlock LastBlock;
+        public PlanSimulatorMod LastMod;
+        public PlanSimulatorBlock LastBlock;
         public DateTime LastDate; // дата конца загрузки
         public DateTime LastStartDate; // дата начала последнего блока
 
@@ -32,24 +31,24 @@ namespace ApsRT.Core.Planning.PlanningClasses
 
         public TimeSpan TotalTime => OpersTime + RechangesTime + ProstoiTime;
 
-        public CenterInPlanData Copy() // Копируем структуру. При подсчёте это нужно
+        public PlanSimulatorCenterData Copy() // Копируем структуру. При подсчёте это нужно
         {
-            var copy = new CenterInPlanData()
+            var copy = new PlanSimulatorCenterData()
             {
-                LastMod = this.LastMod,
-                LastBlock = this.LastBlock,
-                LastDate = this.LastDate,
-                LastStartDate = this.LastStartDate,
-                NextNonWorkingInterval = this.NextNonWorkingInterval,
+                LastMod = LastMod,
+                LastBlock = LastBlock,
+                LastDate = LastDate,
+                LastStartDate = LastStartDate,
+                NextNonWorkingInterval = NextNonWorkingInterval,
                 //NextFixingIndex = this.NextFixingIndex,
                 //HasToProcessAdditionalConditions = this.HasToProcessAdditionalConditions,
                 //Params = this.Params == null ? null : new(this.Params),
-                Flag = this.Flag,
-                LocalFlag = this.LocalFlag,
-                OpersTime = this.OpersTime,
-                RechangesTime = this.RechangesTime,
-                ProstoiTime = this.ProstoiTime,
-                AdditinalConditions = new UniversalBinaryStorage(this.AdditinalConditions)
+                Flag = Flag,
+                LocalFlag = LocalFlag,
+                OpersTime = OpersTime,
+                RechangesTime = RechangesTime,
+                ProstoiTime = ProstoiTime,
+                AdditinalConditions = new UniversalBinaryStorage(AdditinalConditions)
             };
             return copy;
         }

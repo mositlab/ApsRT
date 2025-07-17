@@ -11,7 +11,6 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using ApsRT.Core.Stages;
-using ApsRT.Core.Planning.PlanningClasses;
 using Microsoft.Extensions.Options;
 using Google.Protobuf.WellKnownTypes;
 using System.Xml.Linq;
@@ -181,7 +180,7 @@ namespace ApsRT.Core.NaladLengths
             return new(0, new(Guid.Empty, DimensionUnit.m));
         }
 
-        internal GottenNaladLengthStruct GetNaladLengthsForCurrentStageOnly(RechangesEngineResult RechangesList, Stage op, Uco choosenCenter, PlanningModelling lastMod)
+        internal GottenNaladLengthStruct GetNaladLengthsForCurrentStageOnly(RechangesEngineResult RechangesList, Stage op, Uco choosenCenter, PlanSimulator.PlanSimulatorMod lastMod)
         {
             NaladLengthValue naladLengthSum = new(0, new(Guid.Empty, DimensionUnit.m));// NaladLengths.GetNaladLengthByDataFast(op, choosenCenter, NaladLengths.RequiredNaladCondition.FirstLaunch);
 

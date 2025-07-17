@@ -1,5 +1,4 @@
-﻿using ApsRT.Core.Planning.PlanningClasses;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
+﻿using ApsRT.Core.Planning;
 using ApsRT.Core.Rechanges.RechangesEngine;
 using System;
 using System.Collections.Generic;
@@ -8,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Common;
 
-namespace ApsRT.Core.Planning.PlanningCalculatorEngine
+namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 {
-    public class PlanningCalculatorEngineResult
+    public class PlanSimulatorEngineResult
     {
         public int GlobalFlag;
 
@@ -62,17 +61,17 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
         public IDictionary<int, (RechangesEngineResult RechangeItself, CachedInterval Interval, int LastOperID)> RechangesBeforeFirstStages;
 
-        public IDictionary<int, (DatesPoolClass ProstoiItself, CachedInterval Interval)> ProstoiBeforeFirstStages;
+        public IDictionary<int, (PlanSimulatorDatesData ProstoiItself, CachedInterval Interval)> ProstoiBeforeFirstStages;
 
         public IDictionary<int, DateTime> FirstStagesStartDate;
 
         public IDictionary<int, CachedInterval> FirstStagesFullDurations;
 
-        public IDictionary<int, int> FirstStagesRanks;
+        //public IDictionary<int, int> FirstStagesRanks;
 
-        public IDictionary<int, int> FirstStagesPositions;
+        //public IDictionary<int, int> FirstStagesPositions;
 
-        public IDictionary<int, CenterInPlanData> FirstStagesAdditionalInfos;
+        public IDictionary<int, PlanSimulatorCenterData> FirstStagesAdditionalInfos;
 
         /// <summary>
         /// Дата начала плана. Должна быть только для чтения, чтобы не ломать логику.
@@ -91,7 +90,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
         public Session.Session Session { get; }
 
-        public PlanningCalculatorEngineResult(Session.Session session, DateTime timeOfStart)
+        public PlanSimulatorEngineResult(Session.Session session, DateTime timeOfStart)
         {
             Session = session;
             TimeOfStart = timeOfStart;
@@ -101,23 +100,23 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             ModellingsWithBrokenFreeNaladLengths = new();
         }
 
-        public static PlanningCalculatorEngineResult CreateFullInstance(Session.Session session, DateTime StartTime)
+        public static PlanSimulatorEngineResult CreateFullInstance(Session.Session session, DateTime StartTime)
         {
-            PlanningCalculatorEngineResult result = new PlanningCalculatorEngineResult(session, StartTime);
+            PlanSimulatorEngineResult result = new PlanSimulatorEngineResult(session, StartTime);
             //result.CentersTimes = new Dictionary<CodedObject<string>, CenterTimesClass>();
             result.FirstStagesFullDurations = new Dictionary<int, CachedInterval>();
-            result.FirstStagesRanks = new Dictionary<int, int>();
+            //result.FirstStagesRanks = new Dictionary<int, int>();
             result.FirstStagesStartDate = new Dictionary<int, DateTime>();
-            result.ProstoiBeforeFirstStages = new Dictionary<int, (DatesPoolClass, CachedInterval)>();
+            result.ProstoiBeforeFirstStages = new Dictionary<int, (PlanSimulatorDatesData, CachedInterval)>();
             result.RechangesBeforeFirstStages = new Dictionary<int, (RechangesEngineResult, CachedInterval, int)>();
-            result.FirstStagesPositions = new Dictionary<int, int>();
-            result.FirstStagesAdditionalInfos = new Dictionary<int, CenterInPlanData>();
+            //result.FirstStagesPositions = new Dictionary<int, int>();
+            result.FirstStagesAdditionalInfos = new Dictionary<int, PlanSimulatorCenterData>();
             return result;
         }
 
-        public PlanningCalculatorEngineResult Copy()
+        public PlanSimulatorEngineResult Copy()
         {
-            var result = new PlanningCalculatorEngineResult(Session, TimeOfStart);
+            var result = new PlanSimulatorEngineResult(Session, TimeOfStart);
             result.CurrentRank = CurrentRank;
             result.RechangesSeconds = RechangesSeconds;
             result.GlobalPlanEndDate = GlobalPlanEndDate;
@@ -130,7 +129,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             result.TaraRedutantUsage = TaraRedutantUsage;
             result.BadOffsets = BadOffsets;
             result.TaraErrorsCount = TaraErrorsCount;
-            result.FirstStagesPositions = FirstStagesPositions;
+            //result.FirstStagesPositions = FirstStagesPositions;
             return result;
         }
     }

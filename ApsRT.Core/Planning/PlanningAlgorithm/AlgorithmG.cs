@@ -1,5 +1,4 @@
-﻿using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
-using ApsRT.Core.Planning.PlanningClasses;
+﻿
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,10 +9,8 @@ using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
 using ApsRT.Core.Centers.MasterData;
 using ApsRT.Core.Taras.TaraSearchEngine;
-using ApsRT.Core.Planning.PlanningCalculatorEngine;
 using Azure;
 using ApsRT.Core.NaladLengths;
 using System.Diagnostics.Metrics;
@@ -21,6 +18,8 @@ using ApsRT.Core.Stages;
 using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using ZLinq;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -36,9 +35,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         public void Start(int parallelCount, int depth)
         {
 
-            var ops = OpersPool.CopyBlocks(basisLink.BestBlocksList, false);
+            //var ops = OpersPool.CopyBlocks(basisLink.BestBlocksList, false);
 
-            var preparedData = new OpersPoolConstructor(ops, basisLink.MinAcceptableDate);
+            //var preparedData = new OpersPoolConstructor(ops, basisLink.MinAcceptableDate);
 
             var tasks = new Task[parallelCount];//16
 
@@ -51,15 +50,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //var taraCheckRestricts = This.FixTaraCheckBox.Checked;
 
-            var poolLoc = new OpersPool[parallelCount];
+            //var poolLoc = new OpersPool[parallelCount];
             var Randoms = new Random[parallelCount];
             for (var i = 0; i < parallelCount; i++)
             {
-                poolLoc[i] = new OpersPool(basisLink.SessionLink, ops, preparedData, basisLink.MinAcceptableDate);
+                //poolLoc[i] = new OpersPool(basisLink.SessionLink, ops, preparedData, basisLink.MinAcceptableDate);
                 Randoms[i] = new Random();
             }
 
-            var ALL_COUNT = basisLink.BestBlocksList.SelectMany(x => x.Lists.SelectMany(y => y.OpersList.Select(z => z.Index))).Count();
+            var ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count();
             Console.WriteLine("G, beg, " + ALL_COUNT);
 
             // TODO: переделать на EventHandler и использовать InvokeAsync
@@ -87,7 +86,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 {
                     var resu = Parallel.For(0, workflow.currentMode == 6 ? 1 : parallelCount, i =>
                     {
-                        G_Iteration(poolLoc[i], Randoms[i], workflow, parallelCount, depth, ref ops);
+                        G_Iteration(Randoms[i], workflow, parallelCount, depth, i);
                     });
                     while (!resu.IsCompleted)
                     {
@@ -117,16 +116,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             }
         }
 
-        public void ChangeRC(OpersBlock opertoIns, Random r, OpersPool opersCopy)
+        public void ChangeRC(PlanSimulatorBlock opertoIns, Random r, int poolIndex)
         {
             var CentersMasterData = basisLink.SessionLink.MasterDataLinks.CentersMasterData;
 
-            var sdvig = new PlanningModelling(opertoIns.Lists.AsValueEnumerable().SelectMany(x => x.OpersList).ToList(), false, PlanningModellingType.AfterPartias, -1, null, null);
-            var prevs = sdvig.OpersList.AsValueEnumerable().SelectMany(x => x.Prevs).Distinct().Where(x => 
+            var sdvig = new PlanSimulatorMod(opertoIns.Lists.AsValueEnumerable().SelectMany(x => x.StagesAsNormal).ToList(), false, PlanningModellingType.AfterPartias, -1);
+            var prevs = sdvig.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Distinct().Where(x => 
             !basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara.EmptyCheck())
                 .ToDictionary(x => x, x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara);
 
-            var nextRCs = sdvig.OpersList.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
+            var nextRCs = sdvig.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
 
             HashSet<Uco> PossibleRCsHere = null; // Создаём рц, которые могут быть заюзаны для всех операций
             foreach (var list in opertoIns.Lists)
@@ -137,7 +136,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(list.PossibleRCsHere).ToHashSet();
 
                 // А вот здесь ещё и проверим, чтобы КАЖДЫЙ мод из группы "на одном рц" тоже мог работать здесь
-                if (list.FirstOper.OnOneRC
+                if (list.FirstOperJust.OnOneRC
                 && basisLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
                 && basisLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
                 {
@@ -164,24 +163,24 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 &&
                 allRCs.Contains(x.RC)
                 &&
-                x.RC != opertoIns.ActualRC
+                x.RC != opertoIns.GetCenterData(poolIndex).Center
                 &&
-                (!opertoIns.Lists[0].OpersList[0].IsVspom || CentersMasterData.CentersData[x.RC].AbleToVspom)
+                (!opertoIns.Lists[0].StagesAsNormal[0].IsVspom || CentersMasterData.CentersData[x.RC].AbleToVspom)
                 ).ToArray();
 
                 if (possible.Length > 0)
                 {
                     //var finalRC = allRCs.OrderBy(x => (rcRoutesData.TryGetValue(rcRouteToWorkWith, out var lvl0) && lvl0.RCsData.TryGetValue(x, out var data) ? data : new TimeSpan())).First();//list[RC /*r.Next(0, possible.Count)*/]; // по итогу выбираем его
                     var final = possible[r.Next(0, possible.Length)];
-                    opertoIns.ActualRC = final.RC;
-                    basisLink.UpdateOpsOnOneRC(opertoIns, opersCopy);
-                    for (int i = 0; i < opertoIns.Lists.Count; i++)
-                    {
-                        for (int j = 0; j < opertoIns.Lists[i].OpersList.Count; j++)
-                        {
-                            opertoIns.Lists[i].OpersList[j].Center = final.RC;
-                        }
-                    }
+                    opertoIns.SetCenter(final.RC, poolIndex);//ActualRC = final.RC;
+                    basisLink.UpdateOpsOnOneRC(opertoIns, poolIndex);
+                    //for (int i = 0; i < opertoIns.Lists.Count; i++)
+                    //{
+                    //    for (int j = 0; j < opertoIns.Lists[i].StagesAsNormal.Count; j++)
+                    //    {
+                    //        opertoIns.Lists[i].StagesAsNormal[j].Center = final.RC;
+                    //    }
+                    //}
                     //setPos(N);
                     //ChangedRC = true;
                 }
@@ -189,21 +188,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         }
 
 
-        public void G_Iteration(OpersPool poolLoc, Random r, PlanningAlgorithmWorkflow workflow, int parallelCount, int depth, ref List<OpersBlock> ops)
+        public void G_Iteration(Random r, PlanningAlgorithmWorkflow workflow, int parallelCount, int depth, int poolIndex)
         {
             var CentersMasterData = basisLink.SessionLink.MasterDataLinks.CentersMasterData;
 
-            var opersCopy = new OpersPool(basisLink.SessionLink,
-                OpersPool.CopyBlocks(basisLink.BestBlocksList, false),
-                poolLoc.OrdersData,
-                poolLoc.DatesData,
-                poolLoc.NaladLengthsData,
-                poolLoc.NaladLengthsDataAsMods,
-                poolLoc.NaladLengthsNeedToRecalc,
-                poolLoc.IDsToMods,
-                poolLoc.OperIDsToModIDs,
-                poolLoc.LastSubdivisionsData,
-                poolLoc.CentersData);
+            var opersCopy = PlanSimulatorPool.CopyBlocksSwallow(basisLink.UsedPool.Blocks);//.OrderBy(x => x.BlockIndex[index]).ToList();
 
 
             var WillThis = -1;
@@ -225,7 +214,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             bool isFirst = true;
             //bool TriedNaladLengthsFixer = false;
             //bool FixedNaladLengths = false;
-            PlanningCalculatorEngineResult prevResult = workflow.BestValue;
+            PlanSimulatorEngineResult prevResult = workflow.BestValue;
             for (var H = 0; H < depth; H++)
             {
                 if (basisLink.WannaStop)
@@ -272,12 +261,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             if (dic[rcRouteToWorkWith] == parallelCount * 2) dic[rcRouteToWorkWith] = -100;
 
 
-                                            var allBlocksHere = opersCopy.Blocks.Select((x, index) => (x, index)).Where(y => y.x.ActualRC == worstRC/*Lists[0].FirstOper.RCRoute == rcRouteToWorkWith*/).Select(y => y.index).ToArray();
+                                            var allBlocksHere = opersCopy.Select((x, index) => (x, index)).Where(y => y.x.GetCenterData(poolIndex).Center == worstRC/*Lists[0].FirstOper.RCRoute == rcRouteToWorkWith*/).Select(y => y.index).ToArray();
 
                                             var N = allBlocksHere[r.Next(0, allBlocksHere.Length)];//WillThis > -1 ? WillThis : r.Next(GLOBAL_FIXED_MIN, opersCopy.Blocks.Count); // Берём какую нибудь операцию, ОСНОВЫВАЯСЬ на нашем опыте.
-                                            var opertoIns = opersCopy.Blocks[N];
+                                            var opertoIns = opersCopy[N];
 
-                                            ChangeRC(opertoIns, r, opersCopy);
+                                            ChangeRC(opertoIns, r, poolIndex);
 
                                         }
                                     }
@@ -293,7 +282,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         }
                     default: // Режим классической G - рандомная перестановка
                         {
-                            var N = WillThis > -1 ? WillThis : r.Next(basisLink.GLOBAL_FIXED_MIN, opersCopy.Blocks.Count); // Берём какую нибудь операцию
+                            var N = WillThis > -1 ? WillThis : r.Next(basisLink.GLOBAL_FIXED_MIN, opersCopy.Count); // Берём какую нибудь операцию
                             if (WillThis != -2) // Если -2, то значит пред. итерация запретила что-то менять - нужно лишь просто пересчитать.
                             {
                                 if (false/*LoadedData.MoveChilds*/)
@@ -303,8 +292,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                     int NN = setPos(N);
                                     if (NN != -1)
                                     {
-                                        WillThis = opersCopy.Blocks[NN].Lists[0].FirstOper.Nexts.Count > 0 ? opersCopy.Blocks[NN].Lists[0].FirstOper.Nexts[0] : -1;
-                                        if (WillThis != -1) WillThis = opersCopy.Blocks.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == WillThis)));
+                                        WillThis = opersCopy[NN].Lists[0].FirstOperJust.Nexts.Count > 0 ? opersCopy[NN].Lists[0].FirstOperJust.Nexts[0] : -1;
+                                        if (WillThis != -1) WillThis = opersCopy.FindIndex(x => x.Lists.Any(y => y.StagesAsNormal.Any(z => z.Index == WillThis)));
                                         if (WillThis != -1)
                                             H--;
                                     }
@@ -316,11 +305,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 int setPos(int N)
                 {
-                    var opertoIns = opersCopy.Blocks[N];
+                    var opertoIns = opersCopy[N];
                     WillThis = -1;
-                    opersCopy.Blocks.RemoveAt(N); // Удаляем её, намереваясь потом вставить
+                    opersCopy.RemoveAt(N); // Удаляем её, намереваясь потом вставить
 
-                    (int MIN, int MAX, int Prev, int Next) = opersCopy.FindDiapazons(opertoIns, opertoIns.ActualRC, N, false, false, false, out var errs);
+                    (int MIN, int MAX, int Prev, int Next) = opersCopy[0].PoolLink.FindDiapazonsLegacy(opertoIns, poolIndex, opertoIns.GetCenterData(poolIndex).Center, N, false, false, false, out var errs);
 
                     if (errs)
                     {
@@ -330,7 +319,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     // Итого
                     if (MAX <= MIN) // Если границы плохие, то возвращаем операцию
                     {
-                        opersCopy.Blocks.Insert(N, opertoIns);
+                        opersCopy.Insert(N, opertoIns);
                         return -1; // Вариант нежизнеспособен.
                     }
 
@@ -340,21 +329,21 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     var RangNow = WillThis == -1 ?
                         //(WannaSendHere != -1 && WannaSendHere >= MIN && WannaSendHere <= MAX)
                         //? WannaSendHere :
-                        r.Next(MIN, Math.Min(MAX + 1, opersCopy.Blocks.Count)) : MIN;
+                        r.Next(MIN, Math.Min(MAX + 1, opersCopy.Count)) : MIN;
 
-                    opersCopy.Blocks.Insert(RangNow, opertoIns);
+                    opersCopy.Insert(RangNow, opertoIns);
 
-                    if (!mode6 && r.NextDouble() > 0.75) ChangeRC(opertoIns, r, opersCopy);
+                    if (!mode6 && r.NextDouble() > 0.75) ChangeRC(opertoIns, r, poolIndex);
 
                     return RangNow;
                 }
 
                 bool taraCheckRestricts = (int)workflow.RawData[0] >= 0;
 
-                PlanningCalculatorEngineResult res;
+                PlanSimulatorEngineResult res;
 
                 //var dt1 = DateTime.Now;
-                res = PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(opersCopy, basisLink.MinAcceptableDate, new PlanningCalculatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
+                res = PlanSimulatorEngine.CalculatePlan(opersCopy, poolIndex, basisLink.MinAcceptableDate, new PlanSimulatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
 
 
 
@@ -386,23 +375,23 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 if (mode6 && mode6Counter == 0)
                 {
-                    var groups = opersCopy.Blocks.SelectMany(block => block.Lists.Select(x => (block, x))).Where(
+                    var groups = opersCopy.SelectMany(block => block.Lists.Select(x => (block, x))).Where(
                         x => {
 
-                            var rcRoute = x.x.FirstOper.RCRoute;
+                            var rcRoute = x.x.FirstOperJust.RCRoute;
                             return !rcRoute.IsEmpty && CentersMasterData.RCRoutesToListDic.TryGetValue(rcRoute, out var list) && list.Count > 1;
                         }
-                    ).GroupBy(pair => pair.x.FirstOper.RCRoute);//.Blocks.SelectMany()
+                    ).GroupBy(pair => pair.x.FirstOperJust.RCRoute);//.Blocks.SelectMany()
 
                     Dictionary<Uco, (DateTime WorstTime, Dictionary<Uco, TimeSpan> RCsData)> final = groups.ToDictionary(x => x.Key, x =>
                     {
 
                         // (DateTime.MinValue WorstTime, new Dictionary<Uco, TimeSpan>() RCsData)
-                        return (x.Max(mod => res.FirstStagesStartDate[mod.x.FirstOper.Index] + res.FirstStagesFullDurations[mod.x.FirstOper.Index].Duration), // макс время окончания берем
+                        return (x.Max(mod => res.FirstStagesStartDate[mod.x.FirstOperJust.Index] + res.FirstStagesFullDurations[mod.x.FirstOperJust.Index].Duration), // макс время окончания берем
 
-                        x.GroupBy(mod => mod.block.ActualRC) // сначала группируем по РЦ
+                        x.GroupBy(mod => mod.block.GetCenterData(poolIndex).Center) // сначала группируем по РЦ
                         .ToDictionary(mod => mod.Key, // РЦ - ключ
-                        mod => TimeSpan.FromSeconds(mod.Sum(x => res.FirstStagesFullDurations[x.x.FirstOper.Index].Duration.TotalSeconds))) // сумма всех длительностей с учетом обедов - то, что нужно
+                        mod => TimeSpan.FromSeconds(mod.Sum(x => res.FirstStagesFullDurations[x.x.FirstOperJust.Index].Duration.TotalSeconds))) // сумма всех длительностей с учетом обедов - то, что нужно
 
                         );
                     });
@@ -420,7 +409,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 var OtherCritRestrictions = workflow.CheckRestrictions(t);
 
-                ref PlanningCalculatorEngineResult BestValue = ref workflow.BestValue;
+                ref PlanSimulatorEngineResult BestValue = ref workflow.BestValue;
 
                 var R6 = !taraCheckRestricts || (t.TaraErrorsCount <= BestValue.TaraErrorsCount);
 
@@ -708,10 +697,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         {
                             //if (LoadedData.StrictCalcs)
                             //{
-                                ops = opersCopy.Blocks;
+                                //ops = opersCopy.Blocks;
                                 workflow.BestValue = t;
                             //}
-                            basisLink.UpdateBcsSuccess(t, ops);
+                            basisLink.UpdateBcsSuccess(t, opersCopy, poolIndex);
                             //workflow.Best = workflow.Generation;
                             workflow.FoundForDynamic = true;
                         }
@@ -726,11 +715,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             }
         }
 
-        bool ThereIsModInHere(PlanningModelling y, Guid guid, out Stage firstEtap)
+        bool ThereIsModInHere(PlanSimulatorMod y, Guid guid, out Stage firstEtap)
         {
-            if (y.ObshEtapData != null)
+            if (y.EasyLifeData != null)
             {
-                if (y.ObshEtapData.TryGetValue(guid, out var data))
+                if (y.EasyLifeData.TryGetValue(guid, out var data))
                 {
                     firstEtap = data.FirstOper;
                     return true;
@@ -743,9 +732,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             }
             else
             {
-                if (y.FirstOper.IsCustomModelling ? (y.FirstOper.CustomModelling == guid) : (y.FirstOper.MesModelling.Code == guid))
+                if (y.FirstOperJust.IsCustomModelling ? (y.FirstOperJust.CustomModelling == guid) : (y.FirstOperJust.MesModelling.Code == guid))
                 {
-                    firstEtap = y.FirstOper;
+                    firstEtap = y.FirstOperJust;
                     return true;
                 }
                 else
@@ -758,113 +747,113 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public ConcurrentDictionary<Guid, ConcurrentDictionary<float, NaladLengthFixerClass>> IgnoredModellingsByFreeNaladLengths = new();
 
-        public bool FixSomeNaladLengths(OpersPool pool, PlanningCalculatorEngineResult resultToFill)
-        {
-            if (resultToFill == null || resultToFill.CatchedNaladLengthsErrorsCount == 0) return false;
+        //public bool FixSomeNaladLengths(OpersPool pool, PlanningCalculatorEngineResult resultToFill)
+        //{
+        //    if (resultToFill == null || resultToFill.CatchedNaladLengthsErrorsCount == 0) return false;
 
-            bool ChangedSomething = false;
+        //    bool ChangedSomething = false;
 
-            return false;
+        //    return false;
 
-            // Пройдемся по всем длинам, которые не влезли на тару
-            foreach (var error in resultToFill.ModellingsWithBrokenFreeNaladLengths)
-            {
-                var guidToFind = error;
-                var blockIndex = pool.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind, out _))); // Найдем сначала номер блока где была ошибка
-                var block = pool.Blocks[blockIndex];
-                var modIndex = block.Lists.FindIndex(y => ThereIsModInHere(y, guidToFind, out _)); // Теперь найдём номер мода
-                var mod = block.Lists[modIndex];
+        //    // Пройдемся по всем длинам, которые не влезли на тару
+        //    foreach (var error in resultToFill.ModellingsWithBrokenFreeNaladLengths)
+        //    {
+        //        var guidToFind = error;
+        //        var blockIndex = pool.Blocks.FindIndex(x => x.Lists.Any(y => ThereIsModInHere(y, guidToFind, out _))); // Найдем сначала номер блока где была ошибка
+        //        var block = pool.Blocks[blockIndex];
+        //        var modIndex = block.Lists.FindIndex(y => ThereIsModInHere(y, guidToFind, out _)); // Теперь найдём номер мода
+        //        var mod = block.Lists[modIndex];
 
-                // Получаем инфу по этапам - где лежит первый, в каком количестве, и является ли это просто модом
-                (int FirstEtapIndex, int Count, bool ItsJustMod) = (mod.ObshEtapData != null && mod.ObshEtapData.TryGetValue(guidToFind, out var data)) ? (mod.OpersList.IndexOf(data.FirstOper), data.Count, false) : (0, mod.OpersList.Count, true);
+        //        // Получаем инфу по этапам - где лежит первый, в каком количестве, и является ли это просто модом
+        //        (int FirstEtapIndex, int Count, bool ItsJustMod) = (mod.EasyLifeData != null && mod.EasyLifeData.TryGetValue(guidToFind, out var data)) ? (mod.OpersList.IndexOf(data.FirstOper), data.Count, false) : (0, mod.OpersList.Count, true);
 
-                Stage op = mod.OpersList[FirstEtapIndex];
+        //        Stage op = mod.OpersList[FirstEtapIndex];
 
-                // Если партия заблокирована, то мы ща будем просто смотреть на текущее количество мода, а не его сумму со следующим
-                var PFPartiasData = basisLink.SessionLink.MasterDataLinks.OrdersMasterData.PFPartiasData;
+        //        // Если партия заблокирована, то мы ща будем просто смотреть на текущее количество мода, а не его сумму со следующим
+        //        var PFPartiasData = basisLink.SessionLink.MasterDataLinks.OrdersMasterData.PFPartiasData;
 
-                bool PartiaIsLocked = op.OrderLink != null
-                    && op.OrderLink.PartiaPF.HasValue
-                    && PFPartiasData.TryGetValue(op.OrderLink.PartiaPF.Value, out var partia)
-                    && partia.IsNotFree;
+        //        bool PartiaIsLocked = op.OrderLink != null
+        //            && op.OrderLink.PartiaPF.HasValue
+        //            && PFPartiasData.TryGetValue(op.OrderLink.PartiaPF.Value, out var partia)
+        //            && partia.IsNotFree;
 
-                var naladLengths = pool.NaladLengthsDataAsMods[guidToFind];
-                var naladLengthCount = naladLengths.data.NaladLengthHere.Value + (PartiaIsLocked ? 0 : naladLengths.data.NaladLengthNexts.Value);
-                naladLengthCount = MathF.Round(naladLengthCount, 3);
+        //        var naladLengths = pool.NaladLengthsDataAsMods[guidToFind];
+        //        var naladLengthCount = naladLengths.Data.NaladLengthHere.Value + (PartiaIsLocked ? 0 : naladLengths.Data.NaladLengthNexts.Value);
+        //        naladLengthCount = MathF.Round(naladLengthCount, 3);
 
-                // Создаём мод для поиска
-                IAbleForTaraCalcInterface ops = ItsJustMod ? mod : new PartiaModelling(mod.OpersList.GetRange(FirstEtapIndex, Count).ToList(), op.CurrentTara, op.CurrentTaraMaxCapacity, op.EdIzm, op.Center, 0, null);
+        //        // Создаём мод для поиска
+        //        IAbleForTaraCalcInterface ops = ItsJustMod ? mod : new PartiaModelling(mod.OpersList.GetRange(FirstEtapIndex, Count).ToList(), op.CurrentTara, op.CurrentTaraMaxCapacity, op.EdIzm, op.Center, 0, null);
 
-                var ALL = basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages;
+        //        var ALL = basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages;
 
-                var nextRCs = ops.AllOpers.SelectMany(x => x.Nexts).Select(x => ALL[x].Center).ToHashSet();// найти след рц
-                var prevsInfo = ops.AllOpers.SelectMany(x => x.Prevs).Where(x => !ALL[x].IsVspom && !ALL[x].CurrentTara.IsEmpty).Distinct().ToDictionary(x => x, x => ALL[x].CurrentTara);
-                if (TaraSearchEngine.SumIsPossible(ops, out var tara, out var rc, out var max, out var format, out _, out _, new SumIsPossibleOptions(false)
-                {
-                    NextRCsMustBeThese = nextRCs,
-                    PrevsInfo = prevsInfo,// найти предыдущие этапы
-                    NaladLength = naladLengthCount,
-                    LogSomeErrors = false,
-                    ModToTaraInfoLink = basisLink.ModToTaraInfo
-                }))
-                {
-                    // Всё нашёл, задаем тару
-                    block.ActualRC = rc;
-                    basisLink.UpdateOpsOnOneRC(block, pool);
-                    for (int i = FirstEtapIndex; i < FirstEtapIndex + Count; i++)
-                    {
-                        mod.OpersList[i].Center = rc;
-                        mod.OpersList[i].CurrentTara = tara;
-                        mod.OpersList[i].CurrentTaraMaxCapacity = max;
-                    }
-                    ChangedSomething = true;
-                    resultToFill.ModellingsWithBrokenFreeNaladLengths.Remove(guidToFind);
-                }
-                else
-                {
-                    // Нет? Попробуем найти здесь самую максимальную тару
-                    if (TaraSearchEngine.SumIsPossible(ops, out var taraName, out _, out var maxHere, out _, out _, out _, new SumIsPossibleOptions(false)
-                    {
-                        NextRCsMustBeThese = nextRCs,
-                        PrevsInfo = prevsInfo,
-                        SearchForMaxTara = true,
-                        LogSomeErrors = false,
-                        ModToTaraInfoLink = basisLink.ModToTaraInfo
-                    }) && maxHere > op.CurrentTaraMaxCapacity)
-                    {
-                        // Да, тара найдена
-                        var maxPossibleNaladLengths = maxHere - ops.Sum;
-                        IgnoredModellingsByFreeNaladLengths.TryAdd(guidToFind, new());
-                        IgnoredModellingsByFreeNaladLengths[guidToFind].TryAdd(naladLengthCount, new NaladLengthFixerClass() { ops = ops, type = 2, tara = taraName, max = maxHere });
-                    }
-                    else
-                    {
-                        // Нет? А если без ограничений? Это неверно, но хоть что-то понятнее станет
-                        if (TaraSearchEngine.SumIsPossible(ops, out var taraName2, out _, out var maxHere2, out _, out _, out _, new SumIsPossibleOptions(false)
-                        {
-                            NaladLength = naladLengthCount,
-                            LogSomeErrors = false,
-                            ModToTaraInfoLink = basisLink.ModToTaraInfo
-                        }))
-                        {
-                            IgnoredModellingsByFreeNaladLengths.TryAdd(guidToFind, new());
-                            IgnoredModellingsByFreeNaladLengths[guidToFind].TryAdd(naladLengthCount, new NaladLengthFixerClass() { ops = ops, type = 0, tara = taraName2, max = maxHere2 });
-                            ;
-                        }
-                        else
-                        {
-                            IgnoredModellingsByFreeNaladLengths.TryAdd(guidToFind, new());
-                            IgnoredModellingsByFreeNaladLengths[guidToFind].TryAdd(naladLengthCount, new NaladLengthFixerClass() { ops = ops, type = 1 });
-                            ;
-                        }
+        //        var nextRCs = ops.AllOpers.SelectMany(x => x.Nexts).Select(x => ALL[x].Center).ToHashSet();// найти след рц
+        //        var prevsInfo = ops.AllOpers.SelectMany(x => x.Prevs).Where(x => !ALL[x].IsVspom && !ALL[x].CurrentTara.IsEmpty).Distinct().ToDictionary(x => x, x => ALL[x].CurrentTara);
+        //        if (TaraSearchEngine.SumIsPossible(ops, out var tara, out var rc, out var max, out var format, out _, out _, new SumIsPossibleOptions(false)
+        //        {
+        //            NextRCsMustBeThese = nextRCs,
+        //            PrevsInfo = prevsInfo,// найти предыдущие этапы
+        //            NaladLength = naladLengthCount,
+        //            LogSomeErrors = false,
+        //            ModToTaraInfoLink = basisLink.ModToTaraInfo
+        //        }))
+        //        {
+        //            // Всё нашёл, задаем тару
+        //            block.ActualRC = rc;
+        //            basisLink.UpdateOpsOnOneRC(block, pool);
+        //            for (int i = FirstEtapIndex; i < FirstEtapIndex + Count; i++)
+        //            {
+        //                mod.OpersList[i].Center = rc;
+        //                mod.OpersList[i].CurrentTara = tara;
+        //                mod.OpersList[i].CurrentTaraMaxCapacity = max;
+        //            }
+        //            ChangedSomething = true;
+        //            resultToFill.ModellingsWithBrokenFreeNaladLengths.Remove(guidToFind);
+        //        }
+        //        else
+        //        {
+        //            // Нет? Попробуем найти здесь самую максимальную тару
+        //            if (TaraSearchEngine.SumIsPossible(ops, out var taraName, out _, out var maxHere, out _, out _, out _, new SumIsPossibleOptions(false)
+        //            {
+        //                NextRCsMustBeThese = nextRCs,
+        //                PrevsInfo = prevsInfo,
+        //                SearchForMaxTara = true,
+        //                LogSomeErrors = false,
+        //                ModToTaraInfoLink = basisLink.ModToTaraInfo
+        //            }) && maxHere > op.CurrentTaraMaxCapacity)
+        //            {
+        //                // Да, тара найдена
+        //                var maxPossibleNaladLengths = maxHere - ops.Sum;
+        //                IgnoredModellingsByFreeNaladLengths.TryAdd(guidToFind, new());
+        //                IgnoredModellingsByFreeNaladLengths[guidToFind].TryAdd(naladLengthCount, new NaladLengthFixerClass() { ops = ops, type = 2, tara = taraName, max = maxHere });
+        //            }
+        //            else
+        //            {
+        //                // Нет? А если без ограничений? Это неверно, но хоть что-то понятнее станет
+        //                if (TaraSearchEngine.SumIsPossible(ops, out var taraName2, out _, out var maxHere2, out _, out _, out _, new SumIsPossibleOptions(false)
+        //                {
+        //                    NaladLength = naladLengthCount,
+        //                    LogSomeErrors = false,
+        //                    ModToTaraInfoLink = basisLink.ModToTaraInfo
+        //                }))
+        //                {
+        //                    IgnoredModellingsByFreeNaladLengths.TryAdd(guidToFind, new());
+        //                    IgnoredModellingsByFreeNaladLengths[guidToFind].TryAdd(naladLengthCount, new NaladLengthFixerClass() { ops = ops, type = 0, tara = taraName2, max = maxHere2 });
+        //                    ;
+        //                }
+        //                else
+        //                {
+        //                    IgnoredModellingsByFreeNaladLengths.TryAdd(guidToFind, new());
+        //                    IgnoredModellingsByFreeNaladLengths[guidToFind].TryAdd(naladLengthCount, new NaladLengthFixerClass() { ops = ops, type = 1 });
+        //                    ;
+        //                }
 
-                    }
+        //            }
 
 
-                }
-            }
+        //        }
+        //    }
 
-            return ChangedSomething;
-        }
+        //    return ChangedSomething;
+        //}
     }
 }

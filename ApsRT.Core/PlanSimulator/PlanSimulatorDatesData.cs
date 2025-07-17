@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApsRT.Core.Planning.PlanningClasses.PoolClasses
+namespace ApsRT.Core.PlanSimulator
 {
-    public class DatesPoolClass
+    public class PlanSimulatorDatesData
     {
         public DateTime MinValue;
         public int Flag;
         public int LastBlockIndex, LastID;
 
-        public DatesPoolClass(DatesPoolClass fromBase) : this(fromBase.MinValue, fromBase.Flag, fromBase.LastBlockIndex, fromBase.LastID) { }
+        public PlanSimulatorDatesData(PlanSimulatorDatesData fromBase) : this(fromBase.MinValue, fromBase.Flag, fromBase.LastBlockIndex, fromBase.LastID) { }
 
-        public DatesPoolClass(DateTime minValue, int flag, int lastBlockIndex, int lastID)
+        public PlanSimulatorDatesData(DateTime minValue, int flag, int lastBlockIndex, int lastID)
         {
             MinValue = minValue;
             Flag = flag;

@@ -1,5 +1,4 @@
-﻿using ApsRT.Core.Planning.PlanningClasses;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,17 +11,17 @@ using Azure;
 using ApsRT.Core.Centers.MasterData;
 using ApsRT.Core.Rechanges.MasterData;
 using ApsRT.Core.Rechanges.RechangesEngine;
-using ApsRT.Core.Planning.PlanningClasses.PoolClasses;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Centers;
+using ApsRT.Core.Planning;
 
-namespace ApsRT.Core.Planning.PlanningCalculatorEngine
+namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 {
-    public class PlanningCalculatorEngine
+    public class PlanSimulatorEngine
     {
-        public static CenterInPlanData FillCenterWithSomeData(CenterInPlanData centerLink, Uco CenterCode, DateTime TimeOfStart)
+        public static PlanSimulatorCenterData FillCenterWithSomeData(PlanSimulatorCenterData centerLink, Uco CenterCode, DateTime TimeOfStart)
         {
-            centerLink ??= new CenterInPlanData();
+            centerLink ??= new PlanSimulatorCenterData();
             centerLink.LastDate = TimeOfStart; //MinAcceptableDate,
             centerLink.LastStartDate = TimeOfStart; //MinAcceptableDate,
             centerLink.AdditinalConditions = new UniversalBinaryStorage();
@@ -31,12 +30,12 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             return centerLink;
         }
 
-        public static PlanningCalculatorEngineResult CalculatePlan(OpersPool pool, DateTime StartTime, PlanningCalculatorEngineResult resultToFill, PlanningCalculatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
+        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, DateTime StartTime, PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
             int currentFlag = Random.Shared.Next();
 
 
-            resultToFill ??= new PlanningCalculatorEngineResult(pool.Blocks[0].Lists[0].FirstOper.SessionLink, StartTime); // Начинаем хотя бы так
+            resultToFill ??= new PlanSimulatorEngineResult(Blocks[0].Lists[0].FirstOperJust.SessionLink, StartTime); // Начинаем хотя бы так
             resultToFill.GlobalPlanEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate; // В любом случае на всякий случай задаем это
             resultToFill.MostRechangedRCEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate;
 
@@ -47,9 +46,9 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             }
 
             // Проходимся по всем блокам
-            for (int blockIndex = 0; blockIndex < pool.Blocks.Count; blockIndex++)
+            for (int blockIndex = 0; blockIndex < Blocks.Count; blockIndex++)
             {
-                ProcessBlock(pool, blockIndex, currentFlag, resultToFill);
+                ProcessBlock(Blocks[blockIndex], PoolIndex, blockIndex, currentFlag, resultToFill);
                 //if (AdditionalBlockIndex == blockIndex)
                 //{
                 //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, AdditionalBlock);
@@ -72,19 +71,17 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="currentFlag">Текущий флаг расчёта</param>
         /// <param name="resultToFill">Поле для заполнения даннымми</param>
         /// <param name="previousResult"></param>
-        static void ProcessBlock(OpersPool pool, int blockIndex, int currentFlag, PlanningCalculatorEngineResult resultToFill/*, OpersBlock blockToCheckFirst*/)
+        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, int currentFlag, PlanSimulatorEngineResult resultToFill/*, OpersBlock blockToCheckFirst*/)
         {
-            var currentBlock = /*blockToCheckFirst ?? */pool.Blocks[blockIndex];
-
+            //var currentBlock = /*blockToCheckFirst ?? */pool.Blocks[blockIndex];
+            currentBlock.BlockIndex[PoolIndex] = blockIndex;
             var NonWorkingIntervalsMasterData = resultToFill.Session.MasterDataLinks.WorkingIntervalsMasterData;
             var CentersMasterData = resultToFill.Session.MasterDataLinks.CentersMasterData;
             var RechangesMasterData = resultToFill.Session.MasterDataLinks.RechangesMasterData;
             var AdditionalConditionsMasterData = resultToFill.Session.MasterDataLinks.AdditionalConditionsMasterData;
 
             // Получаем данные по РЦ
-            var ChoosenCenter = currentBlock.ActualRC;
-            var centGlobalStruct = pool.CentersData[ChoosenCenter];
-            var centerGlobalData = CentersMasterData.CentersData[ChoosenCenter];
+            (var ChoosenCenter, var centGlobalStruct, var centerGlobalData) = currentBlock.GetCenterData(PoolIndex);
             if (centGlobalStruct.Flag != currentFlag)
             {
                 FillCenterWithSomeData(centGlobalStruct, ChoosenCenter, resultToFill.TimeOfStart);
@@ -100,13 +97,13 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             }
 
             // Получаем инфу по всем данным со всех моделирований
-            (bool Passed, DatesPoolClass Data)[] ParallelData = new (bool Passed, DatesPoolClass)[currentBlock.Lists.Count];
+            (bool Passed, PlanSimulatorDatesData Data)[] ParallelData = new (bool Passed, PlanSimulatorDatesData)[currentBlock.Lists.Count];
             int RemainToProcessModellings = currentBlock.Lists.Count; // Сколько ещё моделирований надо прогнать?
 
             // Сначала просто получаем сырые данные. Тут двигать пока ничего НЕ НАДО из-за нераб интервалов, это случится позже. Тут просто нужно данные получить, и разницу узнать
             for (int i = 0; i < ParallelData.Length; i++)
             {
-                ParallelData[i] = (false, FindMinTime(pool, currentBlock.Lists[i], currentFlag, resultToFill.Session.AssignedPlanningAlgorithm.MinAcceptableDate));
+                ParallelData[i] = (false, FindMinTime(PoolIndex, currentBlock.Lists[i], currentFlag, resultToFill.Session.AssignedPlanningAlgorithm.MinAcceptableDate));
             }
 
             // Теперь бродим по этим моделированиям
@@ -130,17 +127,17 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                 var nextPossibleIntervalWillBe = interval.NextInterval; // Запоминаем последний индекс, который с которого можно начинать счёт интервалов для переналадки (справа налево).
 
                 // Вот нужные мне данные по этапам
-                PlanningModelling lastMod = centGlobalStruct.LastMod;
-                Stage operationA = lastMod?.FirstOper;
-                PlanningModelling currentMod = currentBlock.Lists[firstIndex];
-                Stage operationB = currentMod.FirstOper;
+                var lastMod = centGlobalStruct.LastMod;
+                var operationA = lastMod?.FirstOper;
+                var currentMod = currentBlock.Lists[firstIndex];
+                var operationB = currentMod.FirstOper;
 
                 // Найдём переналадочку
-                var rechangesResult = operationA == null ? null : RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA, operationB, ChoosenCenter));
+                var rechangesResult = operationA == null ? null : RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA.Stage, operationB.Stage, ChoosenCenter));
 
                 // Устанавливаем простои и переналадку здесь
                 //CenterTimesClass cts = resultToFill.CentersTimes == null ? null : (resultToFill.CentersTimes.TryGetValue(ChoosenCenter, out var cts2) ? cts2 : null); // Если надо, то мы берем класс РЦ для заполнения
-                SetProstoiAndRechanges(ChoosenCenter, centGlobalStruct, prostoiData, rechangesResult, nextPossibleIntervalWillBe, resultToFill, operationB.Index, operationA?.Index ?? -1);
+                SetProstoiAndRechanges(ChoosenCenter, centGlobalStruct, prostoiData, rechangesResult, nextPossibleIntervalWillBe, resultToFill, operationB.Stage.Index, operationA?.Stage.Index ?? -1);
 
                 // Заполняем инфу о всех моделированиях здесь.
                 // Здесь мы уже не вызываем чекер, попал ли я в интервал, потому что предыдущий код должен был подвинуть переналадку так, чтобы в худшем случае операция начиналась сразу же после нерабочего интервала. А в лучшем и в принципе где-то посередине.
@@ -167,18 +164,18 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                 centGlobalStruct.LastDate += intervalHere.Duration;
                 var lastDateFinally = centGlobalStruct.LastDate;
 
-                CenterInPlanData binaryCopy = (resultToFill.FirstStagesAdditionalInfos != null) ? centGlobalStruct.Copy() : null;
+                PlanSimulatorCenterData binaryCopy = resultToFill.FirstStagesAdditionalInfos != null ? centGlobalStruct.Copy() : null;
 
                 // Заполнение данных всяких
                 for (int i = 0; i < ChoosenModellings.Count; i++)
                 {
                     var index = ChoosenModellings[i];
                     var MOD = currentBlock.Lists[index];
-                    var firstID = MOD.FirstOper.Index;
+                    var firstID = MOD.FirstOperJust.Index;
 
-
-                    if (pool.DatesData.TryGetValue(MOD.ModID, out var dates) && dates.Flag == currentFlag)
-                        resultToFill.TaraRedutantUsage += (centGlobalStruct.LastDate - dates.MinValue).TotalDays / MOD.FirstOper.Level;
+                    var dates = MOD.MinDatesData[PoolIndex];
+                    if (dates.Flag == currentFlag)
+                        resultToFill.TaraRedutantUsage += (centGlobalStruct.LastDate - dates.MinValue).TotalDays / MOD.FirstOperJust.Level;
 
                     // Попробуем заполнить длительности центров, если надо
                     centGlobalStruct.OpersTime += intervalHere.Duration;
@@ -191,14 +188,15 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                     if (resultToFill.FirstStagesFullDurations != null) resultToFill.FirstStagesFullDurations.TryAdd(firstID, intervalHere);
 
                     // Попробуем заполнить ранги, если надо
-                    if (resultToFill.FirstStagesRanks != null) resultToFill.FirstStagesRanks.TryAdd(firstID, resultToFill.CurrentRank);
+                    //if (resultToFill.FirstStagesRanks != null) resultToFill.FirstStagesRanks.TryAdd(firstID, resultToFill.CurrentRank);
+                    MOD.Ranks[PoolIndex] = resultToFill.CurrentRank;
 
                     // Попробуем заполнить ранги, если надо
-                    if (resultToFill.FirstStagesPositions != null) resultToFill.FirstStagesPositions.TryAdd(firstID, blockIndex);
+                    //if (resultToFill.FirstStagesPositions != null) resultToFill.FirstStagesPositions.TryAdd(firstID, blockIndex);
 
                     if (resultToFill.FirstStagesAdditionalInfos != null) resultToFill.FirstStagesAdditionalInfos.TryAdd(firstID, binaryCopy);
 
-                    resultToFill.CurrentRank += MOD.OpersList.Count; // В ЛЮБОМ СЛУЧАЕ добавляем
+                    resultToFill.CurrentRank += MOD.Stages.Count; // В ЛЮБОМ СЛУЧАЕ добавляем
                 }
 
                 // Обновляем результаты:
@@ -212,26 +210,25 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                 if (centerGlobalData.HasAdditionalActions && operationA != null)
                 {
                     // Попробуем дополнительные условия.
-                    AdditionalConditionsMasterData.UpdateAdditionalParamsOnCenter(new RechangesEngineData(centGlobalStruct, prostoiData, operationA, operationB, ChoosenCenter));
+                    AdditionalConditionsMasterData.UpdateAdditionalParamsOnCenter(new RechangesEngineData(centGlobalStruct, prostoiData, operationA.Stage, operationB.Stage, ChoosenCenter));
                 }
 
                 // Смотрим на наладочные длины
-                ProcessNaladLengths(pool, currentBlock, ChoosenModellings, currentFlag, rechangesResult, ChoosenCenter, lastMod, resultToFill);
+                ProcessNaladLengths(PoolIndex, currentBlock, ChoosenModellings, currentFlag, rechangesResult, ChoosenCenter, lastMod, resultToFill);
 
                 // Если эта операция последняя, то:
                 // а. Она будет одна
                 // б. Стоит чекнуть заказ
-                if (operationB.IsLast)
+                if (operationB.Stage.IsLast)
                 {
                     // Считаем заказы
-                    ProcessOrder(pool, operationB, lastDateFinally, currentFlag, resultToFill);
+                    ProcessOrder(PoolIndex, operationB, lastDateFinally, currentFlag, resultToFill);
                 }
 
                 // Попробуем подсчитать переход из цеха в цех
                 if (resultToFill.Session.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
                 {
-                    var ordPf = operationB.GetOrderOrPartiaCode();
-                    var ordPfClass = pool.LastSubdivisionsData[ordPf];
+                    var ordPfClass = operationB.LastSubsData[PoolIndex];
                     if (ordPfClass.Flag != currentFlag)
                     {
                         // Просто задаем РЦ
@@ -250,7 +247,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                 }
 
                 // Задаём минимальные даты начала детям
-                SetMinDatesToChilds(pool, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
+                SetMinDatesToChilds(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
 
                 // По итогу:
                 centGlobalStruct.LastMod = currentMod;
@@ -273,7 +270,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="nextPossibleIntervalWillBe">Самый крайний интервал, с которого по идее можно начать пересчет переналадки с учетом нерабочих интервалов</param>
         /// <param name="resultToFill">Куда записывать результаты (имеются в виду суммы по переналадкам и простоям)</param>
         /// <param name="classToFill">Сюда можно записать переналадки и простои, если класс не пустой</param>
-        static void SetProstoiAndRechanges(Uco ChoosenCenter, CenterInPlanData centGlobalStruct, DatesPoolClass prostoiData, RechangesEngineResult rechange, int nextPossibleIntervalWillBe, PlanningCalculatorEngineResult resultToFill, int nextStageID, int lastStageID)
+        static void SetProstoiAndRechanges(Uco ChoosenCenter, PlanSimulatorCenterData centGlobalStruct, PlanSimulatorDatesData prostoiData, RechangesEngineResult rechange, int nextPossibleIntervalWillBe, PlanSimulatorEngineResult resultToFill, int nextStageID, int lastStageID)
         {
             int rechangeDuration = rechange?.Duration ?? 0;
 
@@ -360,7 +357,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             }
         }
 
-        static void AlreadyFillProstoi(CenterInPlanData centGlobalStruct, DatesPoolClass prostoiData, CachedInterval prostoiDur, PlanningCalculatorEngineResult resultToFill, int NextStageID)
+        static void AlreadyFillProstoi(PlanSimulatorCenterData centGlobalStruct, PlanSimulatorDatesData prostoiData, CachedInterval prostoiDur, PlanSimulatorEngineResult resultToFill, int NextStageID)
         {
             centGlobalStruct.LastDate += prostoiDur.Duration;
             resultToFill.ProstoiSeconds += prostoiDur.Duration;
@@ -371,7 +368,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                 resultToFill.ProstoiBeforeFirstStages.TryAdd(NextStageID, (prostoiData, prostoiDur));
         }
 
-        static void AlreadyFillRechanges(CenterInPlanData centGlobalStruct, RechangesEngineResult result, CachedInterval rechangeDur, PlanningCalculatorEngineResult resultToFill, int NextStageID, int lastStageID)
+        static void AlreadyFillRechanges(PlanSimulatorCenterData centGlobalStruct, RechangesEngineResult result, CachedInterval rechangeDur, PlanSimulatorEngineResult resultToFill, int NextStageID, int lastStageID)
         {
             centGlobalStruct.LastDate += rechangeDur.Duration;
             resultToFill.RechangesSeconds = resultToFill.RechangesSeconds.Add(rechangeDur.Duration);
@@ -392,7 +389,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="ChoosenModellings">Выбранные моделирования из блока</param>
         /// <param name="LastDate">Собственно дата назначения</param>
         /// <param name="currentFlag">Текущий "флаг расчёта"</param>
-        static void SetMinDatesToChilds(OpersPool pool, OpersBlock block, int blockIndex, List<int> ChoosenModellings, DateTime LastDate, int currentFlag)
+        static void SetMinDatesToChilds(int PoolIndex, PlanSimulatorBlock block, int blockIndex, List<int> ChoosenModellings, DateTime LastDate, int currentFlag)
         {
             for (int i = 0; i < ChoosenModellings.Count; i++) // Проходим по всем вставшим моделированиям
             {
@@ -400,20 +397,18 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
                 for (int j = 0; j < mod.NextMods.Count; j++) // Смотрим на детей-модов
                 {
-                    if (pool.DatesData.TryGetValue(mod.NextMods[j], out var hh)) // Иногда их может не оказаться. Например, если часть партий выкинул.
+                    var hh = mod.NextMods[j].MinDatesData[PoolIndex];
+                    if (hh.Flag != currentFlag || hh.MinValue < LastDate)
                     {
-                        if (hh.Flag != currentFlag || hh.MinValue < LastDate)
-                        {
-                            //if (hh.Flag == currentFlag)
-                            //{
-                            //    tempData.TaraRedutantUsage += (LastDate - hh.MinValue).TotalDays / thisMod.FirstOper.Level;
-                            //}
-                            hh.MinValue = LastDate;
-                            hh.Flag = currentFlag;
-                            hh.LastBlockIndex = blockIndex;
-                            hh.LastID = mod.FirstOper.Index;
-                            //opers.DatesData[next] = hh;
-                        }
+                        //if (hh.Flag == currentFlag)
+                        //{
+                        //    tempData.TaraRedutantUsage += (LastDate - hh.MinValue).TotalDays / thisMod.FirstOper.Level;
+                        //}
+                        hh.MinValue = LastDate;
+                        hh.Flag = currentFlag;
+                        hh.LastBlockIndex = blockIndex;
+                        hh.LastID = mod.FirstOperJust.Index;
+                        //opers.DatesData[next] = hh;
                     }
                 }
             }
@@ -426,19 +421,19 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="modelling">Моделирование для которого получаем данные</param>
         /// <param name="neededFlag">Текущий "флаг расчёта"</param>
         /// <returns></returns>
-        static DatesPoolClass FindMinTime(OpersPool pool, PlanningModelling modelling, int neededFlag, DateTime minDate)
+        static PlanSimulatorDatesData FindMinTime(int PoolIndex, PlanSimulatorMod modelling, int neededFlag, DateTime minDate)
         {
-            var neededDate = modelling.FirstOper.Fixed ? modelling.FirstOper.StartTimeFact.Value : minDate;
+            var neededDate = modelling.FirstOperJust.Fixed ? modelling.FirstOperJust.StartTimeFact.Value : minDate;
 
-            var kortez = pool.DatesData[modelling.ModID];
+            var kortez = modelling.MinDatesData[PoolIndex];//pool.DatesData[modelling.ModID];
             if (kortez.Flag == neededFlag)
             {
                 if (kortez.MinValue > neededDate)
                 {
-                    return new DatesPoolClass(kortez);
+                    return new PlanSimulatorDatesData(kortez);
                 }
             }
-            return new DatesPoolClass(neededDate, neededFlag, -1, -1);
+            return new PlanSimulatorDatesData(neededDate, neededFlag, -1, -1);
 
         }
 
@@ -449,7 +444,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="centerGlobalData">На каком это центре</param>
         /// <param name="ChoosenModellings">Куда вписываем результат</param>
         /// <returns>Минимально возможное начало этой кучи</returns>
-        static DateTime ProcessParallelLists((bool Passed, DatesPoolClass Data)[] ParallelData, CenterBaseModel centerGlobalData, List<int> ChoosenModellings)
+        static DateTime ProcessParallelLists((bool Passed, PlanSimulatorDatesData Data)[] ParallelData, CenterBaseModel centerGlobalData, List<int> ChoosenModellings)
         {
             DateTime? MinTime = null;
 
@@ -483,59 +478,57 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
         #region Подсчёт дедлайнов
 
-        static void ProcessOrder(OpersPool pool, Stage oper, DateTime final, int currentFlag, PlanningCalculatorEngineResult resultToFill)
+        static void ProcessOrder(int PoolIndex, PlanSimulatorStage oper, DateTime final, int currentFlag, PlanSimulatorEngineResult resultToFill)
         {
             var ordersMasterData = resultToFill.Session.MasterDataLinks.OrdersMasterData;
-            var ordern = oper.OrderLink.OrderID;
-            // Заказы. Этот метод обрабатывает заказ. Ради удобства вынесен в отдельный локальный метод
-            if (ordern.Object.Label.Length > 0)
-            {
-                var ord = pool.OrdersData[ordern];
-                var ordG = ordersMasterData.AllOrders[ordern];
-                var dead = ordG.Deadline;
-                var priority = ordG.Priority;
+            var ordern = oper.Stage.OrderLink.OrderID;
+            var ord = oper.OrderData[PoolIndex];
+            var ordG = oper.Stage.OrderLink;
+            var dead = ordG.Deadline;
+            var priority = ordG.Priority;
 
-                if (final > dead) // Если заказ сорван
+            if (final > dead) // Если заказ сорван
+            {
+                if (ord.Flag != currentFlag) // Если он ещё даже не помечен
                 {
-                    if (ord.Flag != currentFlag) // Если он ещё даже не помечен
-                    {
-                        ord.MinValue = final;
-                        ord.Flag = currentFlag;
-                        ord.Time = (final - dead).TotalDays;
-                        ord.TimeWithK = ordersMasterData.CalcDeadline(ord.Time, ordern, priority);
-                        //opers.OrdersData[ordern] = ord;
-                        resultToFill.RuinedCount++;
-                        resultToFill.DaysRuinedValue += ord.TimeWithK;
-                        resultToFill.DaysRuinedLinearValue += ord.Time;
-                    }
-                    else
-                    {
-                        // Уже был помечен
-                        if (final > ord.MinValue) // Если он даже хуже, чем было ранее
-                        {
-                            ord.MinValue = final;
-                            resultToFill.DaysRuinedValue -= ord.TimeWithK; // старое значение отнимаем
-                            resultToFill.DaysRuinedLinearValue -= ord.Time; // старое значение отнимаем
-                            ord.Time = (final - dead).TotalDays;
-                            ord.TimeWithK = ordersMasterData.CalcDeadline(ord.Time, ordern, priority); // Пересчитываем
-                            //opers.OrdersData[ordern] = ord;
-                            resultToFill.DaysRuinedValue += ord.TimeWithK;
-                            resultToFill.DaysRuinedLinearValue += ord.Time;
-                        }
-                    }
+                    ord.MinValue = final;
+                    ord.Flag = currentFlag;
+                    ord.Time = (final - dead).TotalDays;
+                    ord.TimeWithK = ordersMasterData.CalcDeadline(ord.Time, ordern, priority);
+                    //opers.OrdersData[ordern] = ord;
+                    resultToFill.RuinedCount++;
+                    resultToFill.DaysRuinedValue += ord.TimeWithK;
+                    resultToFill.DaysRuinedLinearValue += ord.Time;
                 }
                 else
                 {
-                    if (ord.Flag != currentFlag) // Если он ещё даже не помечен, но и не хуже, он помечается, просто заполняется пустыми значениями
+                    // Уже был помечен
+                    if (final > ord.MinValue) // Если он даже хуже, чем было ранее
                     {
                         ord.MinValue = final;
-                        ord.Flag = currentFlag;
-                        ord.Time = 0;
-                        ord.TimeWithK = 0;
-                        //opers.OrdersData[ordern] = ord;
+                        resultToFill.DaysRuinedValue -= ord.TimeWithK; // старое значение отнимаем
+                        resultToFill.DaysRuinedLinearValue -= ord.Time; // старое значение отнимаем
+                        ord.Time = (final - dead).TotalDays;
+                        ord.TimeWithK = ordersMasterData.CalcDeadline(ord.Time, ordern, priority); // Пересчитываем
+                                                                                                   //opers.OrdersData[ordern] = ord;
+                        resultToFill.DaysRuinedValue += ord.TimeWithK;
+                        resultToFill.DaysRuinedLinearValue += ord.Time;
                     }
                 }
             }
+            else
+            {
+                if (ord.Flag != currentFlag) // Если он ещё даже не помечен, но и не хуже, он помечается, просто заполняется пустыми значениями
+                {
+                    ord.MinValue = final;
+                    ord.Flag = currentFlag;
+                    ord.Time = 0;
+                    ord.TimeWithK = 0;
+                    //opers.OrdersData[ordern] = ord;
+                }
+            }
+
+
         }
 
         #endregion
@@ -554,9 +547,9 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
         /// <param name="lastMod"></param>
         /// <param name="result"></param>
         static void ProcessNaladLengths(
-            OpersPool pool, OpersBlock block, List<int> ChoosenModellings, int currentFlag,
-            RechangesEngineResult RechangesList, Uco choosenCenter, PlanningModelling lastMod,
-            PlanningCalculatorEngineResult result
+            int PoolIndex, PlanSimulatorBlock block, List<int> ChoosenModellings, int currentFlag,
+            RechangesEngineResult RechangesList, Uco choosenCenter, PlanSimulatorMod lastMod,
+            PlanSimulatorEngineResult result
             )
         {
             var ALL = result.Session.MasterDataLinks.StagesMasterData.AllStages;
@@ -568,31 +561,31 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
             {
                 var mod = block.Lists[ChoosenModellings[i]]; // Берём моделирование
 
-                for (int j = 0; j < mod.OpersList.Count; j++) // Смотрим на детей-модов
+                for (int j = 0; j < mod.Stages.Count; j++) // Смотрим на детей-модов
                 {
-                    var op1 = mod.OpersList[j];
-                    int etapID = op1.Index;
-                    var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(RechangesList, op1, choosenCenter, lastMod);
+                    var op1 = mod.Stages[j];
+                    int etapID = op1.Stage.Index;
+                    var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(RechangesList, op1.Stage, choosenCenter, lastMod);
 
-                    var info = pool.NaladLengthsData[etapID];
+                    var info = op1.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];
                     var thatEtap = ALL[etapID]; // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
                     info.Flag = currentFlag;
-                    info.data.NaladLengthFirst = nalads.NaladLengthFirst; // длина первой катушки
-                    info.data.NaladLengthOther = nalads.NaladLengthOther; // длина остальныъ катушек
+                    info.Data.NaladLengthFirst = nalads.NaladLengthFirst; // длина первой катушки
+                    info.Data.NaladLengthOther = nalads.NaladLengthOther; // длина остальныъ катушек
 
-                    info.data.IsFirst = nalads.IsFirst; // первый ли это запуск?
+                    info.Data.IsFirst = nalads.IsFirst; // первый ли это запуск?
 
                     result.NaladLengthsTotal += nalads.NaladLengthHere.Value; // Просто критерий для G, S - пока роли не играет.
 
                     var guid = thatEtap.GetOrderOrPartiaCode();
-                    var clas = pool.NaladLengthsNeedToRecalc[guid];
+                    var clas = op1.PartiaRecalcData[PoolIndex];//pool.NaladLengthsNeedToRecalc[guid];
 
-                    if (info.data.NaladLengthHere != nalads.NaladLengthHere)
+                    if (info.Data.NaladLengthHere != nalads.NaladLengthHere)
                     {
                         clas.Flag = currentFlag;
                         clas.WillRecalc = true;
-                        info.data.prevKoeff = 1;
-                        info.data.NaladLengthHere = nalads.NaladLengthHere; // сумма всех мест для текущего этапа
+                        info.Data.prevKoeff = 1;
+                        info.Data.NaladLengthHere = nalads.NaladLengthHere; // сумма всех мест для текущего этапа
                     }
                     else
                     {
@@ -600,7 +593,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                         {
                             clas.Flag = currentFlag;
                             clas.WillRecalc = true;
-                            info.data.prevKoeff = 1;
+                            info.Data.prevKoeff = 1;
                         }
                     }
 
@@ -610,59 +603,59 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
                         //                && order.PartiaPF.HasValue
                         //                && PFPartiasData.TryGetValue(order.PartiaPF.Value, out var partia)
                         //                && partia.IsNotFree;
-                        NaladLengthsRecursiveSet(pool, etapID, 1/*, true*/, currentFlag, result);
+                        NaladLengthsRecursiveSet(PoolIndex, op1, 1/*, true*/, currentFlag, result);
                     }
                 }
             }
         }
 
-        static void NaladLengthsRecursiveSet(OpersPool pool, int etapID, float prevKoeff, int currentFlag, PlanningCalculatorEngineResult result)
+        static void NaladLengthsRecursiveSet(int PoolIndex, PlanSimulatorStage stage, float prevKoeff, int currentFlag, PlanSimulatorEngineResult result)
         {
             var ALL = result.Session.MasterDataLinks.StagesMasterData.AllStages;
 
-            var thatEtap = ALL[etapID];
+            var thatEtap = stage.Stage;//ALL[etapID];
 
             if (thatEtap.ClosedByZadels) return; // Заглушка для закрытых заделом этапов
 
             // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
-            var stageNaladInfo = pool.NaladLengthsData[etapID];
-            ref var stageData = ref stageNaladInfo.data;
+            var stageNaladInfo = stage.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];
+            ref var stageData = ref stageNaladInfo.Data;
             stageData.prevKoeff = prevKoeff;
 
             // след. налад. длина
-            double nextNalad = (stageData.prevKoeff * thatEtap.Count) - thatEtap.Count; // "план. потребность + след. длина"
+            double nextNalad = stageData.prevKoeff * thatEtap.Count - thatEtap.Count; // "план. потребность + след. длина"
             stageData.NaladLengthNexts.Value = (float)nextNalad; // уже в нужном нам измерении (было назначено в функции выше)
 
             var koeff = (nextNalad + thatEtap.Count + stageData.NaladLengthHere.Value) / thatEtap.Count; // к длине даём текущую длину, и делим на плановую потребность, получая новый коээфициент
 
             #region Проверка моделирований
 
-            var modId = pool.OperIDsToModIDs[etapID];
+            //var modId = pool.OperIDsToModIDs[etapID];
 
             var modGuid = thatEtap.IsCustomModelling ? thatEtap.CustomModelling : thatEtap.MesModelling.Code;
 
             if (modGuid == Guid.Empty)
             {
                 // Это просто этап
-                var naladsHere = stageData.NaladLengthHere + stageNaladInfo.data.NaladLengthNexts;
+                var naladsHere = stageData.NaladLengthHere + stageNaladInfo.Data.NaladLengthNexts;
                 //finalNaladLengthsCheck(naladsHere.Value, thatEtap.Count, thatEtap, modId, tempData);
             }
             else
             {
                 // Это моделирование, а то и общий этап. Посмотрим его.
-                var thatMod = pool.IDsToMods[modId];
+                var thatMod = stage.ModLink;// pool.IDsToMods[modId];
 
                 var countHere = thatMod.Count;
-                if (thatMod.ObshEtapData != null) // Значит это общий этап. Вытаскиваем из него данные по конкретному моделированию.
+                if (thatMod.EasyLifeData != null) // Значит это общий этап. Вытаскиваем из него данные по конкретному моделированию.
                 {
-                    countHere = thatMod.ObshEtapData[modGuid].Sum;
-                    thatEtap = thatMod.ObshEtapData[modGuid].FirstOper;
+                    countHere = thatMod.EasyLifeData[modGuid].Sum;
+                    thatEtap = thatMod.EasyLifeData[modGuid].FirstOper;
                 }
                 else
-                    thatEtap = thatMod.FirstOper;
+                    thatEtap = thatMod.FirstOperJust;
 
-                var modNaladInfo = pool.NaladLengthsDataAsMods[modGuid];
-                ref var modData = ref modNaladInfo.data;
+                var modNaladInfo = thatMod.NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
+                ref var modData = ref modNaladInfo.Data;
                 modData.prevKoeff = prevKoeff;// у моделирования пред коэфф нафиг не нужен особо, он чисто для отладки сгодится
 
                 if (modNaladInfo.Flag != currentFlag) // Если след. длины были подсчитаны в другом расчете, то надо их сбросить и заполнить заново.
@@ -682,7 +675,7 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
                 }
 
-                double nextNaladMod = (modData.prevKoeff * countHere) - countHere; // "план. потребность + след. длина"
+                double nextNaladMod = modData.prevKoeff * countHere - countHere; // "план. потребность + след. длина"
 
                 if (nextNaladMod > modData.NaladLengthNexts.Value)
                     modData.NaladLengthNexts.Value = (float)nextNaladMod;// прибавляем к моделированию (к след длине) длину текущего этапа, только здесь можно ещё посчитать без проблем
@@ -703,14 +696,14 @@ namespace ApsRT.Core.Planning.PlanningCalculatorEngine
 
             #endregion
 
-            for (int i = 0; i < ALL[etapID].Prevs.Count; i++)
+            for (int i = 0; i < stage.PreviousStages.Count; i++)
             {
-                NaladLengthsRecursiveSet(pool, ALL[etapID].Prevs[i], (float)koeff, currentFlag, result);
+                NaladLengthsRecursiveSet(PoolIndex, stage.PreviousStages[i], (float)koeff, currentFlag, result);
             }
 
         }
 
-        static void NaladLengthsCheckErrors(float naladLengthHere, float naladLengthNext, double modLength, Stage firstEtap, Guid modGuid, PlanningCalculatorEngineResult resultToFill)
+        static void NaladLengthsCheckErrors(float naladLengthHere, float naladLengthNext, double modLength, Stage firstEtap, Guid modGuid, PlanSimulatorEngineResult resultToFill)
         {
             if (!firstEtap.EndTara.IsEmpty) return;
             if (firstEtap.NoChangeTara) return;

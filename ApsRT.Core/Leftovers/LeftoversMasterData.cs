@@ -16,11 +16,11 @@ using Google.OrTools.Sat;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ApsRT.Core.Orders;
 using ApsRT.Core.Partias.PartiasClasses;
-using ApsRT.Core.Planning.PlanningClasses;
 using static System.Net.Mime.MediaTypeNames;
 using ApsRT.Core.Leftovers;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using ApsRT.Core.Partias.PartiasConnectorEngine;
+using ApsRT.Core.PlanSimulator;
 
 namespace ApsRT.Core.Leftovers
 {
@@ -199,13 +199,13 @@ namespace ApsRT.Core.Leftovers
             });
         }
 
-        public void PrepareModsForLeftovers(List<OpersBlock> ops)
+        public void PrepareModsForLeftovers(List<PlanSimulatorBlock> ops)
         {
             
             PrepareModsForLeftovers(ops.SelectMany(block => block.Lists.SelectMany(list =>
             {
-                if (list.ObshEtapData == null) return new List<IAbleForTaraCalcInterface>() { list as IAbleForTaraCalcInterface };
-                return list.ObshEtapData.Select(x => x.Value.AsMod);
+                if (list.EasyLifeData == null) return new List<IAbleForTaraCalcInterface>() { list as IAbleForTaraCalcInterface };
+                return list.EasyLifeData.Select(x => x.Value.AsMod);
                 //List<IAbleForTaraCalcInterface> result = new();
                 //foreach (var modGuid in list.ObshEtapData)
                 //{
@@ -511,7 +511,7 @@ namespace ApsRT.Core.Leftovers
             }
         }
 
-        public List<LeftoverLackData> PlanAndFixMaterialsInfo(OpersPool pool, IDictionary<int, DateTime> firstStageStartData)
+        public List<LeftoverLackData> PlanAndFixMaterialsInfo(List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData)
         {
             List<LeftoverLackData> result = new();
 
@@ -519,8 +519,8 @@ namespace ApsRT.Core.Leftovers
 
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
 
-            var points = pool.Blocks.SelectMany(block =>
-                block.Lists.Select(list => (Date: firstStageStartData[list.FirstOper.Index], Object: (object)list)
+            var points = Blocks.SelectMany(block =>
+                block.Lists.Select(list => (Date: firstStageStartData[list.FirstOperJust.Index], Object: (object)list)
                     //list => list.FirstOper.StageMaterialsInfo == null ? Array.Empty<(int, DateTime, Uco, double)>() : list.FirstOper.StageMaterialsInfo.UsedMaterials.Select(x => (list.FirstOper.Index, When: firstStageStartData[list.FirstOper.Index], x.Nomenklature, list.Count))
                 )
                 );
@@ -538,11 +538,11 @@ namespace ApsRT.Core.Leftovers
             for (int currentPoint = 0; currentPoint < pointsToAnalyze.Count; currentPoint++)
             {
                 var point = pointsToAnalyze[currentPoint];
-                if (point.Object is PlanningModelling planMod)
+                if (point.Object is PlanSimulatorMod planMod)
                 {
-                    var startDate = firstStageStartData[planMod.FirstOper.Index];
+                    var startDate = firstStageStartData[planMod.FirstOperJust.Index];
 
-                    List<IAbleForTaraCalcInterface> allMods = planMod.ObshEtapData == null ? new() { new PartiaModellingSmall(planMod.OpersList) } : planMod.ObshEtapData.Select(x => x.Value.AsMod).ToList();
+                    List<IAbleForTaraCalcInterface> allMods = planMod.EasyLifeData == null ? new() { new PartiaModellingSmall(planMod.StagesAsNormal) } : planMod.EasyLifeData.Select(x => x.Value.AsMod).ToList();
 
                     foreach (var mod in allMods)
                     {
@@ -706,7 +706,7 @@ namespace ApsRT.Core.Leftovers
                                 {
                                     var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
                                     {
-                                        if (x.Object is PlanningModelling) return false;
+                                        if (x.Object is PlanSimulatorMod) return false;
                                         (LeftoverUco Material, Uco Subdivision, double Count) info = ((LeftoverUco Material, Uco Subdivision, double Count))x.Object;
                                         return whatWillDecrease.Material == info.Material; // Нам нужен приход того же материала
                                     }); // найдем следующий приход

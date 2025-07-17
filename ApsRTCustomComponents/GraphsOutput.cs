@@ -1,4 +1,4 @@
-﻿using ApsRT.Core.Planning.PlanningClasses;
+﻿using ApsRT.Core.Planning;
 using System;
 using System.Collections.Generic;
 using System.Linq;

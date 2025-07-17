@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApsRT.Core.Planning.PlanningClasses.Legacy
+namespace ApsRT.Core.Planning
 {
     /// <summary>
     /// Класс, который привязывается к моделированию во время создания плана, и он нужен будет, чтобы находить временные отрезки, когда занята тара.
