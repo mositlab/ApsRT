@@ -33,6 +33,8 @@ namespace ApsRT.Core.PlanSimulator
 
         public PlanSimulatorPool(Session.Session session, List<PlanSimulatorBlock> blocks, DateTime dateOfStart, int PoolSize)
         {
+            SessionLink = session;
+
             var alreadyCreatedMods = blocks.AsValueEnumerable().SelectMany(x => x.Lists);
 
             var innerData = alreadyCreatedMods.SelectMany(y => y.Stages);
@@ -147,7 +149,7 @@ namespace ApsRT.Core.PlanSimulator
                     }
                 }
                 (var center, _, _) = block.GetCenterData(0);
-                for (int i = 1; i < PoolSize; i++)
+                for (int i = 0; i < PoolSize; i++)
                 {
                     block.SetCenter(center, i);
                 }

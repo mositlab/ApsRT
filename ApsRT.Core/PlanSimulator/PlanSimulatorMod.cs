@@ -70,7 +70,8 @@ namespace ApsRT.Core.PlanSimulator
             StagesAsNormal = list;
             Stages = list.Select(x => new PlanSimulatorStage()
             {
-                Stage = x
+                Stage = x,
+                ModLink = this
             }).ToList();
             FirstOperJust = list[0];
             FirstOper = Stages[0];
