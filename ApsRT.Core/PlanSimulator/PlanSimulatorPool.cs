@@ -14,12 +14,15 @@ using UniversalPack;
 using ApsRT.Core.Stages;
 using Newtonsoft.Json.Linq;
 using ApsRT.Core.Planning;
+using System.Collections.Concurrent;
 
 namespace ApsRT.Core.PlanSimulator
 {
     public class PlanSimulatorPool
     {
         public Session.Session SessionLink { get; }
+
+        public int PoolSize { get; }
 
         // Собственно блоки
         public List<PlanSimulatorBlock> Blocks;
@@ -31,8 +34,11 @@ namespace ApsRT.Core.PlanSimulator
 
         public FrozenDictionary<OrderID, PlanSimulatorOrderData[]> OrdersData;
 
+        public FrozenDictionary<Guid, PlanSimulatorMod> ModLinks;
+
         public PlanSimulatorPool(Session.Session session, List<PlanSimulatorBlock> blocks, DateTime dateOfStart, int PoolSize)
         {
+            this.PoolSize = PoolSize;
             SessionLink = session;
 
             var alreadyCreatedMods = blocks.AsValueEnumerable().SelectMany(x => x.Lists);
@@ -95,6 +101,8 @@ namespace ApsRT.Core.PlanSimulator
 
             Blocks = blocks;
 
+            ConcurrentDictionary<Guid, PlanSimulatorMod> modLinks = new();
+
             var res0 = Parallel.For(0, blocks.Count, index =>
             {
                 var block = blocks[index];
@@ -108,6 +116,18 @@ namespace ApsRT.Core.PlanSimulator
                     {
                         var length = new GottenNaladLengthStruct();
                         mod.NaladLengthData[i] = new PlanSimulatorNaladLengthData(-1, length);
+                    }
+
+                    if (mod.EasyLifeData != null)
+                    {
+                        foreach (var easy in mod.EasyLifeData)
+                        {
+                            modLinks.TryAdd(easy.Key, mod);
+                        }
+                    }
+                    else
+                    {
+                        modLinks.TryAdd(mod.FirstOperJust.IsCustomModelling ? mod.FirstOperJust.CustomModelling : mod.FirstOperJust.MesModelling.Code, mod);
                     }
 
                     mod.MinDatesData = new PlanSimulatorDatesData[PoolSize];
@@ -148,7 +168,7 @@ namespace ApsRT.Core.PlanSimulator
             {
                 ;
             }
-
+            ModLinks = modLinks.ToFrozenDictionary();
         }
 
 

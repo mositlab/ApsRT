@@ -661,15 +661,21 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 var thatMod = stage.ModLink;// pool.IDsToMods[modId];
 
                 var countHere = thatMod.Count;
+
+                PlanSimulatorNaladLengthData modNaladInfo;
+
                 if (thatMod.EasyLifeData != null) // Значит это общий этап. Вытаскиваем из него данные по конкретному моделированию.
                 {
                     countHere = thatMod.EasyLifeData[modGuid].Sum;
                     thatEtap = thatMod.EasyLifeData[modGuid].FirstOper;
+                    modNaladInfo = thatMod.EasyLifeData[modGuid].NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
                 }
                 else
+                {
                     thatEtap = thatMod.FirstOperJust;
+                    modNaladInfo = thatMod.NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
+                }
 
-                var modNaladInfo = thatMod.NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
                 ref var modData = ref modNaladInfo.Data;
                 modData.prevKoeff = prevKoeff;// у моделирования пред коэфф нафиг не нужен особо, он чисто для отладки сгодится
 

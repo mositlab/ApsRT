@@ -12,7 +12,7 @@ namespace ApsRT.Core.PlanSimulator
         public List<PlanSimulatorStage> Stages;
         public List<Stage> StagesAsNormal;
 
-        public PlanSimulatorNaladLengthData[] NaladLengthData; // TO DO: ОБОСРЕТСЯ НА ОБЩИХ ЭТАПАХ
+        public PlanSimulatorNaladLengthData[] NaladLengthData; // ТОЛЬКО для моделирований простых, для общих этапов там свои
         public PlanSimulatorDatesData[] MinDatesData;
         public int[] Ranks;
 
@@ -37,14 +37,14 @@ namespace ApsRT.Core.PlanSimulator
 
         int IAbleForTaraCalcInterface.ZadelCode => 0;
 
-        public Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum)> EasyLifeData;
+        public Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum, PlanSimulatorNaladLengthData[] NaladLengthData)> EasyLifeData;
 
         public int ModID; // чисто номер мода. Попытка оптимизации
 
         public List<PlanSimulatorMod> NextMods = new();
         public List<PlanSimulatorMod> PrevMods = new();
 
-        public PlanSimulatorMod(List<Stage> list, bool parrRC, PlanningModellingType type, int modId)
+        public PlanSimulatorMod(List<Stage> list, bool parrRC, PlanningModellingType type, int modId, int poolSize)
         {
             if (type == PlanningModellingType.EasyFlagFromMES || type == PlanningModellingType.EasyFlagAfterPartias)
             {
@@ -52,12 +52,17 @@ namespace ApsRT.Core.PlanSimulator
                 list = list.OrderBy(x => x.EasyFlag).ThenBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code).ToList();
                 var modsHere = list.GroupBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code);
 
-                Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum)> final = new();
+                Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum, PlanSimulatorNaladLengthData[] NaladLengthData)> final = new();
                 var listFinal = new List<Stage>();
                 foreach (var group in modsHere)
                 {
+                    PlanSimulatorNaladLengthData[] naladLengths = new PlanSimulatorNaladLengthData[poolSize];
+                    for (int i = 0; i < poolSize; i++)
+                    {
+                        naladLengths[i] = new PlanSimulatorNaladLengthData(-1, new NaladLengths.GottenNaladLengthStruct());
+                    }
                     var listToAdd = group.ToList();
-                    final.Add(group.Key, (listToAdd[0], new Partias.PartiasClasses.PartiaModellingSmall(listToAdd), listFinal.Count, listToAdd.Count, listToAdd.Sum(x => x.Count)));
+                    final.Add(group.Key, (listToAdd[0], new Partias.PartiasClasses.PartiaModellingSmall(listToAdd), listFinal.Count, listToAdd.Count, listToAdd.Sum(x => x.Count), naladLengths));
                     listFinal.AddRange(listToAdd);
                 }
 

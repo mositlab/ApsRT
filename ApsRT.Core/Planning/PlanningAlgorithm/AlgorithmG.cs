@@ -120,7 +120,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         {
             var CentersMasterData = basisLink.SessionLink.MasterDataLinks.CentersMasterData;
 
-            var sdvig = new PlanSimulatorMod(opertoIns.Lists.AsValueEnumerable().SelectMany(x => x.StagesAsNormal).ToList(), false, PlanningModellingType.AfterPartias, -1);
+            var sdvig = new PlanSimulatorMod(opertoIns.Lists.AsValueEnumerable().SelectMany(x => x.StagesAsNormal).ToList(), false, PlanningModellingType.AfterPartias, -1, opertoIns.PoolLink.PoolSize);
             var prevs = sdvig.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Distinct().Where(x => 
             !basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara.EmptyCheck())
                 .ToDictionary(x => x, x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara);
