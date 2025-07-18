@@ -422,30 +422,36 @@ namespace ApsRT.Core.Stages
 
         Dictionary<Guid, NaladLengthValue[]> NaladLengthsCacheLocal = new();
 
+        FrozenDictionary<Guid, GottenNaladLengthStruct[]> FullNaladLengthsCache;
+
+        Dictionary<Guid, GottenNaladLengthStruct[]> FullNaladLengthsCacheLocal = new();
+
         internal void CacheNaladLengths()
         {
             NaladLengthsCacheLocal.Clear();
+            FullNaladLengthsCacheLocal.Clear();
+
             if (PossibleCenters != null)
             {
-                foreach (var rc in PossibleCenters) CacheNaladLengthsRc(rc);
+                foreach (var rc in PossibleCenters)
+                {
+                    CacheNaladLengthsRc(rc);
+                }
             }
             CacheNaladLengthsRc(OriginalCenter);
 
             NaladLengthsCache = NaladLengthsCacheLocal.ToFrozenDictionary();
 
-            //var _items = Enumerable
-            //    .Range(0, 100)
-            //    .Select(_ => new KeyValuePair<string, int>(Guid.NewGuid().ToString(), 0))
-            //    .ToArray();
+            if (PossibleCenters != null)
+            {
+                foreach (var rc in PossibleCenters)
+                {
+                    CacheFullNaladLengthsRc(rc);
+                }
+            }
+            CacheFullNaladLengthsRc(OriginalCenter);
 
-            //var _keys = _items.Select(k => k.Key).ToArray();
-
-            //var _dictionary = new Dictionary<string, int>(_items);
-            //var _readOnlyDictionary = new ReadOnlyDictionary<string, int>(_items.ToDictionary(i => i.Key, i => i.Value));
-            //var _immutableDictionary = ImmutableDictionary.ToImmutableDictionary(_items);
-            //var _frozenDictionary = FrozenDictionary.ToFrozenDictionary(_items, false);
-            //var _frozenDictionaryReadOptimized = FrozenDictionary.ToFrozenDictionary(_items, true); //optimizedForReads
-
+            FullNaladLengthsCache = FullNaladLengthsCacheLocal.ToFrozenDictionary();
         }
 
         void CacheNaladLengthsRc(Uco rc)
@@ -464,11 +470,27 @@ namespace ApsRT.Core.Stages
             }
         }
 
-        internal NaladLengthValue GetNaladLengthFromCache(Uco chosenRC, RequiredNaladCondition whichCondition)
+        void CacheFullNaladLengthsRc(Uco rc)
         {
-            //var key = (chosenRC.Code, whichCondition);
-            //if (!NaladLengthsCash.ContainsKey(key)) NaladLengthsCash.TryAdd(key, GetNaladLengthByData(this, chosenRC, whichCondition));
+            Array array = System.Enum.GetValues(typeof(RequiredNaladCondition));
+            FullNaladLengthsCacheLocal.TryAdd(rc.Code, new GottenNaladLengthStruct[2]);
+            for (int i = 0; i < array.Length; i++)
+            {
+                var whichCondition = array.GetValue(i);
+                var cond = (RequiredNaladCondition)whichCondition;
+
+                FullNaladLengthsCacheLocal[rc.Code][(int)cond] = SessionLink.MasterDataLinks.NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(this, rc, cond == RequiredNaladCondition.FirstLaunch);
+            }
+        }
+
+        public NaladLengthValue GetNaladLengthFromCache(Uco chosenRC, RequiredNaladCondition whichCondition)
+        {
             return NaladLengthsCache[chosenRC.Code][(int)whichCondition];
+        }
+
+        public GottenNaladLengthStruct GetNaladFullLengthFromCache(Uco chosenRC, RequiredNaladCondition whichCondition)
+        {
+            return FullNaladLengthsCache[chosenRC.Code][(int)whichCondition];
         }
         #endregion
 

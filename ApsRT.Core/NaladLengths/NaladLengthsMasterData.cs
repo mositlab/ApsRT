@@ -180,7 +180,13 @@ namespace ApsRT.Core.NaladLengths
             return new(0, new(Guid.Empty, DimensionUnit.m));
         }
 
-        internal GottenNaladLengthStruct GetNaladLengthsForCurrentStageOnly(RechangesEngineResult RechangesList, Stage op, Uco choosenCenter, PlanSimulator.PlanSimulatorMod lastMod)
+        public bool ItsFirstLaunch(RechangesEngineResult RechangesList, PlanSimulator.PlanSimulatorMod lastMod)
+        {
+            return lastMod == null // Это вообще первый запуск здесь
+                || (RechangesList != null && RechangesList.ProvokesNaladLengthLaunch);
+        } 
+
+        internal GottenNaladLengthStruct GetNaladLengthsForCurrentStageOnly(Stage op, Uco choosenCenter, bool asFirstLaunch)
         {
             NaladLengthValue naladLengthSum = new(0, new(Guid.Empty, DimensionUnit.m));// NaladLengths.GetNaladLengthByDataFast(op, choosenCenter, NaladLengths.RequiredNaladCondition.FirstLaunch);
 
@@ -189,9 +195,7 @@ namespace ApsRT.Core.NaladLengths
 
             bool thisNLIsFirst = false;
 
-            if (lastMod == null // Это вообще первый запуск здесь
-                || (RechangesList != null && RechangesList.ProvokesNaladLengthLaunch)
-                )
+            if (asFirstLaunch)
             {
                 // Первому запуску быть
                 firstNL = op.GetNaladLengthFromCache(choosenCenter, RequiredNaladCondition.FirstLaunch);

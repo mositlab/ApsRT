@@ -106,12 +106,7 @@ namespace ApsRT.Core.PlanSimulator
                     mod.NaladLengthData = new PlanSimulatorNaladLengthData[PoolSize];
                     for (int i = 0; i < PoolSize; i++)
                     {
-                        var length = new GottenNaladLengthStruct(
-                        new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                        new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                        new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                        new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                        false);
+                        var length = new GottenNaladLengthStruct();
                         mod.NaladLengthData[i] = new PlanSimulatorNaladLengthData(-1, length);
                     }
 
@@ -135,12 +130,7 @@ namespace ApsRT.Core.PlanSimulator
                         stage.NaladLengthData = new PlanSimulatorNaladLengthData[PoolSize];
                         for (int i = 0; i < PoolSize; i++)
                         {
-                            var length = new GottenNaladLengthStruct(
-                            new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                            new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                            new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                            new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m)),
-                            false);
+                            var length = new GottenNaladLengthStruct();
                             stage.NaladLengthData[i] = new PlanSimulatorNaladLengthData(-1, length);
                         }
                         stage.PartiaRecalcData = PartiasToRecalc[partiaCode];

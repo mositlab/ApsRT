@@ -842,7 +842,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                                         if (NaladLengthsData != null)
                                         {
-                                            var currentF = l.Max(x => NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthHere.Value : new NaladLengths.GottenNaladLengthStruct().NaladLengthHere.Value);
+                                            var currentF = l.Max(x => NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthHere.Value : 0);
                                             var sumMod = l.Sum(x => x.Count);
                                             var nextF = (l.Max(x => NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.prevKoeff : 1) * sumMod) - sumMod;
                                             //var nextF = here01.Opers.Sum(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthNexts.Value : new NaladLengths.GottenNaladLengthStruct().NaladLengthNexts.Value);

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack;
 
 namespace ApsRT.Core.NaladLengths
 {
-    public struct GottenNaladLengthStruct
+    public class GottenNaladLengthStruct
     {
         public NaladLengthValue NaladLengthFirst; // первая тара
         public NaladLengthValue NaladLengthOther; // остальные тары
@@ -14,6 +15,16 @@ namespace ApsRT.Core.NaladLengths
         public NaladLengthValue NaladLengthHere; // сумма только текущего уровня (1, 7, 12 мест)
         public bool IsFirst; // первый ли это запуск оказался
         public float prevKoeff;
+
+        public GottenNaladLengthStruct()
+        {
+            NaladLengthFirst = new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m));
+            NaladLengthOther = new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m));
+            NaladLengthNexts = new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m));
+            NaladLengthHere = new NaladLengthValue(0, new(Guid.Empty, DimensionUnit.m));
+            IsFirst = false;
+            prevKoeff = 1;
+        }
 
         public GottenNaladLengthStruct(
             NaladLengthValue naladLengthFirst,

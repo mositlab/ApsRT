@@ -218,7 +218,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var dt0 = DateTime.Now;
             OriginalValue = PlanSimulatorEngine.CalculatePlan(ops, 0, MinAcceptableDate, result);
             var dt1 = DateTime.Now;
-            Console.WriteLine($"plan calc time: {dt1-dt0}");
+            Console.WriteLine($"plan calc time: {dt1 - dt0}");
 
             // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
             SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(ops);

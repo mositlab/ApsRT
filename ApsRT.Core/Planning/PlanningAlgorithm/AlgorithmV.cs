@@ -125,7 +125,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 // Начав, естественно, с самой первой.
                 var fInd = OpersCopy.FindIndex(x => x.Lists[0].StagesAsNormal.Any(y => y.Index == possibleFirstIndexes[i]));
-                var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(null, OpersCopy[fInd].Lists[0].FirstOperJust, OpersCopy[fInd].GetCenterData(0).Center, null);
+
+                bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(null, null);
+
+                var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OpersCopy[fInd].Lists[0].FirstOperJust, OpersCopy[fInd].GetCenterData(0).Center, asFirst);
                 AddOperHere(fInd, AsParallel: false, 0, 0, nalads, centers_choosen, (OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTara, OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)/*new(Guid.Empty, "")*/, false, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
                 
                 if (OpersCopy[fInd].Lists[0].FirstOperJust.OnOneRC && basisLink.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[fInd].Lists[0].ModID, out var groupID))
@@ -151,7 +154,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     var locker = new object();
                     long timeR = 0;
                     long timeP = 0;
-                    GottenNaladLengthStruct bestNalads = new GottenNaladLengthStruct(new(0, new(Guid.Empty, DimensionUnit.m)), new(0, new(Guid.Empty, DimensionUnit.m)), new(0, new(Guid.Empty, DimensionUnit.m)), new(0, new(Guid.Empty, DimensionUnit.m)), false);
+                    GottenNaladLengthStruct bestNalads = new GottenNaladLengthStruct();
                     bool asParallel = false;
                     int bestParID = 0;
                     Uco bestC = new(Guid.Empty, "");
@@ -752,7 +755,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             }
 
             // Чекаем наладочные длины здесь и у предков
-            GottenNaladLengthStruct naladLengths = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(reches, OperB, chosenRC, a);
+            bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(reches, a);
+            GottenNaladLengthStruct naladLengths = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OperB, chosenRC, asFirst);
             naladsOut = naladLengths;
 
             // Если вышел за пределы допустимой наладочной длины на этом РЦ, то хреначим ошибку

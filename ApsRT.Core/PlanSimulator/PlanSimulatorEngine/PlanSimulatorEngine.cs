@@ -552,7 +552,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             PlanSimulatorEngineResult result
             )
         {
-            var ALL = result.Session.MasterDataLinks.StagesMasterData.AllStages;
+            //var ALL = result.Session.MasterDataLinks.StagesMasterData.AllStages;
             var NaladLengthsMasterData = result.Session.MasterDataLinks.NaladLengthsMasterData;
             var GlobalOrders = result.Session.MasterDataLinks.OrdersMasterData.AllOrders;
             var PFPartiasData = result.Session.MasterDataLinks.OrdersMasterData.PFPartiasData;
@@ -564,37 +564,52 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 for (int j = 0; j < mod.Stages.Count; j++) // Смотрим на детей-модов
                 {
                     var op1 = mod.Stages[j];
-                    int etapID = op1.Stage.Index;
-                    var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(RechangesList, op1.Stage, choosenCenter, lastMod);
 
                     var info = op1.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];
-                    var thatEtap = ALL[etapID]; // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
-                    info.Flag = currentFlag;
-                    info.Data.NaladLengthFirst = nalads.NaladLengthFirst; // длина первой катушки
-                    info.Data.NaladLengthOther = nalads.NaladLengthOther; // длина остальныъ катушек
+                    var thatEtap = op1.Stage;//ALL[etapID]; // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
+                    int etapID = thatEtap.Index;
 
-                    info.Data.IsFirst = nalads.IsFirst; // первый ли это запуск?
+                    bool firstLaunch = NaladLengthsMasterData.ItsFirstLaunch(RechangesList, lastMod);
 
-                    result.NaladLengthsTotal += nalads.NaladLengthHere.Value; // Просто критерий для G, S - пока роли не играет.
-
-                    var guid = thatEtap.GetOrderOrPartiaCode();
                     var clas = op1.PartiaRecalcData[PoolIndex];//pool.NaladLengthsNeedToRecalc[guid];
 
-                    if (info.Data.NaladLengthHere != nalads.NaladLengthHere)
+                    if (info.LastLaunchWasFirst == firstLaunch && info.LastRC == choosenCenter)
                     {
-                        clas.Flag = currentFlag;
-                        clas.WillRecalc = true;
-                        info.Data.prevKoeff = 1;
-                        info.Data.NaladLengthHere = nalads.NaladLengthHere; // сумма всех мест для текущего этапа
+                        // У них одинаковое всё. Нет нужды
+                        info.Flag = currentFlag;
+                        result.NaladLengthsTotal += info.Data.NaladLengthHere.Value; // Просто критерий для G, S - пока роли не играет.
                     }
                     else
                     {
-                        if (clas.Flag == -1)
+                        var nalads = //NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(thatEtap, choosenCenter, firstLaunch);
+                        thatEtap.GetNaladFullLengthFromCache(choosenCenter, firstLaunch ? NaladLengths.RequiredNaladCondition.FirstLaunch : NaladLengths.RequiredNaladCondition.OtherLaunch);//
+                        info.Flag = currentFlag;
+                        result.NaladLengthsTotal += nalads.NaladLengthHere.Value; // Просто критерий для G, S - пока роли не играет.
+
+                        info.Data.NaladLengthFirst = nalads.NaladLengthFirst; // длина первой катушки
+                        info.Data.NaladLengthOther = nalads.NaladLengthOther; // длина остальныъ катушек
+                        info.Data.IsFirst = nalads.IsFirst; // первый ли это запуск?
+
+                        //var guid = thatEtap.GetOrderOrPartiaCode();
+                        info.LastLaunchWasFirst = firstLaunch;
+                        info.LastRC = choosenCenter;
+
+                        if (info.Data.NaladLengthHere != nalads.NaladLengthHere)
                         {
                             clas.Flag = currentFlag;
                             clas.WillRecalc = true;
                             info.Data.prevKoeff = 1;
+                            info.Data.NaladLengthHere = nalads.NaladLengthHere; // сумма всех мест для текущего этапа
                         }
+                        //else
+                        //{
+                        //    if (clas.Flag == -1)
+                        //    {
+                        //        clas.Flag = currentFlag;
+                        //        clas.WillRecalc = true;
+                        //        info.Data.prevKoeff = 1;
+                        //    }
+                        //}
                     }
 
                     if (thatEtap.Nexts.Count == 0 && clas.Flag == currentFlag && clas.WillRecalc)
