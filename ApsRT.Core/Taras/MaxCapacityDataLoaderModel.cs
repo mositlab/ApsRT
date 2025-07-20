@@ -28,7 +28,7 @@ namespace ApsRT.Core.Taras
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
 
-        [DataRecordCodedObjectColumn("ВидОперации_GUID", "ВидОперации_GUID")]
+        [DataRecordCodedObjectColumn("ВидОперации_GUID", "ВидОперации")]
         public Uco OperationVid { get; set; }
 
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]

@@ -203,7 +203,7 @@ namespace ApsRT.Core.Taras
         }
 
         // макс намотки
-        Dictionary<Uco, // Продукция
+        public Dictionary<Uco, // Продукция
             Dictionary<Uco, // Номенклатура
                 Dictionary<Uco, // ОПЕР
                     Dictionary<Uco, // ТипТары
@@ -211,7 +211,8 @@ namespace ApsRT.Core.Taras
                     >
                     >
                 >
-            > TarasMaxCapacities = new(/*new CodedObjectEqualityComparer()*/);
+            > TarasMaxCapacities
+        { get; private set; } = new(/*new CodedObjectEqualityComparer()*/);
 
         public void AddMaxCapacityData(MaxCapacityDataLoaderModel model)
         {

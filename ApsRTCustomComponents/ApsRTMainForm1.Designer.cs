@@ -179,6 +179,8 @@ namespace ApsRTCustomComponents
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
+            button4 = new Button();
+            button3 = new Button();
             button2 = new Button();
             button1 = new Button();
             groupBox7 = new GroupBox();
@@ -307,7 +309,6 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            button3 = new Button();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -568,7 +569,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 423);
+            label49.Location = new Point(959, 420);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -581,7 +582,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 420);
+            pictureBox1.Location = new Point(1099, 417);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -594,7 +595,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 470);
+            label48.Location = new Point(3, 467);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2352,6 +2353,7 @@ namespace ApsRTCustomComponents
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.AutoScroll = true;
+            splitContainer2.Panel2.Controls.Add(button4);
             splitContainer2.Panel2.Controls.Add(button3);
             splitContainer2.Panel2.Controls.Add(button2);
             splitContainer2.Panel2.Controls.Add(button1);
@@ -2382,6 +2384,42 @@ namespace ApsRTCustomComponents
             HoppersPanel.Name = "HoppersPanel";
             HoppersPanel.Size = new Size(1171, 186);
             HoppersPanel.TabIndex = 25;
+            // 
+            // button4
+            // 
+            button4.BackColor = Color.CornflowerBlue;
+            button4.BackgroundImageLayout = ImageLayout.Zoom;
+            button4.Cursor = Cursors.Hand;
+            button4.FlatAppearance.BorderSize = 0;
+            button4.FlatStyle = FlatStyle.Flat;
+            button4.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button4.ForeColor = Color.White;
+            button4.Location = new Point(1034, 454);
+            button4.Name = "button4";
+            button4.Size = new Size(126, 36);
+            button4.TabIndex = 48;
+            button4.Text = "Выгрузить макс намотки";
+            button4.UseCompatibleTextRendering = true;
+            button4.UseVisualStyleBackColor = false;
+            button4.Click += button4_Click;
+            // 
+            // button3
+            // 
+            button3.BackColor = Color.CornflowerBlue;
+            button3.BackgroundImageLayout = ImageLayout.Zoom;
+            button3.Cursor = Cursors.Hand;
+            button3.FlatAppearance.BorderSize = 0;
+            button3.FlatStyle = FlatStyle.Flat;
+            button3.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(937, 454);
+            button3.Name = "button3";
+            button3.Size = new Size(91, 36);
+            button3.TabIndex = 47;
+            button3.Text = "Симулятор";
+            button3.UseCompatibleTextRendering = true;
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += button3_Click;
             // 
             // button2
             // 
@@ -4173,24 +4211,6 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // button3
-            // 
-            button3.BackColor = Color.CornflowerBlue;
-            button3.BackgroundImageLayout = ImageLayout.Zoom;
-            button3.Cursor = Cursors.Hand;
-            button3.FlatAppearance.BorderSize = 0;
-            button3.FlatStyle = FlatStyle.Flat;
-            button3.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button3.ForeColor = Color.White;
-            button3.Location = new Point(937, 454);
-            button3.Name = "button3";
-            button3.Size = new Size(223, 36);
-            button3.TabIndex = 47;
-            button3.Text = "Симулятор";
-            button3.UseCompatibleTextRendering = true;
-            button3.UseVisualStyleBackColor = false;
-            button3.Click += button3_Click;
-            // 
             // ApsRTMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -4658,5 +4678,6 @@ namespace ApsRTCustomComponents
         private Label VersionLabel;
         private Button button2;
         private Button button3;
+        private Button button4;
     }
 }
