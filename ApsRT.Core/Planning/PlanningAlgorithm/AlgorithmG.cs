@@ -60,6 +60,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count();
             Console.WriteLine("G, beg, " + ALL_COUNT);
+            ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count();
+            Console.WriteLine("G, beg, " + ALL_COUNT);
 
             // TODO: переделать на EventHandler и использовать InvokeAsync
 
@@ -127,23 +129,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var nextRCs = sdvig.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
 
-            HashSet<Uco> PossibleRCsHere = null; // Создаём рц, которые могут быть заюзаны для всех операций
-            foreach (var list in opertoIns.Lists)
-            {
-                if (PossibleRCsHere == null)
-                    PossibleRCsHere = new(list.PossibleRCsHere);
-                else
-                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(list.PossibleRCsHere).ToHashSet();
-
-                // А вот здесь ещё и проверим, чтобы КАЖДЫЙ мод из группы "на одном рц" тоже мог работать здесь
-                if (list.FirstOperJust.OnOneRC
-                && basisLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
-                && basisLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
-                {
-                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(data.PossibleRCs).ToHashSet();
-                }
-
-            }
+            var PossibleRCsHere = opertoIns.PossibleRCsHere;
 
             var options = new SumIsPossibleOptions(false)
             {

@@ -15,6 +15,7 @@ using ApsRT.Core.Stages;
 using Newtonsoft.Json.Linq;
 using ApsRT.Core.Planning;
 using System.Collections.Concurrent;
+using ApsRT.Core.Planning.PlanningAlgorithm;
 
 namespace ApsRT.Core.PlanSimulator
 {
@@ -127,7 +128,7 @@ namespace ApsRT.Core.PlanSimulator
                     }
                     else
                     {
-                        modLinks.TryAdd(mod.FirstOperJust.IsCustomModelling ? mod.FirstOperJust.CustomModelling : mod.FirstOperJust.MesModelling.Code, mod);
+                        modLinks.TryAdd(mod.FirstOperJust.CurrentModelling/*IsCustomModelling ? mod.FirstOperJust.CustomModelling : mod.FirstOperJust.MesModelling.Code*/, mod);
                     }
 
                     mod.MinDatesData = new PlanSimulatorDatesData[PoolSize];

@@ -7,6 +7,7 @@ using ApsRT.Core.Rechanges.MasterData;
 using ApsRT.Core.Stages;
 using System.Collections.Frozen;
 using ApsRT.Core.Centers;
+using ApsRT.Core.Planning.PlanningAlgorithm;
 
 namespace ApsRT.Core.PlanSimulator
 {
@@ -32,6 +33,32 @@ namespace ApsRT.Core.PlanSimulator
             CenterModelData[PoolIndex] = PoolLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[Center];
         }
 
+        public void UpdatePossibleRCsHere(PlanningAlgorithm basisLink)
+        {
+            PossibleRCsHere = null; // Создаём рц, которые могут быть заюзаны для всех операций
+            foreach (var list in Lists)
+            {
+                if (PossibleRCsHere == null)
+                    PossibleRCsHere = new(list.PossibleRCsHere);
+                else
+                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(list.PossibleRCsHere).ToHashSet();
+
+                // А вот здесь ещё и проверим, чтобы КАЖДЫЙ мод из группы "на одном рц" тоже мог работать здесь
+                if (list.FirstOperJust.OnOneRC
+                && basisLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
+                && basisLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
+                {
+                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(data.PossibleRCs).ToHashSet();
+                }
+
+            }
+        }
+
+        public HashSet<Uco> PossibleRCsHere
+        {
+            get; private set;
+        }
+
         FrozenDictionary<Uco, TimeSpan> _maxTime;
         int lastCount = 0;
 
@@ -51,7 +78,7 @@ namespace ApsRT.Core.PlanSimulator
             return $"[{string.Join(", ", Lists.Select(x => x.ModID))}] на РЦ: {ActualRC}";
         }
 
-        public PlanSimulatorBlock(List<PlanSimulatorMod> lists, Uco ActualRC, int PoolSize, float ParrKoeff, bool CreateTara)
+        public PlanSimulatorBlock(List<PlanSimulatorMod> lists, Uco ActualRC, int PoolSize, float ParrKoeff, bool CreateTara, PlanningAlgorithm basisLink)
         {
             Lists = lists;
             this.BlockIndex = new int[PoolSize];
@@ -60,6 +87,7 @@ namespace ApsRT.Core.PlanSimulator
             this.CenterModelData = new CenterBaseModel[PoolSize];
             this.ActualRC[0] = ActualRC; // Потом будет назначено всем, в пуле.
             FillKoeff = ParrKoeff;
+            UpdatePossibleRCsHere(basisLink);
             if (CreateTara)
             {
                 var tmp1 = lists.Select(x => x.FirstOperJust.CurrentTara).Where(x => !x.IsEmpty);//.GroupBy(x => x);

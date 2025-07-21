@@ -156,7 +156,7 @@ namespace ApsRTCustomComponents
             tabPage9 = new TabPage();
             splitContainer11 = new SplitContainer();
             splitContainer12 = new SplitContainer();
-            BadOffsetsGraphControl = new ZedGraphControl();
+            TaraRedutantUsageGraphControl = new ZedGraphControl();
             zedGraphControl2 = new ZedGraphControl();
             splitContainer13 = new SplitContainer();
             zedGraphControl1 = new ZedGraphControl();
@@ -2028,7 +2028,7 @@ namespace ApsRTCustomComponents
             // 
             // splitContainer12.Panel1
             // 
-            splitContainer12.Panel1.Controls.Add(BadOffsetsGraphControl);
+            splitContainer12.Panel1.Controls.Add(TaraRedutantUsageGraphControl);
             splitContainer12.Panel1MinSize = 10;
             // 
             // splitContainer12.Panel2
@@ -2041,20 +2041,20 @@ namespace ApsRTCustomComponents
             // 
             // BadOffsetsGraphControl
             // 
-            BadOffsetsGraphControl.Dock = DockStyle.Fill;
-            BadOffsetsGraphControl.Location = new Point(0, 0);
-            BadOffsetsGraphControl.Margin = new Padding(6, 5, 6, 5);
-            BadOffsetsGraphControl.Name = "BadOffsetsGraphControl";
-            BadOffsetsGraphControl.ScrollGrace = 0D;
-            BadOffsetsGraphControl.ScrollMaxX = 0D;
-            BadOffsetsGraphControl.ScrollMaxY = 0D;
-            BadOffsetsGraphControl.ScrollMaxY2 = 0D;
-            BadOffsetsGraphControl.ScrollMinX = 0D;
-            BadOffsetsGraphControl.ScrollMinY = 0D;
-            BadOffsetsGraphControl.ScrollMinY2 = 0D;
-            BadOffsetsGraphControl.Size = new Size(1120, 333);
-            BadOffsetsGraphControl.TabIndex = 2;
-            BadOffsetsGraphControl.UseExtendedPrintDialog = true;
+            TaraRedutantUsageGraphControl.Dock = DockStyle.Fill;
+            TaraRedutantUsageGraphControl.Location = new Point(0, 0);
+            TaraRedutantUsageGraphControl.Margin = new Padding(6, 5, 6, 5);
+            TaraRedutantUsageGraphControl.Name = "BadOffsetsGraphControl";
+            TaraRedutantUsageGraphControl.ScrollGrace = 0D;
+            TaraRedutantUsageGraphControl.ScrollMaxX = 0D;
+            TaraRedutantUsageGraphControl.ScrollMaxY = 0D;
+            TaraRedutantUsageGraphControl.ScrollMaxY2 = 0D;
+            TaraRedutantUsageGraphControl.ScrollMinX = 0D;
+            TaraRedutantUsageGraphControl.ScrollMinY = 0D;
+            TaraRedutantUsageGraphControl.ScrollMinY2 = 0D;
+            TaraRedutantUsageGraphControl.Size = new Size(1120, 333);
+            TaraRedutantUsageGraphControl.TabIndex = 2;
+            TaraRedutantUsageGraphControl.UseExtendedPrintDialog = true;
             // 
             // zedGraphControl2
             // 
@@ -4638,7 +4638,7 @@ namespace ApsRTCustomComponents
         private ZedGraphControl TotalTimeGraphControl;
         private SplitContainer splitContainer11;
         private SplitContainer splitContainer12;
-        private ZedGraphControl BadOffsetsGraphControl;
+        private ZedGraphControl TaraRedutantUsageGraphControl;
         private ZedGraphControl zedGraphControl2;
         private SplitContainer splitContainer13;
         private ZedGraphControl zedGraphControl1;

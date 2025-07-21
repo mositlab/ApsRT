@@ -1,7 +1,8 @@
 {
   "profiles": {
     "ApsRT.ZMK": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "hotReloadEnabled": true
     }
   }
 }

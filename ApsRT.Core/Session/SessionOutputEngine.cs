@@ -378,7 +378,7 @@ namespace ApsRT.Core.Session
                     for (int j = 0; j < list.StagesAsNormal.Count; j++)
                     {
                         var op = list.Stages[j];
-                        var mod = op.Stage.IsCustomModelling ? op.Stage.CustomModelling : op.Stage.MesModelling.Code;
+                        var mod = op.Stage.CurrentModelling;//IsCustomModelling ? op.Stage.CustomModelling : op.Stage.MesModelling.Code;
                         var modNalads = mod == Guid.Empty ? op.NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
                         if (wasLastFlag && mod != lastEasyFlag)
                         {
@@ -490,7 +490,7 @@ namespace ApsRT.Core.Session
                                 outputFile.WriteLine($"{operLoc.GUID};{operLoc.Nomenklature.Code};{ord};{gp};{operLoc.Specification.Code};" +
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
-                                    $";;{(operLoc.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code)};" +
+                                    $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +
                                     $";{operLoc.Subdivision.Code};{operLoc.CurrentTara.Code};{operLoc.CurrentTaraMaxCapacity};{blockRC.Code};" +//{operFirst.CurrentTara.Code};{operFirst.MaxNamotka};{operFirst.Center.Code};" +
                                     $"{(operLoc.RCRoute.Code/*operLoc.RCRoute.IsEmpty ? "" : operLoc.RCRoute.Code*/)};" +
                                     (!IsSilent || LaunchPlan ? $"{start:G}" : "") + // 04.06.2024: требование одну дату для всех исходных этапчиков выводить, которые объеиднились в один мод или общий этап.
@@ -780,7 +780,7 @@ namespace ApsRT.Core.Session
                     foreach (var etap in zadel.Value.WhereIsUsed)
                     {
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
-                        var modGuid = opLink.IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
+                        var modGuid = opLink.CurrentModelling;//IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
                         sw.WriteLine($"{zadel.Key};{opLink.GUID};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
                     }
                 }

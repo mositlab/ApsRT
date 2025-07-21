@@ -19,13 +19,22 @@ namespace ApsRT.Core.PlanSimulator
 
         public int NextNonWorkingInterval;
 
-        //public CashedInterval NonWorkingIntervalData;
-
         public UniversalBinaryStorage AdditinalConditions;
+
+        public bool IsEqualEnough(PlanSimulatorCenterData other)
+        {
+            return LastMod == other.LastMod
+                && LastBlock == other.LastBlock
+                && LastDate == other.LastDate
+                && LastStartDate == other.LastStartDate
+                && NextNonWorkingInterval == other.NextNonWorkingInterval
+                && AdditinalConditions.FullEquality(other.AdditinalConditions);
+            // На остальное то в общем должно быть пофигу.
+        }
 
         public int Flag;
 
-        public int LocalFlag;
+        //public int LocalFlag;
 
         public TimeSpan OpersTime, RechangesTime, ProstoiTime;
 
@@ -44,7 +53,7 @@ namespace ApsRT.Core.PlanSimulator
                 //HasToProcessAdditionalConditions = this.HasToProcessAdditionalConditions,
                 //Params = this.Params == null ? null : new(this.Params),
                 Flag = Flag,
-                LocalFlag = LocalFlag,
+                //LocalFlag = LocalFlag,
                 OpersTime = OpersTime,
                 RechangesTime = RechangesTime,
                 ProstoiTime = ProstoiTime,

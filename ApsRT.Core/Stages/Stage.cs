@@ -222,6 +222,9 @@ namespace ApsRT.Core.Stages
         public bool IsCustomModelling; // Если да - то будет юзать номер партии и моделирования ниже
                                    // а так как схлопнуться может что угодно с чем угодно, то у каждой операции есть эти поля
         public Guid CustomModelling;
+
+        public Guid CurrentModelling => IsCustomModelling ? CustomModelling : MesModelling.Code;
+
         /// <summary>
         /// гуид моделирования, он из меса приходит
         /// </summary>

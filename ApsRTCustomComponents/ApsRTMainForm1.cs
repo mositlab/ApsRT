@@ -1186,6 +1186,10 @@ namespace ApsRTCustomComponents
                     PlanningDataTable.Rows[2].Cells[2].Value = resToShow.ProstoiSeconds;
                     PlanningDataTable.Rows[3].Cells[2].Value = resToShow.ProductionSeconds;
                     PlanningDataTable.Rows[4].Cells[2].Value = resToShow.TaraRedutantUsage;
+                    PlanningDataTable.Rows[5].Cells[2].Value = resToShow.TaraCriticalUsage;
+                    PlanningDataTable.Rows[6].Cells[2].Value = resToShow.BadOffsets;
+                    PlanningDataTable.Rows[7].Cells[2].Value = resToShow.NaladLengthsTotal;
+                    PlanningDataTable.Rows[8].Cells[2].Value = resToShow.CatchedNaladLengthsErrorsCount;
 
                     OrdersCurve.AddPoint(algorithm.LastGen, resToShow.DaysRuinedValue);
                     OrdersGraphControl.AxisChange();
@@ -1203,21 +1207,25 @@ namespace ApsRTCustomComponents
                     TotalTimeGraphControl.AxisChange();
                     TotalTimeGraphControl.Invalidate();
 
-                    BadOffsetsCurve.AddPoint(algorithm.LastGen, resToShow.BadOffsets);
-                    BadOffsetsGraphControl.AxisChange();
-                    BadOffsetsGraphControl.Invalidate();
+                    TaraRedutantUsageCurve.AddPoint(algorithm.LastGen, resToShow.BadOffsets);
+                    TaraRedutantUsageGraphControl.AxisChange();
+                    TaraRedutantUsageGraphControl.Invalidate();
 
                     var v0 = Math.Round(100.0 - (resToShow.DaysRuinedValue / algorithm.OriginalValue.DaysRuinedValue * 100f), 2);
                     var v1 = Math.Round(100.0 - (resToShow.RechangesSeconds / algorithm.OriginalValue.RechangesSeconds * 100f), 2);
                     var v2 = Math.Round(100.0 - (resToShow.ProstoiSeconds / algorithm.OriginalValue.ProstoiSeconds * 100f), 2);
                     var v3 = Math.Round(100.0 - (resToShow.ProductionSeconds / algorithm.OriginalValue.ProductionSeconds * 100f), 2);
                     var v4 = Math.Round(100.0 - (resToShow.TaraRedutantUsage / algorithm.OriginalValue.TaraRedutantUsage * 100f), 2);
+                    var v5 = Math.Round(100.0 - (resToShow.TaraCriticalUsage / algorithm.OriginalValue.TaraCriticalUsage * 100f), 2);
+                    var v6 = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2);
+                    var v7 = Math.Round(100.0 - (resToShow.NaladLengthsTotal / algorithm.OriginalValue.NaladLengthsTotal * 100f), 2);
+                    var v8 = Math.Round(100.0 - (resToShow.CatchedNaladLengthsErrorsCount / (float)algorithm.OriginalValue.CatchedNaladLengthsErrorsCount * 100f), 2);
 
                     OrdersCurveOnBig.AddPoint(algorithm.LastGen, v0);
                     RechangesCurveOnBig.AddPoint(algorithm.LastGen, v1);
                     ProstoiCurveOnBig.AddPoint(algorithm.LastGen, v2);
                     TotalTimeCurveOnBig.AddPoint(algorithm.LastGen, v3);
-                    BadOffsetsCurveOnBig.AddPoint(algorithm.LastGen, v4);
+                    TaraRedutantUsageCurveOnBig.AddPoint(algorithm.LastGen, v4);
 
                     AllPercentagesGraphControl.AxisChange();
                     AllPercentagesGraphControl.Invalidate();
@@ -1227,6 +1235,10 @@ namespace ApsRTCustomComponents
                     PlanningDataTable.Rows[2].Cells[3].Value = v2 + "%";
                     PlanningDataTable.Rows[3].Cells[3].Value = v3 + "%";
                     PlanningDataTable.Rows[4].Cells[3].Value = v4 + "%";
+                    PlanningDataTable.Rows[5].Cells[3].Value = v5 + "%";
+                    PlanningDataTable.Rows[6].Cells[3].Value = v6 + "%";
+                    PlanningDataTable.Rows[7].Cells[3].Value = v7 + "%";
+                    PlanningDataTable.Rows[8].Cells[3].Value = v8 + "%";
                     //if (!IsSilent)
                     //{
 
@@ -1273,6 +1285,10 @@ namespace ApsRTCustomComponents
                 PlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
                 PlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
                 PlanningDataTable.Rows[4].Cells[1].Value = res.TaraRedutantUsage;
+                PlanningDataTable.Rows[5].Cells[1].Value = res.TaraCriticalUsage;
+                PlanningDataTable.Rows[6].Cells[1].Value = res.BadOffsets;
+                PlanningDataTable.Rows[7].Cells[1].Value = res.NaladLengthsTotal;
+                PlanningDataTable.Rows[8].Cells[1].Value = res.CatchedNaladLengthsErrorsCount;
 
                 PrepareGraphsForPlanning(sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
@@ -1606,7 +1622,7 @@ namespace ApsRTCustomComponents
 
         private void CreatePlanningTableConcrete(DataGridView PlanningDataTable)
         {
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < 9; i++)
             {
                 PlanningDataTable.Rows.Add();
             }
@@ -1639,12 +1655,22 @@ namespace ApsRTCustomComponents
             var row6 = PlanningDataTable.Rows[5];
             row6.DefaultCellStyle.ForeColor = Color.LightCoral;
             row6.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
-            row6.Cells[0].Value = "Распределение РЦ";
+            row6.Cells[0].Value = "Пролёживаемость тары";
 
             var row7 = PlanningDataTable.Rows[6];
             row7.DefaultCellStyle.ForeColor = Color.DarkBlue;
             row7.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
-            row7.Cells[0].Value = "Соответствие";
+            row7.Cells[0].Value = "Недоступность материалов";
+
+            var row8 = PlanningDataTable.Rows[7];
+            row8.DefaultCellStyle.ForeColor = Color.Orange;
+            row8.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row8.Cells[0].Value = "Суммарные наладочные длины";
+
+            var row9 = PlanningDataTable.Rows[8];
+            row9.DefaultCellStyle.ForeColor = Color.DarkOrange;
+            row9.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row9.Cells[0].Value = "Ошибок наладочных длин";
         }
 
         #endregion
@@ -1732,7 +1758,7 @@ namespace ApsRTCustomComponents
             pane.XAxis.Title.Text = "Итерация";
             pane.YAxis.Title.Text = "Время (ч.)";
 
-            pane = BadOffsetsGraphControl.GraphPane;
+            pane = TaraRedutantUsageGraphControl.GraphPane;
             pane.Title.Text = "Размотка тары";
             pane.XAxis.Title.Text = "Итерация";
             pane.YAxis.Title.Text = "Время (ч.)";
@@ -1747,8 +1773,8 @@ namespace ApsRTCustomComponents
             OriginalProductionCurve = null, // старая продукция
             NewProductionCurve = null; // новая продукция
 
-        LineItem OrdersCurve, RechangesCurve, ProstoiCurve, TotalTimeCurve, BadOffsetsCurve;
-        LineItem OrdersCurveOnBig, RechangesCurveOnBig, ProstoiCurveOnBig, TotalTimeCurveOnBig, BadOffsetsCurveOnBig;
+        LineItem OrdersCurve, RechangesCurve, ProstoiCurve, TotalTimeCurve, TaraRedutantUsageCurve;
+        LineItem OrdersCurveOnBig, RechangesCurveOnBig, ProstoiCurveOnBig, TotalTimeCurveOnBig, TaraRedutantUsageCurveOnBig;
 
         private void PrepareGraphsForPlanning(DateTime minDateTime)
         {
@@ -1782,10 +1808,10 @@ namespace ApsRTCustomComponents
             list = new PointPairList();
             TotalTimeCurve = pane.AddCurve("Общее время", list, PlanningDataTable.Rows[3].DefaultCellStyle.ForeColor, SymbolType.None);
 
-            pane = BadOffsetsGraphControl.GraphPane;
+            pane = TaraRedutantUsageGraphControl.GraphPane;
             pane.CurveList.Clear();
             list = new PointPairList();
-            BadOffsetsCurve = pane.AddCurve("Размотка тары", list, PlanningDataTable.Rows[4].DefaultCellStyle.ForeColor, SymbolType.None);
+            TaraRedutantUsageCurve = pane.AddCurve("Размотка тары", list, PlanningDataTable.Rows[4].DefaultCellStyle.ForeColor, SymbolType.None);
 
             #region Большой график
             pane = AllPercentagesGraphControl.GraphPane;
@@ -1807,7 +1833,7 @@ namespace ApsRTCustomComponents
 
             pane = AllPercentagesGraphControl.GraphPane;
             list = new PointPairList();
-            BadOffsetsCurveOnBig = pane.AddCurve("Размотка тары", list, PlanningDataTable.Rows[4].DefaultCellStyle.ForeColor, SymbolType.None);
+            TaraRedutantUsageCurveOnBig = pane.AddCurve("Размотка тары", list, PlanningDataTable.Rows[4].DefaultCellStyle.ForeColor, SymbolType.None);
             #endregion
         }
 
@@ -1945,10 +1971,11 @@ namespace ApsRTCustomComponents
 
         private void button3_Click(object sender, EventArgs e)
         {
+            Console.WriteLine("go:");
             for (int i = 0; i < 32; i++)
             {
                 var dt0 = DateTime.Now;
-                PlanSimulatorEngine.CalculatePlan(sessionLink.AssignedPlanningAlgorithm.UsedPool.Blocks, 0, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, null);
+                var result = PlanSimulatorEngine.CalculatePlan(sessionLink.AssignedPlanningAlgorithm.UsedPool.Blocks, 0, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, null);
                 var dt1 = DateTime.Now;
                 Console.WriteLine($"plan calc time: {dt1 - dt0}");
             }

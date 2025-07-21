@@ -43,6 +43,11 @@ namespace UniversalPack.Common
 
         public bool IsEmpty { get => BinaryDataMask == 0; }
 
+        public bool FullEquality(UniversalBinaryStorage other)
+        {
+            return BinaryData == other.BinaryData && BinaryDataMask == other.BinaryDataMask;
+        }
+
         /// <summary>
         /// Проверяет, равны ли данные в этом хранилище и данные из другого, причём с учётом альфа-маски другого. То есть, проверяются только те биты, которые нужны другому.
         /// </summary>

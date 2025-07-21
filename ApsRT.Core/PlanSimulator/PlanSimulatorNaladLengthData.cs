@@ -16,6 +16,8 @@ namespace ApsRT.Core.PlanSimulator
         public GottenNaladLengthStruct Data;
         public Uco LastRC;
         public bool LastLaunchWasFirst;
+        public bool HadBrokenFreeNaladLength;
+        public bool HadBrokenFixedNaladLength;
 
         public PlanSimulatorNaladLengthData(int flag, GottenNaladLengthStruct data)
         {

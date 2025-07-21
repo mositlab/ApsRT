@@ -36,6 +36,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         public double TaraRedutantUsage { get; set; } // 5 - размотка тары
         public double BadOffsets { get; set; } // Это разница от предыдущего времени
 
+        public double TaraCriticalUsage { get; set; } // 6 - пролеживаемость тары
+
         public int TaraErrorsCount { get; set; }
 
 

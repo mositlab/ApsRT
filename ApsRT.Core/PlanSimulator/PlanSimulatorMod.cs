@@ -49,8 +49,8 @@ namespace ApsRT.Core.PlanSimulator
             if (type == PlanningModellingType.EasyFlagFromMES || type == PlanningModellingType.EasyFlagAfterPartias)
             {
                 // если это общий этап, то стоит отсортировать операции, чтобы в выходной таблице они не перемешивались (моделирования перемешивались до 04.06)
-                list = list.OrderBy(x => x.EasyFlag).ThenBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code).ToList();
-                var modsHere = list.GroupBy(x => x.IsCustomModelling ? x.CustomModelling : x.MesModelling.Code);
+                list = list.OrderBy(x => x.EasyFlag).ThenBy(x => x.CurrentModelling/*IsCustomModelling ? x.CustomModelling : x.MesModelling.Code*/).ToList();
+                var modsHere = list.GroupBy(x => x.CurrentModelling/*IsCustomModelling ? x.CustomModelling : x.MesModelling.Code*/);
 
                 Dictionary<Guid, (Stage FirstOper, IAbleForTaraCalcInterface AsMod, int FirstElementIndex, int Count, double Sum, PlanSimulatorNaladLengthData[] NaladLengthData)> final = new();
                 var listFinal = new List<Stage>();

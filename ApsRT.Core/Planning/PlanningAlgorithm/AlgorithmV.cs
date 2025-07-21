@@ -569,6 +569,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 }
 
                 lastBlock.ExistingTaraHere[tara.tara]++;
+
+                lastBlock.UpdatePossibleRCsHere(basisLink); // Обновляем инфу по центрам
             }
             else
             {
