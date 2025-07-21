@@ -214,6 +214,16 @@ namespace ApsRT.Core.Partias.MergeConditions
                 return false;
             }
 
+            //var l1 = (op1.NeededNaladLength.HasValue ? op1.NeededNaladLength.Value.Length.Value : (float?)null);
+            //var l2 = (op2.NeededNaladLength.HasValue ? op2.NeededNaladLength.Value.Length.Value : (float?)null);
+
+            //if (l1 != l2)
+            //{
+            //    reason = $"у {op1.Index} и {op2.Index} не равны нужные налад длины";
+            //    smallreason = "не равны нужные налад длины";
+            //    return false;
+            //}
+
             return true;
         }
 

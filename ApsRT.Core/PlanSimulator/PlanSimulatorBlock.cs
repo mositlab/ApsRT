@@ -21,6 +21,9 @@ namespace ApsRT.Core.PlanSimulator
         CenterBaseModel[] CenterModelData;
         PlanSimulatorCenterData[] CenterDataLinks;
 
+        public PlanSimulatorBlock[] PreviousBlockOnThisRC;
+        public PlanSimulatorBlock[] NextBlockOnThisRC;
+
         public (Uco Center, PlanSimulatorCenterData CenterDataLink, CenterBaseModel CenterModelDataLink) GetCenterData(int PoolIndex)
         {
             return (ActualRC[PoolIndex], CenterDataLinks[PoolIndex], CenterModelData[PoolIndex]);
@@ -85,6 +88,8 @@ namespace ApsRT.Core.PlanSimulator
             this.ActualRC = new Uco[PoolSize];
             this.CenterDataLinks = new PlanSimulatorCenterData[PoolSize];
             this.CenterModelData = new CenterBaseModel[PoolSize];
+            this.PreviousBlockOnThisRC = new PlanSimulatorBlock[PoolSize];
+            this.NextBlockOnThisRC = new PlanSimulatorBlock[PoolSize];
             this.ActualRC[0] = ActualRC; // Потом будет назначено всем, в пуле.
             FillKoeff = ParrKoeff;
             UpdatePossibleRCsHere(basisLink);

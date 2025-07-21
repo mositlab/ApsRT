@@ -622,6 +622,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             UsedPool.Blocks = UsedPool.Blocks.OrderBy(x => x.BlockIndex[UsedPool.BestPoolIndex]).ToList();
             PlanSimulatorEngineResult res;
+
+            object locker = new();
+
             do
             {
                 res = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
@@ -772,20 +775,25 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             block.SetCenter(ChoosenCenter, IndexToWorkWith);
                                             UpdateOpsOnOneRC(block, IndexToWorkWith);
 
-                                            var result = PlanSimulatorEngine.CalculatePlan(blocksCopyLocal, IndexToWorkWith, MinAcceptableDate, null);
+                                            var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
+
+                                            result = PlanSimulatorEngine.CalculatePlan(blocksCopyLocal, IndexToWorkWith, MinAcceptableDate, result);
 
                                             result.ModellingsWithBrokenFixedNaladLengths = result.ModellingsWithBrokenFixedNaladLengths.AsValueEnumerable().Except(ignoredFixed).ToHashSet();
 
                                             var intersection = result.ModellingsWithBrokenFixedNaladLengths.AsValueEnumerable().Except(res.ModellingsWithBrokenFixedNaladLengths);
-                                            if (intersection.Count() == 0 /*&& !result.ModellingsWithBrokenFixedNaladLengths.Contains(guidToFind)*/)
+                                            if (intersection.Count() == 0 && !result.ModellingsWithBrokenFixedNaladLengths.Contains(guidToFind))
                                             {
                                                 if (indexToSet == -1)
                                                 {
-                                                    indexToSet = blockIndex;
-                                                    bestRC = ChoosenCenter;
-                                                    UsedPool.Blocks = blocksCopyLocal;
-                                                    UsedPool.BestPoolIndex = IndexToWorkWith;
-                                                    pls.Stop();
+                                                    lock (locker)
+                                                    {
+                                                        indexToSet = blockIndex;
+                                                        bestRC = ChoosenCenter;
+                                                        UsedPool.Blocks = blocksCopyLocal;
+                                                        UsedPool.BestPoolIndex = IndexToWorkWith;
+                                                        pls.Stop();
+                                                    }
                                                 }
                                             }
                                             else

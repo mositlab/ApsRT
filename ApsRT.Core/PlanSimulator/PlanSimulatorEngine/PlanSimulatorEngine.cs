@@ -27,6 +27,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             centerLink.AdditinalConditions = new UniversalBinaryStorage();
             centerLink.OpersTime = centerLink.RechangesTime = centerLink.ProstoiTime = TimeSpan.Zero;
             centerLink.NextNonWorkingInterval = -1;
+            centerLink.LastBlock = null;
+            centerLink.LastMod = null;
             return centerLink;
         }
 
@@ -95,6 +97,13 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     centGlobalStruct.LastStartDate = centGlobalStruct.LastDate;
                 }
             }
+
+            currentBlock.PreviousBlockOnThisRC[PoolIndex] = centGlobalStruct.LastBlock;
+            if (centGlobalStruct.LastBlock != null)
+            {
+                centGlobalStruct.LastBlock.NextBlockOnThisRC[PoolIndex] = currentBlock;
+            }
+            currentBlock.NextBlockOnThisRC[PoolIndex] = null;
 
             // Получаем инфу по всем данным со всех моделирований
             (bool Passed, PlanSimulatorDatesData Data)[] ParallelData = new (bool Passed, PlanSimulatorDatesData)[currentBlock.Lists.Count];
@@ -258,6 +267,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 ChoosenModellings.Clear();
             }
 
+            centGlobalStruct.LastBlock = currentBlock;
         }
 
         /// <summary>
@@ -578,13 +588,13 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         var modGuid = thatEtap.CurrentModelling;
                         if (info.HadBrokenFixedNaladLength)
                             result.ModellingsWithBrokenFixedNaladLengths.Add(modGuid);
-                        else
-                            result.ModellingsWithBrokenFixedNaladLengths.Remove(modGuid);
+                        //else
+                        //    result.ModellingsWithBrokenFixedNaladLengths.Remove(modGuid);
 
                         if (info.HadBrokenFreeNaladLength)
                             result.ModellingsWithBrokenFreeNaladLengths.Add(modGuid);
-                        else
-                            result.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid);
+                        //else
+                        //    result.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid);
                     }
 
                     if (info.LastLaunchWasFirst == firstLaunch && info.LastRC == choosenCenter)
@@ -727,8 +737,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     stageNaladInfo.HadBrokenFixedNaladLength = hasError;
                     if (hasError)
                         result.ModellingsWithBrokenFixedNaladLengths.Add(modGuid);
-                    else
-                        result.ModellingsWithBrokenFixedNaladLengths.Remove(modGuid);
+                    //else
+                    //    result.ModellingsWithBrokenFixedNaladLengths.Remove(modGuid);
                 }
 
                 modData.IsFirst |= stageData.IsFirst; // моду эта инфа, как и коэфф, тоже не оч нужны, но для отладки пусть будет
@@ -772,7 +782,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             }
             else
             {
-                resultToFill.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid);
+                //resultToFill.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid);
             }
         }
 
