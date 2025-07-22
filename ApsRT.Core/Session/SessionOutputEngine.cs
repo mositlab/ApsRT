@@ -141,7 +141,7 @@ namespace ApsRT.Core.Session
 
                 var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);
 
-                PlanSimulatorEngine.CalculatePlan(blocksToCopy, algorithm.UsedPool.BestPoolIndex, algorithm.MinAcceptableDate, result);
+                PlanSimulatorEngine.CalculatePlan(blocksToCopy, algorithm.UsedPool.BestPoolIndex, algorithm.UsedPool.BestPoolIndex, algorithm.MinAcceptableDate, result);
 
 
                 OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, blocksToCopy, result.FirstStagesStartDate);

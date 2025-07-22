@@ -221,7 +221,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
             //var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
             var dt0 = DateTime.Now;
-            OriginalValue = PlanSimulatorEngine.CalculatePlan(ops, 0, MinAcceptableDate, result);
+            OriginalValue = PlanSimulatorEngine.CalculatePlan(ops, 0, 0, MinAcceptableDate, result);
             var dt1 = DateTime.Now;
             Console.WriteLine($"plan calc time: {dt1 - dt0}");
 
@@ -625,11 +625,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             object locker = new();
 
+            object[] lockers = new object[UsedPool.PoolSize];
+            for (int i = 0; i < lockers.Length; i++) lockers[i] = new();
+
             do
             {
                 res = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
 
-                res = PlanSimulatorEngine.CalculatePlan(UsedPool.Blocks, UsedPool.BestPoolIndex, MinAcceptableDate, res);
+                var opersBlocksCopy = PlanSimulatorPool.CopyBlocksSwallow(UsedPool.Blocks);
+
+                res = PlanSimulatorEngine.CalculatePlan(opersBlocksCopy, UsedPool.BestPoolIndex, UsedPool.BestPoolIndex, MinAcceptableDate, res);
 
                 int bestIndex = UsedPool.BestPoolIndex;
 
@@ -656,7 +661,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     if (res.ModellingsWithBrokenFixedNaladLengths.Count > 0)
                     {
-                        var error = res.ModellingsWithBrokenFixedNaladLengths.First();
+                        var error = res.ModellingsWithBrokenFixedNaladLengths.First(x => !ignoredFixed.Contains(x));
 
                         var dt01 = DateTime.Now;
                         var guidToFind = error;
@@ -719,7 +724,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                         return;
                                     }
                                     var ChoosenCenter = possible[group];
-                                    var elements = UsedPool.Blocks.AsValueEnumerable().Where(x => x.GetCenterData(bestIndex).Center == ChoosenCenter).ToArray();
+                                    var elements = opersBlocksCopy.AsValueEnumerable().Where(x => x.GetCenterData(bestIndex).Center == ChoosenCenter).ToArray();
 
                                     var parr = Parallel.For(0, elements.Length + 1, (index, pls) =>
                                     {
@@ -758,52 +763,56 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                                 ;
                                             }
 
-                                            var blocksCopyLocal = PlanSimulatorPool.CopyBlocksSwallow(UsedPool.Blocks);
-
-                                            var blockIndex = (index < elements.Length) ? elements[index].BlockIndex[bestIndex] : elements[index - 1].BlockIndex[bestIndex] + 1;
-
-                                            var indexHere = blockIndex;
-
-                                            var indexToRemove = block.BlockIndex[bestIndex];
-
-                                            blocksCopyLocal.RemoveAt(indexToRemove);
-
-                                            if (indexToRemove < indexHere) indexHere--;
-
-                                            blocksCopyLocal.Insert(indexHere, block);
-
-                                            block.SetCenter(ChoosenCenter, IndexToWorkWith);
-                                            UpdateOpsOnOneRC(block, IndexToWorkWith);
-
-                                            var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
-
-                                            result = PlanSimulatorEngine.CalculatePlan(blocksCopyLocal, IndexToWorkWith, MinAcceptableDate, result);
-
-                                            result.ModellingsWithBrokenFixedNaladLengths = result.ModellingsWithBrokenFixedNaladLengths.AsValueEnumerable().Except(ignoredFixed).ToHashSet();
-
-                                            var intersection = result.ModellingsWithBrokenFixedNaladLengths.AsValueEnumerable().Except(res.ModellingsWithBrokenFixedNaladLengths);
-                                            if (intersection.Count() == 0 && !result.ModellingsWithBrokenFixedNaladLengths.Contains(guidToFind))
+                                            lock (lockers[IndexToWorkWith])
                                             {
-                                                if (indexToSet == -1)
+                                                var blocksCopyLocal = PlanSimulatorPool.CopyBlocksSwallow(opersBlocksCopy);
+
+                                                var blockIndex = (index < elements.Length) ? elements[index].BlockIndex[bestIndex] : elements[index - 1].BlockIndex[bestIndex] + 1;
+
+                                                var indexHere = blockIndex;
+
+                                                var indexToRemove = block.BlockIndex[bestIndex];
+
+                                                blocksCopyLocal.RemoveAt(indexToRemove);
+
+                                                if (indexToRemove < indexHere) indexHere--;
+
+                                                blocksCopyLocal.Insert(indexHere, block);
+
+                                                block.SetCenter(ChoosenCenter, IndexToWorkWith);
+                                                UpdateOpsOnOneRC(block, IndexToWorkWith);
+
+                                                var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
+
+                                                result = PlanSimulatorEngine.CalculatePlan(blocksCopyLocal, IndexToWorkWith, bestIndex, MinAcceptableDate, result);
+
+                                                result.ModellingsWithBrokenFixedNaladLengths = result.ModellingsWithBrokenFixedNaladLengths.AsValueEnumerable().Except(ignoredFixed).ToHashSet();
+
+                                                var intersection = result.ModellingsWithBrokenFixedNaladLengths.AsValueEnumerable().Except(res.ModellingsWithBrokenFixedNaladLengths);
+                                                if (/*intersection.Count() < 3 && */!result.ModellingsWithBrokenFixedNaladLengths.Contains(guidToFind))
                                                 {
-                                                    lock (locker)
+                                                    if (indexToSet == -1)
                                                     {
-                                                        indexToSet = blockIndex;
-                                                        bestRC = ChoosenCenter;
-                                                        UsedPool.Blocks = blocksCopyLocal;
-                                                        UsedPool.BestPoolIndex = IndexToWorkWith;
-                                                        pls.Stop();
+                                                        lock (locker)
+                                                        {
+                                                            indexToSet = blockIndex;
+                                                            bestRC = ChoosenCenter;
+                                                            UsedPool.Blocks = blocksCopyLocal;
+                                                            UsedPool.BestPoolIndex = IndexToWorkWith;
+                                                            pls.Stop();
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            else
-                                            {
-                                                //var badBlocks = intersection.Select(x => UsedPool.ModLinks[x]).ToArray();
-                                                ;
-                                                //if (indexToSet == -1) indexToSet = -4;
+                                                else
+                                                {
+                                                    var badBlocks = intersection.SelectMany(x => UsedPool.ModLinks[x].Stages).Select(x => new WasNow(x, bestIndex, IndexToWorkWith)).ToArray();
+                                                    ;
+                                                    //if (indexToSet == -1) indexToSet = -4;
+                                                }
+
+                                                AvailableIndexes.Enqueue(IndexToWorkWith);
                                             }
 
-                                            AvailableIndexes.Enqueue(IndexToWorkWith);
                                         }
 
 
@@ -854,6 +863,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //    BestBlocksList = ops;
 
             return true;
+        }
+
+        class WasNow
+        {
+            public Uco РЦБыл, РЦСтал;
+            public PlanSimulatorNaladLengthData ДлиныБыли, ДлиныСтали;
+            public int ИндексБыл, ИндексСтал;
+            public PlanSimulatorBlock ПредБлокБыл, ПредБлокСтал;
+
+            public WasNow(PlanSimulatorStage stage, int best, int now)
+            {
+                РЦБыл = stage.ModLink.BlockLink.GetCenterData(best).Center;
+                РЦСтал = stage.ModLink.BlockLink.GetCenterData(now).Center;
+                ДлиныБыли = stage.NaladLengthData[best];
+                ДлиныСтали = stage.NaladLengthData[now];
+                ИндексБыл = stage.ModLink.BlockLink.BlockIndex[best];
+                ИндексСтал = stage.ModLink.BlockLink.BlockIndex[now];
+                ПредБлокБыл = stage.ModLink.BlockLink.PreviousBlockOnThisRC[best];
+                ПредБлокСтал = stage.ModLink.BlockLink.PreviousBlockOnThisRC[now];
+            }
         }
 
 

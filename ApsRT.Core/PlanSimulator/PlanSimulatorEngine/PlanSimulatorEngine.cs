@@ -32,7 +32,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             return centerLink;
         }
 
-        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, DateTime StartTime, PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
+        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, int MoveDataFromThisIndex, DateTime StartTime, PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
             int currentFlag = Random.Shared.Next();
 
@@ -50,7 +50,10 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             // Проходимся по всем блокам
             for (int blockIndex = 0; blockIndex < Blocks.Count; blockIndex++)
             {
-                ProcessBlock(Blocks[blockIndex], PoolIndex, blockIndex, currentFlag, resultToFill);
+                var block = Blocks[blockIndex];
+                if (PoolIndex != MoveDataFromThisIndex) block.MoveCenterData(MoveDataFromThisIndex, PoolIndex);
+                
+                ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill);
                 //if (AdditionalBlockIndex == blockIndex)
                 //{
                 //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, AdditionalBlock);

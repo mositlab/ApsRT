@@ -329,7 +329,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 PlanSimulatorEngineResult res;
 
                 //var dt1 = DateTime.Now;
-                res = PlanSimulatorEngine.CalculatePlan(opersCopy, poolIndex, basisLink.MinAcceptableDate, new PlanSimulatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
+                res = PlanSimulatorEngine.CalculatePlan(opersCopy, poolIndex, basisLink.UsedPool.BestPoolIndex, basisLink.MinAcceptableDate, new PlanSimulatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
 
 
 

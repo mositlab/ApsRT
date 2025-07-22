@@ -29,6 +29,15 @@ namespace ApsRT.Core.PlanSimulator
             return (ActualRC[PoolIndex], CenterDataLinks[PoolIndex], CenterModelData[PoolIndex]);
         }
 
+        public void MoveCenterData(int fromIndex, int toIndex)
+        {
+            //ActualRC[toIndex] = ActualRC[fromIndex];
+            var center = ActualRC[fromIndex];
+            if (center != ActualRC[toIndex]) SetCenter(center, toIndex);
+            //CenterDataLinks[toIndex] = CenterDataLinks[fromIndex]; - это НЕ ТРОГАЕМ, тут же класс, он сам обновляется. Точнее, трогаем, но вот центр надо поставить другой, они ж могут заменяться, и классы соответственно другие.
+            //CenterModelData[toIndex] = CenterModelData[fromIndex];
+        }
+
         public void SetCenter(Uco Center, int PoolIndex)
         {
             ActualRC[PoolIndex] = Center;
