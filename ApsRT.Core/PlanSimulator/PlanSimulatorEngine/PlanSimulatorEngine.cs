@@ -1,19 +1,20 @@
-﻿using System;
+﻿using ApsRT.Core.Centers;
+using ApsRT.Core.Centers.MasterData;
+using ApsRT.Core.Planning;
+using ApsRT.Core.Rechanges.MasterData;
+using ApsRT.Core.Rechanges.RechangesEngine;
+using ApsRT.Core.Stages;
+using Azure;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Common;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
-using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using Azure;
-using ApsRT.Core.Centers.MasterData;
-using ApsRT.Core.Rechanges.MasterData;
-using ApsRT.Core.Rechanges.RechangesEngine;
-using ApsRT.Core.Stages;
-using ApsRT.Core.Centers;
-using ApsRT.Core.Planning;
 
 namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 {
@@ -32,7 +33,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             return centerLink;
         }
 
-        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, int MoveDataFromThisIndex, DateTime StartTime, PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
+        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, DateTime StartTime, PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
             int currentFlag = Random.Shared.Next();
 
@@ -41,17 +42,17 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             resultToFill.GlobalPlanEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate; // В любом случае на всякий случай задаем это
             resultToFill.MostRechangedRCEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate;
 
-            if (prevResult != null) // Мы копируем их, чтобы не сломать пред. результат + сохранить данные с предыдущего расчёта
-            {
-                resultToFill.ModellingsWithBrokenFixedNaladLengths = new HashSet<Guid>(prevResult.ModellingsWithBrokenFixedNaladLengths);
-                resultToFill.ModellingsWithBrokenFreeNaladLengths = new HashSet<Guid>(prevResult.ModellingsWithBrokenFreeNaladLengths);
-            }
+            //if (prevResult != null) // Мы копируем их, чтобы не сломать пред. результат + сохранить данные с предыдущего расчёта
+            //{
+            //    resultToFill.StagesWithBrokenFixedNaladLengths = new HashSet<int>(prevResult.StagesWithBrokenFixedNaladLengths);
+            //    resultToFill.ModellingsWithBrokenFreeNaladLengths = new HashSet<Guid>(prevResult.ModellingsWithBrokenFreeNaladLengths);
+            //}
 
             // Проходимся по всем блокам
             for (int blockIndex = 0; blockIndex < Blocks.Count; blockIndex++)
             {
                 var block = Blocks[blockIndex];
-                if (PoolIndex != MoveDataFromThisIndex) block.MoveCenterData(MoveDataFromThisIndex, PoolIndex);
+                //if (PoolIndex != MoveDataFromThisIndex) block.MoveCenterData(MoveDataFromThisIndex, PoolIndex);
                 
                 ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill);
                 //if (AdditionalBlockIndex == blockIndex)
@@ -62,6 +63,20 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 //{
                 //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, null);
                 //}
+            }
+
+            foreach (var block in Blocks)
+            {
+                foreach (var mod in block.Lists)
+                {
+                    foreach (var stage in mod.Stages)
+                    {
+                        if (stage.NaladLengthData[PoolIndex].HadBrokenFixedNaladLength && stage.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value == 0)
+                        {
+                            ;
+                        }
+                    }
+                }
             }
 
             return resultToFill;
@@ -143,6 +158,11 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 var operationA = lastMod?.FirstOper;
                 var currentMod = currentBlock.Lists[firstIndex];
                 var operationB = currentMod.FirstOper;
+
+                if (operationB.Stage.Index == 1122)
+                {
+                    ;
+                }
 
                 // Найдём переналадочку
                 var rechangesResult = operationA == null ? null : RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA.Stage, operationB.Stage, ChoosenCenter));
@@ -577,37 +597,52 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 for (int j = 0; j < mod.Stages.Count; j++) // Смотрим на детей-модов
                 {
                     var op1 = mod.Stages[j];
-
+                    if (op1.Stage.Index == 1122)
+                    {
+                        ;
+                    }
                     var info = op1.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];
                     var thatEtap = op1.Stage;//ALL[etapID]; // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
                     int etapID = thatEtap.Index;
+                    var modGuid = thatEtap.CurrentModelling;
 
                     bool firstLaunch = NaladLengthsMasterData.ItsFirstLaunch(RechangesList, lastMod);
 
                     var clas = op1.PartiaRecalcData[PoolIndex];//pool.NaladLengthsNeedToRecalc[guid];
 
-                    void checkErrors()
-                    {
-                        var modGuid = thatEtap.CurrentModelling;
-                        if (info.HadBrokenFixedNaladLength)
-                            result.ModellingsWithBrokenFixedNaladLengths.Add(modGuid);
-                        //else
-                        //    result.ModellingsWithBrokenFixedNaladLengths.Remove(modGuid);
 
-                        if (info.HadBrokenFreeNaladLength)
-                            result.ModellingsWithBrokenFreeNaladLengths.Add(modGuid);
-                        //else
-                        //    result.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid);
-                    }
+
+                    //var operationB = op1;
+                    //var data = operationB.NaladLengthData[PoolIndex].Data;
+                    //if (result.WhatWas.ContainsKey(operationB.Stage.Index))
+                    //{
+                    //    ;
+                    //}
+                    //else
+                    //{
+                    //    result.WhatWas.Add(operationB.Stage.Index, (new PlanSimulatorNaladLengthData(0, new())
+                    //    {
+                    //        HadBrokenFixedNaladLength = operationB.NaladLengthData[PoolIndex].HadBrokenFixedNaladLength,
+                    //        HadBrokenFreeNaladLength = operationB.NaladLengthData[PoolIndex].HadBrokenFreeNaladLength,
+                    //        LastLaunchWasFirst = operationB.NaladLengthData[PoolIndex].LastLaunchWasFirst,
+                    //        LastRC = operationB.NaladLengthData[PoolIndex].LastRC,
+                    //        Data = new NaladLengths.GottenNaladLengthStruct(data.NaladLengthFirst, data.NaladLengthOther, data.NaladLengthNexts, data.NaladLengthHere, data.IsFirst)
+                    //    }, 0));
+                    //}
+
+                    //var infoToWrite = result.WhatWas[thatEtap.Index];
 
                     if (info.LastLaunchWasFirst == firstLaunch && info.LastRC == choosenCenter)
                     {
                         // У них одинаковое всё. Нет нужды
                         info.Flag = currentFlag;
                         result.NaladLengthsTotal += info.Data.NaladLengthHere.Value; // Просто критерий для G, S - пока роли не играет.
-
+                        //infoToWrite.info = 1;
                         // НО, Следует всё равно проверить, были ли здесь проблемы.
-                        checkErrors();
+                        if (info.HadBrokenFixedNaladLength)
+                            result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
+                        else
+                            result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
                     }
                     else
                     {
@@ -624,8 +659,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         info.LastLaunchWasFirst = firstLaunch;
                         info.LastRC = choosenCenter;
 
-                        if (info.Data.NaladLengthHere != nalads.NaladLengthHere)
+                        if (info.Data.NaladLengthHere.Value != nalads.NaladLengthHere.Value)
                         {
+                            //infoToWrite.info = 4;
                             clas.Flag = currentFlag;
                             clas.WillRecalc = true;
                             info.Data.prevKoeff = 1;
@@ -635,15 +671,30 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         {
                             if (clas.Flag == -1)
                             {
+                                //infoToWrite.info = 3;
                                 clas.Flag = currentFlag;
                                 clas.WillRecalc = true;
                                 info.Data.prevKoeff = 1;
                             }
+                            //else
+                            //{
+                            //    infoToWrite.info = 2;
+                            //}
 
                             // НО, Следует всё равно проверить, были ли здесь проблемы.
-                            checkErrors();
+                            if (info.HadBrokenFixedNaladLength)
+                                result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
+                            else
+                                result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
                         }
                     }
+
+                    //result.WhatWas[thatEtap.Index] = infoToWrite;
+
+                    //if (thatEtap.CustomPartiaGuid.Value.ToString() == "95d16a05-c747-438e-a112-db685beb7ac8")
+                    //{
+                    //    ;
+                    //}
 
                     if (thatEtap.Nexts.Count == 0 && clas.Flag == currentFlag && clas.WillRecalc)
                     {
@@ -670,8 +721,18 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             ref var stageData = ref stageNaladInfo.Data;
             stageData.prevKoeff = prevKoeff;
 
-            // след. налад. длина
-            double nextNalad = stageData.prevKoeff * thatEtap.Count - thatEtap.Count; // "план. потребность + след. длина"
+            //if (result.WhatWas.TryGetValue(thatEtap.Index, out var infoToWrite))
+            //{
+            //    infoToWrite.info += 10;
+            //    result.WhatWas[thatEtap.Index] = infoToWrite;
+            //}
+            //else
+            //{
+            //    result.foundNot.Add(thatEtap.Index);
+            //}
+
+                // след. налад. длина
+                double nextNalad = stageData.prevKoeff * thatEtap.Count - thatEtap.Count; // "план. потребность + след. длина"
             stageData.NaladLengthNexts.Value = (float)nextNalad; // уже в нужном нам измерении (было назначено в функции выше)
 
             var koeff = (nextNalad + thatEtap.Count + stageData.NaladLengthHere.Value) / thatEtap.Count; // к длине даём текущую длину, и делим на плановую потребность, получая новый коээфициент
@@ -680,13 +741,30 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
             //var modId = pool.OperIDsToModIDs[etapID];
 
+            if (thatEtap.Index == 1122)
+            {
+                ;
+            }
+
+            if (thatEtap.EndTara.IsEmpty && !thatEtap.NoChangeTara && !thatEtap.NoCheckNamotka && !thatEtap.IsVspom && thatEtap.NeededNaladLength.HasValue)
+            {
+                bool hasError = stageData.NaladLengthHere.Value > 0 && stageData.NaladLengthHere.Value > thatEtap.NeededNaladLength.Value.Length.Value;
+                stageNaladInfo.HadBrokenFixedNaladLength = hasError;
+                if (hasError)
+                    result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
+                else
+                    result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
+            }
+
             var modGuid = thatEtap.CurrentModelling;//IsCustomModelling ? thatEtap.CustomModelling : thatEtap.MesModelling.Code;
 
             if (modGuid == Guid.Empty)
             {
                 // Это просто этап
-                var naladsHere = stageData.NaladLengthHere + stageNaladInfo.Data.NaladLengthNexts;
+                //var naladsHere = stageData.NaladLengthHere + stageNaladInfo.Data.NaladLengthNexts;
                 //finalNaladLengthsCheck(naladsHere.Value, thatEtap.Count, thatEtap, modId, tempData);
+
+                NaladLengthsCheckErrors(stageData.NaladLengthHere.Value, stageData.NaladLengthNexts.Value, thatEtap.Count, stage, PoolIndex, modGuid, result);
             }
             else
             {
@@ -734,15 +812,6 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 if (nextNaladMod > modData.NaladLengthNexts.Value)
                     modData.NaladLengthNexts.Value = (float)nextNaladMod;// прибавляем к моделированию (к след длине) длину текущего этапа, только здесь можно ещё посчитать без проблем
 
-                if (thatEtap.EndTara.IsEmpty && !thatEtap.NoChangeTara && !thatEtap.NoCheckNamotka && !thatEtap.IsVspom && thatEtap.NeededNaladLength.HasValue)
-                {
-                    bool hasError = stageData.NaladLengthHere.Value > thatEtap.NeededNaladLength.Value.Length.Value;
-                    stageNaladInfo.HadBrokenFixedNaladLength = hasError;
-                    if (hasError)
-                        result.ModellingsWithBrokenFixedNaladLengths.Add(modGuid);
-                    //else
-                    //    result.ModellingsWithBrokenFixedNaladLengths.Remove(modGuid);
-                }
 
                 modData.IsFirst |= stageData.IsFirst; // моду эта инфа, как и коэфф, тоже не оч нужны, но для отладки пусть будет
 

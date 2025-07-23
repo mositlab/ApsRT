@@ -1975,9 +1975,14 @@ namespace ApsRTCustomComponents
             for (int i = 0; i < 32; i++)
             {
                 var dt0 = DateTime.Now;
-                var result = PlanSimulatorEngine.CalculatePlan(sessionLink.AssignedPlanningAlgorithm.UsedPool.Blocks, 0, 0, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, null);
+                var result = PlanSimulatorEngine.CalculatePlan(sessionLink.AssignedPlanningAlgorithm.UsedPool.Blocks, 0, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, null);
                 var dt1 = DateTime.Now;
                 Console.WriteLine($"plan calc time: {dt1 - dt0}");
+                dt1 = DateTime.Now;
+                var blocksCopyLocal = PlanSimulatorPool.CopyBlocksSwallow(sessionLink.AssignedPlanningAlgorithm.UsedPool.Blocks);
+                PlanSimulatorPool.MoveCentersInAllBlocks(blocksCopyLocal, 0, 0);
+                var dt2 = DateTime.Now;
+                Console.WriteLine($"copy time: {dt2 - dt1}");
             }
         }
 

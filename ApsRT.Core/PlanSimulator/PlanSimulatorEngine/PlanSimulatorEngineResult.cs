@@ -46,12 +46,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// </summary>
         public int SubdivisionsTransfer { get; set; }
 
-        public int CatchedNaladLengthsErrorsCount { get => (ModellingsWithBrokenFreeNaladLengths?.Count ?? 0) + (ModellingsWithBrokenFixedNaladLengths?.Count ?? 0); }
+        public int CatchedNaladLengthsErrorsCount { get => (ModellingsWithBrokenFreeNaladLengths?.Count ?? 0) + (StagesWithBrokenFixedNaladLengths?.Count ?? 0); }
 
         /// <summary>
-        /// Здесь записаны все моделирования, которые имеют длины больше допустимого
+        /// Здесь записаны все этапы, которые имеют длины больше допустимого
         /// </summary>
-        public HashSet<Guid> ModellingsWithBrokenFixedNaladLengths;
+        public HashSet<int> StagesWithBrokenFixedNaladLengths;
 
         /// <summary>
         /// Здесь записаны все моделирования, которые не влезают на тару
@@ -74,6 +74,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         //public IDictionary<int, int> FirstStagesPositions;
 
         public IDictionary<int, PlanSimulatorCenterData> FirstStagesAdditionalInfos;
+
+        //public Dictionary<int, (PlanSimulatorNaladLengthData data, int info)> WhatWas = new();
+        //public HashSet<int> foundNot = new();
 
         /// <summary>
         /// Дата начала плана. Должна быть только для чтения, чтобы не ломать логику.
@@ -98,7 +101,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             TimeOfStart = timeOfStart;
             GlobalPlanEndDate = timeOfStart;
             MostRechangedRCEndDate = timeOfStart;
-            ModellingsWithBrokenFixedNaladLengths = new();
+            StagesWithBrokenFixedNaladLengths = new();
             ModellingsWithBrokenFreeNaladLengths = new();
         }
 

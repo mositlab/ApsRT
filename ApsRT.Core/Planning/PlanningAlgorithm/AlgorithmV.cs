@@ -465,7 +465,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 }
                 Console.WriteLine($"V, step {i}, " + OpersNow.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count());
                 //var pool0 = new OpersPool(basisLink.SessionLink, OpersNow, preparedData, basisLink.MinAcceptableDate);
-                var t = PlanSimulatorEngine.CalculatePlan(OpersNow, 1, 1, basisLink.MinAcceptableDate, null);//PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool0, basisLink.MinAcceptableDate, null);
+                var t = PlanSimulatorEngine.CalculatePlan(OpersNow, 1, basisLink.MinAcceptableDate, null);//PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool0, basisLink.MinAcceptableDate, null);
                 //This.SomeResultsTextBox.Text += $"Дошёл, {TimeSpan.FromSeconds(t.RechangesSeconds)}\r\n";
                 if (true/*globalres > t.RechangesSeconds*/) // тут не только переналадки вообще-то
                 {

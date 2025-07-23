@@ -10,5 +10,10 @@
             WillRecalc = willRecalc;
             Flag = flag;
         }
+
+        public override string ToString()
+        {
+            return String.Format("#{0:X}", GetHashCode());
+        }
     }
 }

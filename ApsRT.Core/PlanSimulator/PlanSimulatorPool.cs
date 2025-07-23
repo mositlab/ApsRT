@@ -37,6 +37,10 @@ namespace ApsRT.Core.PlanSimulator
 
         public FrozenDictionary<Guid, PlanSimulatorMod> ModLinks;
 
+        public FrozenDictionary<int, PlanSimulatorStage> StagesLinks;
+
+        public FrozenDictionary<Guid, PlanSimulatorPartiaRecalcData[]> PartiasToRecalc;
+
         public PlanSimulatorPool(Session.Session session, List<PlanSimulatorBlock> blocks, DateTime dateOfStart, int PoolSize)
         {
             this.PoolSize = PoolSize;
@@ -46,7 +50,7 @@ namespace ApsRT.Core.PlanSimulator
 
             var innerData = alreadyCreatedMods.SelectMany(y => y.Stages);
 
-            var stagesDic = innerData.ToFrozenDictionary(x => x.Stage.Index, x => x);
+            StagesLinks = innerData.ToFrozenDictionary(x => x.Stage.Index, x => x);
 
             var allCents = alreadyCreatedMods.SelectMany(x => x.PossibleRCsHere).Distinct();
             var centersData = new Dictionary<Uco, PlanSimulatorCenterData[]>(allCents.Count());
@@ -75,12 +79,12 @@ namespace ApsRT.Core.PlanSimulator
                 return array;
             });
 
-            FrozenDictionary<Guid, PlanSimulatorPartiaRecalcData[]> PartiasToRecalc = partiasCodes.ToFrozenDictionary(x => x, x =>
+            PartiasToRecalc = partiasCodes.ToFrozenDictionary(x => x, x =>
             {
                 var array = new PlanSimulatorPartiaRecalcData[PoolSize];
                 for (int i = 0; i < array.Length; i++)
                 {
-                    array[i] = new PlanSimulatorPartiaRecalcData(false, 0);
+                    array[i] = new PlanSimulatorPartiaRecalcData(false, -1);
                 }
                 return array;
             });
@@ -139,8 +143,8 @@ namespace ApsRT.Core.PlanSimulator
 
                     mod.Ranks = new int[PoolSize];
 
-                    mod.PrevMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Where(x => stagesDic.ContainsKey(x)).Select(x => stagesDic[x].ModLink).Distinct().ToList();
-                    mod.NextMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Where(x => stagesDic.ContainsKey(x)).Select(x => stagesDic[x].ModLink).Distinct().ToList();
+                    mod.PrevMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
+                    mod.NextMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
 
                     for (int s = 0; s < mod.Stages.Count; s++)
                     {
@@ -156,7 +160,7 @@ namespace ApsRT.Core.PlanSimulator
                         }
                         stage.PartiaRecalcData = PartiasToRecalc[partiaCode];
                         if (LastSubs != null) stage.LastSubsData = LastSubs[partiaCode];
-                        stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => stagesDic.ContainsKey(x)).Select(x => stagesDic[x]).ToList();
+                        stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
                     }
                 }
                 (var center, _, _) = block.GetCenterData(0);
@@ -177,6 +181,32 @@ namespace ApsRT.Core.PlanSimulator
         public static List<PlanSimulatorBlock> CopyBlocksSwallow(List<PlanSimulatorBlock> Blocks)
         {
             return new List<PlanSimulatorBlock>(Blocks);
+        }
+
+        public static void MoveCentersInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
+        {
+            var res0 = Parallel.For(0, Blocks.Count, i =>
+            {
+                Blocks[i].MoveCenterData(from, to);
+            });
+            while (!res0.IsCompleted)
+            {
+                ;
+            }
+        }
+
+        public static void MoveIndexesInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
+        {
+            var res0 = Parallel.For(0, Blocks.Count, i =>
+            {
+                Blocks[i].BlockIndex[to] = Blocks[i].BlockIndex[from];
+                Blocks[i].PreviousBlockOnThisRC[to] = Blocks[i].PreviousBlockOnThisRC[from];
+                Blocks[i].NextBlockOnThisRC[to] = Blocks[i].NextBlockOnThisRC[from];
+            });
+            while (!res0.IsCompleted)
+            {
+                ;
+            }
         }
 
         public static List<PlanSimulatorBlock> CopyBlocksDeep(List<PlanSimulatorBlock> Blocks, bool WithTara)
@@ -257,55 +287,18 @@ namespace ApsRT.Core.PlanSimulator
         ///  Перенос
         /// </summary>
         /// <returns>Минимальный и максимальные индексы пула, куда можно поставить блок (включительно, в рандомайзерах надо будет прибавлять к max единицу).</returns>
-        internal (int MIN, int MAX, int Prev, int Next) FindDiapazonsLegacy(PlanSimulatorBlock opertoIns, int PoolIndex, Uco onRC, int wannaThisPlace, bool calcPrevNexts, bool onlyCalcPrevNexts, bool plusOne, out bool Errors, HashSet<int> doneOpers = null)
+        internal (int MIN, int MAX, int Prev, int Next) FindDiapazons(PlanSimulatorBlock opertoIns, int PoolIndex, Uco onRC, int wannaThisPlace)
         {
             var MIN = opertoIns.Lists[0].StagesAsNormal[0].VPZ || opertoIns.Lists[0].StagesAsNormal[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.GLOBAL_FIXED_MIN : SessionLink.AssignedPlanningAlgorithm.GLOBAL_VPZ_MAX; // минимум - никаких операций нет, поэтому -1. Если будет хоть одна операция, то вставляем строго после нее.
             var MAX = opertoIns.Lists[0].StagesAsNormal[0].VPZ || opertoIns.Lists[0].StagesAsNormal[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.GLOBAL_VPZ_MAX : Blocks.Count; // максимум - включительно, включая последний же индекс. Insert вставит его ПЕРЕД этим индексом, поэтому всё норм.
 
             // Определяем границы
-            Errors = false;
-            int Prev = -1;
-            int Next = -1;
-            if (calcPrevNexts)
-            {
-                Prev = wannaThisPlace == 0 ? -1 : Blocks.FindLastIndex(wannaThisPlace - 1, x => x.GetCenterData(PoolIndex).Center == onRC/*opertoIns.ActualRC*/);
-                Next = Blocks.FindIndex(wannaThisPlace + (plusOne ? 1 : 0), x => x.GetCenterData(PoolIndex).Center == onRC/*opertoIns.ActualRC*/);
-            }
+            int Prev = opertoIns.PreviousBlockOnThisRC[PoolIndex]?.BlockIndex[PoolIndex] ?? -1;
+            int Next = opertoIns.NextBlockOnThisRC[PoolIndex]?.BlockIndex[PoolIndex] ?? -1;
 
-            if (onlyCalcPrevNexts) return (-1, -1, Prev, Next);
+            MIN = (opertoIns.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(mod => mod.BlockLink.BlockIndex[PoolIndex]))) + 1;
+            MAX = (opertoIns.Lists.Min(list => list.NextMods.Count == 0 ? Blocks.Count : list.NextMods.Max(mod => mod.BlockLink.BlockIndex[PoolIndex])));
 
-            for (int ChoosenLine = 0; ChoosenLine < opertoIns.Lists.Count; ChoosenLine++)
-            {
-                for (var i = 0; i < opertoIns.Lists[ChoosenLine].StagesAsNormal.Count; i++)
-                {
-                    // Смотрим предыдущие
-                    for (var j = 0; j < opertoIns.Lists[ChoosenLine].StagesAsNormal[i].Prevs.Count; j++)
-                    {
-                        var prev = opertoIns.Lists[ChoosenLine].StagesAsNormal[i].Prevs[j];
-                        //var n = opersCopy.FindIndex(x => x.Lists.Any(y => y.Any(z => z.Index == prev)));//
-                        //var n = opersCopy.OperIDToPos[opertoIns.Lists[ChoosenLine].OpersList[i].Prevs[j]];//
-                        var n = Find(prev, wannaThisPlace == -1 ? (Blocks.Count - 1) : (wannaThisPlace - 1), true);
-                        if (doneOpers != null && doneOpers.Contains(prev) && n == -1) Errors = true;
-                        if (n > -1 && n >= MIN)
-                        {
-                            MIN = n + 1;
-                        }
-                    }
-                    // Теперь следующие
-                    for (var j = 0; j < opertoIns.Lists[ChoosenLine].StagesAsNormal[i].Nexts.Count; j++)
-                    {
-                        var next = opertoIns.Lists[ChoosenLine].StagesAsNormal[i].Nexts[j];
-                        //var n = opersCopy.FindIndex(x => x.Lists.Any(y => y.Any(z => z.Index == next)));
-                        //var n = opersCopy.OperIDToPos[opertoIns.Lists[ChoosenLine].OpersList[i].Nexts[j]];
-                        var n = Find(next, wannaThisPlace == -1 ? 0 : wannaThisPlace, false);
-                        if (doneOpers != null && doneOpers.Contains(next) && n == -1) Errors = true;
-                        if (n > -1 && n < MAX)
-                        {
-                            MAX = n;
-                        }
-                    }
-                }
-            }
             return (MIN, MAX, Prev, Next);
         }
 

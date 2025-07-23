@@ -295,12 +295,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     WillThis = -1;
                     opersCopy.RemoveAt(N); // Удаляем её, намереваясь потом вставить
 
-                    (int MIN, int MAX, int Prev, int Next) = opersCopy[0].PoolLink.FindDiapazonsLegacy(opertoIns, poolIndex, opertoIns.GetCenterData(poolIndex).Center, N, false, false, false, out var errs);
+                    (int MIN, int MAX, int Prev, int Next) = opersCopy[0].PoolLink.FindDiapazons(opertoIns, poolIndex, opertoIns.GetCenterData(poolIndex).Center, N);
 
-                    if (errs)
-                    {
-                        ;
-                    }
+                    //if (errs)
+                    //{
+                    //    ;
+                    //}
 
                     // Итого
                     if (MAX <= MIN) // Если границы плохие, то возвращаем операцию
@@ -329,7 +329,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 PlanSimulatorEngineResult res;
 
                 //var dt1 = DateTime.Now;
-                res = PlanSimulatorEngine.CalculatePlan(opersCopy, poolIndex, basisLink.UsedPool.BestPoolIndex, basisLink.MinAcceptableDate, new PlanSimulatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
+                res = PlanSimulatorEngine.CalculatePlan(opersCopy, poolIndex, basisLink.MinAcceptableDate, new PlanSimulatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
 
 
 
