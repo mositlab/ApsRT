@@ -8,6 +8,7 @@ using ApsRT.Core.Session;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections;
@@ -108,6 +109,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 OnFirstResultAcquried?.Invoke(result, localCopy, index);
 
                 PlanFixer();
+                if (WannaStop)
+                {
+                    CurrentStage = PlanningAlgorithmStage.Failed;
+                    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                    return false;
+                }
 
                 if (SessionLink.SessionOptions.Jsort)
                 {
@@ -618,6 +625,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var dt0 = DateTime.Now;
             Console.WriteLine($"fixer start: {dt0}");
 
+
+            HashSet<int> ignoredGlobal = null;
+
             HashSet<int> ignoredFixed = new();
 
             UsedPool.Blocks = UsedPool.Blocks.OrderBy(x => x.BlockIndex[UsedPool.BestPoolIndex]).ToList();
@@ -630,6 +640,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             do
             {
+                if (WannaStop) break;
+
                 res = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
 
                 var opersBlocksCopy = PlanSimulatorPool.CopyBlocksSwallow(UsedPool.Blocks);
@@ -638,7 +650,33 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 int bestIndex = UsedPool.BestPoolIndex;
 
-                res.StagesWithBrokenFixedNaladLengths = res.StagesWithBrokenFixedNaladLengths.Except(ignoredFixed).ToHashSet();
+                if (ignoredGlobal == null)
+                {
+                    var dt001 = DateTime.Now;
+                    ignoredGlobal = new();
+                    foreach (var index in res.StagesWithBrokenFixedNaladLengths)
+                    {
+                        var list = UsedPool.StagesLinks[index].ModLink;
+                        var options = new SumIsPossibleOptions(false)
+                        {
+                            LogSomeErrors = false,
+                            TaraMustBeThis = list.BlockLink.ExistingTaraHere.Select(x => x.Key).ToHashSet(),
+                            //PrevsInfo = prevs,
+                            //RCMustBeThis = PossibleRCsHere,
+                            //NextRCsMustBeThese = nextRCs,
+                            //SaveAvailableResults = true,
+                            NaladLength = list.NaladLengthData[bestIndex].Data.NaladLengthHere.Value, // Ну а какую ещё? Это не та по идее, она с текущего РЦ, и след длины могут отличаться, но других данных нет
+                        };
+                        if (!TaraSearchEngine.SumIsPossible(list, out _, out _, out _, out _, out _, out var searchData, options))
+                        {
+                            ignoredGlobal.Add(index);
+                        }
+                    }
+                    var dt002 = DateTime.Now;
+                    Console.WriteLine($"global ignored: {dt002-dt001}, total: {ignoredGlobal.Count}");
+                }
+
+                res.StagesWithBrokenFixedNaladLengths = res.StagesWithBrokenFixedNaladLengths.Except(ignoredGlobal).Except(ignoredFixed).ToHashSet();
 
                 if (res.CatchedNaladLengthsErrorsCount > 0)
                 {
@@ -661,7 +699,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     if (res.StagesWithBrokenFixedNaladLengths.Count > 0)
                     {
-                        var error = res.StagesWithBrokenFixedNaladLengths.First(x => !ignoredFixed.Contains(x));
+                        var error = res.StagesWithBrokenFixedNaladLengths.First(x => !ignoredFixed.Contains(x) && !ignoredGlobal.Contains(x));
 
                         var dt01 = DateTime.Now;
                         var guidToFind = error;
@@ -699,7 +737,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             PrevsInfo = prevs,
                             RCMustBeThis = PossibleRCsHere,
                             NextRCsMustBeThese = nextRCs,
-                            SaveAvailableResults = true
+                            SaveAvailableResults = true,
+                            NaladLength = opToCheck.NaladLengthData[bestIndex].Data.NaladLengthHere.Value, // Ну а какую ещё? Это не та по идее, она с текущего РЦ, и след длины могут отличаться, но других данных нет
                         };
 
                         if (
@@ -793,7 +832,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                                                 result = PlanSimulatorEngine.CalculatePlan(blocksCopyLocal, IndexToWorkWith, MinAcceptableDate, result);
 
-                                                result.StagesWithBrokenFixedNaladLengths = result.StagesWithBrokenFixedNaladLengths.Except(ignoredFixed).ToHashSet();
+                                                result.StagesWithBrokenFixedNaladLengths = result.StagesWithBrokenFixedNaladLengths.Except(ignoredGlobal).Except(ignoredFixed).ToHashSet();
 
                                                 var intersection = result.StagesWithBrokenFixedNaladLengths.Except(res.StagesWithBrokenFixedNaladLengths);
                                                 var iHaveIt = result.StagesWithBrokenFixedNaladLengths.Contains(guidToFind);
@@ -853,7 +892,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                         var dt02 = DateTime.Now;
 
-                        Console.WriteLine($"iter: {dt02 - dt01}, index {indexToSet} and RC {bestRC}; [{(string.Join(",", opToCheck.Stage.Index))}]; iter {iter}, total {res.StagesWithBrokenFixedNaladLengths.Count}");
+                        Console.WriteLine($"iter: {dt02 - dt01}, index {indexToSet} and RC {bestRC}; [{(string.Join(",", opToCheck.Stage.Index))}]; iter {iter}, total {res.StagesWithBrokenFixedNaladLengths.Count}, ignored {ignoredGlobal.Count} + {ignoredFixed.Count}, total {ignoredFixed.Count + ignoredGlobal.Count}");
 
                         if (indexToSet < 0)
                             ignoredFixed.Add(guidToFind);
