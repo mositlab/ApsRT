@@ -144,6 +144,9 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 }
                 WriteToSession(fin, easyFlags);
 
+                // Удалим лишнее
+                ClearEverything();
+
                 var dateOfEnd = DateTime.Now;
 
                 Console.WriteLine($"partias algorithm time estimated: {dateOfEnd - dateOfStart}");
@@ -203,6 +206,17 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
         Dictionary<OrderID, List<List<PartiaModelling>>> OriginalCopies;
         Dictionary<OrderID, PartiaClass> orderToPartia;
 
+        public void ClearEverything()
+        {
+            OriginalCopies = null;
+            orderToPartia = null;
+            DEAD = null;
+            DEEP = null;
+            allGPToCheckNow = null;
+            NaladLengthsData.Clear();
+            GC.Collect();
+        }
+
         public Dictionary<Guid, bool> PartiaHasErrors { get; private set; } = new(); // пока оставил словарь, вдруг что-то ещё понадобится
 
         public bool ThisOperHasPartiaErrors(Stage op)
@@ -235,7 +249,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
         ConcurrentDictionary<PartiaClass, ConcurrentDictionary<PartiaClass, (int Total, float K, int Diff, int LongestModsMaxCount, int LastLevel)>> DEEP = new(); // TODO: нужен оптимальный concurrencyLevel (поискать в IlSpy)
 
 
-        public Dictionary<int, NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
+        Dictionary<int, NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
 
         void PreparePartias(bool WithLog)
         {
