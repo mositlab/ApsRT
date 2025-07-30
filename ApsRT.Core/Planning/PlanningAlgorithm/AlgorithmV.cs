@@ -61,7 +61,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var OpersCopy1 = basisLink.UsedPool.CopyBlocksDeep(basisLink, basisLink.UsedPool.BestPoolIndex, true);
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy1, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
 
-            var centers_choosen = basisLink.UsedPool.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
+            var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
 
 
             Console.WriteLine("V, beg, " + OpersCopy1.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
@@ -478,6 +478,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     //workflow.LastDaysForCombo = t.DaysRuinedValue;
                     //workflow.LastBadOffsetsForCombo = t.BadOffsets;
                     basisLink.UsedPool = poolCopy;
+                    //basisLink.UsedPool.indexes();
                     basisLink.UpdateBcsSuccess(t, OpersNow, 1);
                     globalres = t.RechangesSeconds;
                 }

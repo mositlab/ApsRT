@@ -27,6 +27,8 @@ namespace ApsRT.Core.PlanSimulator
         public Stage FirstOperJust;
         public PlanSimulatorStage FirstOper;
 
+        public bool ParallelRC { get; }
+
         Stage IAbleForTaraCalcInterface.FirstOperLink => FirstOperJust;
 
         int IAbleForTaraCalcInterface.ModId => ModID;
@@ -46,6 +48,7 @@ namespace ApsRT.Core.PlanSimulator
 
         public PlanSimulatorMod(List<Stage> list, bool parrRC, PlanningModellingType type, int modId, int poolSize)
         {
+            ParallelRC = parrRC;
             if (type == PlanningModellingType.EasyFlagFromMES || type == PlanningModellingType.EasyFlagAfterPartias)
             {
                 // если это общий этап, то стоит отсортировать операции, чтобы в выходной таблице они не перемешивались (моделирования перемешивались до 04.06)

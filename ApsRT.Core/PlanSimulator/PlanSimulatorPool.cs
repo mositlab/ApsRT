@@ -21,6 +21,12 @@ namespace ApsRT.Core.PlanSimulator
 {
     public class PlanSimulatorPool
     {
+
+        public override string ToString()
+        {
+            return string.Format("#{0:X}", GetHashCode());
+        }
+
         public Session.Session SessionLink { get; }
 
         public int PoolSize { get; }
@@ -219,7 +225,8 @@ namespace ApsRT.Core.PlanSimulator
                 var mod = new List<PlanSimulatorMod>(Blocks[i].Lists.Count); // Создаём список моделирований (заготовку)
                 for (var j = 0; j < Blocks[i].Lists.Count; j++)
                 {
-                    var NEWLIST = Blocks[i].Lists[j];// new ModellingOperWithTime(new List<Operation>(Blocks[i].Lists[j].OpersList), Blocks[i].Lists[j].AllTime); // Копируем список операций и создаем моделирование
+
+                    var NEWLIST = new PlanSimulatorMod(Blocks[i].Lists[j].StagesAsNormal, Blocks[i].Lists[j].ParallelRC, Blocks[i].Lists[j].ModType, Blocks[i].Lists[j].ModID, PoolSize); //Blocks[i].Lists[j];// new ModellingOperWithTime(new List<Operation>(Blocks[i].Lists[j].OpersList), Blocks[i].Lists[j].AllTime); // Копируем список операций и создаем моделирование
                     mod.Add(NEWLIST);
                 }
                 var block = new PlanSimulatorBlock(mod, Blocks[i].GetCenterData(bestIndex).Center, PoolSize, Blocks[i].FillKoeff, WithTara, basisLink/*, Blocks[i].CanBeBroken*/);
