@@ -429,7 +429,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             {
                                 bool FirVsp = first.isFirst && first.op.NoChangeTara;
 
-                                HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                                HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
                                 var res01 = localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara));
 
@@ -501,7 +501,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         if (rcs1.Count() > 0)
                         {
 
-                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
                             var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara)));
 

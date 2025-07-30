@@ -1972,6 +1972,7 @@ namespace ApsRTCustomComponents
         private void button3_Click(object sender, EventArgs e)
         {
             Console.WriteLine("go:");
+            var centerToCopy = sessionLink.AssignedPlanningAlgorithm.UsedPool.CentersData.First().Value[0];
             for (int i = 0; i < 32; i++)
             {
                 var dt0 = DateTime.Now;
@@ -1983,6 +1984,11 @@ namespace ApsRTCustomComponents
                 PlanSimulatorPool.MoveCentersInAllBlocks(blocksCopyLocal, 0, 0);
                 var dt2 = DateTime.Now;
                 Console.WriteLine($"copy time: {dt2 - dt1}");
+
+                var dt3 = DateTime.Now;
+                var copy = centerToCopy.Copy();
+                var dt4 = DateTime.Now;
+                Console.WriteLine($"center copy time: {dt4 - dt3}");
             }
         }
 

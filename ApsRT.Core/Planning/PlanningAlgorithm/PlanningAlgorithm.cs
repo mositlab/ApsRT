@@ -108,7 +108,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 (var result, var localCopy, var index) = SessionLink.SessionOutputEngine.Output(ForcedToRecreate: false, true);
                 OnFirstResultAcquried?.Invoke(result, localCopy, index);
 
-                PlanFixer();
+                NaladLengthsFixer();
                 if (WannaStop)
                 {
                     CurrentStage = PlanningAlgorithmStage.Failed;
@@ -613,10 +613,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             OnNewResult?.Invoke(t);
         }
 
+        #region Наладочные длины
         /// <summary>
         /// Функция, которая пытается по-максимуму исправить план: свести к 0 ошибки длин, и к минимуму - критичные размотки тар и прочего.
         /// </summary>
-        bool PlanFixer()
+        bool NaladLengthsFixer()
         {
             if (UsedPool == null) return false;
 
@@ -938,7 +939,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         //}
 
 
-        #region Наладочные длины
 
         #endregion
 
