@@ -44,7 +44,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         public DateTime MinAcceptableDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
         public DateTime StartOfPlanningDate { get; set; }// => FIXED_START_TIME.HasValue ? FIXED_START_TIME.Value : MIN_DATE_TIME_AFTER_FIX;
 
-        public PlanSimulatorPool UsedPool { get; private set; }
+        public PlanSimulatorPool UsedPool { get; /*private*/ set; }
 
         public PlanSimulatorEngineResult OriginalValue { get; private set; }
 
@@ -69,7 +69,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 if (SessionLink.PartiasAlgorithmIsNotRunning)
                 {
                     // Да, можно.
-                    Process = Task.Run(() => AlgorithmProcess(16, 1));
+                    Process = Task.Run(AlgorithmProcess);
                     return true;
                 }
                 else
@@ -96,7 +96,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public bool FoundSmth = false, FoundGlobal = false;
 
-        public bool AlgorithmProcess(int poolSize, int depth)
+        public bool AlgorithmProcess()
         {
             try
             {
@@ -108,13 +108,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 (var result, var localCopy, var index) = SessionLink.SessionOutputEngine.Output(ForcedToRecreate: false, true);
                 OnFirstResultAcquried?.Invoke(result, localCopy, index);
 
-                NaladLengthsFixer();
-                if (WannaStop)
-                {
-                    CurrentStage = PlanningAlgorithmStage.Failed;
-                    CurrentStageChanged?.Invoke(CurrentStage, 0);
-                    return false;
-                }
+                //NaladLengthsFixer();
+                //if (WannaStop)
+                //{
+                //    CurrentStage = PlanningAlgorithmStage.Failed;
+                //    CurrentStageChanged?.Invoke(CurrentStage, 0);
+                //    return false;
+                //}
 
                 if (SessionLink.SessionOptions.Jsort)
                 {
@@ -153,7 +153,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
                 var G = new AlgorithmG(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
-                G.Start(poolSize, depth);
+                G.Start(UsedPool.PoolSize, 1);
 
                 if (WannaStop)
                 {

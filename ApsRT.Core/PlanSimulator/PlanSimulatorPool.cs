@@ -195,21 +195,21 @@ namespace ApsRT.Core.PlanSimulator
             }
         }
 
-        public static void MoveIndexesInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
-        {
-            var res0 = Parallel.For(0, Blocks.Count, i =>
-            {
-                Blocks[i].BlockIndex[to] = Blocks[i].BlockIndex[from];
-                Blocks[i].PreviousBlockOnThisRC[to] = Blocks[i].PreviousBlockOnThisRC[from];
-                Blocks[i].NextBlockOnThisRC[to] = Blocks[i].NextBlockOnThisRC[from];
-            });
-            while (!res0.IsCompleted)
-            {
-                ;
-            }
-        }
+        //public static void MoveIndexesInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
+        //{
+        //    var res0 = Parallel.For(0, Blocks.Count, i =>
+        //    {
+        //        Blocks[i].BlockIndex[to] = Blocks[i].BlockIndex[from];
+        //        Blocks[i].PreviousBlockOnThisRC[to] = Blocks[i].PreviousBlockOnThisRC[from];
+        //        Blocks[i].NextBlockOnThisRC[to] = Blocks[i].NextBlockOnThisRC[from];
+        //    });
+        //    while (!res0.IsCompleted)
+        //    {
+        //        ;
+        //    }
+        //}
 
-        public static List<PlanSimulatorBlock> CopyBlocksDeep(List<PlanSimulatorBlock> Blocks, bool WithTara)
+        public List<PlanSimulatorBlock> CopyBlocksDeep(PlanningAlgorithm basisLink, int bestIndex, bool WithTara)
         {
             //var dt0 = DateTime.Now;
             var opersCopy = new PlanSimulatorBlock[Blocks.Count];//new List<OpersBlock>(Blocks.Count);
@@ -222,15 +222,15 @@ namespace ApsRT.Core.PlanSimulator
                     var NEWLIST = Blocks[i].Lists[j];// new ModellingOperWithTime(new List<Operation>(Blocks[i].Lists[j].OpersList), Blocks[i].Lists[j].AllTime); // Копируем список операций и создаем моделирование
                     mod.Add(NEWLIST);
                 }
-                //var block = new PlanSimulatorBlock(mod, Blocks[i].ActualRC, Blocks[i].FillKoeff, WithTara/*, Blocks[i].CanBeBroken*/);
-                //if (!WithTara)
-                //{
-                //    block.ExistingTaraHere = Blocks[i].ExistingTaraHere;
-                //    block.HowMuchPlaceHere = Blocks[i].HowMuchPlaceHere;
-                //    block.FillKoeff = Blocks[i].FillKoeff;
-                //}
-                ////opersCopy.Add(block); // Добавляем блок, у которого за основу взяты параметры
-                //opersCopy[i] = block;
+                var block = new PlanSimulatorBlock(mod, Blocks[i].GetCenterData(bestIndex).Center, PoolSize, Blocks[i].FillKoeff, WithTara, basisLink/*, Blocks[i].CanBeBroken*/);
+                if (!WithTara)
+                {
+                    block.ExistingTaraHere = Blocks[i].ExistingTaraHere;
+                    block.HowMuchPlaceHere = Blocks[i].HowMuchPlaceHere;
+                    block.FillKoeff = Blocks[i].FillKoeff;
+                }
+                //opersCopy.Add(block); // Добавляем блок, у которого за основу взяты параметры
+                opersCopy[i] = block;
             });
             while (!res0.IsCompleted)
             {

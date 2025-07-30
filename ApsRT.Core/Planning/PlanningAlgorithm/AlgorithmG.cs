@@ -69,6 +69,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //ConcurrentDictionary<int, int> NaladErrorsCounter = new();
 
+            List<PlanSimulatorBlock>[] opersCopy = new List<PlanSimulatorBlock>[parallelCount];
+
             while (!basisLink.WannaStop)
             {
                 workflow.FoundForDynamic = false;
@@ -86,9 +88,25 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 try
                 {
-                    var resu = Parallel.For(0, workflow.currentMode == 6 ? 1 : parallelCount, i =>
+                    var resu = Parallel.For(0, parallelCount - 1, i => // -1 потому что последняя зарезервирована для ручного анализа
                     {
-                        G_Iteration(Randoms[i], workflow, parallelCount, depth, i);
+                        if (i == basisLink.UsedPool.BestPoolIndex) return;
+                        var opersCopyL = PlanSimulatorPool.CopyBlocksSwallow(basisLink.UsedPool.Blocks);//.OrderBy(x => x.BlockIndex[index]).ToList();
+                        PlanSimulatorPool.MoveCentersInAllBlocks(opersCopyL, basisLink.UsedPool.BestPoolIndex, i);
+                        opersCopy[i] = opersCopyL;
+                    });
+                    while (!resu.IsCompleted)
+                    {
+                        ;
+                    }
+
+                    resu = Parallel.For(0, parallelCount - 1, (i, pls) =>
+                    {
+                        if (i == basisLink.UsedPool.BestPoolIndex) return;
+
+                        G_Iteration(opersCopy[i], Randoms[i], workflow, parallelCount, depth, i);
+
+                        //if (workflow.currentMode == 6) pls.Stop();
                     });
                     while (!resu.IsCompleted)
                     {
@@ -174,12 +192,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         }
 
 
-        public void G_Iteration(Random r, PlanningAlgorithmWorkflow workflow, int parallelCount, int depth, int poolIndex)
+        public void G_Iteration(List<PlanSimulatorBlock> opersCopy, Random r, PlanningAlgorithmWorkflow workflow, int parallelCount, int depth, int poolIndex)
         {
             var CentersMasterData = basisLink.SessionLink.MasterDataLinks.CentersMasterData;
-
-            var opersCopy = PlanSimulatorPool.CopyBlocksSwallow(basisLink.UsedPool.Blocks);//.OrderBy(x => x.BlockIndex[index]).ToList();
-
 
             var WillThis = -1;
             var onlyLeft = false;
@@ -330,10 +345,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 //var dt1 = DateTime.Now;
                 res = PlanSimulatorEngine.CalculatePlan(opersCopy, poolIndex, basisLink.MinAcceptableDate, new PlanSimulatorEngineResult(basisLink.SessionLink, basisLink.MinAcceptableDate)
-
-
-
-
                 {
                     FirstStagesFullDurations = mode6 && mode6Counter == 0 ? new Dictionary<int, CachedInterval>() : null,
                     FirstStagesStartDate = mode6 && mode6Counter == 0 ? new Dictionary<int, DateTime>() : null,

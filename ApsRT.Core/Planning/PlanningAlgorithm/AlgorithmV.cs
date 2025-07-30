@@ -57,7 +57,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //var copy0 = OpersPool.CopyBlocks(basisLink.BestBlocksList, true);
             //var preparedData = new OpersPoolConstructor(copy0, basisLink.MinAcceptableDate);
             //var pool = new OpersPool(basisLink.SessionLink, copy0, preparedData, basisLink.MinAcceptableDate);
-            var OpersCopy1 = basisLink.UsedPool.Blocks; // Копируем сие дело
+            //var OpersCopy1 = basisLink.UsedPool.Blocks; // Копируем сие дело
+            var OpersCopy1 = basisLink.UsedPool.CopyBlocksDeep(basisLink, basisLink.UsedPool.BestPoolIndex, true);
+            var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy1, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
 
             var centers_choosen = basisLink.UsedPool.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
 
@@ -114,9 +116,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 //pool.NaladLengthsDataRecreate(preparedData);
 
                 // Постепенно заполняем текущую 
-                var ProstoiTimes = new Dictionary<int, DateTime>(basisLink.UsedPool.Blocks.Count);
+                var ProstoiTimes = new Dictionary<int, DateTime>(poolCopy.Blocks.Count);
                 var DoneModellings = new HashSet<int>();
-                var OpersNow = new List<PlanSimulatorBlock>(basisLink.UsedPool.Blocks.Count);
+                var OpersNow = new List<PlanSimulatorBlock>(poolCopy.Blocks.Count);
 
                 // Словарик для хранения выбранных тар для правильного алгоритма
                 var PrevsInfoForV = new Dictionary<int, Uco>();
@@ -475,6 +477,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     //workflow.LastProstoiForCombo = t.ProstoiSeconds.TotalMinutes;
                     //workflow.LastDaysForCombo = t.DaysRuinedValue;
                     //workflow.LastBadOffsetsForCombo = t.BadOffsets;
+                    basisLink.UsedPool = poolCopy;
                     basisLink.UpdateBcsSuccess(t, OpersNow, 1);
                     globalres = t.RechangesSeconds;
                 }
