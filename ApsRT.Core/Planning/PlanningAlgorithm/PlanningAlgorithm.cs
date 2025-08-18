@@ -760,7 +760,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             if (
                 TaraSearchEngine.SumIsPossible(sdvig, out var possibleTara, out _, out _, out _, out _, out var searchData, options)
-                && TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere.ToList(), prevs, options.TaraMustBeThis.ToList(), out _, out var allRCs, out _, false)
+                && TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere.ToList(), prevs, options.TaraMustBeThis?.ToList(), out _, out var allRCs, out _, false)
                 )
             {
                 bool allowedToMoveOn = true;

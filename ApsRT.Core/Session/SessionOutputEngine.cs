@@ -410,7 +410,7 @@ namespace ApsRT.Core.Session
                                 $"{OP1.CurrentTara};" +
                                 $"{OP1.CurrentTaraMaxCapacity};" +
                                 $"{(OP1.IsVspom || OP1.NoChangeTara || !OP1.EndTara.IsEmpty ? "" : (OP1.CurrentTaraMaxCapacity >= modNalads.Data.NaladLengthHere.Value + list.Count))};" +
-                                $"{OP1.NeededNaladLength.HasValue}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
+                                $"{(OP1.NeededNaladLength.HasValue ? OP1.NeededNaladLength.Value.Length.Value.ToString() : "Нет")}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
 
 
                         }
