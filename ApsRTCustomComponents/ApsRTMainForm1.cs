@@ -1189,7 +1189,7 @@ namespace ApsRTCustomComponents
                     PlanningDataTable.Rows[5].Cells[2].Value = resToShow.TaraCriticalUsage;
                     PlanningDataTable.Rows[6].Cells[2].Value = resToShow.BadOffsets;
                     PlanningDataTable.Rows[7].Cells[2].Value = resToShow.NaladLengthsTotal;
-                    PlanningDataTable.Rows[8].Cells[2].Value = resToShow.CatchedNaladLengthsErrorsCount;
+                    PlanningDataTable.Rows[8].Cells[2].Value = resToShow.GetCatchedNaladLengthsErrorsCount(algorithm.IgnoredGlobalFixedNaladLengthsErrors);
 
                     OrdersCurve.AddPoint(algorithm.LastGen, resToShow.DaysRuinedValue);
                     OrdersGraphControl.AxisChange();
@@ -1219,7 +1219,7 @@ namespace ApsRTCustomComponents
                     var v5 = Math.Round(100.0 - (resToShow.TaraCriticalUsage / algorithm.OriginalValue.TaraCriticalUsage * 100f), 2);
                     var v6 = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2);
                     var v7 = Math.Round(100.0 - (resToShow.NaladLengthsTotal / algorithm.OriginalValue.NaladLengthsTotal * 100f), 2);
-                    var v8 = Math.Round(100.0 - (resToShow.CatchedNaladLengthsErrorsCount / (float)algorithm.OriginalValue.CatchedNaladLengthsErrorsCount * 100f), 2);
+                    var v8 = Math.Round(100.0 - (resToShow.GetCatchedNaladLengthsErrorsCount(algorithm.IgnoredGlobalFixedNaladLengthsErrors) / (float)algorithm.OriginalValue.GetCatchedNaladLengthsErrorsCount(algorithm.IgnoredGlobalFixedNaladLengthsErrors) * 100f), 2);
 
                     OrdersCurveOnBig.AddPoint(algorithm.LastGen, v0);
                     RechangesCurveOnBig.AddPoint(algorithm.LastGen, v1);

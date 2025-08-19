@@ -48,6 +48,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
         public int CatchedNaladLengthsErrorsCount { get => (ModellingsWithBrokenFreeNaladLengths?.Count ?? 0) + (StagesWithBrokenFixedNaladLengths?.Count ?? 0); }
 
+        public int GetCatchedNaladLengthsErrorsCount(HashSet<int> ignoreTheseFixed)
+        {
+            int fixedErrors = ignoreTheseFixed == null ? (StagesWithBrokenFixedNaladLengths?.Count ?? 0) : (StagesWithBrokenFixedNaladLengths?.Except(ignoreTheseFixed).Count() ?? 0);
+            return (ModellingsWithBrokenFreeNaladLengths?.Count ?? 0) + fixedErrors;
+        }
+
         /// <summary>
         /// Здесь записаны все этапы, которые имеют длины больше допустимого
         /// </summary>

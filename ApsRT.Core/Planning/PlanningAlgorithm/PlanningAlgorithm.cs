@@ -618,7 +618,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         /// <summary>
         /// Функция, которая пытается по-максимуму исправить план: свести к 0 ошибки длин, и к минимуму - критичные размотки тар и прочего.
         /// </summary>
-        HashSet<int> IgnoredGlobalFixedNaladLengthsErrors = null;
+        public HashSet<int> IgnoredGlobalFixedNaladLengthsErrors = null;
         object locker = new();
 
         bool NaladLengthsFixer()
@@ -711,7 +711,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //    BestBlocksList = ops;
 
-            foreach (var item in ignoredFixed) IgnoredGlobalFixedNaladLengthsErrors.Add(item);
+            //foreach (var item in ignoredFixed) IgnoredGlobalFixedNaladLengthsErrors.Add(item);
 
             return true;
         }

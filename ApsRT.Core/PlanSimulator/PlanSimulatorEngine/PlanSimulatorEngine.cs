@@ -159,11 +159,6 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 var currentMod = currentBlock.Lists[firstIndex];
                 var operationB = currentMod.FirstOper;
 
-                if (operationB.Stage.Index == 1122)
-                {
-                    ;
-                }
-
                 // Найдём переналадочку
                 var rechangesResult = operationA == null ? null : RechangesMasterData.FindRechanges(new(centGlobalStruct, prostoiData, operationA.Stage, operationB.Stage, ChoosenCenter));
 
@@ -597,10 +592,6 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 for (int j = 0; j < mod.Stages.Count; j++) // Смотрим на детей-модов
                 {
                     var op1 = mod.Stages[j];
-                    if (op1.Stage.Index == 1122)
-                    {
-                        ;
-                    }
                     var info = op1.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];
                     var thatEtap = op1.Stage;//ALL[etapID]; // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
                     int etapID = thatEtap.Index;
@@ -641,8 +632,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         // НО, Следует всё равно проверить, были ли здесь проблемы.
                         if (info.HadBrokenFixedNaladLength)
                             result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
-                        else
-                            result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
+                        //else
+                        //    result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
                     }
                     else
                     {
@@ -684,8 +675,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                             // НО, Следует всё равно проверить, были ли здесь проблемы.
                             if (info.HadBrokenFixedNaladLength)
                                 result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
-                            else
-                                result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
+                            //else
+                            //    result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
                         }
                     }
 
@@ -738,13 +729,6 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             var koeff = (nextNalad + thatEtap.Count + stageData.NaladLengthHere.Value) / thatEtap.Count; // к длине даём текущую длину, и делим на плановую потребность, получая новый коээфициент
 
             #region Проверка моделирований
-
-            //var modId = pool.OperIDsToModIDs[etapID];
-
-            if (thatEtap.Index == 1122)
-            {
-                ;
-            }
 
             if (thatEtap.EndTara.IsEmpty && !thatEtap.NoChangeTara && !thatEtap.NoCheckNamotka && !thatEtap.IsVspom && thatEtap.NeededNaladLength.HasValue)
             {
