@@ -153,6 +153,20 @@ namespace ApsRT.Core.Partias.MergeConditions
                 return false;
             }
 
+            if (op1.CanMergeOnlyInOneOrder && op1.OrderLink.OrderID.Object != op2.OrderLink.OrderID.Object)
+            {
+                reason = $"у {op1.Index} (треб.) и {op2.Index} не равны заказы";
+                smallreason = "не равны заказы";
+                return false;
+            }
+
+            if (op2.CanMergeOnlyInOneOrder && op2.OrderLink.OrderID.Object != op1.OrderLink.OrderID.Object)
+            {
+                reason = $"у {op2.Index} (треб.) и {op1.Index} не равны заказы";
+                smallreason = "не равны заказы";
+                return false;
+            }
+
             if (op1.Fixed)
             {
                 reason = $"у {op1.Index} флаг не переплан";

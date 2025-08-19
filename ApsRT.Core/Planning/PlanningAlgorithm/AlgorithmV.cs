@@ -211,7 +211,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             for (var jjjj = 0; jjjj < OpersCopy[j].Lists[0].StagesAsNormal.Count; jjjj++)
                             {
                                 var indexes = OpersCopy[j].Lists[0].PrevMods;//.OpersList[jjjj].Prevs;
-                                var allkids_found = indexes.All(x => DoneModellings.Contains(x.ModID));
+                                var allkids_found = indexes.All(x =>
+                                {
+                                    var rrr = DoneModellings.Contains(x.ModID);
+                                    if (!rrr)
+                                    {
+                                        ;
+                                    }
+                                    return rrr;
+                                    });
                                 if (indexes.Count > 0 && !allkids_found)
                                 {
                                     //var ModsPrev = indexes.Select(x => OpersCopy.Find(y => y.Lists.Any(z => z.ModID == x)) ?? OpersNow.Find(y => y.Lists.Any(z => z.ModID == x))).Select(x => (x, "F:" + x.Lists.Any(y => y.OpersList.Any(z => z.IsFact)) + "N:" + x.Lists.Any(y => y.OpersList.Any(z => z.Fixed)) + "V:" + x.Lists.Any(y => y.OpersList.Any(z => z.VPZ)))).ToList();
@@ -766,21 +774,22 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             naladsOut = naladLengths;
 
             // Если вышел за пределы допустимой наладочной длины на этом РЦ, то хреначим ошибку
-            if (OperB.NeededNaladLength.HasValue && NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthNexts, OperB.EdIzmClassificator, OperB.KgKm).Value > OperB.NeededNaladLength.Value.Length.Value) // TODO: в результате пустой след. налад. длины V ослепла
+            if (OperB.NeededNaladLength.HasValue && NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value > OperB.NeededNaladLength.Value.Length.Value) // TODO: в результате пустой след. налад. длины V ослепла
             {
                 errorsRate += 10000000;
             }
 
-            TrynaladLengthsSet(b.FirstOper, naladLengths.NaladLengthNexts, true, naladLengths.NaladLengthFirst, naladLengths.NaladLengthOther, naladLengths.IsFirst);
+            TrynaladLengthsSet(b.FirstOper, naladLengths.NaladLengthHere, true, naladLengths.NaladLengthFirst, naladLengths.NaladLengthOther, naladLengths.IsFirst);
 
             void TrynaladLengthsSet(PlanSimulatorStage etapID, NaladLengthValue sum, bool firstInvoke, NaladLengthValue firstLength, NaladLengthValue otherLength, bool firstLaunch)
             {
                 var info = etapID.NaladLengthData[1];//pool.NaladLengthsData[etapID];
 
                 // Суммируем:
-                if (NaladLengthsMasterData.NaladLengthsConverted(info.Data.NaladLengthNexts // Сохраненное количество длины на этом моделировании
+                if (NaladLengthsMasterData.NaladLengthsConverted(info.Data.NaladLengthNexts, // Сохраненное количество длины на этом моделировании,
+                    b.FirstOperJust.EdIzmClassificator, b.FirstOperJust.KgKm).Value // Текущую, предлагаемую добавку к ним
                     +
-                    sum, b.FirstOperJust.EdIzmClassificator, b.FirstOperJust.KgKm).Value // Текущую, предлагаемую добавку к ним
+                    sum.Value
                     +
                     b.Count // и статическое количество из меса
                     > maxTaraNamot) // сравниваем с макс намоткой на таре

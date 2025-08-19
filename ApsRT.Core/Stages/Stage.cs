@@ -129,6 +129,9 @@ namespace ApsRT.Core.Stages
         [DataRecordColumn("НеОбъединять", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsLast { get; set; }
 
+        [DataRecordColumn("ОбъединятьТолькоВнутриЗаказа", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool CanMergeOnlyInOneOrder { get; set; }
+
         [DataRecordColumn("ФиктивнаяОперация", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsFictive { get; set; }
 

@@ -476,11 +476,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             list.AddRange(FREE);//.Union(VPZ).Union(FREE).ToList();
 
             // Чекаем хронологию сразу
-            HashSet<int> tried = new();
-            while (!CheckChronology(list, out var operN, out var opToFix))
+            //HashSet<int> tried = new();
+            while (!CheckChronology(list, out var operN, out var childToFix))
             {
-                var block = list[opToFix];
-                list.RemoveAt(opToFix);
+                var block = list[childToFix];
+                list.RemoveAt(childToFix);
                 list.Insert(operN, block);
                 //if (!tried.Add(opToFix)) break;
             }
@@ -494,36 +494,36 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return;
         }
 
-        bool CheckChronology(List<PlanSimulatorBlock> opers, out int operN, out int ToFix)
+        bool CheckChronology(List<PlanSimulatorBlock> opers, out int operN, out int childToFix)
         {
             var good = true;
             var Already = new HashSet<int>();
-            var dic = new Dictionary<int, int>();
+            var BlockIndexes = new Dictionary<int, int>();
             operN = 0;
-            ToFix = 0;
+            childToFix = 0;
 
-            for (var i = 0; i < opers.Count; i++)
+            for (var currentBlockIndex = 0; currentBlockIndex < opers.Count; currentBlockIndex++)
             {
-                for (var o = 0; o < opers[i].Lists.Count; o++)
+                for (var o = 0; o < opers[currentBlockIndex].Lists.Count; o++)
                 {
-                    for (var j = 0; j < opers[i].Lists[o].StagesAsNormal.Count; j++)
+                    for (var j = 0; j < opers[currentBlockIndex].Lists[o].StagesAsNormal.Count; j++)
                     {
-                        var id = opers[i].Lists[o].StagesAsNormal[j].Index;
-                        for (var h = 0; h < opers[i].Lists[o].StagesAsNormal[j].Nexts.Count; h++)
+                        var currentID = opers[currentBlockIndex].Lists[o].StagesAsNormal[j].Index;
+                        for (var h = 0; h < opers[currentBlockIndex].Lists[o].StagesAsNormal[j].Nexts.Count; h++)
                         {
-                            var op = opers[i].Lists[o].StagesAsNormal[j];
-                            var n = op.Nexts[h];
+                            var op = opers[currentBlockIndex].Lists[o].StagesAsNormal[j];
+                            var childID = op.Nexts[h];
                             //var f = opers.FindIndex(x => x.Lists.Any(y => y.Any(z => z.ID == opers[i].Lists[o][j].Prevs[h])));//opers.FindIndex(ref opers, , 0, false);
-                            if (Already.Contains(n) && dic[n] != i && !op.Fixed) // Уже есть ребенок???
+                            if (Already.Contains(childID) && BlockIndexes[childID] != currentBlockIndex && !op.Fixed) // Уже есть ребенок???
                             {
                                 good = false;
-                                operN = i;
-                                ToFix = dic[n];
+                                operN = currentBlockIndex;
+                                childToFix = BlockIndexes[childID];
                                 break;
                             }
                         }
-                        Already.Add(id);
-                        dic.Add(id, i);
+                        Already.Add(currentID);
+                        BlockIndexes.Add(currentID, currentBlockIndex);
                         if (!good)
                         {
                             break;

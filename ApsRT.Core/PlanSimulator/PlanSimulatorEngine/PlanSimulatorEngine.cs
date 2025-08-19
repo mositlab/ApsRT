@@ -251,7 +251,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 // Если эта операция последняя, то:
                 // а. Она будет одна
                 // б. Стоит чекнуть заказ
-                if (operationB.Stage.IsLast)
+                if (operationB.Stage.Nexts.Count == 0/*IsLast*/)
                 {
                     // Считаем заказы
                     ProcessOrder(PoolIndex, operationB, lastDateFinally, currentFlag, resultToFill);

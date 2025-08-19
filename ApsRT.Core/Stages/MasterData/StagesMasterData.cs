@@ -200,9 +200,11 @@ namespace ApsRT.Core.Stages.MasterData
         {
 
             Queue<(int id, bool vpz, bool fact)> toCheck = new();
+            Queue<(int id, DateTime startTime)> toCheckFixed = new();
 
             foreach (var op in AllStages)
             {
+                if (op.Value.Fixed) toCheckFixed.Enqueue((op.Key, op.Value.StartTimeFact.Value));
                 if (!op.Value.Fixed && (op.Value.VPZ || op.Value.IsFact)) toCheck.Enqueue((op.Value.Index, op.Value.VPZ, op.Value.IsFact));
             }
 
@@ -214,6 +216,17 @@ namespace ApsRT.Core.Stages.MasterData
                 foreach (var prev in AllStages[el.id].Prevs)
                 {
                     if (!AllStages[prev].Fixed) toCheck.Enqueue((prev, el.vpz, el.fact));
+                }
+            }
+
+            while (toCheckFixed.Count > 0)
+            {
+                var el = toCheckFixed.Dequeue();
+                AllStages[el.id].Fixed |= true;
+                AllStages[el.id].StartTimeFact ??= el.startTime;
+                foreach (var prev in AllStages[el.id].Prevs)
+                {
+                    /*if (!AllStages[prev].Fixed)*/ toCheckFixed.Enqueue((prev, el.startTime));
                 }
             }
         }
