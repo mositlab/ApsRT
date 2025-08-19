@@ -99,10 +99,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     {
                         ;
                     }
+                    var bestIndex = basisLink.UsedPool.BestPoolIndex;
 
                     resu = Parallel.For(0, parallelCount - 1, (i, pls) =>
                     {
-                        if (i == basisLink.UsedPool.BestPoolIndex) return;
+                        if (i == bestIndex) return;
 
                         G_Iteration(opersCopy[i], Randoms[i], workflow, parallelCount, depth, i);
 
@@ -678,7 +679,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 }
                 else
                 {
-                    resToCheck = (nonStrictB && OtherCritRestrictions)/* || FixedNaladLengths*/;
+                    resToCheck = (nonStrictB && OtherCritRestrictions && res.CatchedNaladLengthsErrorsCount <= BestValue.CatchedNaladLengthsErrorsCount)/* || FixedNaladLengths*/;
                 }
 
                 if (resToCheck)
