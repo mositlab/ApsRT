@@ -233,12 +233,12 @@ namespace ApsRT.Core.Partias.PartiasClasses
                             var b = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(currentSdvig, out var tara, out var rc, out var max, out var format, out _, out _, new SumIsPossibleOptions(false)
                             {
                                 PrevsInfo = previousData.IDToTara,
-                                NextRCsMustBeThese = currentSdvig.Opers
-                                .SelectMany(x => x.Nexts)
-                                .Select(x => dics.TryGetValue(x, out var s) ? s : null)
-                                .Where(x => x != null)
-                                .Select(x => x.RC)
-                                .ToHashSet(),
+                                NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCs(currentSdvig.Opers, (index) => dics.TryGetValue(index, out var s) ? s.RC : null),
+                                //.SelectMany(x => x.Nexts)
+                                //.Select(x => dics.TryGetValue(x, out var s) ? s : null)
+                                //.Where(x => x != null)
+                                //.Select(x => x.RC)
+                                //.ToHashSet(),
                             });
                             if (b)
                             {

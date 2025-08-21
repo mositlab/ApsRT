@@ -65,19 +65,19 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 //}
             }
 
-            foreach (var block in Blocks)
-            {
-                foreach (var mod in block.Lists)
-                {
-                    foreach (var stage in mod.Stages)
-                    {
-                        if (stage.NaladLengthData[PoolIndex].HadBrokenFixedNaladLength && stage.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value == 0)
-                        {
-                            ;
-                        }
-                    }
-                }
-            }
+            //foreach (var block in Blocks)
+            //{
+            //    foreach (var mod in block.Lists)
+            //    {
+            //        foreach (var stage in mod.Stages)
+            //        {
+            //            if (stage.NaladLengthData[PoolIndex].HadBrokenFixedNaladLength && stage.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value == 0)
+            //            {
+            //                ;
+            //            }
+            //        }
+            //    }
+            //}
 
             return resultToFill;
         }
@@ -732,12 +732,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
             if (thatEtap.EndTara.IsEmpty && !thatEtap.NoChangeTara && !thatEtap.NoCheckNamotka && !thatEtap.IsVspom && thatEtap.NeededNaladLength.HasValue)
             {
-                bool hasError = stageData.NaladLengthHere.Value > 0 && stageData.NaladLengthHere.Value > thatEtap.NeededNaladLength.Value.Length.Value;
+                bool hasError = stageData.NaladLengthHere.Value > 0 && stageData.NaladLengthHere.Value - thatEtap.NeededNaladLength.Value.Length.Value >= 0.001f;
                 stageNaladInfo.HadBrokenFixedNaladLength = hasError;
                 if (hasError)
                     result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
-                else
-                    result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
+                //else
+                //    result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
             }
 
             var modGuid = thatEtap.CurrentModelling;//IsCustomModelling ? thatEtap.CustomModelling : thatEtap.MesModelling.Code;

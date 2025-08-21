@@ -629,82 +629,97 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var dt0 = DateTime.Now;
             Console.WriteLine($"fixer start: {dt0}");
 
-
-
-            HashSet<int> ignoredFixed = new();
-
-            UsedPool.Blocks = UsedPool.Blocks.OrderBy(x => x.BlockIndex[UsedPool.BestPoolIndex]).ToList();
-            PlanSimulatorEngineResult res;
-
-
-            object[] lockers = new object[UsedPool.PoolSize];
-            for (int i = 0; i < lockers.Length; i++) lockers[i] = new();
-
+            bool IHaveFoundSomething;
             do
             {
-                if (WannaStop) break;
+                IHaveFoundSomething = false;
 
-                res = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
 
-                var opersBlocksCopy = PlanSimulatorPool.CopyBlocksSwallow(UsedPool.Blocks);
 
-                res = PlanSimulatorEngine.CalculatePlan(opersBlocksCopy, UsedPool.BestPoolIndex, MinAcceptableDate, res);
 
-                int bestIndex = UsedPool.BestPoolIndex;
+                HashSet<int> ignoredFixed = new();
 
-                if (IgnoredGlobalFixedNaladLengthsErrors == null)
+                UsedPool.Blocks = UsedPool.Blocks.OrderBy(x => x.BlockIndex[UsedPool.BestPoolIndex]).ToList();
+                PlanSimulatorEngineResult res;
+
+
+                object[] lockers = new object[UsedPool.PoolSize];
+                for (int i = 0; i < lockers.Length; i++) lockers[i] = new();
+
+                do
                 {
-                    var dt001 = DateTime.Now;
-                    IgnoredGlobalFixedNaladLengthsErrors = new();
-                    foreach (var index in res.StagesWithBrokenFixedNaladLengths)
+                    if (WannaStop) break;
+
+                    res = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
+
+                    var opersBlocksCopy = PlanSimulatorPool.CopyBlocksSwallow(UsedPool.Blocks);
+
+                    res = PlanSimulatorEngine.CalculatePlan(opersBlocksCopy, UsedPool.BestPoolIndex, MinAcceptableDate, res);
+
+                    int bestIndex = UsedPool.BestPoolIndex;
+
+                    if (IgnoredGlobalFixedNaladLengthsErrors == null)
                     {
-                        var list = UsedPool.StagesLinks[index].ModLink;
-                        var options = new SumIsPossibleOptions(false)
+                        var dt001 = DateTime.Now;
+                        IgnoredGlobalFixedNaladLengthsErrors = new();
+                        foreach (var index in res.StagesWithBrokenFixedNaladLengths)
                         {
-                            LogSomeErrors = false,
-                            TaraMustBeThis = list.BlockLink.ExistingTaraHere.Select(x => x.Key).ToHashSet(),
-                            //PrevsInfo = prevs,
-                            //RCMustBeThis = PossibleRCsHere,
-                            //NextRCsMustBeThese = nextRCs,
-                            //SaveAvailableResults = true,
-                            NaladLength = list.NaladLengthData[bestIndex].Data.NaladLengthHere.Value, // Ну а какую ещё? Это не та по идее, она с текущего РЦ, и след длины могут отличаться, но других данных нет
-                        };
-                        if (!TaraSearchEngine.SumIsPossible(list, out _, out _, out _, out _, out _, out var searchData, options))
-                        {
-                            IgnoredGlobalFixedNaladLengthsErrors.Add(index);
+                            var list = UsedPool.StagesLinks[index].ModLink;
+                            var options = new SumIsPossibleOptions(false)
+                            {
+                                LogSomeErrors = false,
+                                TaraMustBeThis = list.BlockLink.ExistingTaraHere.Select(x => x.Key).ToHashSet(),
+                                //PrevsInfo = prevs,
+                                //RCMustBeThis = PossibleRCsHere,
+                                //NextRCsMustBeThese = nextRCs,
+                                //SaveAvailableResults = true,
+                                NaladLength = list.NaladLengthData[bestIndex].Data.NaladLengthHere.Value, // Ну а какую ещё? Это не та по идее, она с текущего РЦ, и след длины могут отличаться, но других данных нет
+                            };
+                            if (!TaraSearchEngine.SumIsPossible(list, out _, out _, out _, out _, out _, out var searchData, options))
+                            {
+                                IgnoredGlobalFixedNaladLengthsErrors.Add(index);
+                            }
                         }
+                        var dt002 = DateTime.Now;
+                        Console.WriteLine($"global ignored: {dt002 - dt001}, total: {IgnoredGlobalFixedNaladLengthsErrors.Count}");
                     }
-                    var dt002 = DateTime.Now;
-                    Console.WriteLine($"global ignored: {dt002 - dt001}, total: {IgnoredGlobalFixedNaladLengthsErrors.Count}");
-                }
 
-                res.StagesWithBrokenFixedNaladLengths = res.StagesWithBrokenFixedNaladLengths.Except(IgnoredGlobalFixedNaladLengthsErrors).Except(ignoredFixed).ToHashSet();
+                    res.StagesWithBrokenFixedNaladLengths = res.StagesWithBrokenFixedNaladLengths.Except(IgnoredGlobalFixedNaladLengthsErrors).Except(ignoredFixed).ToHashSet();
 
-                // Попробуем исправить наладочные длины.
-                if (res.CatchedNaladLengthsErrorsCount > 0)
-                {
-                    ConcurrentQueue<int> AvailableIndexes = new ConcurrentQueue<int>();
-                    for (int i = 0; i < UsedPool.PoolSize - 1; i++) // -1 потому что последний пул нужен для ручного анализа.
+                    // Попробуем исправить наладочные длины.
+                    if (res.CatchedNaladLengthsErrorsCount > 0)
                     {
-                        if (i == bestIndex) continue;
-                        AvailableIndexes.Enqueue(i);
+                        ConcurrentQueue<int> AvailableIndexes = new ConcurrentQueue<int>();
+                        for (int i = 0; i < UsedPool.PoolSize - 1; i++) // -1 потому что последний пул нужен для ручного анализа.
+                        {
+                            if (i == bestIndex) continue;
+                            AvailableIndexes.Enqueue(i);
+                        }
+
+                        if (res.StagesWithBrokenFixedNaladLengths.Count > 0)
+                        {
+                            var error = res.StagesWithBrokenFixedNaladLengths.First(x => !ignoredFixed.Contains(x) && !IgnoredGlobalFixedNaladLengthsErrors.Contains(x));
+
+                            var opToCheck = UsedPool.StagesLinks[error];
+
+                            var neededLength = opToCheck.Stage.NeededNaladLength?.Length ?? null;
+
+                            Func<float, bool> equality1 = (float fl) => { return neededLength.HasValue ? fl <= neededLength.Value.Value : true; };
+                            IHaveFoundSomething |= fixerMethod(opToCheck, bestIndex, opersBlocksCopy, res, AvailableIndexes, lockers, ignoredFixed, equality1);
+                        }
+
                     }
-
-                    if (res.StagesWithBrokenFixedNaladLengths.Count > 0)
-                    {
-                        var error = res.StagesWithBrokenFixedNaladLengths.First(x => !ignoredFixed.Contains(x) && !IgnoredGlobalFixedNaladLengthsErrors.Contains(x));
-
-                        var opToCheck = UsedPool.StagesLinks[error];
-
-                        var neededLength = opToCheck.Stage.NeededNaladLength?.Length ?? null;
-
-                        Func<float, bool> equality1 = (float fl) => { return neededLength.HasValue ? fl <= neededLength.Value.Value : true; };
-                        fixerMethod(opToCheck, bestIndex, opersBlocksCopy, res, AvailableIndexes, lockers, ignoredFixed, equality1);
-                    }
-
                 }
+                while (res.StagesWithBrokenFixedNaladLengths.Count > 0);
+
+
+
+
+
             }
-            while (res.StagesWithBrokenFixedNaladLengths.Count > 0);
+            while (IHaveFoundSomething);
+
+
 
             var dt1 = DateTime.Now;
             Console.WriteLine($"fixer end: {dt1}, total {dt1 - dt0}");
@@ -716,7 +731,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return true;
         }
 
-        void fixerMethod(PlanSimulatorStage opToCheck, int bestIndex, List<PlanSimulatorBlock> opersBlocksCopy, PlanSimulatorEngineResult res, ConcurrentQueue<int> AvailableIndexes, object[] lockers, HashSet<int> ignoredFixed, Func<float, bool> equalityOne)
+        bool fixerMethod(PlanSimulatorStage opToCheck, int bestIndex, List<PlanSimulatorBlock> opersBlocksCopy, PlanSimulatorEngineResult res, ConcurrentQueue<int> AvailableIndexes, object[] lockers, HashSet<int> ignoredFixed, Func<float, bool> equalityOne)
         {
             var CentersMasterData = SessionLink.MasterDataLinks.CentersMasterData;
             var dt01 = DateTime.Now;
@@ -745,12 +760,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             !SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara.EmptyCheck())
                 .ToDictionary(x => x, x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara);
 
-            var nextRCs = sdvig.StagesAsNormal.SelectMany(x => x.Nexts).Distinct().Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
+            var nextRCs = TaraSearchEngine.FindNeededNextRCs(sdvig.StagesAsNormal, null);// sdvig.StagesAsNormal.SelectMany(x => x.Nexts).Distinct().Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
 
             var options = new SumIsPossibleOptions(false)
             {
                 LogSomeErrors = false,
-                TaraMustBeThis = null,//block.ExistingTaraHere.Select(x => x.Key).ToHashSet(),
+                TaraMustBeThis = block.ExistingTaraHere.Select(x => x.Key).ToHashSet(),
                 PrevsInfo = prevs,
                 RCMustBeThis = PossibleRCsHere,
                 NextRCsMustBeThese = nextRCs,
@@ -826,7 +841,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                 {
                                     if (indexToSet != -1) return;
 
-                                    //indexToSet = -3;
+                                    indexToSet = -3;
 
                                     //indexToSet = elements[index].BlockIndex[bestIndex];
                                     //bestRC = ChoosenCenter;
@@ -933,6 +948,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var dt02 = DateTime.Now;
 
             Console.WriteLine($"iter: {dt02 - dt01}, index {indexToSet} and RC {bestRC}; [{(string.Join(",", opToCheck.Stage.Index))}]; total {res.StagesWithBrokenFixedNaladLengths.Count}, ignored {IgnoredGlobalFixedNaladLengthsErrors.Count} + {ignoredFixed.Count}, total {ignoredFixed.Count + IgnoredGlobalFixedNaladLengthsErrors.Count}");
+
+            return indexToSet >= 0;
         }
 
         //class WasNow

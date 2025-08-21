@@ -146,7 +146,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             !basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara.EmptyCheck())
                 .ToDictionary(x => x, x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].CurrentTara);
 
-            var nextRCs = sdvig.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
+            var nextRCs = TaraSearchEngine.FindNeededNextRCs(sdvig.StagesAsNormal, null);// sdvig.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(x => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[x].Center).ToHashSet();
 
             var PossibleRCsHere = opertoIns.PossibleRCsHere;
 

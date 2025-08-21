@@ -16,6 +16,34 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 {
     public class TaraSearchEngine
     {
+
+        public static HashSet<Uco> FindNeededNextRCs(IEnumerable<Stages.Stage> stages, Func<int, Uco?>? customSelector)
+        {
+            HashSet<Uco> result = new();
+
+            foreach (Stages.Stage stage in stages)
+            {
+                checkOp(stage, true);
+            }
+
+            void checkOp(Stages.Stage stage, bool itsFirst)
+            {
+                if (!itsFirst)
+                {
+                    result.Add(customSelector?.Invoke(stage.Index) ?? stage.Center);
+                }
+                if (stage.NoChangeTara || itsFirst)
+                {
+                    foreach (var next in stage.Nexts)
+                    {
+                        checkOp(stage.SessionLink.MasterDataLinks.StagesMasterData.AllStages[next], false);
+                    }
+                }
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// "Метод поиска проверенного РЦ". Эта функция нужна в паре моментов, чтобы найти какой-нибудь РЦ на случай, если известна тара у предков (с 05.06 - известна приемная тара), а запустить полный алгоритм поиска по каким-то причинам затратно. Эта функция позволит найти какой-нибудь РЦ, среди отдающих тар которого есть все, что были назначены у предков + имеется нужная тара в списке приемной (если не пуста). На данный момент используется после объединения (когда для вывода в Result.csv приходилось устанавливать РЦ, даже если не нашлась тара) - чтобы цепочка приёмно-отдающей тары не нарушалась (например, hsr 630 поставил вместо 560-й, хотя у него нет 630-й в отдающей, а тару вообще не нашёл). Введён после замечания Алёны, 30.05. Дополнен 05.06, теперь позволяет отфильтровать РЦ ещё и по приемной таре, которая у него должна быть. Это пригодится для конечных тар - они назначены извне, а РЦ нужно подобрать самим. А ещё юзается в G, когда нужно получить список РЦ, на который влезет вся
         /// </summary>
