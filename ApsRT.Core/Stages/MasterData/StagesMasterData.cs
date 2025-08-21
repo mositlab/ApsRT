@@ -95,7 +95,7 @@ namespace ApsRT.Core.Stages.MasterData
             #endregion
 
             // А ещё предыдущую дату
-            stage.PrevDateTime = null;
+            if (SessionLink.SettingsController.CurrentSettings.Demos_AllPrevDatesAreNull) stage.PrevDateTime = null;
             if (!PrevTimeDelta.HasValue || PrevTimeDelta.Value > stage.PrevDateTime) PrevTimeDelta = stage.PrevDateTime;
 
             // Теперь смотрим обычное время
@@ -267,6 +267,11 @@ namespace ApsRT.Core.Stages.MasterData
 
             stage.OrderLink = masterDatas.OrdersMasterData.ProcessOrderData(stage, orderModel);
 
+            if (SessionLink.SettingsController.CurrentSettings.Demos_AllDurationsAreOne)
+            {
+                stage.DurationNorm = 1;
+            }
+
             if (stage.DurationNorm == 0)
             {
                 // Инфы нет! Придётся делать по другому
@@ -288,6 +293,12 @@ namespace ApsRT.Core.Stages.MasterData
             }
 
             // Посмотрим на наладочную длину
+            if (SessionLink.SettingsController.CurrentSettings.Demos_AllNaladLengthsAreClear)
+            {
+                stage.NeededNaladLengthTableValue = -1;
+                stage.NeededNaladIsFirstInLaunch = false;
+                stage.NeededNaladLength = null;
+            }
             if (stage.NeededNaladLengthTableValue != -1) // решено, из-за работы экселя, сделать так, что -1 это пустота, а пустая клетка в экселе означает 0.
             {
                 stage.NeededNaladLength = (new NaladLengthValue(stage.NeededNaladLengthTableValue, stage.EdIzmClassificator), stage.NeededNaladIsFirstInLaunch);

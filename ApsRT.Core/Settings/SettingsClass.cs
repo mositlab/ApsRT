@@ -129,5 +129,14 @@ namespace ApsRT.Core.Settings
 
         [JsonProperty]
         public FormTheme CurrentTheme { get; set; }
+
+
+
+        [JsonProperty]
+        public bool Demos_AllDurationsAreOne { get; set; }
+        [JsonProperty]
+        public bool Demos_AllNaladLengthsAreClear { get; set; }
+        [JsonProperty]
+        public bool Demos_AllPrevDatesAreNull { get; set; }
     }
 }
