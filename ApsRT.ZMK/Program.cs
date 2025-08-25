@@ -25,6 +25,7 @@ namespace ApsRT.ZMK
 
             var sessionLink = new ApsRT.Core.Session.Session(Environment.GetCommandLineArgs());
             sessionLink.SessionOutputEngine.ClassicSettingsByOptions(sessionLink.SessionOptions);
+            sessionLink.SettingsController.SavePath = "settings rt.txt";
             sessionLink.Start();
             sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = false;
             sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = false;

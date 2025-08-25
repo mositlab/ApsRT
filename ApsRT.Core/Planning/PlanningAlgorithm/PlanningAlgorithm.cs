@@ -690,7 +690,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     if (res.CatchedNaladLengthsErrorsCount > 0)
                     {
                         ConcurrentQueue<int> AvailableIndexes = new ConcurrentQueue<int>();
-                        for (int i = 0; i < UsedPool.PoolSize - 1; i++) // -1 потому что последний пул нужен для ручного анализа.
+                        for (int i = 0; i < UsedPool.PoolSize - 3; i++) // -1 потому что последний пул нужен для ручного анализа.
                         {
                             if (i == bestIndex) continue;
                             AvailableIndexes.Enqueue(i);

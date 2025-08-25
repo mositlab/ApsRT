@@ -1207,7 +1207,7 @@ namespace ApsRTCustomComponents
                     TotalTimeGraphControl.AxisChange();
                     TotalTimeGraphControl.Invalidate();
 
-                    TaraRedutantUsageCurve.AddPoint(algorithm.LastGen, resToShow.BadOffsets);
+                    TaraRedutantUsageCurve.AddPoint(algorithm.LastGen, resToShow.TaraRedutantUsage);
                     TaraRedutantUsageGraphControl.AxisChange();
                     TaraRedutantUsageGraphControl.Invalidate();
 
@@ -1279,7 +1279,7 @@ namespace ApsRTCustomComponents
         {
             ganttOLD.Invoke(delegate
             {
-                OutputToGanttChart(ganttOLD, blocks, poolIndex, res);
+                OutputToGanttChart(ganttOLD, blocks, poolIndex, sessionLink.SettingsController.CurrentSettings.PoolSize - 1, res);
                 PlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
                 PlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
                 PlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
@@ -1309,7 +1309,7 @@ namespace ApsRTCustomComponents
 
         Font smallFont = new Font("Montserrat", 7f, FontStyle.Bold, GraphicsUnit.Point);
 
-        public void OutputToGanttChart(GanttChart diagram, List<PlanSimulatorBlock> blocks, int PoolIndex, PlanSimulatorEngineResult dataForHelp)
+        public void OutputToGanttChart(GanttChart diagram, List<PlanSimulatorBlock> blocks, int PoolIndex, int PoolIndexToSave, PlanSimulatorEngineResult dataForHelp)
         {
 
             diagram.ClearBars();
@@ -1534,7 +1534,8 @@ namespace ApsRTCustomComponents
             diagram.CurrentHoveredBar = -1;
             diagram.assignedDataPack = pool.Blocks.SelectMany(x => x.Lists.SelectMany(z => z.StagesAsNormal.Select(y => (y.Index, y.Prevs, y.Nexts, x.GetCenterData(PoolIndex).Center, y.PossibleCenters)))).ToDictionary(x => x.Index, x => (x.Prevs, x.Nexts, x.Center, x.PossibleCenters));
             diagram.SavedOpersLink = PlanSimulatorPool.CopyBlocksSwallow(pool.Blocks);
-            diagram.PoolIndex = PoolIndex;
+            PlanSimulatorPool.MoveCentersInAllBlocks(diagram.SavedOpersLink, PoolIndex, PoolIndexToSave);
+            diagram.PoolIndex = PoolIndexToSave;
             diagram.SetRowTitles(textRows);
             diagram.FindAllPrevsHere(-1, false); // все нахрен стираем
         }
@@ -1562,7 +1563,7 @@ namespace ApsRTCustomComponents
                 var outData = sessionLink.SessionOutputEngine.Output(ForcedToRecreate: false);
                 ganttNEW.Invoke(delegate
                 {
-                    OutputToGanttChart(ganttNEW, outData.copy, outData.PoolIndex, outData.result);
+                    OutputToGanttChart(ganttNEW, outData.copy, outData.PoolIndex, sessionLink.SettingsController.CurrentSettings.PoolSize - 2, outData.result);
 
                     if (NewProductionCurve != null && resToShow != null)
                     {
@@ -1865,67 +1866,91 @@ namespace ApsRTCustomComponents
 
         void SetAnalysis(GanttChart chart)
         {
-            //var ops = chart.SavedOpersLink;
+            var ops = chart.SavedOpersLink;
+
             //var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
-            //var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            var res = PlanSimulatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
-            //res = OriginalManualResult = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
+            res = OriginalManualResult = PlanSimulatorEngine.CalculatePlan(ops, chart.PoolIndex, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
 
-            //ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
-            //ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
-            //ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
-            //ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
-            //ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+            ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+            ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+            ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+            ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+            ManualPlanningDataTable.Rows[4].Cells[1].Value = res.TaraRedutantUsage;
+            ManualPlanningDataTable.Rows[5].Cells[1].Value = res.TaraCriticalUsage;
+            ManualPlanningDataTable.Rows[6].Cells[1].Value = res.BadOffsets;
+            ManualPlanningDataTable.Rows[7].Cells[1].Value = res.NaladLengthsTotal;
+            ManualPlanningDataTable.Rows[8].Cells[1].Value = res.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
 
-            //OutputToGanttChart(ganttANL, pool, res);
+            OutputToGanttChart(ganttANL, ops, chart.PoolIndex, sessionLink.SettingsController.CurrentSettings.PoolSize - 3, res);
 
         }
 
         void UpdateAnalysis(int OperIndex, int InsertBeforeThisIndex, Uco ActualRC)
         {
-            //var ops = ganttANL.SavedOpersLink;
+            var ops = ganttANL.SavedOpersLink;
             //var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
-            //var operInd0 = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == OperIndex)));
-            //var oper = ops[operInd0];
-            //ops.RemoveAt(operInd0);
-            //oper.ActualRC = ActualRC;
-            //var operInd = ops.FindIndex(x => x.Lists.Any(y => y.OpersList.Any(z => z.Index == InsertBeforeThisIndex)));
+            
+            var operInd0 = ops.FindIndex(x => x.Lists.Any(y => y.StagesAsNormal.Any(z => z.Index == OperIndex)));
+            var oper = ops[operInd0];
+            ops.RemoveAt(operInd0);
 
-            //ops.Insert(operInd == -1 ? operInd0 : operInd, oper);
-            //ganttANL.ClearBars();
+            oper.SetCenter(ActualRC, sessionLink.SettingsController.CurrentSettings.PoolSize - 3);//.ActualRC = ActualRC;
+
+
+            var operInd = ops.FindIndex(x => x.Lists.Any(y => y.StagesAsNormal.Any(z => z.Index == InsertBeforeThisIndex)));
+
+            ops.Insert(operInd == -1 ? operInd0 : operInd, oper);
+
+            if (operInd == -1) return;
+
+            ganttANL.ClearBars();
 
             //var newDic = new Dictionary<GanttChart.DoubleID, (int R, int P, int T)>();
 
-            //var res = PlanningCalculatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
+            var res = PlanSimulatorEngineResult.CreateFullInstance(sessionLink, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
-            //res = PlanningCalculatorEngine.CalculatePlan(pool, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
+            res = PlanSimulatorEngine.CalculatePlan(ops, ganttANL.PoolIndex, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate, res);
 
-            //OutputToGanttChart(ganttANL, pool, res);
+            OutputToGanttChart(ganttANL, ops, ganttANL.PoolIndex, sessionLink.SettingsController.CurrentSettings.PoolSize - 3, res);
 
-            //ganttANL.FindAllPrevsHere(OperIndex, true); // все нахрен стираем
-
-
-            //ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
-            //ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
-            //ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
-            //ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
-            //ManualPlanningDataTable.Rows[4].Cells[1].Value = res.BadOffsets;
+            ganttANL.FindAllPrevsHere(OperIndex, true); // все нахрен стираем
 
 
-            //ManualPlanningDataTable.Rows[0].Cells[2].Value = OriginalManualResult.DaysRuinedValue;
-            //ManualPlanningDataTable.Rows[1].Cells[2].Value = OriginalManualResult.RechangesSeconds;
-            //ManualPlanningDataTable.Rows[2].Cells[2].Value = OriginalManualResult.ProstoiSeconds;
-            //ManualPlanningDataTable.Rows[3].Cells[2].Value = OriginalManualResult.ProductionSeconds;
-            //ManualPlanningDataTable.Rows[4].Cells[2].Value = OriginalManualResult.BadOffsets;
+            ManualPlanningDataTable.Rows[0].Cells[1].Value = res.DaysRuinedValue;
+            ManualPlanningDataTable.Rows[1].Cells[1].Value = res.RechangesSeconds;
+            ManualPlanningDataTable.Rows[2].Cells[1].Value = res.ProstoiSeconds;
+            ManualPlanningDataTable.Rows[3].Cells[1].Value = res.ProductionSeconds;
+            ManualPlanningDataTable.Rows[4].Cells[1].Value = res.TaraRedutantUsage;
+            ManualPlanningDataTable.Rows[5].Cells[1].Value = res.TaraCriticalUsage;
+            ManualPlanningDataTable.Rows[6].Cells[1].Value = res.BadOffsets;
+            ManualPlanningDataTable.Rows[7].Cells[1].Value = res.NaladLengthsTotal;
+            ManualPlanningDataTable.Rows[8].Cells[1].Value = res.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
 
-            //ManualPlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100 - (res.DaysRuinedValue * 100f / OriginalManualResult.DaysRuinedValue), 2) + "%";
-            //ManualPlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100 - (res.RechangesSeconds * 100f / OriginalManualResult.RechangesSeconds), 2) + "%";
-            //ManualPlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100 - (res.ProstoiSeconds * 100f / OriginalManualResult.ProstoiSeconds), 2) + "%";
-            //ManualPlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100 - (res.ProductionSeconds * 100f / OriginalManualResult.ProductionSeconds), 2) + "%";
-            //ManualPlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100 - (res.BadOffsets * 100f / OriginalManualResult.BadOffsets), 2) + "%";
 
-            //OriginalManualResult = res;
+            ManualPlanningDataTable.Rows[0].Cells[2].Value = OriginalManualResult.DaysRuinedValue;
+            ManualPlanningDataTable.Rows[1].Cells[2].Value = OriginalManualResult.RechangesSeconds;
+            ManualPlanningDataTable.Rows[2].Cells[2].Value = OriginalManualResult.ProstoiSeconds;
+            ManualPlanningDataTable.Rows[3].Cells[2].Value = OriginalManualResult.ProductionSeconds;
+            ManualPlanningDataTable.Rows[4].Cells[2].Value = OriginalManualResult.TaraRedutantUsage;
+            ManualPlanningDataTable.Rows[5].Cells[2].Value = OriginalManualResult.TaraCriticalUsage;
+            ManualPlanningDataTable.Rows[6].Cells[2].Value = OriginalManualResult.BadOffsets;
+            ManualPlanningDataTable.Rows[7].Cells[2].Value = OriginalManualResult.NaladLengthsTotal;
+            ManualPlanningDataTable.Rows[8].Cells[2].Value = OriginalManualResult.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
+
+            ManualPlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100 - (res.DaysRuinedValue * 100f / OriginalManualResult.DaysRuinedValue), 2) + "%";
+            ManualPlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100 - (res.RechangesSeconds * 100f / OriginalManualResult.RechangesSeconds), 2) + "%";
+            ManualPlanningDataTable.Rows[2].Cells[3].Value = Math.Round(100 - (res.ProstoiSeconds * 100f / OriginalManualResult.ProstoiSeconds), 2) + "%";
+            ManualPlanningDataTable.Rows[3].Cells[3].Value = Math.Round(100 - (res.ProductionSeconds * 100f / OriginalManualResult.ProductionSeconds), 2) + "%";
+            ManualPlanningDataTable.Rows[4].Cells[3].Value = Math.Round(100 - (res.TaraRedutantUsage * 100f / OriginalManualResult.TaraRedutantUsage), 2) + "%";
+            ManualPlanningDataTable.Rows[5].Cells[3].Value = Math.Round(100 - (res.TaraCriticalUsage * 100f / OriginalManualResult.TaraCriticalUsage), 2) + "%";
+            ManualPlanningDataTable.Rows[6].Cells[3].Value = Math.Round(100 - (res.BadOffsets * 100f / OriginalManualResult.BadOffsets), 2) + "%";
+            ManualPlanningDataTable.Rows[7].Cells[3].Value = Math.Round(100 - (res.NaladLengthsTotal * 100f / OriginalManualResult.NaladLengthsTotal), 2) + "%";
+            ManualPlanningDataTable.Rows[8].Cells[3].Value = Math.Round(100 - (res.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors) * 100f / OriginalManualResult.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors)), 2) + "%";
+
+            OriginalManualResult = res;
         }
         #endregion
 

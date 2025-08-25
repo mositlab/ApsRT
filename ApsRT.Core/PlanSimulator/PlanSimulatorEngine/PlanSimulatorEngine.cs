@@ -119,7 +119,14 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             currentBlock.PreviousBlockOnThisRC[PoolIndex] = centGlobalStruct.LastBlock;
             if (centGlobalStruct.LastBlock != null)
             {
-                centGlobalStruct.LastBlock.NextBlockOnThisRC[PoolIndex] = currentBlock;
+                try
+                {
+                    centGlobalStruct.LastBlock.NextBlockOnThisRC[PoolIndex] = currentBlock;
+                }
+                catch
+                {
+                    ;
+                }
             }
             currentBlock.NextBlockOnThisRC[PoolIndex] = null;
 

@@ -60,6 +60,12 @@ namespace ApsRT.Core.Materials
         public bool IsBuying { get; set; }
 
         /// <summary>
+        /// Вид воспроизводства
+        /// </summary>
+        [DataRecordColumn("ВидВоспроизводства", defaultIfFail: true)]
+        public string WorkType { get; set; }
+
+        /// <summary>
         /// Количество
         /// </summary>
         [DataRecordColumn("Количество", defaultIfFail: true)]

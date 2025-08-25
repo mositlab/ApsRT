@@ -88,7 +88,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 try
                 {
-                    var resu = Parallel.For(0, parallelCount - 1, i => // -1 потому что последняя зарезервирована для ручного анализа
+                    var resu = Parallel.For(0, parallelCount - 3, i => // -3 потому что последняя зарезервирована для ручного анализа
                     {
                         if (i == basisLink.UsedPool.BestPoolIndex) return;
                         var opersCopyL = PlanSimulatorPool.CopyBlocksSwallow(basisLink.UsedPool.Blocks);//.OrderBy(x => x.BlockIndex[index]).ToList();
@@ -101,7 +101,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     }
                     var bestIndex = basisLink.UsedPool.BestPoolIndex;
 
-                    resu = Parallel.For(0, parallelCount - 1, (i, pls) =>
+                    resu = Parallel.For(0, parallelCount - 3, (i, pls) =>
                     {
                         if (i == bestIndex) return;
 
