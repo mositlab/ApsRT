@@ -102,7 +102,7 @@ namespace ApsRT.Core.DataErrors
                 $"{BtoS(yes55)};{BtoS(yes56)};" +
                 $"{BtoS(yes6 || yesCOL)};{BtoS(yesPrevs)};{BtoS(yesNexts)};" +
                 $"{BtoS(yes6)};{BtoS(yes6 || yesCProd)};{BtoS(yes6 || yesCNom)};{BtoS(yes6 || yesCVid)};" +
-                $"{BtoS(yes61 || yesCRC)};{BtoS(yes62 || yesCRCR)};" +
+                $"{BtoS(yes61 || yesCRC || true)};{BtoS(yes62 || yesCRCR)};" +
                 $"{BtoS(yes6)};{BtoS(yes6)};{BtoS(yes6 || yes54)};" +
                 $"{BtoS(yes53)};" +
                 $"{BtoS(yesCount)};{BtoS(yesNalad)};{BtoS(yesMod)};" +// $"{BtoS(yes6 || yesCount)};{BtoS(yesMod)};" +
@@ -218,7 +218,7 @@ namespace ApsRT.Core.DataErrors
                             $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Code : op?.OperationVid.Code)};" +
-                            $"{(error.Value.customRC.HasValue ? error.Value.customRC.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? op.Center.Code : "")))};" +
+                            $"{(error.Value.customRC.HasValue ? error.Value.customRC.Value.Code : (op == null ? Guid.Empty : (op.RCRoute.IsEmpty ? op.Center.Code : Guid.Empty)))};" +
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Code)))};" +
                             $"{op?.OrderLink.OrderID.Object.Code};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +

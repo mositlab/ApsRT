@@ -17,6 +17,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
         public HashSet<Uco>? RCMustBeThis = null; // ограничение, что РЦ должен быть именно этот (для V)
         public HashSet<Uco>? TaraMustBeThis = null; // ограничение, что тара по велению V должна быть именно эта
         public Uco? RecommendedSubdivision = null; // ограничение что рекомендуется тот или иной цех при подборе РЦ
+        public Uco? RecommendedTara = null; // рекомендую именно эту тару в первую очередь
         public HashSet<Uco> ExceptTheseTaras = null; // ограничение, что вот эти тары юзать нельзя (в G исползьовалось)
         public bool LogSomeErrors = true;
         public float NaladLength = 0;

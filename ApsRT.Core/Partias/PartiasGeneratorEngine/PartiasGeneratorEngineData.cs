@@ -28,6 +28,17 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         // прямолинейный способ хранить предыдущую тару, ДО назначения задельных тар. Когда заделы перезаписывают всякое, то возвращаются тары отсюда. Вместо пустых.
         public Dictionary<int, (Uco Tara, double namot)> OriginallyTaraWasThis = new();
 
-        public Dictionary<PartiaModelling, Uco> RestrictionsVia74110 = new();
+        public Dictionary<int, Uco> RestrictionsVia74110 = new();
+
+        public PartiasGeneratorEngineData(List<Stages.Stage> stages)
+        {
+            Stages = stages;
+            Session = stages?[0].SessionLink;
+        }
+
+        public PartiasGeneratorEngineData(List<Stages.Stage> stages, Dictionary<int, Uco> restrictionsVia74110): this(stages)
+        {
+            RestrictionsVia74110 = restrictionsVia74110;
+        }
     }
 }

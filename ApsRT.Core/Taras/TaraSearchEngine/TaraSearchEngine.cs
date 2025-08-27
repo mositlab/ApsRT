@@ -206,7 +206,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         }
                         else
                         {
-                            if (LogErrorsBySettings && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty))
+                            if (LogErrorsBySettings && options.LogSomeErrors && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty))
                                 dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoAllNeededOtdTaras, searchData.dataErrorMore);
                             return false;
                         }
@@ -223,7 +223,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         var res01 = res00.Where(x => TaraHereMustBeThis == null || TaraHereMustBeThis.Count == 0 || TaraHereMustBeThis.All(z => TaraDataSet.GetNeededTaras(x, first.OperationVid, z.WasVspom).otd.TryGetValue(z.WasVspom, out var has) && has.Contains(z.Tara)));
                         if (res01.Count() == 0)
                         {
-                            if (LogErrorsBySettings && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty))
+                            if (LogErrorsBySettings && options.LogSomeErrors && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty))
                                 dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoAllNeededOtdTaras, searchData.dataErrorMore);
                             return false;
                         }
@@ -457,7 +457,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             {
                                 bool FirVsp = first.isFirst && first.op.NoChangeTara;
 
-                                HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                                HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x) && allOpers.AllOpers.All(op => op.Index != x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
                                 var res01 = localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(first.op.OriginalCenter, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara));
 
@@ -472,9 +472,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 }
                                 else
                                 {
-                                    var dem = searchData.dataErrorMore;
-                                    dem.DataToInsert = first.op.EndTara.Label;
-                                    dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoAllNeededOtdTarasWithCheck, dem);
+                                    if (options.LogSomeErrors)
+                                    {
+                                        var dem = searchData.dataErrorMore;
+                                        dem.DataToInsert = first.op.EndTara.Label;
+                                        dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoAllNeededOtdTarasWithCheck, dem);
+                                    }
                                     foundOtdTara = new();
                                 }
                             }
@@ -529,7 +532,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         if (rcs1.Count() > 0)
                         {
 
-                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x) && allOpers.AllOpers.All(op => op.Index != x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
 
                             var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara)));
 
@@ -545,9 +548,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             }
                             else
                             {
-                                var dem = searchData.dataErrorMore;
-                                dem.DataToInsert = first.op.EndTara.Label;
-                                dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoAllNeededOtdTarasWithCheck, dem);
+                                if (options.LogSomeErrors)
+                                {
+                                    var dem = searchData.dataErrorMore;
+                                    dem.DataToInsert = first.op.EndTara.Label;
+                                    dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoAllNeededOtdTarasWithCheck, dem);
+                                }
                                 foundOtdTara = new();
                             }
 
@@ -857,11 +863,27 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
                         if (technicallyPossible
 
-                            && (!options.SearchForMaxTara && namot.Namot < Max || options.SearchForMaxTara && namot.Namot > Max)) // Должен быть меньше уже предложенного
+                            &&
+                            (
+                                (!options.SearchForMaxTara && namot.Namot < Max) // Должен быть меньше уже предложенного
+                                || (options.SearchForMaxTara && namot.Namot > Max)
+                                || (options.RecommendedTara.HasValue && /*!TaraName.IsEmpty &&*/ options.RecommendedTara.Value == namot.Tara)
+                            )
+                            )
                         {
+                            if (!TaraName.IsEmpty
+                                && options.RecommendedTara.HasValue
+                                && options.RecommendedTara.Value == TaraName)
+                            {
+                                continue;
+                            }
+
                             if (!FinalRC.IsEmpty
                                 && someOpers.FirstOperLink.RecommendedRC.HasValue
-                                && someOpers.FirstOperLink.RecommendedRC.Value == FinalRC) continue;
+                                && someOpers.FirstOperLink.RecommendedRC.Value == FinalRC)
+                            {
+                                continue;
+                            }
 
                             TaraName = center.Tara;
                             Max = namot.Namot;

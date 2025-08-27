@@ -28,6 +28,7 @@ using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.NaladLengths;
 using ApsRT.Core.Leftovers;
 using ApsRT.Core.Taras.TaraSearchEngine;
+using ApsRT.Core.Partias.PartiasGeneratorEngine;
 
 namespace ApsRT.Core.Partias.PartiasAlgorithm
 {
@@ -208,12 +209,13 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
         public void ClearEverything()
         {
-            OriginalCopies = null;
-            orderToPartia = null;
-            DEAD = null;
-            DEEP = null;
-            allGPToCheckNow = null;
-            NaladLengthsData.Clear();
+            //OriginalCopies = null;
+            //orderToPartia = null;
+            //DEAD = null;
+            //DEEP = null;
+            //allGPToCheckNow = null;
+            //RestrictionsVia74110 = null; // ВОТ ЭТО ТОЧНО НЕЛЬЗЯ УДАЛЯТЬ, ЭТО ПРИГОДИТСЯ В ПЛАНИРОВАНИИ
+            //NaladLengthsData.Clear();
             GC.Collect();
         }
 
@@ -264,6 +266,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             int count = orders.Count;
             var PFPartiasData = SessionLink.MasterDataLinks.OrdersMasterData.PFPartiasData;
             OriginalCopies = new Dictionary<OrderID, List<List<PartiaModelling>>>(count);
+
+            RestrictionsVia74110 = new Dictionary<int, Uco>(count);
 
             // А это = небольшой словарь, который хранит ссылки на полученные только что элементарные партии. Он нужен, чтобы сформировать на первом этапе таблицы глубины и дедлайнов, потом уже не понадобится.
             orderToPartia = new Dictionary<OrderID, PartiaClass>(count);
@@ -370,6 +374,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             return ops1;
         }
 
+        public Dictionary<int, Uco> RestrictionsVia74110;
+
         void CreatePartiasAndAddToList(IEnumerable<KeyValuePair<OrderID, OrderBaseModel>> orders, int flag, bool restrictIt, Guid guidToSet, bool WithLog)
         {
             var ops = new List<Stage>();
@@ -409,7 +415,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                         PartiaHasErrors[guidToSet] = true;
                     }
                 }
-                var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(ops, Colors.NewRandomColor(), WithLog, guidToSet);
+                var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110), Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {
                     var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, flag, guidToSet);
@@ -490,7 +496,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid);
 
 
-                    var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData));
+                    var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData, RestrictionsVia74110));
 
                     if (!DEEP.ContainsKey(prt1))
                     {
@@ -596,7 +602,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
                 var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
                 var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
-                var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData));
+                var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData, RestrictionsVia74110));
                 var finalDead = partia1C.PossibleDeadline;
                 if (final.Total > 0) // И в случае успеха, мы ссылку на partia1 юзаем и копируем туда полученные данные
                 {
@@ -697,7 +703,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                         var dead = Math.Abs((partia.PossibleDeadline - partiaLocal.PossibleDeadline).TotalDays);
 
-                        var mergedRes = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia, partiaLocal, WithLog/*, CheckChildren*/, false, NaladLengthsData));
+                        var mergedRes = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia, partiaLocal, WithLog/*, CheckChildren*/, false, NaladLengthsData, RestrictionsVia74110));
 
                         var key1 = (remain, partia1);
 
@@ -870,8 +876,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                             //var nextF = next1 + next2;
                                             naladLength = currentF + (float)nextF;
                                         }
-
-                                        if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out _, out _, out _, out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false, NaladLength = naladLength }))
+                                        //e }))
+                                        if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out _, out _, out _, out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false, NaladLength = naladLength, RecommendedTara = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(s.Opers[0].Index, out var tara1) ? tara1 : (RestrictionsVia74110.TryGetValue(s2.Opers[0].Index, out var tara2) ? tara2 : null)), }))
                                         {
                                             // Можно? ну тогда я не знаю...
                                             var dem = searchData.dataErrorMore;
@@ -899,7 +905,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                             dem.customVid = l[0].OperationVid;
                                             dem.customNomen = l[0].Nomenklature;
                                             dem.customProd = l[0].Production;
-                                            dataErrors.AddNewPartiaError(-1, NewDataErrorType.WasNotAbleToMergeMax, dem);
+                                            dataErrors.AddNewPartiaError(l[0].Index, NewDataErrorType.WasNotAbleToMergeMax, dem);
                                         }
                                     }
 
@@ -917,7 +923,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                         dem.customVid = oper.OperationVid;
                                         dem.customNomen = oper.Nomenklature;
                                         dem.customProd = oper.Production;
-                                        dataErrors.AddNewPartiaError(-1, HasSets ? NewDataErrorType.WasNotAbleToMerge : NewDataErrorType.WasNotAbleToMergeNoSettings, dem);
+                                        dataErrors.AddNewPartiaError(oper.Index, HasSets ? NewDataErrorType.WasNotAbleToMerge : NewDataErrorType.WasNotAbleToMergeNoSettings, dem);
                                         hasAlreadyError = true;
                                     }
                                 }
@@ -943,7 +949,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             var COUNTER = 0;
             var resu = Parallel.ForEach(fin, el =>
             {
-                var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(el, el, WithLog, true, NaladLengthsData));
+                var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(el, el, WithLog, true, NaladLengthsData, RestrictionsVia74110));
                 if (SessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias) el.SubdivisiosOptimizer(r);
                 Interlocked.Increment(ref COUNTER);
                 AlgorithmCallback?.Invoke(CurrentStage, COUNTER);

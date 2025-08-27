@@ -28,7 +28,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 {
                     var listhere2 = new PartiaModelling(new List<Stages.Stage>(), list1.Tara, list1.Max, list1.Format, list1.RC, list1.ZadelCode,
                         list1.ZadelsGUIDs != null ? new(list1.ZadelsGUIDs) : null);
-                    //listhere2.RCIsChecked = list1.RCIsChecked;
+                    listhere2.RCIsChecked = false;// list1.RCIsChecked;
                     foreach (var list2 in list1.Opers)
                     {
                         listhere2.Opers.Add(list2);
@@ -103,8 +103,10 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
         }
 
-        public static List<List<PartiaModelling>> GenerateTree(List<Stage> ops, Color col, bool WithLog, Guid? partiaPFguid)
+        public static List<List<PartiaModelling>> GenerateTree(PartiasGeneratorEngineData engineData, Color col, bool WithLog, Guid? partiaPFguid)
         {
+            var ops = engineData.Stages;
+
             if (ops == null || ops.Count == 0)
             {
                 return null;
@@ -112,9 +114,9 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
             var partia1 = new List<List<PartiaModelling>>();
 
-            var engineData = new PartiasGeneratorEngineData();
-            engineData.Session = ops[0].SessionLink;
-            engineData.Stages = ops;
+            //var engineData = new PartiasGeneratorEngineData();
+            //engineData.Session = ops[0].SessionLink;
+            //engineData.Stages = ops;
             var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
 
             var DoneIDS = engineData.DoneIDS;
@@ -185,13 +187,18 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     {
                         List<(bool Can, Uco Tara, PartiaModelling sdvig)> analysis = prevsSdvigs.Select(sdvigToCheck =>
                         {
-                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, NextRCsMustBeThese = new() { rc } });
+                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
                             return (can, tara, sdvigToCheck);
                         }).ToList();
 
                         if (analysis.All(x => x.Can))
                         {
-                            foreach (var an in analysis) RestrictionsVia74110.TryAdd(an.sdvig, an.Tara);
+                            foreach (var an in analysis)
+                            {
+                                if (!an.sdvig.Opers[0].NoChangeTara && !an.sdvig.Opers[0].NoCheckNamotka)
+                                    foreach (var op in an.sdvig.Opers)
+                                        RestrictionsVia74110.TryAdd(op.Index, an.Tara);
+                            }
                             break; // Ну и уходим отсюда тут же
                         }
                     }
@@ -250,7 +257,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
             // Основная функция - поиск тары
 
-            Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvigWas, out var rtara) ? rtara : null);
+            Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvigWas.Opers[0].Index, out var rtara) ? rtara : null);
             if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out var tara, out var rc, out var max, out var form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false }))
             {
                 // Нашлась, отработала хорошо.

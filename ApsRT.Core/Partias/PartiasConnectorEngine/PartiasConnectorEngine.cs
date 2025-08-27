@@ -60,18 +60,42 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             here1.RCIsChecked = true;
             here1.Max = gotMax;
             here1.Format = use_format;
-            if (gotTara.IsEmpty) return; // Дальше не идём, чтобы не засорять словарь мешающей инфой.
-            foreach (var Index in here1.Opers)
-            {
-                var id2 = Index.Index;
+            SaveTaraInfo(here1, gotTara, resultToFill.IDToTara);
 
-                if (resultToFill.IDToTara.ContainsKey(id2))
+            //if (gotTara.IsEmpty) return; // Дальше не идём, чтобы не засорять словарь мешающей инфой.
+            //foreach (var Index in here1.Opers)
+            //{
+            //    var id2 = Index.Index;
+
+            //    if (resultToFill.IDToTara.ContainsKey(id2))
+            //    {
+            //        resultToFill.IDToTara[id2] = gotTara;
+            //    }
+            //    else
+            //    {
+            //        resultToFill.IDToTara.Add(id2, gotTara);
+            //    }
+            //}
+        }
+
+        static void SaveTaraInfo(PartiaModelling here1, Uco gotTara, Dictionary<int, Uco> IDToTara)
+        {
+            if (gotTara.IsEmpty) return; // Дальше не идём, чтобы не засорять словарь мешающей инфой.
+                                         //if (here1.Opers[0].ID == 665)
+                                         //{
+                                         //    ;
+                                         //}
+            foreach (var id in here1.Opers)
+            {
+                var id2 = id.Index;
+
+                if (IDToTara.ContainsKey(id2))
                 {
-                    resultToFill.IDToTara[id2] = gotTara;
+                    IDToTara[id2] = gotTara;
                 }
                 else
                 {
-                    resultToFill.IDToTara.Add(id2, gotTara);
+                    IDToTara.Add(id2, gotTara);
                 }
             }
         }
@@ -107,6 +131,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             break;
                         }
 
+                        SaveTaraInfo(here1[i], here1[i].Tara, resultToFill.IDToTara);
                         res = AbleToMerge(here1[i], here2, CurrLevel, false, data, resultToFill); // false - внутри себя никаких проверок внутри себя уже делать НЕ НАДО, поэтому имитирую, что это НЕ первый уровень
                         for (var j = 0; j < here2.Count; j++)
                         {
@@ -139,6 +164,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 for (var i = 0; i < here1.Count; i++)
                 {
                     var h = here1[i];
+                    SaveTaraInfo(h, h.Tara, resultToFill.IDToTara);
                     var res = AbleToMerge(h, here2, CurrLevel, isFirstLevel, data, resultToFill);
                     //Debugger.NextDebugTime("connect " + CurrLevel);
                     /*
@@ -346,6 +372,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                         continue;
                     }
+                    SaveTaraInfo(here2[i], here2[i].Tara, resultToFill.IDToTara); // Сохраняем инфу по таре
 
                     var here01 = new PartiaModellingSmall(new List<Stages.Stage>(here1.Opers), here1.ZadelCode, here1.ZadelsGUIDs); // копируем слегка
                     here01.Opers.AddRange(here2[i].Opers);
@@ -459,6 +486,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                 new(1) { Zadels.LinearZadelsDictionary[here1.ZadelsGUIDs[0]].UsedTara }
                                 :
                                 null,
+
+                                RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(here1.Opers[0].Index, out var tara1) ? tara1 : (data.RestrictionsVia74110.TryGetValue(here2[i].Opers[0].Index, out var tara2) ? tara2 : null)),
 
                                 LogSomeErrors = false,
 
@@ -643,7 +672,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             {
                                 // Ищем по старинке
 
-                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara })) // ошибки - только если она сама с собой, на последнем этапе
+                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara,
+                                    RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
+                                })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, newTara, newRC, newMax, newUnit, resultToFill);
                                     //sdvig.RC = RC;
