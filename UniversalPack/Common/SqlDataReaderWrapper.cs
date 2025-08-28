@@ -96,6 +96,8 @@ namespace UniversalPack.Common
                     return this[index];
                 }
 
+                return null;
+
                 throw new IndexOutOfRangeException($"Имя столбца '{name}' не может быть разрешено, т.к. не нашлось ни одного совпадения с присутствующими именами: {FieldNames.Select(e => $"'{e}'").Join(", ")}");
             }
         }

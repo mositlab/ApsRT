@@ -880,9 +880,9 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                         if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out _, out _, out _, out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false, NaladLength = naladLength, RecommendedTara = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(s.Opers[0].Index, out var tara1) ? tara1 : (RestrictionsVia74110.TryGetValue(s2.Opers[0].Index, out var tara2) ? tara2 : null)), }))
                                         {
                                             // Можно? ну тогда я не знаю...
-                                            var dem = searchData.dataErrorMore;
-                                            dem.PartiaGuid = chosenPartiaGuid;
-                                            dataErrors.AddNewPartiaError(-1, NewDataErrorType.WasNotAbleToMergeDontKnow, dem);
+                                            //var dem = searchData.dataErrorMore;
+                                            //dem.PartiaGuid = chosenPartiaGuid;
+                                            //dataErrors.AddNewPartiaError(-1, NewDataErrorType.WasNotAbleToMergeDontKnow, dem);
                                         }
                                         else
                                         {

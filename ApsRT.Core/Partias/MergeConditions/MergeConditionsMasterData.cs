@@ -264,7 +264,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             }
             else
             {
-                if (op1.IsVspom)
+                if (op1.IsVspom || true)
                 {
                     // иначе проверяем старым способом
                     result = LegacyOperationEquality(op1, op2, out reason, out smallreason, forObshEtaps);
