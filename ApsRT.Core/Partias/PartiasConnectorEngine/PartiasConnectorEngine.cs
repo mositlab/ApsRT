@@ -835,14 +835,14 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             var wannaMergeOps2 = secondPartia.GetLongestOpers();
 
 
-            if (firstPartia.MaxThereCountForLongestOpers == -1)
+            if (firstPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps1.Modelling != null)
             {
                 var fop1 = wannaMergeOps1.Modelling[0];
                 firstPartia.MaxThereCountForLongestOpers = firstPartia.OpersHere[wannaMergeOps1.LevelIndex].SelectMany(x => x.Opers)
                     .Where(x => x.Nomenklature == fop1.Nomenklature && x.OperationVid == fop1.OperationVid && x.Poviv == fop1.Poviv)
                     .Count();
             }
-            if (secondPartia.MaxThereCountForLongestOpers == -1)
+            if (secondPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps2.Modelling != null)
             {
                 var fop2 = wannaMergeOps2.Modelling[0];
                 secondPartia.MaxThereCountForLongestOpers = secondPartia.OpersHere[wannaMergeOps2.LevelIndex].SelectMany(x => x.Opers)
