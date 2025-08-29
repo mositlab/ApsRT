@@ -576,7 +576,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         }
 
 
-        static float FindFilledK(PartiaConnectorEngineData data, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, PartiasConnectorEngineResult resultToFill)
+        static float FindFilledK(PartiaConnectorEngineData data, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, int MaxPossibleTheirCount, PartiasConnectorEngineResult resultToFill)
         {
             (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
@@ -592,8 +592,14 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         //HashSet<Stages.Stage> finalOps = new();
 
                         Dictionary<int, PartiaModelling> IDtoSdvig = firstPartia.SeeSdvigsAsDic().Union(secondPartia.SeeSdvigsAsDic()).ToDictionary(x => x.Key, x => x.Value);//OpersHere.SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.Index, y)))).ToDictionary(x => x.Index, x => x.y);
-                        wannaMergeOps1.Modelling = firstPartia.OpersHere[wannaMergeOps1.LevelIndex].SelectMany(x => x.Opers).ToList();
-                        wannaMergeOps2.Modelling = secondPartia.OpersHere[wannaMergeOps2.LevelIndex].SelectMany(x => x.Opers).ToList();
+                        var fop1 = wannaMergeOps1.Modelling[0];
+                        wannaMergeOps1.Modelling = firstPartia.OpersHere[wannaMergeOps1.LevelIndex].SelectMany(x => x.Opers)
+                            .Where(x => x.Nomenklature == fop1.Nomenklature && x.OperationVid == fop1.OperationVid && x.Poviv == fop1.Poviv)
+                            .ToList();
+                        var fop2 = wannaMergeOps2.Modelling[0];
+                        wannaMergeOps2.Modelling = secondPartia.OpersHere[wannaMergeOps2.LevelIndex].SelectMany(x => x.Opers)
+                            .Where(x => x.Nomenklature == fop2.Nomenklature && x.OperationVid == fop2.OperationVid && x.Poviv == fop2.Poviv)
+                            .ToList();
 
                         List<Stages.Stage> finalOps = wannaMergeOps1.Modelling.Union(wannaMergeOps2.Modelling).ToList();
 
@@ -610,13 +616,19 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                             bool PrevsGood = true;
 
-                            if (sdvigs.All(x => x.Opers[0].NoChangeTara) && sdvigs.SelectMany(x => x.Opers.SelectMany(y => y.Prevs)).Select(y => ALL[y]).Where(op => !op.IsVspom && IDtoSdvig[op.Index].ZadelCode == 0).Select(op => IDtoSdvig[op.Index]).Distinct().Count() < sdvigs.Count()) PrevsGood = false;
+                            if (sdvigs.All(x => x.Opers[0].NoChangeTara) 
+                                && sdvigs.SelectMany(x => x.Opers.SelectMany(y => y.Prevs))
+                                .Select(y => ALL[y])
+                                .Where(op => !op.IsVspom && IDtoSdvig[op.Index].ZadelCode == 0)
+                                .Select(op => IDtoSdvig[op.Index])
+                                .Distinct()
+                                .Count() < sdvigs.Count()) PrevsGood = false;
 
                             var cnt = sdvigs.Count();
 
                             if (resultToFill.LongestModsMaxCount == int.MaxValue || resultToFill.LongestModsMaxCount < cnt) resultToFill.LongestModsMaxCount = cnt;
 
-                            if (cnt < 3 && PrevsGood)
+                            if (cnt <= MaxPossibleTheirCount && PrevsGood)
                             {
                                 if (sdvigs.All(x => x.Opers[0].NoChangeTara)) continue; // Если у него признак не менять тару, то дальше считать коэффициент бессмысленно
                                 var newK = sdvigs.Sum(x =>
@@ -635,7 +647,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                 (/*x.NoChangeTara &&*/ x.Prevs.All(x => ALL[x].IsVspom || IDtoSdvig[x].ZadelCode != 0 || ALL[x].PrevsNormCount == 1))
                                 ))
                                     ) continue;
-                                //K = 0.001f;
+                                // Первый варик
+                                //filledK = 0.001f;
+
+                                // Текущий варик
                                 filledK = 0;
                                 resultToFill.mergedNorm = 0;
                                 break;
@@ -819,6 +834,22 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             var wannaMergeOps1 = firstPartia.GetLongestOpers();
             var wannaMergeOps2 = secondPartia.GetLongestOpers();
 
+
+            if (firstPartia.MaxThereCountForLongestOpers == -1)
+            {
+                var fop1 = wannaMergeOps1.Modelling[0];
+                firstPartia.MaxThereCountForLongestOpers = firstPartia.OpersHere[wannaMergeOps1.LevelIndex].SelectMany(x => x.Opers)
+                    .Where(x => x.Nomenklature == fop1.Nomenklature && x.OperationVid == fop1.OperationVid && x.Poviv == fop1.Poviv)
+                    .Count();
+            }
+            if (secondPartia.MaxThereCountForLongestOpers == -1)
+            {
+                var fop2 = wannaMergeOps2.Modelling[0];
+                secondPartia.MaxThereCountForLongestOpers = secondPartia.OpersHere[wannaMergeOps2.LevelIndex].SelectMany(x => x.Opers)
+                    .Where(x => x.Nomenklature == fop2.Nomenklature && x.OperationVid == fop2.OperationVid && x.Poviv == fop2.Poviv)
+                    .Count();
+            }
+
             var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, CurrentCount * 2, CurrentCount * 2, CurrentCount * 2);
 
             // Найдём самый часто встречающийся ЦЕХ.
@@ -905,7 +936,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             // Теперь - группируем, чтобы для каждого повива/задела было лишь по одному запуску
             //if (What.OpersHere[0].Count > 0) merged = 0; // очевидно что он не схлопнулся до конца, и это плохо
             //float K = 0;
-            float filledK = FindFilledK(data, wannaMergeOps1, wannaMergeOps2, finalResult);
+
+            float filledK = FindFilledK(data, wannaMergeOps1, wannaMergeOps2, Math.Max(Math.Max(firstPartia.MaxThereCountForLongestOpers, secondPartia.MaxThereCountForLongestOpers), 2), finalResult);
 
             // После всего: проходим по всем уровням, по всем РЦ, и смотрим - кому РЦ не задался, тому пытаемся задать с учётом отдающей тары, чтоб он в выходной таблице норм был.
             FinalConnectorChecks(data, finalResult);

@@ -244,7 +244,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             return false;
         }
 
-        public Dictionary<Guid, (List<List<PartiaModelling>> List, int GPsCount, float K)> SavedPartiasTrees = new();
+        public Dictionary<Guid, (List<List<PartiaModelling>> List, int GPsCount, float K, int MaxLongest)> SavedPartiasTrees = new();
         public Dictionary<Guid, HashSet<int>> SavedPartias { get; private set; } = new();
 
         SortedList<double, List<(PartiaClass from, PartiaClass to)>> DEAD = new();
@@ -418,7 +418,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110), Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {
-                    var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, flag, guidToSet);
+                    var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, flag, guidToSet, -1);
                     PartiasGeneratorEngine.PartiasGeneratorEngine.PrepareNaladLengths(partiaL, NaladLengthsData); // Подготавливаем налад длины
                     if (!restrictIt)
                     {
@@ -492,8 +492,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     var prt1 = orderToPartia[allGPToCheckNow[i]];
                     var prt2 = orderToPartia[allGPToCheckNow[j]];
 
-                    var partiaClass1 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.MergeFlag, prt1.MyGuid);
-                    var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid);
+                    var partiaClass1 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.MergeFlag, prt1.MyGuid, prt1.MaxThereCountForLongestOpers);
+                    var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid, prt2.MaxThereCountForLongestOpers);
 
 
                     var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData, RestrictionsVia74110));
@@ -536,7 +536,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                 //SortedList<int, SortedList<float, List<(PartiaClass from, PartiaClass to)>>> localDEEP = new();
                 // кол во корзин, кол во гп, затем кол во барабанов
-                SortedList<int, SortedList<int, SortedList<int, List<(PartiaClass from, PartiaClass to)>>>> localDEEP = new();
+                SortedList<int, SortedList<int, SortedList<int, SortedList<float, List<(PartiaClass from, PartiaClass to)>>>>> localDEEP = new();
 
                 void addDeepLocal(double valday)
                 {
@@ -547,6 +547,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                         var effiencyHere = val.Total;
                         var gpCount = Math.Abs(deadL.from.GPsCountNow - deadL.to.GPsCountNow);//val.K;
                         var korzMax = val.LongestModsMaxCount;//deadL.from.LongestModsMaxCount + deadL.to.LongestModsMaxCount;//Math.Max(deadL.from.LongestModsMaxCount, deadL.to.LongestModsMaxCount);//val.K;
+                        var k = val.K;
                         if (val.Total > 0)
                         {
                             if (!localDEEP.ContainsKey(korzMax))
@@ -561,8 +562,11 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             {
                                 localDEEP[korzMax][gpCount].Add(effiencyHere, new());
                             }
-
-                            localDEEP[korzMax][gpCount][effiencyHere].Add(deadL);
+                            if (!localDEEP[korzMax][gpCount][effiencyHere].ContainsKey(k))
+                            {
+                                localDEEP[korzMax][gpCount][effiencyHere].Add(k, new());
+                            }
+                            localDEEP[korzMax][gpCount][effiencyHere][k].Add(deadL);
                         }
                     }
                 }
@@ -596,12 +600,12 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     break;
                 }
 
-                var partia1 = localDEEP.First().Value.Last().Value.Last().Value[0].from;
-                var partia2 = localDEEP.First().Value.Last().Value.Last().Value[0].to;
+                var partia1 = localDEEP.First().Value.Last().Value.Last().Value.Last().Value[0].from;
+                var partia2 = localDEEP.First().Value.Last().Value.Last().Value.Last().Value[0].to;
 
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
-                var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
-                var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
+                var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
+                var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.MaxThereCountForLongestOpers, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
                 var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData, RestrictionsVia74110));
                 var finalDead = partia1C.PossibleDeadline;
                 if (final.Total > 0) // И в случае успеха, мы ссылку на partia1 юзаем и копируем туда полученные данные
@@ -693,8 +697,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             return;
                         }
 
-                        var partia = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(thisCopy), finalDead, /*new List<int>() { 0 }, new(partia1.OrdersHere),*/ partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/); // копия
-                        var partiaLocal = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(remain.OpersHere), remain.PossibleDeadline, /*new List<int>() { 1 }, new(remain.OrdersHere), */remain.IsRestricted, remain.MergeFlag, remain.MyGuid, remain.GPsCountNow/*, remain.LongestModsMaxCount*/);
+                        var partia = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(thisCopy), finalDead, /*new List<int>() { 0 }, new(partia1.OrdersHere),*/ partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/); // копия
+                        var partiaLocal = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(remain.OpersHere), remain.PossibleDeadline, /*new List<int>() { 1 }, new(remain.OrdersHere), */remain.IsRestricted, remain.MergeFlag, remain.MyGuid, remain.MaxThereCountForLongestOpers, remain.GPsCountNow/*, remain.LongestModsMaxCount*/);
 
                         //var perc = FoundSecondsAndWin(
                         //    new PartiaClass(DeepCopy(thisCopy), finalDead, new List<int>() { 0 }),
@@ -1097,7 +1101,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                 SavedPartias.TryAdd(chosenPartiaGuid, new());
 
-                SavedPartiasTrees.TryAdd(chosenPartiaGuid, (res.OpersHere, res.GPsCountNow, res.LastK));
+                SavedPartiasTrees.TryAdd(chosenPartiaGuid, (res.OpersHere, res.GPsCountNow, res.LastK, res.MaxThereCountForLongestOpers));
 
                 foreach (var lvl1 in res.OpersHere)
                 {

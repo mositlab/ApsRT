@@ -921,7 +921,7 @@ namespace ApsRTCustomComponents
 
                 var partia = ((CodedObjectInGui)AllForAllPartiasGuidComboBox.Items[AllForAllPartiasGuidComboBox.SelectedIndex]).ValueIndex;
 
-                var aps = new PartiaClass(PartiasGeneratorEngine.DeepCopy(partiasAlgorithm.SavedPartiasTrees[partia].List), DateTime.Now, false, 0, partia, partiasAlgorithm.SavedPartiasTrees[partia].GPsCount);
+                var aps = new PartiaClass(PartiasGeneratorEngine.DeepCopy(partiasAlgorithm.SavedPartiasTrees[partia].List), DateTime.Now, false, 0, partia, partiasAlgorithm.SavedPartiasTrees[partia].MaxLongest, partiasAlgorithm.SavedPartiasTrees[partia].GPsCount);
                 aps.LastK = partiasAlgorithm.SavedPartiasTrees[partia].K;
                 aps.Sort();
 
@@ -1018,11 +1018,11 @@ namespace ApsRTCustomComponents
                 Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
 
 
-                var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
+                var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid(), -1);
                 PartiasGeneratorEngine.PrepareNaladLengths(partiaClass1, NaladLengthsData); // Подготавливаем налад длины
                 partiaClass1.Sort();
                 TwoPartiasPartia1View.SetThisTree(NaladLengthsData, partiaClass1);
-                var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid());
+                var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid(), -1);
                 PartiasGeneratorEngine.PrepareNaladLengths(partiaClass2, NaladLengthsData); // Подготавливаем налад длины
                 partiaClass2.Sort();
                 TwoPartiasPartia2View.SetThisTree(NaladLengthsData, partiaClass2);
@@ -1058,7 +1058,7 @@ namespace ApsRTCustomComponents
                 if (partiaClass1 != null)
                 {
                     partiasAlgorithm.SavedPartias.Add(partiaClass1.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass1.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());
-                    partiasAlgorithm.SavedPartiasTrees.Add(partiaClass1.MyGuid, (partiaClass1.OpersHere, partiaClass1.GPsCountNow, partiaClass1.LastK));
+                    partiasAlgorithm.SavedPartiasTrees.Add(partiaClass1.MyGuid, (partiaClass1.OpersHere, partiaClass1.GPsCountNow, partiaClass1.LastK, partiaClass1.MaxThereCountForLongestOpers));
                     //if (areDiff && partiaClass2.OpersHere)
                     //{
                     //    partiasAlgorithm.SavedPartias.Add(partiaClass2.MyGuid, PartiasConnectorEngine.SeeSdvigsAsList(partiaClass2.OpersHere).SelectMany(x => x.Opers.Select(y => y.Index)).ToHashSet());

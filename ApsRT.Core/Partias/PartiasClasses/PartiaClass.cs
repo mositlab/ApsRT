@@ -39,6 +39,8 @@ namespace ApsRT.Core.Partias.PartiasClasses
 
         public int GPsCountNow = 1;
 
+        public int MaxThereCountForLongestOpers = -1;
+
         public (List<Stages.Stage> Modelling, int LevelIndex) GetLongestOpers()
         {
             List<Stages.Stage> best = null;
@@ -78,9 +80,10 @@ namespace ApsRT.Core.Partias.PartiasClasses
             IsElementar = what.IsElementar;
             LastK = what.LastK;
             GPsCountNow = what.GPsCountNow;
+            MaxThereCountForLongestOpers = what.MaxThereCountForLongestOpers;
         }
 
-        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid pfGuid, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
+        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid pfGuid, int maxThereCountForLongestOpers, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
         {
             OpersHere = opersHere;
             //ModelsHere = modelsHere;
@@ -92,6 +95,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
             //UsedColor = usedColor.HasValue ? usedColor.Value : Color.White;
             //if (!IsRestricted) UpdateNaladLengthsHere();
             GPsCountNow = GPsCount;
+            MaxThereCountForLongestOpers = maxThereCountForLongestOpers;
             //LongestModsMaxCount = longestModsMaxCount;
         }
 

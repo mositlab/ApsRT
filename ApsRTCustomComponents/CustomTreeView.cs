@@ -44,6 +44,7 @@ namespace ApsRTCustomComponents
         internal int BarabanasCount = 0;
         internal float K = 0;
         internal float GPsNow = 0;
+        internal float MaxLongestCount = 0;
 
         public void SetThisTree(Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData, params PartiaClass[] partiaClasses)
         {
@@ -51,6 +52,7 @@ namespace ApsRTCustomComponents
             BarabanasCount = partiaClasses.Sum(x => x.OpersHere.Sum(y => y.Count));
             K = partiaClasses[0].LastK;
             GPsNow = partiaClasses[0].GPsCountNow;
+            MaxLongestCount = partiaClasses[0].MaxThereCountForLongestOpers;
 
 
             Dictionary<int, Node> prevs = new();
@@ -507,7 +509,7 @@ namespace ApsRTCustomComponents
                 var brush = new SolidBrush(Color.Black);
                 graphics.Clear(BackColor);
                 graphics.ScaleTransform(scl, scl);
-                graphics.DrawString($"{BarabanasCount}; {K}; {GPsNow}", StandartFontBig, brush, new PointF(10, 10));
+                graphics.DrawString($"{BarabanasCount}; {K}; {GPsNow}; {MaxLongestCount}", StandartFontBig, brush, new PointF(10, 10));
                 AllIterator((hover, key, j, X, YNow) =>
                 {
                     if (WillCheck)
