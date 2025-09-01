@@ -224,7 +224,7 @@ namespace ApsRT.Core.DataErrors
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Code)))};" +
                             $"{op?.OrderLink.OrderID.Object.Code};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +
-                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};{(error.Value.NaladLength == 0 ? "" : error.Value.NaladLength)}" +
+                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};{(error.Value.NaladLength == 0 ? "" : error.Value.NaladLength)};" +
                             $"{(error.Value.Count == 0 || op == null ? "" : (op.MesModelling.Code == Guid.Empty ? "" : op.MesModelling.Code))};" +
                             $"{message};{error.Value.TechData}"
                             );
@@ -242,7 +242,7 @@ namespace ApsRT.Core.DataErrors
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Label : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Label)))};" +
                             $"{op?.OrderLink.OrderID.Object.Label};{op?.OrderLink.OrderID.Version};" +
                             $"{partiaGuid};{error.Value.PartiaSettings};" +
-                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};{(error.Value.NaladLength == 0 ? "" : error.Value.NaladLength)}" +
+                            $"{(error.Value.Count == 0 ? "" : error.Value.Count)};{(error.Value.NaladLength == 0 ? "" : error.Value.NaladLength)};" +
                             $"{(error.Value.Count == 0 || op == null ? "" : (op.MesModelling.Code == Guid.Empty ? "" : op.MesModelling))};" +
                             $"{message};{error.Value.TechData}"
                             );
