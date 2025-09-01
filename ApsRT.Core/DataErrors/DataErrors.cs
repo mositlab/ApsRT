@@ -187,6 +187,8 @@ namespace ApsRT.Core.DataErrors
 
                             NewDataErrorType.NoAllNeededOtdTarasWithCheck => "У этапа нет ни одного РЦ, у которого есть все перечисленные требуемые отдающие тары (deep-check).",
 
+                            NewDataErrorType.LivenshteinBadOper => "Обнаружено объединение, не связанное с объединенными этапами.",
+
                             _ => "Необработанная ошибка. Обратитесь в ОАУП."
 
                         };

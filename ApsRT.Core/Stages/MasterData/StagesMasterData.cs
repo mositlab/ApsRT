@@ -380,10 +380,19 @@ namespace ApsRT.Core.Stages.MasterData
                     curr++;
                 }
                 currCode += (char)locConv[s];//Merger.SYMBOLS[locConv[s]];
-                SavedOpersLivenCode.Add(oper.Index, currCode);
-                foreach (var prev in oper.Prevs)
+                if (SavedOpersLivenCode.ContainsKey(oper.Index))
                 {
-                    goPrev(AllStages[prev], currCode);
+                    SessionLink.DataErrors.AddNewPartiaError(
+                        oper.Index
+                        , NewDataErrorType.LivenshteinBadOper, new DataErrorStruct());
+                }
+                else
+                {
+                    SavedOpersLivenCode.Add(oper.Index, currCode);
+                    foreach (var prev in oper.Prevs)
+                    {
+                        goPrev(AllStages[prev], currCode);
+                    }
                 }
             }
         }

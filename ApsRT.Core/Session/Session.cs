@@ -202,16 +202,16 @@ namespace ApsRT.Core.Session
 
         public void PostDataProcess()
         {
-            if (DataErrors.TryOutputDataErrors())
-            {
-                if (SessionOptions.IsSilent)
-                    EndSession(601);
-            }
 
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
             MasterDataLinks.NaladLengthsMasterData.SetNeededParamName(SettingsController.SpecialSettings.NaladLengthsCriteriaName);
 
+            if (DataErrors.TryOutputDataErrors())
+            {
+                if (SessionOptions.IsSilent)
+                    EndSession(601);
+            }
 
             // После загрузки ВСЕХ данных - Можно со спокойной душой все диапазоны настраивать
             foreach (var op in MasterDataLinks.StagesMasterData.AllStages)
