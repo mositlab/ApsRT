@@ -13,7 +13,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Centers.Hoppers
 {
-    [Hopper(Label = "График доступности РЦ", IsDirectory = false, IsMultiple = false, UsesGuid = false, LoadWhenOnlyZadel = false,
+    [Hopper(Label = "График доступности РЦ", IsDirectory = false, IsMultiple = false, UsesGuid = false,/* LoadWhenOnlyZadel = false,*/
         NeededHoppers = new[] { nameof(StagesHopper) })]
     public class WorkingIntervalsHopper : IHopperInterface
     {

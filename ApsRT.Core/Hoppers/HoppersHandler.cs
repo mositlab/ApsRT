@@ -162,18 +162,18 @@ namespace ApsRT.Core.Hoppers
 
             session.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
 
-            for (int i = 0; i < paths.Length; i++)
-            {
-                if (paths[i].StartsWith("SQL:")) continue;
-                //Path.
-                paths[i] = Path.IsPathRooted(paths[i]) ? paths[i] : (sessionPath + paths[i]);
-            }
+            //for (int i = 0; i < paths.Length; i++)
+            //{
+            //    if (paths[i].StartsWith("SQL:")) continue;
+            //    //Path.
+            //    paths[i] = Path.IsPathRooted(paths[i]) ? paths[i] : (sessionPath + paths[i]);
+            //}
 
             hopperInterface.BeforeAllLoading(session, paths);
 
             for (var z = 0; z < paths.Length; z++)
             {
-                var path = paths[z];
+                var path = paths[z].StartsWith("SQL:") || Path.IsPathRooted(paths[z]) ? paths[z] : (sessionPath + paths[z]);//paths[z];
 
                 if (hopperData.IsDirectory)
                 {
