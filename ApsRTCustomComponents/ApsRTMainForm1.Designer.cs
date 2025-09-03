@@ -309,6 +309,8 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            label51 = new Label();
+            MaxOldSessionPathsDaysNumericUpDown = new NumericUpDown();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -468,6 +470,7 @@ namespace ApsRTCustomComponents
             ((System.ComponentModel.ISupportInitialize)PartiasMaxDaysNumericUpDown).BeginInit();
             AuthorsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).BeginInit();
             SuspendLayout();
             // 
             // OpenPlanningButton
@@ -569,7 +572,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 420);
+            label49.Location = new Point(959, 419);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -582,7 +585,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 417);
+            pictureBox1.Location = new Point(1099, 416);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -595,7 +598,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 467);
+            label48.Location = new Point(3, 466);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2039,12 +2042,12 @@ namespace ApsRTCustomComponents
             splitContainer12.SplitterDistance = 333;
             splitContainer12.TabIndex = 0;
             // 
-            // BadOffsetsGraphControl
+            // TaraRedutantUsageGraphControl
             // 
             TaraRedutantUsageGraphControl.Dock = DockStyle.Fill;
             TaraRedutantUsageGraphControl.Location = new Point(0, 0);
             TaraRedutantUsageGraphControl.Margin = new Padding(6, 5, 6, 5);
-            TaraRedutantUsageGraphControl.Name = "BadOffsetsGraphControl";
+            TaraRedutantUsageGraphControl.Name = "TaraRedutantUsageGraphControl";
             TaraRedutantUsageGraphControl.ScrollGrace = 0D;
             TaraRedutantUsageGraphControl.ScrollMaxX = 0D;
             TaraRedutantUsageGraphControl.ScrollMaxY = 0D;
@@ -2353,6 +2356,8 @@ namespace ApsRTCustomComponents
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.AutoScroll = true;
+            splitContainer2.Panel2.Controls.Add(label51);
+            splitContainer2.Panel2.Controls.Add(MaxOldSessionPathsDaysNumericUpDown);
             splitContainer2.Panel2.Controls.Add(button4);
             splitContainer2.Panel2.Controls.Add(button3);
             splitContainer2.Panel2.Controls.Add(button2);
@@ -2361,8 +2366,6 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.Controls.Add(groupBox6);
             splitContainer2.Panel2.Controls.Add(groupBox2);
             splitContainer2.Panel2.Controls.Add(groupBox1);
-            splitContainer2.Panel2.Controls.Add(label9);
-            splitContainer2.Panel2.Controls.Add(VKoeffsTextBox);
             splitContainer2.Panel2.Controls.Add(ClearAllSessionErrorsButton);
             splitContainer2.Panel2.Controls.Add(HandSessionPostDataProcessButton);
             splitContainer2.Panel2.Controls.Add(SaveSettingsButton);
@@ -2601,7 +2604,9 @@ namespace ApsRTCustomComponents
             groupBox6.Controls.Add(CriteriasMaxIterationsNumericUpDown6);
             groupBox6.Controls.Add(CriteriasMinIterationsNumericUpDown6);
             groupBox6.Controls.Add(CriteriasPossibleWorseNumericUpDown6);
+            groupBox6.Controls.Add(label9);
             groupBox6.Controls.Add(CriteriasMaxIterationsNumericUpDown5);
+            groupBox6.Controls.Add(VKoeffsTextBox);
             groupBox6.Controls.Add(CriteriasMinIterationsNumericUpDown5);
             groupBox6.Controls.Add(CriteriasPossibleWorseNumericUpDown5);
             groupBox6.Controls.Add(CriteriasMaxIterationsNumericUpDown4);
@@ -4013,7 +4018,7 @@ namespace ApsRTCustomComponents
             // 
             label9.AutoSize = true;
             label9.Font = new Font("Microsoft Sans Serif", 9F);
-            label9.Location = new Point(8, 114);
+            label9.Location = new Point(10, 292);
             label9.Name = "label9";
             label9.Size = new Size(66, 15);
             label9.TabIndex = 40;
@@ -4021,9 +4026,9 @@ namespace ApsRTCustomComponents
             // 
             // VKoeffsTextBox
             // 
-            VKoeffsTextBox.Location = new Point(96, 111);
+            VKoeffsTextBox.Location = new Point(92, 289);
             VKoeffsTextBox.Name = "VKoeffsTextBox";
-            VKoeffsTextBox.Size = new Size(222, 23);
+            VKoeffsTextBox.Size = new Size(227, 23);
             VKoeffsTextBox.TabIndex = 39;
             // 
             // ClearAllSessionErrorsButton
@@ -4210,6 +4215,31 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
+            // 
+            // label51
+            // 
+            label51.AutoSize = true;
+            label51.Font = new Font("Microsoft Sans Serif", 8F);
+            label51.Location = new Point(9, 113);
+            label51.Name = "label51";
+            label51.Size = new Size(211, 13);
+            label51.TabIndex = 50;
+            label51.Text = "Макс. дней хранения каталогов сессии:";
+            // 
+            // MaxOldSessionPathsDaysNumericUpDown
+            // 
+            MaxOldSessionPathsDaysNumericUpDown.BackColor = Color.CornflowerBlue;
+            MaxOldSessionPathsDaysNumericUpDown.BorderStyle = BorderStyle.None;
+            MaxOldSessionPathsDaysNumericUpDown.DecimalPlaces = 2;
+            MaxOldSessionPathsDaysNumericUpDown.ForeColor = Color.White;
+            MaxOldSessionPathsDaysNumericUpDown.Location = new Point(234, 110);
+            MaxOldSessionPathsDaysNumericUpDown.Margin = new Padding(0);
+            MaxOldSessionPathsDaysNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            MaxOldSessionPathsDaysNumericUpDown.Name = "MaxOldSessionPathsDaysNumericUpDown";
+            MaxOldSessionPathsDaysNumericUpDown.Size = new Size(84, 19);
+            MaxOldSessionPathsDaysNumericUpDown.TabIndex = 49;
+            MaxOldSessionPathsDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
+            MaxOldSessionPathsDaysNumericUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
             // 
             // ApsRTMainForm1
             // 
@@ -4401,6 +4431,7 @@ namespace ApsRTCustomComponents
             AuthorsTabPage.ResumeLayout(false);
             AuthorsTabPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).EndInit();
             ResumeLayout(false);
         }
 
@@ -4679,5 +4710,7 @@ namespace ApsRTCustomComponents
         private Button button2;
         private Button button3;
         private Button button4;
+        private Label label51;
+        private NumericUpDown MaxOldSessionPathsDaysNumericUpDown;
     }
 }

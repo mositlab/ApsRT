@@ -22,6 +22,27 @@ namespace ApsRT.Core.Session
 
         const string SessionsPath = "sessions";
 
+        /// <summary>
+        /// Дополнительный метод, который позволяет удалить старые каталоги
+        /// </summary>
+        public void ClearSessionOldPaths(double maxDaysDelta)
+        {
+            if (maxDaysDelta == 0) return; // Если 0, то пофигу, выходим
+            //if (string.IsNullOrEmpty(LaunchPath)) return; // Тоже смысла особого не имеет
+            var dirs = Directory.GetDirectories(SessionsPath);
+            var now = DateTime.Now;
+            foreach (var item in dirs)
+            {
+                var date = Directory.GetCreationTime(item);
+                var days = (now - date).TotalDays;
+                if (days > maxDaysDelta)
+                {
+                    Console.WriteLine(item + " ---> created: " + date + " ---> days: " + days);
+                    Directory.Delete(item, true);
+                }
+            }
+        }
+
         public bool GetPreparedLaunchPath(out string path)
         {
             if (string.IsNullOrEmpty(LaunchPath))

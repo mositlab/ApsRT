@@ -46,7 +46,8 @@ namespace ApsRT.Core.Settings
             CriteriasList = new int[] { 4, 6, 5, 3, 1, 2 },
             CriteriasPossibleWorse = new double[] {15, 15, 15, 15, 15, 15, 15 },
             CriteriasMinIterations = new int[] { 100, 100, 100, 100, 100, 100, 100 },
-            CriteriasMaxIterations = new int[] { 200, 200, 200, 200, 200, 200, 200 }
+            CriteriasMaxIterations = new int[] { 200, 200, 200, 200, 200, 200, 200 },
+            MaxOldSessionPathsDays = 3
         };
 
 
@@ -96,6 +97,8 @@ namespace ApsRT.Core.Settings
 
         #endregion
 
+        [JsonProperty]
+        public double MaxOldSessionPathsDays { get; set; }
 
         [JsonProperty]
         public Dictionary<string, string[]> HoppersPaths { get; set; }

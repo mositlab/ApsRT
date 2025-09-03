@@ -421,6 +421,9 @@ namespace ApsRTCustomComponents
             BackupStagesDurationNumericUpDown.Value = (decimal)settings.OriginalDurationTime;
             BackupStagesDurationNumericUpDown.ValueChanged += (sender, args) => { settings.OriginalDurationTime = (int)((NumericUpDown)sender).Value; };
 
+            MaxOldSessionPathsDaysNumericUpDown.Value = (decimal)settings.MaxOldSessionPathsDays;
+            MaxOldSessionPathsDaysNumericUpDown.ValueChanged += (sender, args) => { settings.MaxOldSessionPathsDays = (double)((NumericUpDown)sender).Value; };
+
             HideConsoleCheckBox.Checked = settings.HideConsole;
             HideConsoleCheckBox.CheckedChanged += (sender, args) =>
             {

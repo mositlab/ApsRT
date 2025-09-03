@@ -51,11 +51,8 @@ namespace ApsRT.Core.Session
 
         public void CheckFiles()
         {
-            if (!SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath))
-            {
-                if (SessionLink.SessionOptions.IsSilent)
-                    SessionLink.EndSession(602);
-            }
+
+            SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
 
             List<string> list = new List<string>();
 
@@ -483,7 +480,7 @@ namespace ApsRT.Core.Session
 
                             var guidToCheck = operLoc.CustomPartiaGuid ?? (operLoc.OrderLink.PartiaPF ?? Guid.Empty);
 
-                            if (true/*partiasAlgorithm == null || !partiasAlgorithm.PartiaHasErrors.TryGetValue(guidToCheck, out var errors) || !errors*/)
+                            if (partiasAlgorithm == null || !partiasAlgorithm.PartiaHasErrors.TryGetValue(guidToCheck, out var errors) || !errors)
                             {
                                 Guid ord = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Object.Code : Guid.Empty;
                                 var gp = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Version : "";

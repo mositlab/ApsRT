@@ -2,7 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "guid:Ноч",
+      "commandLineArgs": "silent, part,\r\nguid:2a1f4592-3654-434e-8172-0cc2b8dc0f36",
       "hotReloadEnabled": true
     }
   }

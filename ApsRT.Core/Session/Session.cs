@@ -184,13 +184,24 @@ namespace ApsRT.Core.Session
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //AppDomain.CurrentDomain.ProcessExit += delegate { EndSession(0); };
 
+            // Чекаю возможность создать папку
+            if (!SessionOptions.GetPreparedLaunchPath(out var sessionPath))
+            {
+                if (SessionOptions.IsSilent)
+                    EndSession(602);
+            }
+
             // Запускаем логгер
             Task.Run(AssignedLogger.LogThread);
             var process = Process.GetCurrentProcess();
             AssignedLogger.LogQueue.Enqueue($"process ID: {process.Id} [session ID {process.SessionId}]\r\n");
             AssignedLogger.LogQueue.Enqueue($"flags: silent {SessionOptions.IsSilent}, part {SessionOptions.LaunchPartia}, plan {SessionOptions.LaunchPlan}, zadel {SessionOptions.LaunchZadel}\r\n");
 
+            // Загружаем настройки
             SettingsController.Load(data);
+
+            // Убираем старые сессии чтоб не засирать папку sessions
+            SessionOptions.ClearSessionOldPaths(SettingsController.CurrentSettings.MaxOldSessionPathsDays);
 
             // Проверяем все файлы
             SessionOutputEngine.CheckFiles();
