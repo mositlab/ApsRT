@@ -63,6 +63,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
 
+            poolCopy.PrepareOnOneRCData();
+
+            poolCopy.PrepareAllRCsOnBlocks();
 
             Console.WriteLine("V, beg, " + OpersCopy1.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
 
@@ -123,7 +126,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 // Словарик для хранения выбранных тар для правильного алгоритма
                 var PrevsInfoForV = new Dictionary<int, Uco>();
 
-                var OneRCGroupsForV = basisLink.OnOneRCGroupData.ToDictionary(x => x.Key, x => (Uco?)null);
+                var OneRCGroupsForV = new Dictionary<int, Uco>();////poolCopy.OnOneRCGroupData.ToDictionary(x => x.Key, x => (Uco?)null);
 
                 // Начав, естественно, с самой первой.
                 var fInd = OpersCopy.FindIndex(x => x.Lists[0].StagesAsNormal.Any(y => y.Index == possibleFirstIndexes[i]));
@@ -133,7 +136,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OpersCopy[fInd].Lists[0].FirstOperJust, OpersCopy[fInd].GetCenterData(0).Center, asFirst);
                 AddOperHere(fInd, AsParallel: false, 0, 0, nalads, centers_choosen, (OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTara, OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)/*new(Guid.Empty, "")*/, false, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
                 
-                if (OpersCopy[fInd].Lists[0].FirstOperJust.OnOneRC && basisLink.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[fInd].Lists[0].ModID, out var groupID))
+                if (OpersCopy[fInd].Lists[0].FirstOperJust.OnOneRC && poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[fInd].Lists[0].ModID, out var groupID))
                 {
                     var cent = OpersCopy[fInd].GetCenterData(0).Center;
                     OneRCGroupsForV.Add(groupID, cent);
@@ -317,16 +320,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             {
                                 bool b1 = false;
                                 var AnyCan = false;
+                                int groupID1 = -1;
                                 if (Can1/* && CanChangeTara*/)
                                 {
-                                    int groupID1 = -1;
                                     List<Uco> allowedRC = null;
                                     if (OpersCopy[j].Lists[0].FirstOperJust.OnOneRC
                                             &&
-                                            basisLink.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[j].Lists[0].ModID, out groupID1)
+                                            poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[j].Lists[0].ModID, out groupID1)
                                             )
                                     {
-                                        allowedRC = basisLink.OnOneRCGroupData[groupID1].PossibleRCs;
+                                        allowedRC = poolCopy.OnOneRCGroupData[groupID1].PossibleRCs;
                                     }
                                     else
                                         groupID1 = -1;
@@ -341,7 +344,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                         //if (OpersCopy[j].Lists[0].FirstOper.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOper.RecommendedRC.Value != tara.RC) continue;//resF.res -= 1000000; // Если уже есть выбранный РЦ, то забиваем болт на все остальные
                                         if (allowedRC != null && !allowedRC.Contains(tara.RC)) continue; // Если в списке разрещенных РЦ нет этого, то дальше не идём
 
-                                        if (groupID1 != -1 && OneRCGroupsForV[groupID1] != null && tara.RC != OneRCGroupsForV[groupID1]) continue; // Если я уже ставил РЦ в эту группу, то другие нельзя
+                                        if (groupID1 != -1 && OneRCGroupsForV.TryGetValue(groupID1, out var oneGroupRC) && tara.RC != oneGroupRC)
+                                            continue; // Если я уже ставил РЦ в эту группу, то другие нельзя
 
                                         var Can2 = TaraSearchEngine.FilterAllVariants(OpersCopy[j].Lists[0], data, out _, out _, out var GOTmax, out _, out _,
                                             new SumIsPossibleOptions(false)
@@ -362,6 +366,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                 }
                                 if (!CanChangeTara || !Can1 || !AnyCan) // Если ну вот вообще ничего не может,
                                 {
+                                    if (groupID1 != -1)
+                                    {
+                                        ;
+                                    }
                                     //localFChecking(lastBlock, Par, choosencent, new()); // Выбора нет, делаем без тары 
                                     b1 |= localFChecking(lastBlock, Par, choosencent, (OpersCopy[j].Lists[0].FirstOperJust.CurrentTara, OpersCopy[j].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)); // Выбора нет, делаем с чем есть
                                 }
@@ -447,10 +455,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     TotalRechanges += timeR; // Добавляем общих переналадок
                     TotalProstoi += timeP; // Добавляем общих простоев
 
-                    OneRCGroupsForV.Add(OpersCopy[best].Lists[0].ModID, bestC);
+                    //OneRCGroupsForV.Add(OpersCopy[best].Lists[0].ModID, bestC);
 
                     if (OpersCopy[best].Lists[0].FirstOperJust.OnOneRC
-                        && basisLink.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[best].Lists[0].ModID, out var groupID1))
+                        && poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[best].Lists[0].ModID, out var groupID1))
                     {
                         OneRCGroupsForV.TryAdd(groupID1, bestC);
                     }
@@ -582,7 +590,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 lastBlock.ExistingTaraHere[tara.tara]++;
 
-                lastBlock.UpdatePossibleRCsHere(basisLink); // Обновляем инфу по центрам
+                lastBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
             }
             else
             {

@@ -12,7 +12,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Materials
 {
-    [Hopper(Label = "Материалы", IsDirectory = false, IsMultiple = false, UsesGuid = true,
+    [Hopper(Label = "Материалы", IsDirectory = false, IsMultiple = false, UsesGuid = true, SessionPathAvailable = true,
         NeededHoppers = new[] { nameof(StagesHopper)/* "Opers"*/ })]
     public class MaterialsHopper : IHopperInterface
     {

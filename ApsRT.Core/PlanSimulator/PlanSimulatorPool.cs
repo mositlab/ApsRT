@@ -1,21 +1,22 @@
-﻿using System;
+﻿using ApsRT.Core.NaladLengths;
+using ApsRT.Core.Planning;
+using ApsRT.Core.Planning.PlanningAlgorithm;
+using ApsRT.Core.Stages;
+using ApsRT.Core.Taras.TaraSearchEngine;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack;
+using ZLinq;
+using static System.Reflection.Metadata.BlobBuilder;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
-using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using static System.Reflection.Metadata.BlobBuilder;
-using ZLinq;
-using ApsRT.Core.NaladLengths;
-using UniversalPack;
-using ApsRT.Core.Stages;
-using Newtonsoft.Json.Linq;
-using ApsRT.Core.Planning;
-using System.Collections.Concurrent;
-using ApsRT.Core.Planning.PlanningAlgorithm;
 
 namespace ApsRT.Core.PlanSimulator
 {
@@ -184,6 +185,89 @@ namespace ApsRT.Core.PlanSimulator
 
 
 
+        public Dictionary<int, int> ModIDToOnOneRCGroupID = new();
+        public Dictionary<int, (List<PlanSimulatorMod> ModIDs, List<Uco> PossibleRCs)> OnOneRCGroupData = new();
+
+
+        public void PrepareOnOneRCData()
+        {
+            ModIDToOnOneRCGroupID.Clear();
+            OnOneRCGroupData.Clear();
+
+            var modsToGroup = Blocks.SelectMany(x => x.Lists).Where(x => x.FirstOperJust.OnOneRC); // Выберем все нужные моды
+
+            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), mod.FirstOperJust.Level, mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature));
+            foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
+            {
+                var groupID = OnOneRCGroupData.Count;
+                var modList = group/*.Select(x => x.ModID)*/.ToList();
+
+                List<Uco> rcs = null;
+                foreach (var mod in group)
+                {
+                    if (rcs == null)
+                        rcs = mod.PossibleRCsHere;
+                    else
+                        rcs = rcs.Intersect(mod.PossibleRCsHere).ToList();
+                }
+
+                var rcsCopy = rcs.Where(rc => 
+                
+                modList.All(mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _,
+                    new SumIsPossibleOptions(false)
+                    {
+                        LogSomeErrors = false, // ошибки не фиксируем
+                        RCMustBeThis = new(1) { rc } // РЦ должен быть именно такой
+                    })
+                )
+                );
+
+                if (rcsCopy.Count() > 0)
+                {
+                    rcs = rcsCopy.ToList();
+                }
+                else
+                {
+                    // ЭТО ОШИБКА
+                    ;
+                }
+
+                    OnOneRCGroupData.Add(groupID, (modList, rcs));
+                foreach (var modID in modList)
+                {
+                    ModIDToOnOneRCGroupID.Add(modID.ModID, groupID); // Заполняем ссылки на группы
+                }
+            }
+        }
+
+        public void UpdateOpsOnOneRC(PlanSimulatorBlock blockToStart, int PoolIndex)
+        {
+            (var settedRC, _, _) = blockToStart.GetCenterData(PoolIndex);
+            foreach (var mod in blockToStart.Lists)
+            {
+                if (mod.FirstOperJust.OnOneRC
+                    && ModIDToOnOneRCGroupID.TryGetValue(mod.ModID, out var dataID)
+                    && OnOneRCGroupData.TryGetValue(dataID, out var data))
+                {
+                    foreach (var neededMod in data.ModIDs)
+                    {
+                        if (neededMod.ModID == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
+                        neededMod.BlockLink.SetCenter(settedRC, PoolIndex);
+                        //var index = pool.Blocks.FindIndex(x => x.Lists.Any(y => y.ModID == neededMod));
+                        //if (index != -1) pool.Blocks[index].ActualRC = settedRC;
+                    }
+                }
+            }
+        }
+
+        public void PrepareAllRCsOnBlocks()
+        {
+            foreach (var block in Blocks)
+            {
+                block.UpdatePossibleRCsHere();
+            }
+        }
+
         public static List<PlanSimulatorBlock> CopyBlocksSwallow(List<PlanSimulatorBlock> Blocks)
         {
             return new List<PlanSimulatorBlock>(Blocks);
@@ -229,7 +313,7 @@ namespace ApsRT.Core.PlanSimulator
                     var NEWLIST = new PlanSimulatorMod(Blocks[i].Lists[j].StagesAsNormal, Blocks[i].Lists[j].ParallelRC, Blocks[i].Lists[j].ModType, Blocks[i].Lists[j].ModID, PoolSize); //Blocks[i].Lists[j];// new ModellingOperWithTime(new List<Operation>(Blocks[i].Lists[j].OpersList), Blocks[i].Lists[j].AllTime); // Копируем список операций и создаем моделирование
                     mod.Add(NEWLIST);
                 }
-                var block = new PlanSimulatorBlock(mod, Blocks[i].GetCenterData(bestIndex).Center, PoolSize, Blocks[i].FillKoeff, WithTara, basisLink/*, Blocks[i].CanBeBroken*/);
+                var block = new PlanSimulatorBlock(mod, Blocks[i].GetCenterData(bestIndex).Center, PoolSize, Blocks[i].FillKoeff, WithTara/*, Blocks[i].CanBeBroken*/);
                 if (!WithTara)
                 {
                     block.ExistingTaraHere = Blocks[i].ExistingTaraHere;

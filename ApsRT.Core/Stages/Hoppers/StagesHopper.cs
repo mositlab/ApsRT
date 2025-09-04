@@ -14,7 +14,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Stages.Hoppers
 {
-    [Hopper(Label = "Операции", IsDirectory = false, IsMultiple = false, UsesGuid = true,
+    [Hopper(Label = "Операции", IsDirectory = false, IsMultiple = false, UsesGuid = true, SessionPathAvailable = true,
         NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesHopper), nameof(ParallelPlanningHopper), nameof(AlternativeCentersHopper), nameof(PropsListHopper) })]
     public class StagesHopper : IHopperInterface
     {

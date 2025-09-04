@@ -179,6 +179,8 @@ namespace ApsRTCustomComponents
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
+            label51 = new Label();
+            MaxOldSessionPathsDaysNumericUpDown = new NumericUpDown();
             button4 = new Button();
             button3 = new Button();
             button2 = new Button();
@@ -200,7 +202,9 @@ namespace ApsRTCustomComponents
             CriteriasMaxIterationsNumericUpDown6 = new NumericUpDown();
             CriteriasMinIterationsNumericUpDown6 = new NumericUpDown();
             CriteriasPossibleWorseNumericUpDown6 = new NumericUpDown();
+            label9 = new Label();
             CriteriasMaxIterationsNumericUpDown5 = new NumericUpDown();
+            VKoeffsTextBox = new TextBox();
             CriteriasMinIterationsNumericUpDown5 = new NumericUpDown();
             CriteriasPossibleWorseNumericUpDown5 = new NumericUpDown();
             CriteriasMaxIterationsNumericUpDown4 = new NumericUpDown();
@@ -291,8 +295,6 @@ namespace ApsRTCustomComponents
             IterationsNumericUpDown = new NumericUpDown();
             AfterXMinsRadioButton = new MaterialRadioButton();
             AfterXItersRadioButton = new MaterialRadioButton();
-            label9 = new Label();
-            VKoeffsTextBox = new TextBox();
             ClearAllSessionErrorsButton = new Button();
             HandSessionPostDataProcessButton = new Button();
             SaveSettingsButton = new Button();
@@ -309,8 +311,6 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            label51 = new Label();
-            MaxOldSessionPathsDaysNumericUpDown = new NumericUpDown();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -411,6 +411,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).BeginInit();
             groupBox7.SuspendLayout();
             groupBox6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)CriteriasMaxIterationsNumericUpDown7).BeginInit();
@@ -470,7 +471,6 @@ namespace ApsRTCustomComponents
             ((System.ComponentModel.ISupportInitialize)PartiasMaxDaysNumericUpDown).BeginInit();
             AuthorsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).BeginInit();
             SuspendLayout();
             // 
             // OpenPlanningButton
@@ -572,7 +572,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 419);
+            label49.Location = new Point(959, 418);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -585,7 +585,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 416);
+            pictureBox1.Location = new Point(1099, 415);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -598,7 +598,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 466);
+            label48.Location = new Point(3, 465);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -699,9 +699,9 @@ namespace ApsRTCustomComponents
             PartiasTabPage.BackColor = Color.White;
             PartiasTabPage.Controls.Add(PartiasTabControl);
             PartiasTabPage.Controls.Add(materialTabSelector2);
-            PartiasTabPage.Location = new Point(4, 24);
+            PartiasTabPage.Location = new Point(4, 25);
             PartiasTabPage.Name = "PartiasTabPage";
-            PartiasTabPage.Size = new Size(1171, 502);
+            PartiasTabPage.Size = new Size(1171, 501);
             PartiasTabPage.TabIndex = 0;
             PartiasTabPage.Text = "Формирование партий";
             // 
@@ -713,7 +713,7 @@ namespace ApsRTCustomComponents
             PartiasTabControl.Location = new Point(0, 35);
             PartiasTabControl.Name = "PartiasTabControl";
             PartiasTabControl.SelectedIndex = 0;
-            PartiasTabControl.Size = new Size(1171, 467);
+            PartiasTabControl.Size = new Size(1171, 466);
             PartiasTabControl.TabIndex = 21;
             // 
             // AllPartiasTabControl
@@ -723,7 +723,7 @@ namespace ApsRTCustomComponents
             AllPartiasTabControl.Location = new Point(4, 25);
             AllPartiasTabControl.Name = "AllPartiasTabControl";
             AllPartiasTabControl.Padding = new Padding(3);
-            AllPartiasTabControl.Size = new Size(1163, 438);
+            AllPartiasTabControl.Size = new Size(1163, 437);
             AllPartiasTabControl.TabIndex = 0;
             AllPartiasTabControl.Text = "Полный расчёт";
             // 
@@ -754,7 +754,7 @@ namespace ApsRTCustomComponents
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer3);
-            splitContainer1.Size = new Size(1157, 432);
+            splitContainer1.Size = new Size(1157, 431);
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
             // 
@@ -814,7 +814,7 @@ namespace ApsRTCustomComponents
             AllForAllTextBox.Multiline = true;
             AllForAllTextBox.Name = "AllForAllTextBox";
             AllForAllTextBox.ScrollBars = ScrollBars.Both;
-            AllForAllTextBox.Size = new Size(398, 253);
+            AllForAllTextBox.Size = new Size(398, 252);
             AllForAllTextBox.TabIndex = 27;
             // 
             // label2
@@ -862,7 +862,7 @@ namespace ApsRTCustomComponents
             ZadelCheckBox.Depth = 0;
             ZadelCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
             ZadelCheckBox.ForeColor = Color.CornflowerBlue;
-            ZadelCheckBox.Location = new Point(314, 33);
+            ZadelCheckBox.Location = new Point(311, 33);
             ZadelCheckBox.Margin = new Padding(0);
             ZadelCheckBox.MouseLocation = new Point(-1, -1);
             ZadelCheckBox.Name = "ZadelCheckBox";
@@ -921,8 +921,8 @@ namespace ApsRTCustomComponents
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(PartiasDataTable);
-            splitContainer3.Size = new Size(751, 430);
-            splitContainer3.SplitterDistance = 249;
+            splitContainer3.Size = new Size(751, 429);
+            splitContainer3.SplitterDistance = 248;
             splitContainer3.TabIndex = 0;
             // 
             // CustomTreeViewOnPPanel
@@ -930,7 +930,7 @@ namespace ApsRTCustomComponents
             CustomTreeViewOnPPanel.Dock = DockStyle.Fill;
             CustomTreeViewOnPPanel.Location = new Point(0, 0);
             CustomTreeViewOnPPanel.Name = "CustomTreeViewOnPPanel";
-            CustomTreeViewOnPPanel.Size = new Size(751, 249);
+            CustomTreeViewOnPPanel.Size = new Size(751, 248);
             CustomTreeViewOnPPanel.TabIndex = 1;
             // 
             // PartiasDataTable
@@ -2336,9 +2336,9 @@ namespace ApsRTCustomComponents
             // 
             SettingsTabPage.BackColor = Color.White;
             SettingsTabPage.Controls.Add(splitContainer2);
-            SettingsTabPage.Location = new Point(4, 25);
+            SettingsTabPage.Location = new Point(4, 24);
             SettingsTabPage.Name = "SettingsTabPage";
-            SettingsTabPage.Size = new Size(1171, 501);
+            SettingsTabPage.Size = new Size(1171, 502);
             SettingsTabPage.TabIndex = 3;
             SettingsTabPage.Text = "Настройки";
             // 
@@ -2374,7 +2374,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.Controls.Add(BackupStagesDurationNumericUpDown);
             splitContainer2.Panel2.Controls.Add(PartiasMaxDaysLabel);
             splitContainer2.Panel2.Controls.Add(PartiasMaxDaysNumericUpDown);
-            splitContainer2.Size = new Size(1171, 501);
+            splitContainer2.Size = new Size(1171, 502);
             splitContainer2.SplitterDistance = 186;
             splitContainer2.TabIndex = 37;
             // 
@@ -2387,6 +2387,31 @@ namespace ApsRTCustomComponents
             HoppersPanel.Name = "HoppersPanel";
             HoppersPanel.Size = new Size(1171, 186);
             HoppersPanel.TabIndex = 25;
+            // 
+            // label51
+            // 
+            label51.AutoSize = true;
+            label51.Font = new Font("Microsoft Sans Serif", 8F);
+            label51.Location = new Point(9, 113);
+            label51.Name = "label51";
+            label51.Size = new Size(211, 13);
+            label51.TabIndex = 50;
+            label51.Text = "Макс. дней хранения каталогов сессии:";
+            // 
+            // MaxOldSessionPathsDaysNumericUpDown
+            // 
+            MaxOldSessionPathsDaysNumericUpDown.BackColor = Color.CornflowerBlue;
+            MaxOldSessionPathsDaysNumericUpDown.BorderStyle = BorderStyle.None;
+            MaxOldSessionPathsDaysNumericUpDown.DecimalPlaces = 2;
+            MaxOldSessionPathsDaysNumericUpDown.ForeColor = Color.White;
+            MaxOldSessionPathsDaysNumericUpDown.Location = new Point(234, 110);
+            MaxOldSessionPathsDaysNumericUpDown.Margin = new Padding(0);
+            MaxOldSessionPathsDaysNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            MaxOldSessionPathsDaysNumericUpDown.Name = "MaxOldSessionPathsDaysNumericUpDown";
+            MaxOldSessionPathsDaysNumericUpDown.Size = new Size(84, 19);
+            MaxOldSessionPathsDaysNumericUpDown.TabIndex = 49;
+            MaxOldSessionPathsDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
+            MaxOldSessionPathsDaysNumericUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
             // 
             // button4
             // 
@@ -2765,6 +2790,16 @@ namespace ApsRTCustomComponents
             CriteriasPossibleWorseNumericUpDown6.TextAlign = HorizontalAlignment.Center;
             CriteriasPossibleWorseNumericUpDown6.Value = new decimal(new int[] { 15, 0, 0, 0 });
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Font = new Font("Microsoft Sans Serif", 9F);
+            label9.Location = new Point(10, 292);
+            label9.Name = "label9";
+            label9.Size = new Size(66, 15);
+            label9.TabIndex = 40;
+            label9.Text = "Коэфф. V:";
+            // 
             // CriteriasMaxIterationsNumericUpDown5
             // 
             CriteriasMaxIterationsNumericUpDown5.BackColor = Color.CornflowerBlue;
@@ -2779,6 +2814,13 @@ namespace ApsRTCustomComponents
             CriteriasMaxIterationsNumericUpDown5.TabIndex = 69;
             CriteriasMaxIterationsNumericUpDown5.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown5.Value = new decimal(new int[] { 200, 0, 0, 0 });
+            // 
+            // VKoeffsTextBox
+            // 
+            VKoeffsTextBox.Location = new Point(92, 289);
+            VKoeffsTextBox.Name = "VKoeffsTextBox";
+            VKoeffsTextBox.Size = new Size(227, 23);
+            VKoeffsTextBox.TabIndex = 39;
             // 
             // CriteriasMinIterationsNumericUpDown5
             // 
@@ -4014,23 +4056,6 @@ namespace ApsRTCustomComponents
             AfterXItersRadioButton.Text = "После Х итераций, где Х:";
             AfterXItersRadioButton.UseVisualStyleBackColor = false;
             // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Font = new Font("Microsoft Sans Serif", 9F);
-            label9.Location = new Point(10, 292);
-            label9.Name = "label9";
-            label9.Size = new Size(66, 15);
-            label9.TabIndex = 40;
-            label9.Text = "Коэфф. V:";
-            // 
-            // VKoeffsTextBox
-            // 
-            VKoeffsTextBox.Location = new Point(92, 289);
-            VKoeffsTextBox.Name = "VKoeffsTextBox";
-            VKoeffsTextBox.Size = new Size(227, 23);
-            VKoeffsTextBox.TabIndex = 39;
-            // 
             // ClearAllSessionErrorsButton
             // 
             ClearAllSessionErrorsButton.BackColor = Color.CornflowerBlue;
@@ -4216,31 +4241,6 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // label51
-            // 
-            label51.AutoSize = true;
-            label51.Font = new Font("Microsoft Sans Serif", 8F);
-            label51.Location = new Point(9, 113);
-            label51.Name = "label51";
-            label51.Size = new Size(211, 13);
-            label51.TabIndex = 50;
-            label51.Text = "Макс. дней хранения каталогов сессии:";
-            // 
-            // MaxOldSessionPathsDaysNumericUpDown
-            // 
-            MaxOldSessionPathsDaysNumericUpDown.BackColor = Color.CornflowerBlue;
-            MaxOldSessionPathsDaysNumericUpDown.BorderStyle = BorderStyle.None;
-            MaxOldSessionPathsDaysNumericUpDown.DecimalPlaces = 2;
-            MaxOldSessionPathsDaysNumericUpDown.ForeColor = Color.White;
-            MaxOldSessionPathsDaysNumericUpDown.Location = new Point(234, 110);
-            MaxOldSessionPathsDaysNumericUpDown.Margin = new Padding(0);
-            MaxOldSessionPathsDaysNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
-            MaxOldSessionPathsDaysNumericUpDown.Name = "MaxOldSessionPathsDaysNumericUpDown";
-            MaxOldSessionPathsDaysNumericUpDown.Size = new Size(84, 19);
-            MaxOldSessionPathsDaysNumericUpDown.TabIndex = 49;
-            MaxOldSessionPathsDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
-            MaxOldSessionPathsDaysNumericUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
-            // 
             // ApsRTMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -4365,6 +4365,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).EndInit();
             groupBox7.ResumeLayout(false);
             groupBox7.PerformLayout();
             groupBox6.ResumeLayout(false);
@@ -4431,7 +4432,6 @@ namespace ApsRTCustomComponents
             AuthorsTabPage.ResumeLayout(false);
             AuthorsTabPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).EndInit();
             ResumeLayout(false);
         }
 

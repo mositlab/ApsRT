@@ -533,8 +533,10 @@ namespace ApsRT.Core.Session
                 "Тара;" +
                 "Стандартный РЦ;" +
                 "Выбранный РЦ;" +
+                "ГруппаНаОдномРЦ;" +
                 "Заказ;" +
                 "Партия ГП;" +
+                "ПартияПФ;" +
                 "Номенклатура;" +
                 "Продукция;" +
                 "Вид Операции;" +
@@ -590,7 +592,7 @@ namespace ApsRT.Core.Session
                             $"{(start.Add(rechanges.interval.Duration)):G};" +
                             $"{rechanges.interval.Duration:G}" +
                             $";{nextOper.Index};{nextOper.GUID};{nextOper.Registrator}" +
-                            $";;;;;;;{blockRC};;;;;;" +
+                            $";;;;;;;{blockRC};;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
 
@@ -646,8 +648,10 @@ namespace ApsRT.Core.Session
                             $"{operLoc.CurrentTara};" +
                             $"{operLoc.OriginalCenter};" +
                             $"{blockRC};" +
+                            $"{(block.PoolLink.ModIDToOnOneRCGroupID.TryGetValue(currMod.ModID, out var group) ? group.ToString() : "-1")};" +
                             $"{ord};" +
                             $"{gp};" +
+                            $"{operLoc.GetOrderOrPartiaCode()};" +
                             $"{operLoc.Nomenklature};" +
                             $"{operLoc.Production};" +
                             $"{operLoc.OperationVid};" +

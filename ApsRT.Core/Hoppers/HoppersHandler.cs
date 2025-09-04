@@ -173,7 +173,7 @@ namespace ApsRT.Core.Hoppers
 
             for (var z = 0; z < paths.Length; z++)
             {
-                var path = paths[z].StartsWith("SQL:") || Path.IsPathRooted(paths[z]) ? paths[z] : (sessionPath + paths[z]);//paths[z];
+                var path = paths[z].StartsWith("SQL:") || Path.IsPathRooted(paths[z]) || !hopperData.SessionPathAvailable ? paths[z] : (sessionPath + paths[z]);//paths[z];
 
                 if (hopperData.IsDirectory)
                 {

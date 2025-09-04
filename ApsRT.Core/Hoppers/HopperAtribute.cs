@@ -13,6 +13,9 @@ namespace ApsRT.Core.Hoppers
     [AttributeUsage(AttributeTargets.Class)]
     public class HopperAttribute : Attribute
     {
+
+        public bool SessionPathAvailable { get; set; } = false;
+
         public string Label { get; set; }
         public bool LoadWhenOnlyPart { get; set; } = true; // загружать при ТОЛЬКО ПАРТИЯХ?
         //public bool LoadWhenOnlyZadel { get; set; } // загружать, только если я в режиме задела?

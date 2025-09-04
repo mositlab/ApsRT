@@ -210,6 +210,69 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             }
         }
 
+        static bool GetCenterFromOneRCGroup(
+            PartiaModelling here1, // один сдвиг
+            PartiaModelling here2, // все остальные тут
+            PartiasConnectorEngineResult resultToFill, out Uco? NeededRC, out int group1, out int group2)
+        {
+            NeededRC = null;
+
+            group1 = here1.Opers[0].OnOneRC && resultToFill.ForOneRCGroups.TryGetValue(here1.Opers[0].Index, out var group11) ? group11 : -1;
+            group2 = here2.Opers[0].OnOneRC && resultToFill.ForOneRCGroups.TryGetValue(here2.Opers[0].Index, out var group22) ? group22 : -1;
+
+            if (group1 != -1 && resultToFill.ForOneRCGroupAlreadyUsed.TryGetValue(group1, out var myRC))
+            {
+                // РЦ Найден.
+                NeededRC = myRC;
+                if (group2 != -1 && resultToFill.ForOneRCGroupAlreadyUsed.TryGetValue(group2, out myRC))
+                {
+                    if (NeededRC != myRC)
+                    {
+                        // ОШИБКА !!! Притом невозможная...
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                // Установки ещё не было. Смотрим полностью
+                var list1 = here1.Opers[0].OnOneRC ? (group1 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group1, out var list1F) ? list1F : new()) : (here1.Opers[0].PossibleCenters ?? new List<Uco>() { here1.Opers[0].OriginalCenter });
+
+                var list2 = here2.Opers[0].OnOneRC ? (group2 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group2, out var list2F) ? list2F : new()) : (here2.Opers[0].PossibleCenters ?? new List<Uco>() { here2.Opers[0].OriginalCenter });
+
+                if (here1.Opers[0].OnOneRC)
+                {
+                    list1 = list1.Intersect(list2).ToList();
+                    if (list1.Count == 0)
+                    {
+                        // ОШИБКА !!!
+                        return false;
+                    }
+                    else
+                    {
+                        NeededRC = list1[0];
+                    }
+                }
+                else
+                {
+                    if (here2.Opers[0].OnOneRC)
+                    {
+                        list2 = list2.Intersect(list1).ToList();
+                        if (list2.Count == 0)
+                        {
+                            // ОШИБКА !!!
+                            return false;
+                        }
+                        else
+                        {
+                            NeededRC = list2[0];
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
 
         static byte AbleToMerge(PartiaModelling here1, // один сдвиг
             List<PartiaModelling> here2, // все остальные тут
@@ -395,64 +458,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         }
                     }
 
-                    #region Условие "на одном РЦ" - поиск нужного РЦ или хотя бы ограничение
+                    // Условие "на одном РЦ" - поиск нужного РЦ или хотя бы ограничение
 
-                    Uco? NeededRC = null;
-
-                    var group1 = here1.Opers[0].OnOneRC && resultToFill.ForOneRCGroups.TryGetValue(here1.Opers[0].Index, out var group11) ? group11 : -1;
-                    var group2 = here2[i].Opers[0].OnOneRC && resultToFill.ForOneRCGroups.TryGetValue(here2[i].Opers[0].Index, out var group22) ? group22 : -1;
-
-                    if (group1 != -1 && resultToFill.ForOneRCGroupAlreadyUsed.TryGetValue(group1, out var myRC))
-                    {
-                        // РЦ Найден.
-                        NeededRC = myRC;
-                        if (group2 != -1 && resultToFill.ForOneRCGroupAlreadyUsed.TryGetValue(group2, out myRC))
-                        {
-                            if (NeededRC != myRC)
-                            {
-                                // ОШИБКА !!! Притом невозможная...
-                                continue;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Установки ещё не было. Смотрим полностью
-                        var list1 = here1.Opers[0].OnOneRC ? (group1 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group1, out var list1F) ? list1F : new()) : (here1.Opers[0].PossibleCenters ?? new List<Uco>() { here1.Opers[0].OriginalCenter });
-
-                        var list2 = here2[i].Opers[0].OnOneRC ? (group2 != -1 && resultToFill.PossibleCentersForOneRCGroups.TryGetValue(group2, out var list2F) ? list2F : new()) : (here2[i].Opers[0].PossibleCenters ?? new List<Uco>() { here2[i].Opers[0].OriginalCenter });
-
-                        if (here1.Opers[0].OnOneRC)
-                        {
-                            list1 = list1.Intersect(list2).ToList();
-                            if (list1.Count == 0)
-                            {
-                                // ОШИБКА !!!
-                                continue;
-                            }
-                            else
-                            {
-                                NeededRC = list1[0];
-                            }
-                        }
-                        else
-                        {
-                            if (here2[i].Opers[0].OnOneRC)
-                            {
-                                list2 = list2.Intersect(list1).ToList();
-                                if (list2.Count == 0)
-                                {
-                                    // ОШИБКА !!!
-                                    continue;
-                                }
-                                else
-                                {
-                                    NeededRC = list2[0];
-                                }
-                            }
-                        }
-                    }
-                    #endregion
+                    if (!GetCenterFromOneRCGroup(here1, here2[i], resultToFill, out Uco? NeededRC, out var group1, out var group2)) continue;
 
                     if (!isVspom && !isZadel)
                     {
@@ -510,8 +518,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
 
                         // Запоминаем условие для одного РЦ
-                        if (here1.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.Add(group1, gotRc);
-                        if (here2[i].Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.Add(group2, gotRc);
+                        if (here1.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, gotRc);
+                        if (here2[i].Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group2, gotRc);
 
                         here1.Opers.AddRange(here2[i].Opers);
                         here2[i].Opers.Clear();
@@ -670,6 +678,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         {
             (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
+
+            resultToFill.ForOneRCGroupAlreadyUsed = new(); // Всё обнуляем
+
             if (resultToFill.mergedNorm > 0 || withHerself)
             {
                 //if (withHerself) добавлен чтобы эти ошибки появлялись только ближе к концу, чтоб в процессе расчёта не появлялись ошибки
@@ -682,17 +693,27 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         {
 
                             var fop = sdvig.Opers[0];
+
+                            if (!GetCenterFromOneRCGroup(sdvig, sdvig, resultToFill, out Uco? NeededRC, out var group1, out var group2)) continue;
+
                             //sdvig.RCIsChecked = true;
-                            if (fop.EndTara.IsEmpty)
+                            if (true/*fop.EndTara.IsEmpty*/)
                             {
                                 // Ищем по старинке
 
-                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog) { LogSomeErrors = withHerself, PrevsInfo = resultToFill.IDToTara,
+                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog)
+                                {
+                                    LogSomeErrors = withHerself,
+                                    PrevsInfo = resultToFill.IDToTara,
                                     RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
+                                    RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null
                                 })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, newTara, newRC, newMax, newUnit, resultToFill);
                                     //sdvig.RC = RC;
+                                    // Запоминаем условие для одного РЦ
+                                    if (sdvig.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, newRC);
+                                    //if (here2[i].Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.Add(group2, gotRc);
                                 }
                                 else
                                 {
@@ -855,7 +876,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             // Найдём самый часто встречающийся ЦЕХ.
             // + ограничения на одном рц запомним
             var listOnOneRc1 = SeeSdvigsAsList(firstPartia.OpersHere);
-            var listOnOneRc2 = SeeSdvigsAsList(secondPartia.OpersHere);
+            List<PartiaModelling> listOnOneRc2 = data.withHerself ? new() : SeeSdvigsAsList(secondPartia.OpersHere);
 
 
             if (SessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias)

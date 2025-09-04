@@ -178,7 +178,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     //var finalRC = allRCs.OrderBy(x => (rcRoutesData.TryGetValue(rcRouteToWorkWith, out var lvl0) && lvl0.RCsData.TryGetValue(x, out var data) ? data : new TimeSpan())).First();//list[RC /*r.Next(0, possible.Count)*/]; // по итогу выбираем его
                     var final = possible[r.Next(0, possible.Length)];
                     opertoIns.SetCenter(final.RC, poolIndex);//ActualRC = final.RC;
-                    basisLink.UpdateOpsOnOneRC(opertoIns, poolIndex);
+                    opertoIns.PoolLink.UpdateOpsOnOneRC(opertoIns, poolIndex);
                     //for (int i = 0; i < opertoIns.Lists.Count; i++)
                     //{
                     //    for (int j = 0; j < opertoIns.Lists[i].StagesAsNormal.Count; j++)

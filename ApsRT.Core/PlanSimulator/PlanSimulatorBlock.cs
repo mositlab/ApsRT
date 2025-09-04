@@ -45,7 +45,7 @@ namespace ApsRT.Core.PlanSimulator
             CenterModelData[PoolIndex] = PoolLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[Center];
         }
 
-        public void UpdatePossibleRCsHere(PlanningAlgorithm basisLink)
+        public void UpdatePossibleRCsHere()
         {
             PossibleRCsHere = null; // Создаём рц, которые могут быть заюзаны для всех операций
             foreach (var list in Lists)
@@ -57,8 +57,8 @@ namespace ApsRT.Core.PlanSimulator
 
                 // А вот здесь ещё и проверим, чтобы КАЖДЫЙ мод из группы "на одном рц" тоже мог работать здесь
                 if (list.FirstOperJust.OnOneRC
-                && basisLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
-                && basisLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
+                && PoolLink.ModIDToOnOneRCGroupID.TryGetValue(list.ModID, out var dataID)
+                && PoolLink.OnOneRCGroupData.TryGetValue(dataID, out var data))
                 {
                     PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(data.PossibleRCs).ToHashSet();
                 }
@@ -90,7 +90,7 @@ namespace ApsRT.Core.PlanSimulator
             return $"[{string.Join(", ", Lists.Select(x => x.ModID))}] на РЦ: {ActualRC}";
         }
 
-        public PlanSimulatorBlock(List<PlanSimulatorMod> lists, Uco ActualRC, int PoolSize, float ParrKoeff, bool CreateTara, PlanningAlgorithm basisLink)
+        public PlanSimulatorBlock(List<PlanSimulatorMod> lists, Uco ActualRC, int PoolSize, float ParrKoeff, bool CreateTara)
         {
             Lists = lists;
             this.BlockIndex = new int[PoolSize];
@@ -101,7 +101,7 @@ namespace ApsRT.Core.PlanSimulator
             this.NextBlockOnThisRC = new PlanSimulatorBlock[PoolSize];
             this.ActualRC[0] = ActualRC; // Потом будет назначено всем, в пуле.
             FillKoeff = ParrKoeff;
-            UpdatePossibleRCsHere(basisLink);
+            //UpdatePossibleRCsHere();
             if (CreateTara)
             {
                 var tmp1 = lists.Select(x => x.FirstOperJust.CurrentTara).Where(x => !x.IsEmpty);//.GroupBy(x => x);

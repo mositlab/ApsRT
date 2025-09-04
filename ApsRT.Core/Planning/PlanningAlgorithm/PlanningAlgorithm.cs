@@ -224,7 +224,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             SessionLink.MasterDataLinks.WorkingIntervalsMasterData.PrepareCentersForMinDataTime(UsedPool.CentersData.Keys, MinAcceptableDate);
 
-            PrepareOnOneRCData(UsedPool);
+            UsedPool.PrepareOnOneRCData();
+
+            UsedPool.PrepareAllRCsOnBlocks();
 
             var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
             //var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);
@@ -369,7 +371,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         new List<PlanSimulatorMod>()
                         {
                                 new PlanSimulatorMod(new List<Stage>(1) { opers[I] }, CentersData[opers[I].Center].CanBeParallel, PlanningModellingType.Elementar, CurrentModId, PoolSize)
-                        }, opers[I].Center, PoolSize, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true, this);
+                        }, opers[I].Center, PoolSize, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true);
                     //OperIdsToModsIds.Add(opers[I].Index, CurrentModId);
                     ClosedIDs.Add(opers[I].Index);
                     //if (opers[I].ID == 614)
@@ -407,7 +409,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         new List<PlanSimulatorMod>()
                         {
                                 new PlanSimulatorMod(arr, CentersData[opers[I].Center].CanBeParallel, type, CurrentModId, PoolSize)
-                        }, arr[0].Center, PoolSize, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true, this);
+                        }, arr[0].Center, PoolSize, CentersData[opers[I].Center].CanBeParallel ? 0f : -1, true);
 
                     //block.FillKoeff = CentersDataSet.CentersData[opers[I].Center].CanBeParallel ? 0.25f : -1; // TODO
 
@@ -543,59 +545,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         }
 
         public ConcurrentDictionary<int, TemporaryTaraSearchData> ModToTaraInfo = new();
-
-        public Dictionary<int, int> ModIDToOnOneRCGroupID = new();
-        public Dictionary<int, (List<PlanSimulatorMod> ModIDs, List<Uco> PossibleRCs)> OnOneRCGroupData = new();
-        public void PrepareOnOneRCData(PlanSimulatorPool pool)
-        {
-            ModIDToOnOneRCGroupID.Clear();
-            OnOneRCGroupData.Clear();
-
-            var modsToGroup = pool.Blocks.SelectMany(x => x.Lists).Where(x => x.FirstOperJust.OnOneRC); // Выберем все нужные моды
-
-            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), mod.FirstOperJust.Level, mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature));
-            foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
-            {
-                var groupID = OnOneRCGroupData.Count;
-                var modList = group/*.Select(x => x.ModID)*/.ToList();
-
-                List<Uco> rcs = null;
-                foreach (var mod in group)
-                {
-                    if (rcs == null)
-                        rcs = mod.PossibleRCsHere;
-                    else
-                        rcs = rcs.Intersect(mod.PossibleRCsHere).ToList();
-                }
-
-
-                OnOneRCGroupData.Add(groupID, (modList, rcs));
-                foreach (var modID in modList)
-                {
-                    ModIDToOnOneRCGroupID.Add(modID.ModID, groupID); // Заполняем ссылки на группы
-                }
-            }
-        }
-
-        public void UpdateOpsOnOneRC(PlanSimulatorBlock blockToStart, int PoolIndex)
-        {
-            (var settedRC, _, _) = blockToStart.GetCenterData(PoolIndex);
-            foreach (var mod in blockToStart.Lists)
-            {
-                if (mod.FirstOperJust.OnOneRC
-                    && ModIDToOnOneRCGroupID.TryGetValue(mod.ModID, out var dataID)
-                    && OnOneRCGroupData.TryGetValue(dataID, out var data))
-                {
-                    foreach (var neededMod in data.ModIDs)
-                    {
-                        if (neededMod.ModID == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
-                        neededMod.BlockLink.SetCenter(settedRC, PoolIndex);
-                        //var index = pool.Blocks.FindIndex(x => x.Lists.Any(y => y.ModID == neededMod));
-                        //if (index != -1) pool.Blocks[index].ActualRC = settedRC;
-                    }
-                }
-            }
-        }
 
         public int LastGen { get; private set; } = 0;
         public TimeSpan LastDate { get; private set; } = TimeSpan.MinValue;
@@ -875,7 +824,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                         blocksCopyLocal.Insert(indexHere, block);
 
                                         block.SetCenter(ChoosenCenter, IndexToWorkWith);
-                                        UpdateOpsOnOneRC(block, IndexToWorkWith);
+                                        block.PoolLink.UpdateOpsOnOneRC(block, IndexToWorkWith);
 
                                         var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
 
