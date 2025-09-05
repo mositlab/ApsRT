@@ -2,7 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "guid:БигВыб2",
+      "commandLineArgs": "guid:ноч",
       "hotReloadEnabled": true
     }
   }

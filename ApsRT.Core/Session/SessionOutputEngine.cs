@@ -90,6 +90,8 @@ namespace ApsRT.Core.Session
             CheckFile(sessionPath + ZadelsFileName, 512);
             CheckFile(sessionPath + RechangesFileNameOld, 513);
             CheckFile(sessionPath + MaterialsDeficitsFileName, 514);
+            CheckFile(sessionPath + StatsFileName, 515);
+            CheckFile(sessionPath + StatsFileNameOld, 516);
             //CheckFile(SessionLink.DataErrors.PartiasErrorsFile, 514, true);
             //CheckFile(SessionLink.DataErrors.PartiasErrorsBigFile, 515, true);
 
@@ -158,6 +160,8 @@ namespace ApsRT.Core.Session
                 // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
                 OutputLeftovers(sessionPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (sessionPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
 
+                OutputStats(sessionPath + (asOld ? StatsFileNameOld : StatsFileName), result, algorithm.OriginalValue);
+
                 return (result, blocksToCopy, algorithm.UsedPool.BestPoolIndex);
             }
         }
@@ -165,6 +169,43 @@ namespace ApsRT.Core.Session
         public string ToCsvString(Uco element)
         {
             return $"{element.Label.ToString().Replace(';', '_')} [{element.Code}]";
+        }
+
+        public string StatsFileName { get; set; } = "stats.csv";
+        public string StatsFileNameOld { get; set; } = "stats_old.csv";
+
+        public void OutputStats(string filename, PlanSimulatorEngineResult result, PlanSimulatorEngineResult originalResult)
+        {
+            var sw = new StreamWriter(filename, false, Encoding.UTF8);
+
+            sw.WriteLine($"Criteria;Value;ValueB;OldValue;OldValueB;DesiredValue");
+
+            sw.WriteLine($"OrdersDeadlines;{result.DaysRuinedValue};{result.DaysRuinedValue};{originalResult.DaysRuinedValue};{originalResult.DaysRuinedValue};{0}");
+
+            sw.WriteLine($"RechangesSeconds;{result.RechangesSeconds.TotalSeconds};{result.RechangesSeconds};{originalResult.RechangesSeconds.TotalSeconds};{originalResult.RechangesSeconds};{3600}");
+
+            sw.WriteLine($"ProstoiSeconds;{result.ProstoiSeconds.TotalSeconds};{result.ProstoiSeconds};{originalResult.ProstoiSeconds.TotalSeconds};{originalResult.ProstoiSeconds};{0}");
+
+            sw.WriteLine($"GlobalPlanDurationSeconds;{result.ProductionSeconds.TotalSeconds};{result.ProductionSeconds};{originalResult.ProductionSeconds.TotalSeconds};{originalResult.ProductionSeconds};{72000}");
+
+            sw.WriteLine($"TaraRedutantUsage;{result.TaraRedutantUsage};{TimeSpan.FromSeconds(result.TaraRedutantUsage)};{originalResult.TaraRedutantUsage};{TimeSpan.FromSeconds(originalResult.TaraRedutantUsage)};{0}");
+
+            sw.WriteLine($"NaladLengthsTotalCount;{result.NaladLengthsTotal};{result.NaladLengthsTotal};{originalResult.NaladLengthsTotal};{originalResult.NaladLengthsTotal};{0}");
+
+            var i = result.GetCatchedNaladLengthsErrorsCount(result.Session.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
+            var i2 = originalResult.GetCatchedNaladLengthsErrorsCount(result.Session.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
+            sw.WriteLine($"NaladLengthsCatchedErrors;{i};{i};{i2};{i2};{0}");
+
+            sw.WriteLine();
+
+            sw.WriteLine("CriteriasV;Value");
+            var Ks = SessionLink.SettingsController.CurrentSettings.VKoeffs;
+            for (int k = 0; k < Ks.Length; k++)
+            {
+                sw.WriteLine($"K{k};{Ks[k]}");
+            }
+
+            sw.Close();
         }
 
         public string UsedLeftoversFileName { get; set; } = "leftoversUsed.csv";
