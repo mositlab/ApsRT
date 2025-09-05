@@ -12,7 +12,7 @@ using ApsRT.Core.Centers.Hoppers;
 
 namespace ApsRT.Core.Rechanges.Hoppers
 {
-    [Hopper(Label = "Превалирующие переналадки", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false,
+    [Hopper(Label = "Превалирующие переналадки", LoadWhenOnZadel = false, LoadWhenOnPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false,
         NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesHopper)/*"CharsRC", "Opers", "AltRCs"*/ })]
     internal class PrevailingRechangesHopper : IHopperInterface
     {

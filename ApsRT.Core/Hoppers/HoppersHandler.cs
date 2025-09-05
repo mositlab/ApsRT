@@ -139,9 +139,21 @@ namespace ApsRT.Core.Hoppers
 
             hopperData.LoadedFlag = false;
 
-            if (session.SessionOptions.PartOrZadel && !hopperData.LoadWhenOnlyPart) // если только партии (ну или заделы), то ничего не грузим
+            if (
+                !session.SessionOptions.IsSilent ||
+                (session.SessionOptions.LaunchZadel && hopperData.LoadWhenOnZadel)
+                ||
+                (session.SessionOptions.LaunchPartia && hopperData.LoadWhenOnPart)
+                ||
+                (session.SessionOptions.LaunchPlan && hopperData.LoadWhenOnPlan)
+                )
             {
-                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' ignored bsc ONLY PART.\r\n");
+                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' will be loaded now.\r\n");
+            }
+            else
+            {
+                // если только партии (ну или заделы), то ничего не грузим
+                session.AssignedLogger.LogQueue.Enqueue($"[{DateTime.Now}]: module '{hopperData.Label}' ignored bsc no matched flags.\r\n");
                 hopperData.LoadedFlag = true;
                 OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, 0);
                 return;

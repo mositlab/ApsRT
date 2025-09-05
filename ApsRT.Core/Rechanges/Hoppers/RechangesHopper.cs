@@ -14,7 +14,7 @@ using ApsRT.Core.Centers.Hoppers;
 
 namespace InfimumMES.Rechanges.Hoppers
 {
-    [Hopper(Label = "Переналадки", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = true, UsesGuid = false,
+    [Hopper(Label = "Переналадки", LoadWhenOnZadel = false, LoadWhenOnPart = false, IsDirectory = false, IsMultiple = true, UsesGuid = false,
         NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesCriteriasHopper)/*"CharsRC", "Opers", "AltRCs"*/ })]
     internal class RechangesHopper : IHopperInterface
     {

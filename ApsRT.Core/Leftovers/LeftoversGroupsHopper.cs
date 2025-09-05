@@ -7,7 +7,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Leftovers
 {
-    [Hopper(Label = "Группы заменяемости остатков", LoadWhenOnlyPart = true, IsDirectory = false, IsMultiple = true, UsesGuid = false )]
+    [Hopper(Label = "Группы заменяемости остатков", IsDirectory = false, IsMultiple = true, UsesGuid = false )]
     internal class LeftoversGroupsHopper : IHopperInterface
     {
         LeftoversMasterData LeftoversMasterData;

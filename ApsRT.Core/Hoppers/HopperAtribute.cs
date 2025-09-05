@@ -17,7 +17,9 @@ namespace ApsRT.Core.Hoppers
         public bool SessionPathAvailable { get; set; } = false;
 
         public string Label { get; set; }
-        public bool LoadWhenOnlyPart { get; set; } = true; // загружать при ТОЛЬКО ПАРТИЯХ?
+        public bool LoadWhenOnPlan { get; set; } = true; // загружать при ПЛАНИРОВАНИИ?
+        public bool LoadWhenOnPart { get; set; } = true; // загружать при ТОЛЬКО ПАРТИЯХ?
+        public bool LoadWhenOnZadel { get; set; } = true; // загружать при ЗАДЕЛАХ?
         //public bool LoadWhenOnlyZadel { get; set; } // загружать, только если я в режиме задела?
         public bool IsMultiple { get; set; }
         public bool IsDirectory { get; set; }

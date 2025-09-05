@@ -12,7 +12,7 @@ using ApsRT.Core.Rechanges.MasterData;
 
 namespace ApsRT.Core.Rechanges.Hoppers
 {
-    [Hopper(Label = "Список доп параметров", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false)]
+    [Hopper(Label = "Список доп параметров", LoadWhenOnZadel = false, LoadWhenOnPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false)]
     internal class AdditionalParamsHopper : IHopperInterface
     {
         AdditionalConditionsMasterData AdditionalConditionsMasterData;

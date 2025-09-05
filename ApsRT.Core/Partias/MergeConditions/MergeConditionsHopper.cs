@@ -11,7 +11,7 @@ namespace ApsRT.Core.Partias.MergeConditions
     /// <summary>
     /// Загрузчик условий объединения
     /// </summary>
-    [Hopper(Label = "Усл. объединения", IsDirectory = false, IsMultiple = false, UsesGuid = true, NeededHoppers = new string[] {nameof(MergeConditionsListHopper), nameof(StagesHopper) })]
+    [Hopper(Label = "Усл. объединения", IsDirectory = false, IsMultiple = false, UsesGuid = false, NeededHoppers = new string[] {nameof(MergeConditionsListHopper), nameof(StagesHopper) })]
     internal sealed class MergeConditionsHopper : IHopperInterface
     {
         Session.Session session;

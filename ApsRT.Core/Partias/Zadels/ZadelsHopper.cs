@@ -10,7 +10,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Partias.Zadels
 {
-    [Hopper(Label = "Заделы", IsDirectory = false, IsMultiple = false, UsesGuid = true, /*LoadWhenOnlyZadel = true, */LoadWhenOnlyPart = true, SessionPathAvailable = true,
+    [Hopper(Label = "Заделы", IsDirectory = false, IsMultiple = false, UsesGuid = true, LoadWhenOnPart = false, SessionPathAvailable = true,
         NeededHoppers = new[] { nameof(StagesHopper) })]
     internal class ZadelsHopper : IHopperInterface
     {

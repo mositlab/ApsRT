@@ -10,7 +10,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Partias.MergeConditions
 {
-    [Hopper(Label = "Список усл. объединений", IsDirectory = false, IsMultiple = false, UsesGuid = true, NeededHoppers = new string[] { nameof(PropsListHopper) })]
+    [Hopper(Label = "Список усл. объединений", IsDirectory = false, IsMultiple = false, UsesGuid = false, NeededHoppers = new string[] { nameof(PropsListHopper) })]
     internal class MergeConditionsListHopper : IHopperInterface
     {
 

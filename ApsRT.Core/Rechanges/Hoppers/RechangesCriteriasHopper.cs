@@ -14,7 +14,7 @@ using UniversalPack.Extensions;
 
 namespace ApsRT.Core.Rechanges.Hoppers
 {
-    [Hopper(Label = "Критерии переналадок", LoadWhenOnlyPart = true, IsDirectory = false, IsMultiple = false, UsesGuid = false)]
+    [Hopper(Label = "Критерии переналадок", IsDirectory = false, IsMultiple = false, UsesGuid = false)]
     internal class RechangesCriteriasHopper : IHopperInterface
     {
         RechangesMasterData RechangesMasterData;

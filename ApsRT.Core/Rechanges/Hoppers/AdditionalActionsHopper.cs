@@ -12,7 +12,7 @@ using ApsRT.Core.Centers.Hoppers;
 
 namespace ApsRT.Core.Rechanges.Hoppers
 {
-    [Hopper(Label = "Доп действия", LoadWhenOnlyPart = false, IsDirectory = false, IsMultiple = true, UsesGuid = false,
+    [Hopper(Label = "Доп действия", LoadWhenOnZadel = false, LoadWhenOnPart = false, IsDirectory = false, IsMultiple = true, UsesGuid = false,
         NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(RechangesCriteriasHopper), nameof(AdditionalParamsHopper) })]
     internal class AdditionalActionsHopper : IHopperInterface
     {

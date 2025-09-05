@@ -54,6 +54,7 @@ namespace ApsRT.ZMK
                 {
 
                 }
+                form.Show();
             }
 
             if (sessionLink.SettingsController.CurrentSettings.AutoDataLoad) sessionLink.LoadDataAndProcessAsync();
