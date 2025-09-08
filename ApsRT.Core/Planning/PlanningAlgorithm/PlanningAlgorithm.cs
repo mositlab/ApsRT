@@ -130,7 +130,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 CurrentStage = PlanningAlgorithmStage.RunningV;
                 CurrentStageChanged?.Invoke(CurrentStage, UsedPool.Blocks.Count);
-                var V = new AlgorithmV(this);
+                var V = new AlgorithmZ(this);//AlgorithmV(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 1 started");
                 V.Start(UsedWorkflow);
                 if (WannaStop)
@@ -154,7 +154,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
                 var G = new AlgorithmG(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
-                G.Start(UsedPool.PoolSize, 1);
+                //G.Start(UsedPool.PoolSize, 1);
 
                 if (WannaStop)
                 {
