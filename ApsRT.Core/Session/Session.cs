@@ -191,6 +191,20 @@ namespace ApsRT.Core.Session
                     EndSession(602);
             }
 
+
+            if (!Directory.Exists(SessionOptions.SessionsPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(SessionOptions.SessionsPath);
+                }
+                catch
+                {
+                    if (SessionOptions.IsSilent)
+                        EndSession(602);
+                }
+            }
+
             // Запускаем логгер
             Task.Run(AssignedLogger.LogThread);
             var process = Process.GetCurrentProcess();

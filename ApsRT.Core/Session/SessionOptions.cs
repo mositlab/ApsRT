@@ -20,7 +20,7 @@ namespace ApsRT.Core.Session
 
         public string LaunchPath { get; set; }
 
-        const string SessionsPath = "sessions";
+        public const string SessionsPath = "sessions";
 
         /// <summary>
         /// Дополнительный метод, который позволяет удалить старые каталоги
