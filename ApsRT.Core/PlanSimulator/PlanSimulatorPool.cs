@@ -168,6 +168,7 @@ namespace ApsRT.Core.PlanSimulator
                         stage.PartiaRecalcData = PartiasToRecalc[partiaCode];
                         if (LastSubs != null) stage.LastSubsData = LastSubs[partiaCode];
                         stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
+                        stage.NextStages = stage.Stage.Nexts.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
                     }
                 }
                 (var center, _, _) = block.GetCenterData(0);

@@ -13,5 +13,6 @@ namespace ApsRT.Core.PlanSimulator
         public PlanSimulatorLastSubsData[] LastSubsData;
 
         public List<PlanSimulatorStage> PreviousStages;
+        public List<PlanSimulatorStage> NextStages;
     }
 }

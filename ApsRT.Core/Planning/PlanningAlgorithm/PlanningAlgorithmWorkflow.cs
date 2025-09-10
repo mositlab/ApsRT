@@ -1,6 +1,7 @@
 ﻿using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Session;
 using ApsRT.Core.Settings;
+using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         internal PlanSimulatorEngineResult BestValue;
 
+        TimeSpan LastRechanges;
+
         //internal bool NeverGraphs;
 
         internal bool CheckRestrictions(PlanSimulatorEngineResult t)
@@ -40,7 +43,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var val = ((t.DaysRuinedValue * 100.0 / BestValue.DaysRuinedValue) - 100.0);
             var R1 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[0];
 
-            val = ((t.RechangesSeconds * 100.0 / BestValue.RechangesSeconds) - 100.0);
+            val = ((t.RechangesSeconds * 100.0 / LastRechanges) - 100.0);
             var R2 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[1];
 
             val = ((t.ProstoiSeconds.TotalMinutes * 100.0 / BestValue.ProstoiSeconds.TotalMinutes) - 100.0);
@@ -59,6 +62,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         SettingsClass LoadedData => sessionLink.SettingsController.CurrentSettings;
 
+        public void UpdateBestValues(PlanSimulatorEngineResult value)
+        {
+
+            LastRechanges = value.RechangesSeconds;
+        }
+
         internal PlanningAlgorithmWorkflow(Session.Session session, int generations, int cycles, double minutes, PlanSimulatorEngineResult originalValue, int rawDataCount)
         {
             sessionLink = session;
@@ -69,6 +78,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             LastTime = DateTime.Now;
             currDynCounter = 0;
             maxDynCounter = 0;
+
+            UpdateBestValues(originalValue);
 
             BestValue = originalValue;
 
@@ -191,6 +202,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         {
             currDynCounter = 0;
             currentMode = CriteriasList[CurrentComboParam];
+
+            UpdateBestValues(BestValue);
 
             if (LoadedData.UseOnlyMaxCriteriasSettings)
             {

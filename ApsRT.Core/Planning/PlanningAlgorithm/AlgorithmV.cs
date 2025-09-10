@@ -490,6 +490,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 if (true/*globalres > t.RechangesSeconds*/) // тут не только переналадки вообще-то
                 {
                     workflow.BestValue = t;
+                    workflow.UpdateBestValues(t);
                     //workflow.LastRechangesForCombo = t.RechangesSeconds;
                     //workflow.LastProductionForCombo = t.GlobalPlanEndDate - basisLink.MinAcceptableDate;
                     //workflow.LastProstoiForCombo = t.ProstoiSeconds.TotalMinutes;
