@@ -59,6 +59,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //var pool = new OpersPool(basisLink.SessionLink, copy0, preparedData, basisLink.MinAcceptableDate);
             //var OpersCopy1 = basisLink.UsedPool.Blocks; // Копируем сие дело
             var OpersCopy1 = basisLink.UsedPool.CopyBlocksDeep(basisLink, basisLink.UsedPool.BestPoolIndex, true);
+                //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy1, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
 
             var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
@@ -167,7 +168,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     bool bestTaraIsLast = false;
 
                     // Проходимся по всем операциям, что есть сейчас в списке
-                    if (OpersNow.Count < basisLink.GLOBAL_FIXED_MIN || OpersCopy[0].Lists[0].FirstOperJust.PrevDateTime.HasValue)
+                    if (OpersNow.Count < basisLink.GLOBAL_FIXED_MIN /*|| OpersCopy[0].Lists[0].FirstOperJust.PrevDateTime.HasValue*/)
                     {
                         // Сейчас у нас - фиксированные
                         checkThisOp(0);
@@ -216,6 +217,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                 var indexes = OpersCopy[j].Lists[0].PrevMods;//.OpersList[jjjj].Prevs;
                                 var allkids_found = indexes.All(x =>
                                 {
+                                    //return true;
                                     var rrr = DoneModellings.Contains(x.ModID);
                                     if (!rrr)
                                     {
@@ -415,7 +417,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             var resF = F(lastBlock, centers_choosen[choosencent][1].LastMod, OpersCopy[j].Lists[0], choosencent, tara.choosenTara, tara.CurrentTaraMaxCapacity, isPar,
                                 out var gottenRech, out var gottenprost, out var gottenNalads, Ks, centers_choosen, TotalRechanges, TotalProstoi, ProstoiTimes);//, ref centA.Struct, centA.RechangeTime
 
-                            if (OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.Value != choosencent) resF.res -= 1000000;
+                            //if (OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.Value != choosencent) resF.res -= 1000000;
 
                             lock (locker)
                             {

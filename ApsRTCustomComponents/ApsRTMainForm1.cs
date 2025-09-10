@@ -238,7 +238,14 @@ namespace ApsRTCustomComponents
             VKoeffsTextBox.Text = string.Join(", ", settings.VKoeffs);
             VKoeffsTextBox.TextChanged += (sender, args) =>
             {
-                settings.VKoeffs = ((TextBox)sender).Text.Replace(" ", "").Split(',').Select(x => double.Parse(x.Replace('.', ','))).ToArray();
+                try
+                {
+                    settings.VKoeffs = ((TextBox)sender).Text.Replace(" ", "").Split(',').Select(x => double.Parse(x.Replace('.', ','))).ToArray();
+                }
+                catch
+                {
+
+                }
             };
 
             CriteriasListTextBox.Text = string.Join(",", settings.CriteriasList);
