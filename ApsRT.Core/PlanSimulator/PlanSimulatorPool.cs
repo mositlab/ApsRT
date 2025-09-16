@@ -150,8 +150,8 @@ namespace ApsRT.Core.PlanSimulator
 
                     mod.Ranks = new int[PoolSize];
 
-                    mod.PrevMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
-                    mod.NextMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
+                    //mod.PrevMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
+                    //mod.NextMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
 
                     for (int s = 0; s < mod.Stages.Count; s++)
                     {
@@ -167,8 +167,8 @@ namespace ApsRT.Core.PlanSimulator
                         }
                         stage.PartiaRecalcData = PartiasToRecalc[partiaCode];
                         if (LastSubs != null) stage.LastSubsData = LastSubs[partiaCode];
-                        stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
-                        stage.NextStages = stage.Stage.Nexts.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
+                        //stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
+                        //stage.NextStages = stage.Stage.Nexts.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
                     }
                 }
                 (var center, _, _) = block.GetCenterData(0);
@@ -178,6 +178,28 @@ namespace ApsRT.Core.PlanSimulator
                 }
             });
             while (!res0.IsCompleted)
+            {
+                ;
+            }
+            var res1 = Parallel.For(0, blocks.Count, index =>
+            {
+                var block = blocks[index];
+                block.PoolLink = this;
+                for (int m = 0; m < block.Lists.Count; m++)
+                {
+                    var mod = block.Lists[m];
+                    mod.PrevMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
+                    mod.NextMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
+
+                    for (int s = 0; s < mod.Stages.Count; s++)
+                    {
+                        var stage = mod.Stages[s];
+                        stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
+                        stage.NextStages = stage.Stage.Nexts.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
+                    }
+                }
+            });
+            while (!res1.IsCompleted)
             {
                 ;
             }

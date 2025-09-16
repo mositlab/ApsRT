@@ -17,6 +17,30 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             this.basisLink = basisLink;
         }
 
+
+        float getOpsDurToEnd(PlanSimulatorMod mod, float k, ref string asString, HashSet<PlanSimulatorMod> modsCreated = null)
+        {
+            bool ItsFirstMod = modsCreated == null;
+            modsCreated ??= new();
+            var timeHere = (int)mod.AllTime.Max(x => x.Value.TotalSeconds);
+            if (true/*!modsCreated.Contains(mod)*/)
+            {
+                //asString = 
+                modsCreated.Add(mod);
+                var sum = 0f;
+                foreach (var nextMod in mod.NextMods)
+                {
+                    sum += getOpsDurToEnd(nextMod, k, ref asString, modsCreated);
+                    //asString += asStringSub + $"[{next}]" + ",";
+                }
+                //asString = 
+                var asStr = ((ItsFirstMod ? 0 : timeHere * k).ToString());
+                asString += asStr + $"[{mod.ModID}], ";
+                return (ItsFirstMod ? 0 : timeHere * k) + sum;
+            }
+            return 0;
+        }
+
         public void Start(PlanningAlgorithmWorkflow workflow)
         {
             // Выбираем те операции, у которых нет предков. Ну или последнюю, которую можно юзать
@@ -51,6 +75,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             int bestReches = int.MaxValue;
 
+            int count = OpersCopyEEL40.SelectMany(x => x.Lists.SelectMany(list => list.Stages)).Count();
+
             // Пройдем по всем этапчикам
             for (int i = 0; i < OpersCopyEEL40.Count; i++)
             {
@@ -71,14 +97,28 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 while (localCopy.Count > 0)
                 {
                     var minIndex = -1;
-                    var minValue = int.MaxValue;
+                    double minValue = double.MaxValue;
+                    double minValueO = double.MaxValue;
                     for (int j = 0; j < localCopy.Count; j++)
                     {
                         var center = localCopy[j].GetCenterData(0);
-                        var result = basisLink.SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new Rechanges.RechangesEngine.RechangesEngineData(center.CenterDataLink, localCopy[j].Lists[0].MinDatesData[0], finalList[^1].Lists[0].FirstOperJust, localCopy[j].Lists[0].FirstOperJust, center.Center));
-                        if (result.Duration < minValue)
+
+                        var b = localCopy[j].Lists[0];
+                        var minDeadline = b.StagesAsNormal.Min(stage => stage.OrderLink.Deadline);
+                        string secondsAsString = "";
+                        var seconds = getOpsDurToEnd(b, 1.5f, ref secondsAsString)/*OpersDurationsToEndLeft[b]*/;
+                        var timeWhenEnds = basisLink.StartOfPlanningDate.AddSeconds(finalList.Sum(mod => mod.MaxTime(center.Center).TotalSeconds)).AddSeconds(seconds);
+                        var delta = timeWhenEnds - minDeadline;
+                        //if (delta.Ticks < 0) delta = new TimeSpan();
+                        var resultOrders = -delta.TotalDays;
+
+                        var resultRechanges = basisLink.SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new Rechanges.RechangesEngine.RechangesEngineData(center.CenterDataLink, localCopy[j].Lists[0].MinDatesData[0], finalList[^1].Lists[0].FirstOperJust, localCopy[j].Lists[0].FirstOperJust, center.Center)).Duration;
+
+
+                        if (resultRechanges < minValue || (resultRechanges == minValue && resultOrders < minValueO))
                         {
-                            minValue = result.Duration;
+                            minValue = resultRechanges;
+                            minValueO = resultOrders;
                             minIndex = j;
                         }
                     }
@@ -125,35 +165,35 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     }
                 }
 
-                if (true)
-                {
-                    Queue<PlanSimulatorStage> nextStagesToSet = new();
-                    foreach (var listItem in listPrev)
-                        nextStagesToSet.Enqueue(listItem);
+                //if (true)
+                //{
+                //    Queue<PlanSimulatorStage> nextStagesToSet = new();
+                //    foreach (var listItem in listPrev)
+                //        nextStagesToSet.Enqueue(listItem);
 
-                    while (nextStagesToSet.Count > 0)
-                    {
-                        var nextStage = nextStagesToSet.Dequeue();
-                        var block = nextStage.ModLink.BlockLink;
-                        if (finalList.Contains(block))
-                        {
-                            ;
-                        }
-                        else
-                        {
-                            finalList.Insert(0, block); // Добавляем в список
-                        }
-                        var nexts = nextStage.PreviousStages/*.Where(x => !finalList.Contains(x.ModLink.BlockLink))*/.ToList(); // Добавляем следующих
-                        foreach (var listItem in nexts)
-                            nextStagesToSet.Enqueue(listItem);
-                    }
-                }
+                //    while (nextStagesToSet.Count > 0)
+                //    {
+                //        var nextStage = nextStagesToSet.Dequeue();
+                //        var block = nextStage.ModLink.BlockLink;
+                //        if (finalList.Contains(block))
+                //        {
+                //            ;
+                //        }
+                //        else
+                //        {
+                //            finalList.Insert(0, block); // Добавляем в список
+                //        }
+                //        var nexts = nextStage.PreviousStages/*.Where(x => !finalList.Contains(x.ModLink.BlockLink))*/.ToList(); // Добавляем следующих
+                //        foreach (var listItem in nexts)
+                //            nextStagesToSet.Enqueue(listItem);
+                //    }
+                //}
 
-                if (true)
-                {
-                    var OpersCopyOther = OpersCopy.Where(x => !finalList.Contains(x)).ToList();
-                    finalList.AddRange(OpersCopyOther);
-                }
+                //if (true)
+                //{
+                //    var OpersCopyOther = OpersCopy.Where(x => !finalList.Contains(x)).ToList();
+                //    finalList.AddRange(OpersCopyOther);
+                //}
 
                 poolCopy.Blocks = finalList;
 
