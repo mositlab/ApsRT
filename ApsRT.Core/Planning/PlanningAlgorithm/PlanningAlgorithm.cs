@@ -130,7 +130,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 CurrentStage = PlanningAlgorithmStage.RunningV;
                 CurrentStageChanged?.Invoke(CurrentStage, UsedPool.Blocks.Count);
-                var V = /*new AlgorithmZ(this);*/new AlgorithmV(this);
+                var V = /*new AlgorithmZ(this);*/ new AlgorithmV(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 1 started");
                 V.Start(UsedWorkflow);
                 if (WannaStop)

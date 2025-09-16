@@ -1,23 +1,25 @@
-﻿using ApsRT.Core.NaladLengths;
+﻿using ApsRT.Core.Centers.MasterData;
+using ApsRT.Core.NaladLengths;
 using ApsRT.Core.Planning.ParallelPlanning;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
+using ApsRT.Core.Rechanges;
 using ApsRT.Core.Rechanges.MasterData;
 using ApsRT.Core.Rechanges.RechangesEngine;
-using ApsRT.Core.Rechanges;
+using ApsRT.Core.Taras.TaraSearchEngine;
+using Microsoft.VisualBasic;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
-using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using ApsRT.Core.Centers.MasterData;
-using System.Collections.Frozen;
-using ApsRT.Core.Taras.TaraSearchEngine;
-using ApsRT.Core.PlanSimulator;
-using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -30,13 +32,504 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             this.basisLink = basisLink;
         }
 
+        StreamWriter ordersWriter = new ("ordersYAI.csv", false, Encoding.UTF8);
+
+        ConcurrentBag<string> ordersWriterConc = new();
+
+        double globalres = double.MaxValue;
+
+        object lockerGlobal = new();
+
+        void Sub(int threadIndex, PlanningAlgorithmWorkflow workflow, int[] possibleFirstIndexes)
+        {
+            double[] Ks = basisLink.SessionLink.SettingsController.CurrentSettings.VKoeffs;
+
+            //var copy0 = OpersPool.CopyBlocks(basisLink.BestBlocksList, true);
+            //var preparedData = new OpersPoolConstructor(copy0, basisLink.MinAcceptableDate);
+            //var pool = new OpersPool(basisLink.SessionLink, copy0, preparedData, basisLink.MinAcceptableDate);
+            //var OpersCopy1 = basisLink.UsedPool.Blocks; // Копируем сие дело
+            var OpersCopy1 = basisLink.UsedPool.CopyBlocksDeep(basisLink, basisLink.UsedPool.BestPoolIndex, true);
+            //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
+            var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy1, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
+
+            var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
+
+            poolCopy.PrepareOnOneRCData();
+
+            poolCopy.PrepareAllRCsOnBlocks();
+
+            ordersWriter.WriteLine("N;ПоследняяОперация;ПоследняяДата;РассматриваемаяОперация;МинДедлайн;Секунд;СекундКаждая;КогдаКончится;Дельта");
+            //$"{OpersHave};{a.StagesAsNormal[0].GUID};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{timeWhenEnds};{delta}"
+
+            //PrepareOpsForEnding(poolCopy.Blocks.SelectMany(block => block.Lists).ToList(), 1.5f);
+
+            Guid? LastPartia = null;
+
+            Console.WriteLine("V, beg, " + OpersCopy1.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
+
+
+            var NaladLengthsMasterData = basisLink.SessionLink.MasterDataLinks.NaladLengthsMasterData;
+            var ParallelPlanningMasterData = basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData;
+
+
+            //if (i == possibleFirstIndexes.Length)
+            //{
+            //    break;
+            //}
+
+            if (basisLink.WannaStop)
+            {
+                return;
+            }
+
+            //workflow.ProgressChanged(0);
+
+            long TotalRechanges = 0; // Сумма вообще всех переналадок
+            long TotalProstoi = 0; // Сумма вообще всех простоев
+
+            // Нужно делать копию каждый раз
+            //Dictionary<int, (int Row, Center Struct)> CentersDic = new(centers_choosen);
+
+            // Это - проверка, оценка, стоит ли прям щас поставить какой-то обед или ремонт
+            //var keys = centers_choosen.Keys;
+            //foreach (var key in keys)
+            //{
+            //    var val = centers_choosen[el.Key];
+            //    if (val.Struct.NextFixingIndex.Item2)
+            //    {
+            //        val.Struct.LastDate += (CentersFixingTime[el.Key][val.Struct.NextFixingIndex.Item1].When - MIN_DATE_TIME);
+            //        val.Struct.NextFixingIndex.Item1++;
+            //        val.Struct.NextFixingIndex.Item2 = false;
+            //        if (val.Struct.NextFixingIndex.Item1 == CentersFixingTime[el.Key].Count) val.Struct.NextFixingIndex.Item1 = -1;
+            //        centers_choosen[el.Key] = val;
+            //    }
+            //}
+
+            // Создаём локальную копию
+            var OpersCopy = PlanSimulatorPool.CopyBlocksSwallow(OpersCopy1);
+
+            // Так как у нас есть пул для работы, вычищаем из него всё
+            //pool.ClearTaraTimeLineDics();
+            //pool.NaladLengthsDataRecreate(preparedData);
+
+            // Постепенно заполняем текущую 
+            var ProstoiTimes = new Dictionary<int, DateTime>(poolCopy.Blocks.Count);
+            var DoneModellings = new HashSet<int>();
+            var OpersNow = new List<PlanSimulatorBlock>(poolCopy.Blocks.Count);
+
+            // Словарик для хранения выбранных тар для правильного алгоритма
+            var PrevsInfoForV = new Dictionary<int, Uco>();
+
+            var OneRCGroupsForV = new Dictionary<int, Uco>();////poolCopy.OnOneRCGroupData.ToDictionary(x => x.Key, x => (Uco?)null);
+
+            // Начав, естественно, с самой первой.
+            var fInd = OpersCopy.FindIndex(x => x.Lists[0].StagesAsNormal.Any(y => y.Index == possibleFirstIndexes[threadIndex]));
+
+            bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(null, null);
+
+            var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OpersCopy[fInd].Lists[0].FirstOperJust, OpersCopy[fInd].GetCenterData(0).Center, asFirst);
+            AddOperHere(fInd, AsParallel: false, 0, 0, nalads, centers_choosen, (OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTara, OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)/*new(Guid.Empty, "")*/, false, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
+
+            if (OpersCopy[fInd].Lists[0].FirstOperJust.OnOneRC && poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[fInd].Lists[0].ModID, out var groupID))
+            {
+                var cent = OpersCopy[fInd].GetCenterData(0).Center;
+                OneRCGroupsForV.Add(groupID, cent);
+                OpersCopy[fInd].SetCenter(cent, 1);
+            }
+
+            var isbad = false;
+
+            // Цикл проходится
+            while (OpersCopy.Count > 0)
+            {
+                if (basisLink.WannaStop)
+                {
+                    isbad = true;
+                    break;
+                }
+                var best = -1;
+                var bestV1 = double.MaxValue;
+                var bestV2 = double.MaxValue;
+                var bestErr = int.MaxValue;
+                var locker = new object();
+                long timeR = 0;
+                long timeP = 0;
+                GottenNaladLengthStruct bestNalads = new GottenNaladLengthStruct();
+                bool asParallel = false;
+                int bestParID = 0;
+                Uco bestC = new(Guid.Empty, "");
+                (Uco tara, double max) bestTara = (new(Guid.Empty, ""), 0);
+                bool bestTaraIsLast = false;
+
+                // Проходимся по всем операциям, что есть сейчас в списке
+                if (OpersNow.Count < basisLink.GLOBAL_FIXED_MIN /*|| OpersCopy[0].Lists[0].FirstOperJust.PrevDateTime.HasValue*/)
+                {
+                    // Сейчас у нас - фиксированные
+                    checkThisOp(0);
+                    //break;
+                }
+                else
+                {
+                    if (OpersNow.Count < basisLink.GLOBAL_VPZ_MAX)
+                    {
+                        // Изучаем лишь те, что в опред. промежутке (ВПЗ)
+                        var resu1 = Parallel.For(0, OpersCopy.Count/*Planning.GLOBAL_VPZ_MAX - OpersNow.Count - 1*/, n =>
+                        {
+                            if (OpersCopy[n].Lists.Any(x => x.StagesAsNormal.Any(y => y.VPZ || y.IsFact)))
+                                checkThisOp(n);
+                        });
+                        while (!resu1.IsCompleted)
+                        {
+                            ;
+                        }
+                    }
+                    else
+                    {
+                        // Это обычные операции
+                        var resu1 = Parallel.For(0, OpersCopy.Count, n =>
+                        //for (int n = 0; n < OpersCopy.Count; n++)
+                        {
+                            //if (LastPartia == null || OpersCopy[n].Lists[0].FirstOperJust.GetOrderOrPartiaCode() == LastPartia)
+                            checkThisOp(n);
+                        }
+
+                        );
+                        while (!resu1.IsCompleted)
+                        {
+                            ;
+                        }
+                    }
+                }
+
+                bool checkThisOp(int j)
+                {
+                    var bad = false;
+                    // Сначала проверяем: можно ли эту операцию поставить?
+                    if (OpersNow.Count >= basisLink.GLOBAL_FIXED_MIN) // но это при условии, что она уже не фиксированная
+                    {
+                        for (var jjjj = 0; jjjj < OpersCopy[j].Lists[0].StagesAsNormal.Count; jjjj++)
+                        {
+                            var indexes = OpersCopy[j].Lists[0].PrevMods;//.OpersList[jjjj].Prevs;
+                            var allkids_found = indexes.All(x =>
+                            {
+                                //return true;
+                                var rrr = DoneModellings.Contains(x.ModID);
+                                if (!rrr)
+                                {
+                                    ;
+                                }
+                                return rrr;
+                            });
+                            if (indexes.Count > 0 && !allkids_found)
+                            {
+                                //var ModsPrev = indexes.Select(x => OpersCopy.Find(y => y.Lists.Any(z => z.ModID == x)) ?? OpersNow.Find(y => y.Lists.Any(z => z.ModID == x))).Select(x => (x, "F:" + x.Lists.Any(y => y.OpersList.Any(z => z.IsFact)) + "N:" + x.Lists.Any(y => y.OpersList.Any(z => z.Fixed)) + "V:" + x.Lists.Any(y => y.OpersList.Any(z => z.VPZ)))).ToList();
+                                bad = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (bad)
+                    {
+                        return false;
+                    }
+
+                    var list = OpersCopy[j].Lists[0].PossibleRCsHere;//.OpersList[0].PossibleCenters;
+                    var alt = (list != null) && false;
+
+                    //var taraList = Tara.GetOperTara(OpersCopy[j].Lists[0].FirstOper, false);
+
+
+                    TemporaryTaraSearchData data = null;
+                    bool Can1 = TaraSearchEngine.GetAllVariantsForThese(OpersCopy[j].Lists[0], out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForV, ModToTaraInfoLink = basisLink.ModToTaraInfo });
+
+                    //bool Can = Merger.SumIsPossible(OpersCopy[j].Lists[0].OpersList,
+                    //    out _, out _, out _, out _, out _, false, true,
+                    //    null, // ПРЕД.
+                    //    null,
+                    //    null
+                    //    );
+
+                    for (var jj = 0; jj < (alt ? list.Count : 1); jj++)
+                    {
+                        var choosencent = alt ? list[jj] : OpersCopy[j].Lists[0].FirstOperJust.Center; // Выбираем мы значит РЦ
+                        var lastBlock = centers_choosen[choosencent][1].LastBlock; // чекам посл блок
+
+                        // ВНИМАНИЕ.
+                        // lastBlock вообще-то нужно объявлять не тут - а ниже, где перечисляются РЦ.
+                        // Но по каким-то причинам (пока не понял, каким), если перенести блок туда, альтернативные РЦ перестают помечаться.
+                        // + план ищется хуже (результаты не такие красивые)
+                        // Скорее всего, это надо будет пофиксить, но пока смотрится параллельный отжиг, алгоритм остаётся таким.
+
+
+                        // А что если можно с параллелью?
+                        // Он должен быть задан, и быть не заполнен до конца, чтобы в этом был какой-то смысл, + наш РЦ должен поддерживать параллелизм
+                        //var myParId = OpersCopy[j].Lists[0].FirstOper.ParallelPlanningID;
+
+                        bool canChangeTara = true; // Ну, изначально тару менять можно
+
+                        if (!OpersCopy[j].Lists[0].FirstOperJust.EndTara.IsEmpty)
+                        {
+                            // Если задана конечная тара изначально, то менять тару ЗАПРЕЩАЕМ.
+                            canChangeTara &= false;
+                        }
+
+                        bool b2 = false;
+
+                        if (OpersCopy[j].Lists[0].FirstOperJust.ParallelPlanningIDs.Any(x => x.Value != -1) && OpersCopy[j].Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(choosencent, out var myParId)
+                            && ParallelPlanningMasterData.ParIDParams.TryGetValue(myParId, out var paramsHere)) // Может быть параллельным? И есть подходящий рц?
+                        {
+
+                            //var paramsHere = ParallelPlanningHelper.ParIDParams[myParId];
+                            canChangeTara &= !paramsHere.DoNotIncreaseTara; // тут же НЕЛЬЗЯ тару менять
+
+                            if (lastBlock != null)
+                            {
+                                bool MyFactVPZ = OpersCopy[j].Lists[0].StagesAsNormal.Any(x => x.IsFact || x.VPZ);
+                                DateTime? date1 = OpersCopy[j].Lists[0].FirstOperJust.StartTimeFact;
+                                bool MyFix = OpersCopy[j].Lists[0].StagesAsNormal.Any(x => x.Fixed);
+                                bool LastFactVPZ = lastBlock.Lists[0].StagesAsNormal.Any(x => x.IsFact || x.VPZ);
+                                DateTime? date2 = lastBlock.Lists[0].FirstOperJust.StartTimeFact;
+                                bool LastFix = lastBlock.Lists[0].StagesAsNormal.Any(x => x.Fixed);
+                                if (MyFactVPZ == LastFactVPZ && MyFix == LastFix && date1 == date2 &&
+
+                                    lastBlock.FillKoeff > -1 && lastBlock.FillKoeff < 1 && lastBlock.ExistingTaraHere.Count > 0
+                                    && lastBlock.Lists[0].FirstOperJust.ParallelPlanningIDs.Any(x => x.Value != -1) // Предыдущий тоже может быть паралелльным?
+                                    && lastBlock.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(choosencent, out var toChekID) && toChekID == myParId
+                                    && lastBlock.GetCenterData(1).Center == choosencent
+                                    )
+                                {
+                                    var seconds1 = lastBlock.Lists.Min(x => x.AllTime[choosencent]).TotalSeconds; // получаем МИНИМАЛЬНУЮ длительность моделирования
+                                    var secondsWant = OpersCopy[j].Lists[0].AllTime[choosencent].TotalSeconds; // получаем длительность блока, которую хотим вставить
+                                    var delta = paramsHere.Delta; // обращаемся к максимально допустимой дельте
+                                    if (Math.Abs(secondsWant - seconds1) <= delta)
+                                    {
+                                        b2 = CheckIt(true, canChangeTara);
+                                    }
+                                }
+                            }
+                        }
+
+                        // чекаем без параллели
+                        if (!b2) CheckIt(false, canChangeTara);
+
+                        bool CheckIt(bool Par, bool CanChangeTara)
+                        {
+                            bool b1 = false;
+                            var AnyCan = false;
+                            int groupID1 = -1;
+                            if (Can1/* && CanChangeTara*/)
+                            {
+                                List<Uco> allowedRC = null;
+                                if (OpersCopy[j].Lists[0].FirstOperJust.OnOneRC
+                                        &&
+                                        poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[j].Lists[0].ModID, out groupID1)
+                                        )
+                                {
+                                    allowedRC = poolCopy.OnOneRCGroupData[groupID1].PossibleRCs;
+                                }
+                                else
+                                    groupID1 = -1;
+
+                                // Перебираем тары
+                                for (int h = 0; h < data.PossibleCentersAndTaras.Length; h++) // ПО ИДЕЕ этот список - идейный продолжатель списка "PossibleCenters", поэтому в V этот список не нужен.
+                                {
+                                    var tara = data.PossibleCentersAndTaras[h];
+                                    if (Par && centers_choosen[tara.RC][1].LastBlock == null) continue;
+                                    if (!canChangeTara && tara.Tara != OpersCopy[j].Lists[0].FirstOperJust.EndTara) continue; // Если тару нельзя менять, то в случае несовпадения этот вариант исключается.
+
+                                    //if (OpersCopy[j].Lists[0].FirstOper.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOper.RecommendedRC.Value != tara.RC) continue;//resF.res -= 1000000; // Если уже есть выбранный РЦ, то забиваем болт на все остальные
+                                    if (allowedRC != null && !allowedRC.Contains(tara.RC)) continue; // Если в списке разрещенных РЦ нет этого, то дальше не идём
+
+                                    if (groupID1 != -1 && OneRCGroupsForV.TryGetValue(groupID1, out var oneGroupRC) && tara.RC != oneGroupRC)
+                                        continue; // Если я уже ставил РЦ в эту группу, то другие нельзя
+
+                                    var Can2 = TaraSearchEngine.FilterAllVariants(OpersCopy[j].Lists[0], data, out _, out _, out var GOTmax, out _, out _,
+                                        new SumIsPossibleOptions(false)
+                                        {
+                                            PrevsInfo = PrevsInfoForV,// ПРЕД.
+                                            TaraMustBeThis = new(1) { tara.Tara },// огр. по таре
+                                            RCMustBeThis = new(1) { tara.RC },// огр. по РЦ
+                                            LogSomeErrors = false,
+                                            ModToTaraInfoLink = basisLink.ModToTaraInfo
+                                        });
+                                    AnyCan |= Can2;
+                                    if (Can2)
+                                    {
+                                        b1 |= localFChecking(lastBlock, Par, tara.RC, (tara.Tara, GOTmax)); // Фигачим с выбором тары
+                                                                                                            //if (OpersCopy[j].Lists[0].FirstOper.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOper.RecommendedRC.Value == tara.RC) break; // Если уже есть выбранный РЦ, то забиваем болт на все остальные
+                                    }
+                                }
+                            }
+                            if (!CanChangeTara || !Can1 || !AnyCan) // Если ну вот вообще ничего не может,
+                            {
+                                if (groupID1 != -1)
+                                {
+                                    ;
+                                }
+                                //localFChecking(lastBlock, Par, choosencent, new()); // Выбора нет, делаем без тары 
+                                b1 |= localFChecking(lastBlock, Par, choosencent, (OpersCopy[j].Lists[0].FirstOperJust.CurrentTara, OpersCopy[j].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)); // Выбора нет, делаем с чем есть
+                            }
+                            return b1;
+                        }
+
+                        break;
+                    }
+
+
+
+                    bool localFChecking(PlanSimulatorBlock lastBlock, bool isPar, Uco choosencent, (Uco choosenTara, double CurrentTaraMaxCapacity) tara)
+                    {
+                        bool bestTaraIsLastLocal = false;
+                        int parID = 0;
+                        if (isPar)
+                        {
+                            if (tara.choosenTara.IsEmpty) // Собрался в параллель пустую тару ставить???
+                            {
+                                return false; // Так нельзя!
+                            }
+                            parID = ParallelPlanningMasterData.GetParPlanID(choosencent, OpersCopy[j].Lists[0].FirstOperJust.OperationVid, OpersCopy[j].Lists[0].FirstOperJust);
+                            var result = ParallelPlanningMasterData.GetMostFreeTara(
+                                choosencent,
+                                OpersCopy[j].Lists[0].FirstOperJust.OperationVid,
+                                parID,
+                                OpersCopy[j].Lists.Count, //TODO: у общих этапов их количество может быть больше
+                                lastBlock.ExistingTaraHere,
+                                tara.choosenTara,
+                                out var resultat
+                                );
+                            if (result == -1)
+                            {
+                                return false; // Так НЕЛЬЗЯ.
+                            }
+                            if (result == 0)
+                            {
+                                // Если вернул 0, значит влазит всё, НО - под завязку, больше ничего не влезет, поэтому 
+                                bestTaraIsLastLocal = true;
+                            }
+                        }
+
+                        var resF = F(lastBlock, centers_choosen[choosencent][1].LastMod, OpersCopy[j].Lists[0], choosencent, tara.choosenTara, tara.CurrentTaraMaxCapacity, isPar,
+                            out var gottenRech, out var gottenprost, out var gottenNalads, Ks, centers_choosen, TotalRechanges, TotalProstoi, OpersNow.Count, ProstoiTimes);//, ref centA.Struct, centA.RechangeTime
+
+                        //if (OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.Value != choosencent) resF.res -= 1000000;
+
+                        lock (locker)
+                        {
+                            if (resF.errorsRate <= bestErr && (resF.res1 < bestV1 || (resF.res1 == bestV1 && resF.res2 < bestV2)))
+                            {
+                                bestV1 = resF.res1;
+                                bestV2 = resF.res2;
+                                bestErr = resF.errorsRate;
+                                best = j;
+                                timeR = gottenRech;
+                                timeP = gottenprost;
+                                bestC = choosencent;
+                                asParallel = isPar;
+                                bestParID = parID;
+                                bestTara = tara;
+                                bestTaraIsLast = bestTaraIsLastLocal;
+                                bestNalads = gottenNalads;
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                // Лучшую операцию, если она есть, пихаем
+                if (best == -1)
+                {
+                    basisLink.CurrentStage = PlanningAlgorithmStage.FailedV;
+                    basisLink.CurrentStageChanged?.Invoke(basisLink.CurrentStage, OpersCopy.Count);
+                    isbad = true;
+                    break;
+                }
+
+                // Выбранную операцию вставляем, добиваем доп. данные
+                OpersCopy[best].SetCenter(bestC, 1);
+                TotalRechanges += timeR; // Добавляем общих переналадок
+                TotalProstoi += timeP; // Добавляем общих простоев
+
+                //OneRCGroupsForV.Add(OpersCopy[best].Lists[0].ModID, bestC);
+
+                if (OpersCopy[best].Lists[0].FirstOperJust.OnOneRC
+                    && poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[best].Lists[0].ModID, out var groupID1))
+                {
+                    OneRCGroupsForV.TryAdd(groupID1, bestC);
+                }
+
+                LastPartia = OpersCopy[best].Lists[0].NextMods.Count == 0 ? null : OpersCopy[best].Lists[0].FirstOperJust.GetOrderOrPartiaCode();
+
+                AddOperHere(best, asParallel, timeP, timeR, bestNalads, centers_choosen, bestTara, bestTaraIsLast, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
+
+
+                //workflow.ProgressChanged(OpersNow.Count); // Провоцируем перерисовку
+
+                if (threadIndex == 0) basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, OpersNow.Count);
+
+            }
+            if (isbad)
+            {
+                //This.OnCalcDebugger.Text += $"не дошёл, лишь {OpersCopy.Count}\r\n\r\n";
+                //i--;
+                //if (LoadedData.OnlyOneVRun)
+                //{
+                return;
+                //}
+
+                //continue; // Если там никакая операция не подошла, то он ничего не вычисляет, а просто переходит к следующему циклу
+            }
+            Console.WriteLine($"V, step {threadIndex}, " + OpersNow.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count());
+            //var pool0 = new OpersPool(basisLink.SessionLink, OpersNow, preparedData, basisLink.MinAcceptableDate);
+            var t = PlanSimulatorEngine.CalculatePlan(OpersNow, 1, basisLink.MinAcceptableDate, null);//PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool0, basisLink.MinAcceptableDate, null);
+                                                                                                      //This.SomeResultsTextBox.Text += $"Дошёл, {TimeSpan.FromSeconds(t.RechangesSeconds)}\r\n";
+            lock (lockerGlobal)
+            {
+                if (globalres > t.DaysRuinedValue) // тут не только переналадки вообще-то
+                {
+                    workflow.BestValue = t;
+                    workflow.UpdateBestValues(t);
+                    //workflow.LastRechangesForCombo = t.RechangesSeconds;
+                    //workflow.LastProductionForCombo = t.GlobalPlanEndDate - basisLink.MinAcceptableDate;
+                    //workflow.LastProstoiForCombo = t.ProstoiSeconds.TotalMinutes;
+                    //workflow.LastDaysForCombo = t.DaysRuinedValue;
+                    //workflow.LastBadOffsetsForCombo = t.BadOffsets;
+                    basisLink.UsedPool = poolCopy;
+                    //basisLink.UsedPool.indexes();
+                    basisLink.UpdateBcsSuccess(t, OpersNow, 1);
+                    globalres = t.DaysRuinedValue;
+                }
+                workflow.Generation++;
+            }
+            //else
+            //{
+            //    if (!IsSilent && !This.GraphsRBNever.Checked)
+            //    {
+            //        GraphsController.AddNewFailedPoint();
+            //    }
+            //}
+
+
+
+            //MessageBox.Show(TimeSpan.FromSeconds(globalres).ToString());
+        }
+
         public void Start(PlanningAlgorithmWorkflow workflow)
         {
 
             double[] Ks = basisLink.SessionLink.SettingsController.CurrentSettings.VKoeffs;
+            Console.WriteLine("V koeffs:");
+            for (int i = 0; i < Ks.Length; i++)
+            {
+                Console.WriteLine($"[{i}]: {Ks[i]}");
+            }
 
-            var NaladLengthsMasterData = basisLink.SessionLink.MasterDataLinks.NaladLengthsMasterData;
-            var ParallelPlanningMasterData = basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData;
+            //Ks[19] = 1000; // Вхреначим заказы
+
+
 
             // Выбираем те операции, у которых нет предков. Ну или последнюю, которую можно юзать
             int[] possibleFirstIndexes;
@@ -54,465 +547,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 possibleFirstIndexes = new int[1] { basisLink.UsedPool.Blocks.First(x => x.Lists.All(y => y.PrevMods.Count == 0)).Lists[0].StagesAsNormal[0].Index }; // Ну она же всё равно первая
             }
 
-            //var copy0 = OpersPool.CopyBlocks(basisLink.BestBlocksList, true);
-            //var preparedData = new OpersPoolConstructor(copy0, basisLink.MinAcceptableDate);
-            //var pool = new OpersPool(basisLink.SessionLink, copy0, preparedData, basisLink.MinAcceptableDate);
-            //var OpersCopy1 = basisLink.UsedPool.Blocks; // Копируем сие дело
-            var OpersCopy1 = basisLink.UsedPool.CopyBlocksDeep(basisLink, basisLink.UsedPool.BestPoolIndex, true);
-                //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
-            var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy1, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
-
-            var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
-
-            poolCopy.PrepareOnOneRCData();
-
-            poolCopy.PrepareAllRCsOnBlocks();
-
-            Console.WriteLine("V, beg, " + OpersCopy1.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
-
-            Console.WriteLine("V koeffs:");
-            for (int i = 0; i < Ks.Length; i++)
+            var resu = Parallel.For(0, Math.Min(10, possibleFirstIndexes.Length), i =>
             {
-                Console.WriteLine($"[{i}]: {Ks[i]}");
-            }
+                Sub(i, workflow, possibleFirstIndexes);
+            });
+            while (!resu.IsCompleted) ;
 
-            var globalres = TimeSpan.MaxValue;
-            for (var i = 0; i < (1) || globalres == TimeSpan.MaxValue; i++)
-            {
-                if (i == possibleFirstIndexes.Length)
-                {
-                    break;
-                }
+            foreach (var line in ordersWriterConc) ordersWriter.WriteLine(line);
 
-                if (basisLink.WannaStop)
-                {
-                    break;
-                }
-
-                //workflow.ProgressChanged(0);
-
-                long TotalRechanges = 0; // Сумма вообще всех переналадок
-                long TotalProstoi = 0; // Сумма вообще всех простоев
-
-                // Нужно делать копию каждый раз
-                //Dictionary<int, (int Row, Center Struct)> CentersDic = new(centers_choosen);
-
-                // Это - проверка, оценка, стоит ли прям щас поставить какой-то обед или ремонт
-                //var keys = centers_choosen.Keys;
-                //foreach (var key in keys)
-                //{
-                //    var val = centers_choosen[el.Key];
-                //    if (val.Struct.NextFixingIndex.Item2)
-                //    {
-                //        val.Struct.LastDate += (CentersFixingTime[el.Key][val.Struct.NextFixingIndex.Item1].When - MIN_DATE_TIME);
-                //        val.Struct.NextFixingIndex.Item1++;
-                //        val.Struct.NextFixingIndex.Item2 = false;
-                //        if (val.Struct.NextFixingIndex.Item1 == CentersFixingTime[el.Key].Count) val.Struct.NextFixingIndex.Item1 = -1;
-                //        centers_choosen[el.Key] = val;
-                //    }
-                //}
-
-                // Создаём локальную копию
-                var OpersCopy = PlanSimulatorPool.CopyBlocksSwallow(OpersCopy1);
-
-                // Так как у нас есть пул для работы, вычищаем из него всё
-                //pool.ClearTaraTimeLineDics();
-                //pool.NaladLengthsDataRecreate(preparedData);
-
-                // Постепенно заполняем текущую 
-                var ProstoiTimes = new Dictionary<int, DateTime>(poolCopy.Blocks.Count);
-                var DoneModellings = new HashSet<int>();
-                var OpersNow = new List<PlanSimulatorBlock>(poolCopy.Blocks.Count);
-
-                // Словарик для хранения выбранных тар для правильного алгоритма
-                var PrevsInfoForV = new Dictionary<int, Uco>();
-
-                var OneRCGroupsForV = new Dictionary<int, Uco>();////poolCopy.OnOneRCGroupData.ToDictionary(x => x.Key, x => (Uco?)null);
-
-                // Начав, естественно, с самой первой.
-                var fInd = OpersCopy.FindIndex(x => x.Lists[0].StagesAsNormal.Any(y => y.Index == possibleFirstIndexes[i]));
-
-                bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(null, null);
-
-                var nalads = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OpersCopy[fInd].Lists[0].FirstOperJust, OpersCopy[fInd].GetCenterData(0).Center, asFirst);
-                AddOperHere(fInd, AsParallel: false, 0, 0, nalads, centers_choosen, (OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTara, OpersCopy[fInd].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)/*new(Guid.Empty, "")*/, false, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
-                
-                if (OpersCopy[fInd].Lists[0].FirstOperJust.OnOneRC && poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[fInd].Lists[0].ModID, out var groupID))
-                {
-                    var cent = OpersCopy[fInd].GetCenterData(0).Center;
-                    OneRCGroupsForV.Add(groupID, cent);
-                    OpersCopy[fInd].SetCenter(cent, 1);
-                }
-
-                var isbad = false;
-
-                // Цикл проходится
-                while (OpersCopy.Count > 0)
-                {
-                    if (basisLink.WannaStop)
-                    {
-                        isbad = true;
-                        break;
-                    }
-                    var best = -1;
-                    var bestV = double.MaxValue;
-                    var bestErr = int.MaxValue;
-                    var locker = new object();
-                    long timeR = 0;
-                    long timeP = 0;
-                    GottenNaladLengthStruct bestNalads = new GottenNaladLengthStruct();
-                    bool asParallel = false;
-                    int bestParID = 0;
-                    Uco bestC = new(Guid.Empty, "");
-                    (Uco tara, double max) bestTara = (new(Guid.Empty, ""), 0);
-                    bool bestTaraIsLast = false;
-
-                    // Проходимся по всем операциям, что есть сейчас в списке
-                    if (OpersNow.Count < basisLink.GLOBAL_FIXED_MIN /*|| OpersCopy[0].Lists[0].FirstOperJust.PrevDateTime.HasValue*/)
-                    {
-                        // Сейчас у нас - фиксированные
-                        checkThisOp(0);
-                        //break;
-                    }
-                    else
-                    {
-                        if (OpersNow.Count < basisLink.GLOBAL_VPZ_MAX)
-                        {
-                            // Изучаем лишь те, что в опред. промежутке (ВПЗ)
-                            var resu1 = Parallel.For(0, OpersCopy.Count/*Planning.GLOBAL_VPZ_MAX - OpersNow.Count - 1*/, n =>
-                            {
-                                if (OpersCopy[n].Lists.Any(x => x.StagesAsNormal.Any(y => y.VPZ || y.IsFact)))
-                                    checkThisOp(n);
-                            });
-                            while (!resu1.IsCompleted)
-                            {
-                                ;
-                            }
-                        }
-                        else
-                        {
-                            // Это обычные операции
-                            var resu1 = Parallel.For(0, OpersCopy.Count, n =>
-                            //for (int n = 0; n < OpersCopy.Count; n++)
-                            {
-                                checkThisOp(n);
-                            }
-
-                            );
-                            while (!resu1.IsCompleted)
-                            {
-                                ;
-                            }
-                        }
-                    }
-
-                    bool checkThisOp(int j)
-                    {
-                        var bad = false;
-                        // Сначала проверяем: можно ли эту операцию поставить?
-                        if (OpersNow.Count >= basisLink.GLOBAL_FIXED_MIN) // но это при условии, что она уже не фиксированная
-                        {
-                            for (var jjjj = 0; jjjj < OpersCopy[j].Lists[0].StagesAsNormal.Count; jjjj++)
-                            {
-                                var indexes = OpersCopy[j].Lists[0].PrevMods;//.OpersList[jjjj].Prevs;
-                                var allkids_found = indexes.All(x =>
-                                {
-                                    //return true;
-                                    var rrr = DoneModellings.Contains(x.ModID);
-                                    if (!rrr)
-                                    {
-                                        ;
-                                    }
-                                    return rrr;
-                                    });
-                                if (indexes.Count > 0 && !allkids_found)
-                                {
-                                    //var ModsPrev = indexes.Select(x => OpersCopy.Find(y => y.Lists.Any(z => z.ModID == x)) ?? OpersNow.Find(y => y.Lists.Any(z => z.ModID == x))).Select(x => (x, "F:" + x.Lists.Any(y => y.OpersList.Any(z => z.IsFact)) + "N:" + x.Lists.Any(y => y.OpersList.Any(z => z.Fixed)) + "V:" + x.Lists.Any(y => y.OpersList.Any(z => z.VPZ)))).ToList();
-                                    bad = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (bad)
-                        {
-                            return false;
-                        }
-
-                        var list = OpersCopy[j].Lists[0].PossibleRCsHere;//.OpersList[0].PossibleCenters;
-                        var alt = (list != null) && false;
-
-                        //var taraList = Tara.GetOperTara(OpersCopy[j].Lists[0].FirstOper, false);
-
-
-                        TemporaryTaraSearchData data = null;
-                        bool Can1 = TaraSearchEngine.GetAllVariantsForThese(OpersCopy[j].Lists[0], out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForV, ModToTaraInfoLink = basisLink.ModToTaraInfo });
-
-                        //bool Can = Merger.SumIsPossible(OpersCopy[j].Lists[0].OpersList,
-                        //    out _, out _, out _, out _, out _, false, true,
-                        //    null, // ПРЕД.
-                        //    null,
-                        //    null
-                        //    );
-
-                        for (var jj = 0; jj < (alt ? list.Count : 1); jj++)
-                        {
-                            var choosencent = alt ? list[jj] : OpersCopy[j].Lists[0].FirstOperJust.Center; // Выбираем мы значит РЦ
-                            var lastBlock = centers_choosen[choosencent][1].LastBlock; // чекам посл блок
-
-                            // ВНИМАНИЕ.
-                            // lastBlock вообще-то нужно объявлять не тут - а ниже, где перечисляются РЦ.
-                            // Но по каким-то причинам (пока не понял, каким), если перенести блок туда, альтернативные РЦ перестают помечаться.
-                            // + план ищется хуже (результаты не такие красивые)
-                            // Скорее всего, это надо будет пофиксить, но пока смотрится параллельный отжиг, алгоритм остаётся таким.
-
-
-                            // А что если можно с параллелью?
-                            // Он должен быть задан, и быть не заполнен до конца, чтобы в этом был какой-то смысл, + наш РЦ должен поддерживать параллелизм
-                            //var myParId = OpersCopy[j].Lists[0].FirstOper.ParallelPlanningID;
-
-                            bool canChangeTara = true; // Ну, изначально тару менять можно
-
-                            if (!OpersCopy[j].Lists[0].FirstOperJust.EndTara.IsEmpty)
-                            {
-                                // Если задана конечная тара изначально, то менять тару ЗАПРЕЩАЕМ.
-                                canChangeTara &= false;
-                            }
-
-                            bool b2 = false;
-
-                            if (OpersCopy[j].Lists[0].FirstOperJust.ParallelPlanningIDs.Any(x => x.Value != -1) && OpersCopy[j].Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(choosencent, out var myParId)
-                                && ParallelPlanningMasterData.ParIDParams.TryGetValue(myParId, out var paramsHere)) // Может быть параллельным? И есть подходящий рц?
-                            {
-
-                                //var paramsHere = ParallelPlanningHelper.ParIDParams[myParId];
-                                canChangeTara &= !paramsHere.DoNotIncreaseTara; // тут же НЕЛЬЗЯ тару менять
-
-                                if (lastBlock != null)
-                                {
-                                    bool MyFactVPZ = OpersCopy[j].Lists[0].StagesAsNormal.Any(x => x.IsFact || x.VPZ);
-                                    DateTime? date1 = OpersCopy[j].Lists[0].FirstOperJust.StartTimeFact;
-                                    bool MyFix = OpersCopy[j].Lists[0].StagesAsNormal.Any(x => x.Fixed);
-                                    bool LastFactVPZ = lastBlock.Lists[0].StagesAsNormal.Any(x => x.IsFact || x.VPZ);
-                                    DateTime? date2 = lastBlock.Lists[0].FirstOperJust.StartTimeFact;
-                                    bool LastFix = lastBlock.Lists[0].StagesAsNormal.Any(x => x.Fixed);
-                                    if (MyFactVPZ == LastFactVPZ && MyFix == LastFix && date1 == date2 &&
-
-                                        lastBlock.FillKoeff > -1 && lastBlock.FillKoeff < 1 && lastBlock.ExistingTaraHere.Count > 0
-                                        && lastBlock.Lists[0].FirstOperJust.ParallelPlanningIDs.Any(x => x.Value != -1) // Предыдущий тоже может быть паралелльным?
-                                        && lastBlock.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(choosencent, out var toChekID) && toChekID == myParId
-                                        && lastBlock.GetCenterData(1).Center == choosencent
-                                        )
-                                    {
-                                        var seconds1 = lastBlock.Lists.Min(x => x.AllTime[choosencent]).TotalSeconds; // получаем МИНИМАЛЬНУЮ длительность моделирования
-                                        var secondsWant = OpersCopy[j].Lists[0].AllTime[choosencent].TotalSeconds; // получаем длительность блока, которую хотим вставить
-                                        var delta = paramsHere.Delta; // обращаемся к максимально допустимой дельте
-                                        if (Math.Abs(secondsWant - seconds1) <= delta)
-                                        {
-                                            b2 = CheckIt(true, canChangeTara);
-                                        }
-                                    }
-                                }
-                            }
-
-                            // чекаем без параллели
-                            if (!b2) CheckIt(false, canChangeTara);
-
-                            bool CheckIt(bool Par, bool CanChangeTara)
-                            {
-                                bool b1 = false;
-                                var AnyCan = false;
-                                int groupID1 = -1;
-                                if (Can1/* && CanChangeTara*/)
-                                {
-                                    List<Uco> allowedRC = null;
-                                    if (OpersCopy[j].Lists[0].FirstOperJust.OnOneRC
-                                            &&
-                                            poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[j].Lists[0].ModID, out groupID1)
-                                            )
-                                    {
-                                        allowedRC = poolCopy.OnOneRCGroupData[groupID1].PossibleRCs;
-                                    }
-                                    else
-                                        groupID1 = -1;
-
-                                    // Перебираем тары
-                                    for (int h = 0; h < data.PossibleCentersAndTaras.Length; h++) // ПО ИДЕЕ этот список - идейный продолжатель списка "PossibleCenters", поэтому в V этот список не нужен.
-                                    {
-                                        var tara = data.PossibleCentersAndTaras[h];
-                                        if (Par && centers_choosen[tara.RC][1].LastBlock == null) continue;
-                                        if (!canChangeTara && tara.Tara != OpersCopy[j].Lists[0].FirstOperJust.EndTara) continue; // Если тару нельзя менять, то в случае несовпадения этот вариант исключается.
-
-                                        //if (OpersCopy[j].Lists[0].FirstOper.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOper.RecommendedRC.Value != tara.RC) continue;//resF.res -= 1000000; // Если уже есть выбранный РЦ, то забиваем болт на все остальные
-                                        if (allowedRC != null && !allowedRC.Contains(tara.RC)) continue; // Если в списке разрещенных РЦ нет этого, то дальше не идём
-
-                                        if (groupID1 != -1 && OneRCGroupsForV.TryGetValue(groupID1, out var oneGroupRC) && tara.RC != oneGroupRC)
-                                            continue; // Если я уже ставил РЦ в эту группу, то другие нельзя
-
-                                        var Can2 = TaraSearchEngine.FilterAllVariants(OpersCopy[j].Lists[0], data, out _, out _, out var GOTmax, out _, out _,
-                                            new SumIsPossibleOptions(false)
-                                            {
-                                                PrevsInfo = PrevsInfoForV,// ПРЕД.
-                                                TaraMustBeThis = new(1) { tara.Tara },// огр. по таре
-                                                RCMustBeThis = new(1) { tara.RC },// огр. по РЦ
-                                                LogSomeErrors = false,
-                                                ModToTaraInfoLink = basisLink.ModToTaraInfo
-                                            });
-                                        AnyCan |= Can2;
-                                        if (Can2)
-                                        {
-                                            b1 |= localFChecking(lastBlock, Par, tara.RC, (tara.Tara, GOTmax)); // Фигачим с выбором тары
-                                            //if (OpersCopy[j].Lists[0].FirstOper.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOper.RecommendedRC.Value == tara.RC) break; // Если уже есть выбранный РЦ, то забиваем болт на все остальные
-                                        }
-                                    }
-                                }
-                                if (!CanChangeTara || !Can1 || !AnyCan) // Если ну вот вообще ничего не может,
-                                {
-                                    if (groupID1 != -1)
-                                    {
-                                        ;
-                                    }
-                                    //localFChecking(lastBlock, Par, choosencent, new()); // Выбора нет, делаем без тары 
-                                    b1 |= localFChecking(lastBlock, Par, choosencent, (OpersCopy[j].Lists[0].FirstOperJust.CurrentTara, OpersCopy[j].Lists[0].FirstOperJust.CurrentTaraMaxCapacity)); // Выбора нет, делаем с чем есть
-                                }
-                                return b1;
-                            }
-
-                            break;
-                        }
-
-
-
-                        bool localFChecking(PlanSimulatorBlock lastBlock, bool isPar, Uco choosencent, (Uco choosenTara, double CurrentTaraMaxCapacity) tara)
-                        {
-                            bool bestTaraIsLastLocal = false;
-                            int parID = 0;
-                            if (isPar)
-                            {
-                                if (tara.choosenTara.IsEmpty) // Собрался в параллель пустую тару ставить???
-                                {
-                                    return false; // Так нельзя!
-                                }
-                                parID = ParallelPlanningMasterData.GetParPlanID(choosencent, OpersCopy[j].Lists[0].FirstOperJust.OperationVid, OpersCopy[j].Lists[0].FirstOperJust);
-                                var result = ParallelPlanningMasterData.GetMostFreeTara(
-                                    choosencent,
-                                    OpersCopy[j].Lists[0].FirstOperJust.OperationVid,
-                                    parID,
-                                    OpersCopy[j].Lists.Count, //TODO: у общих этапов их количество может быть больше
-                                    lastBlock.ExistingTaraHere,
-                                    tara.choosenTara,
-                                    out var resultat
-                                    );
-                                if (result == -1)
-                                {
-                                    return false; // Так НЕЛЬЗЯ.
-                                }
-                                if (result == 0)
-                                {
-                                    // Если вернул 0, значит влазит всё, НО - под завязку, больше ничего не влезет, поэтому 
-                                    bestTaraIsLastLocal = true;
-                                }
-                            }
-
-                            var resF = F(lastBlock, centers_choosen[choosencent][1].LastMod, OpersCopy[j].Lists[0], choosencent, tara.choosenTara, tara.CurrentTaraMaxCapacity, isPar,
-                                out var gottenRech, out var gottenprost, out var gottenNalads, Ks, centers_choosen, TotalRechanges, TotalProstoi, ProstoiTimes);//, ref centA.Struct, centA.RechangeTime
-
-                            //if (OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOperJust.RecommendedRC.Value != choosencent) resF.res -= 1000000;
-
-                            lock (locker)
-                            {
-                                if (resF.errorsRate <= bestErr && resF.res < bestV)
-                                {
-                                    bestV = resF.res;
-                                    bestErr = resF.errorsRate;
-                                    best = j;
-                                    timeR = gottenRech;
-                                    timeP = gottenprost;
-                                    bestC = choosencent;
-                                    asParallel = isPar;
-                                    bestParID = parID;
-                                    bestTara = tara;
-                                    bestTaraIsLast = bestTaraIsLastLocal;
-                                    bestNalads = gottenNalads;
-                                    return true;
-                                }
-                            }
-                            return false;
-                        }
-
-                        return true;
-                    }
-
-                    // Лучшую операцию, если она есть, пихаем
-                    if (best == -1)
-                    {
-                        basisLink.CurrentStage = PlanningAlgorithmStage.FailedV;
-                        basisLink.CurrentStageChanged?.Invoke(basisLink.CurrentStage, OpersCopy.Count);
-                        isbad = true;
-                        break;
-                    }
-
-                    // Выбранную операцию вставляем, добиваем доп. данные
-                    OpersCopy[best].SetCenter(bestC, 1);
-                    TotalRechanges += timeR; // Добавляем общих переналадок
-                    TotalProstoi += timeP; // Добавляем общих простоев
-
-                    //OneRCGroupsForV.Add(OpersCopy[best].Lists[0].ModID, bestC);
-
-                    if (OpersCopy[best].Lists[0].FirstOperJust.OnOneRC
-                        && poolCopy.ModIDToOnOneRCGroupID.TryGetValue(OpersCopy[best].Lists[0].ModID, out var groupID1))
-                    {
-                        OneRCGroupsForV.TryAdd(groupID1, bestC);
-                    }
-
-                    AddOperHere(best, asParallel, timeP, timeR, bestNalads, centers_choosen, bestTara, bestTaraIsLast, OpersCopy, ProstoiTimes, DoneModellings, OpersNow, PrevsInfoForV);
-
-                    //workflow.ProgressChanged(OpersNow.Count); // Провоцируем перерисовку
-
-                    basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, OpersNow.Count);
-
-                }
-                if (isbad)
-                {
-                    //This.OnCalcDebugger.Text += $"не дошёл, лишь {OpersCopy.Count}\r\n\r\n";
-                    //i--;
-                    //if (LoadedData.OnlyOneVRun)
-                    //{
-                        break;
-                    //}
-
-                    //continue; // Если там никакая операция не подошла, то он ничего не вычисляет, а просто переходит к следующему циклу
-                }
-                Console.WriteLine($"V, step {i}, " + OpersNow.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count());
-                //var pool0 = new OpersPool(basisLink.SessionLink, OpersNow, preparedData, basisLink.MinAcceptableDate);
-                var t = PlanSimulatorEngine.CalculatePlan(OpersNow, 1, basisLink.MinAcceptableDate, null);//PlanningCalculatorEngine.PlanningCalculatorEngine.CalculatePlan(pool0, basisLink.MinAcceptableDate, null);
-                //This.SomeResultsTextBox.Text += $"Дошёл, {TimeSpan.FromSeconds(t.RechangesSeconds)}\r\n";
-                if (true/*globalres > t.RechangesSeconds*/) // тут не только переналадки вообще-то
-                {
-                    workflow.BestValue = t;
-                    workflow.UpdateBestValues(t);
-                    //workflow.LastRechangesForCombo = t.RechangesSeconds;
-                    //workflow.LastProductionForCombo = t.GlobalPlanEndDate - basisLink.MinAcceptableDate;
-                    //workflow.LastProstoiForCombo = t.ProstoiSeconds.TotalMinutes;
-                    //workflow.LastDaysForCombo = t.DaysRuinedValue;
-                    //workflow.LastBadOffsetsForCombo = t.BadOffsets;
-                    basisLink.UsedPool = poolCopy;
-                    //basisLink.UsedPool.indexes();
-                    basisLink.UpdateBcsSuccess(t, OpersNow, 1);
-                    globalres = t.RechangesSeconds;
-                }
-                //else
-                //{
-                //    if (!IsSilent && !This.GraphsRBNever.Checked)
-                //    {
-                //        GraphsController.AddNewFailedPoint();
-                //    }
-                //}
-
-                workflow.Generation++;
-            }
-            //MessageBox.Show(TimeSpan.FromSeconds(globalres).ToString());
-
+            ordersWriter.Close();
         }
 
         /// <summary>
@@ -544,6 +587,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             List<PlanSimulatorBlock>? OpersNow,
             Dictionary<int, Uco> PrevsInfoForV)
         {
+
+
             var op00 = OpersCopy[Index]; // получаем блок
             var pool = op00.PoolLink;
             OpersCopy.RemoveAt(Index); // удаляем его из мешка с блоками
@@ -673,6 +718,44 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         }
 
+        float getOpsDurToEnd(PlanSimulatorMod mod, float k, ref string asString, HashSet<PlanSimulatorMod> modsCreated = null)
+        {
+            bool ItsFirstMod = modsCreated == null;
+            modsCreated ??= new();
+            var timeHere = (int)mod.AllTime.Max(x => x.Value.TotalSeconds);
+            if (true/*!modsCreated.Contains(mod)*/)
+            {
+                //asString = 
+                modsCreated.Add(mod);
+                var sum = 0f;
+                foreach (var nextMod in mod.NextMods)
+                {
+                    sum += getOpsDurToEnd(nextMod, k, ref asString, modsCreated);
+                    //asString += asStringSub + $"[{next}]" + ",";
+                }
+                //asString = 
+                var asStr = ((ItsFirstMod ? 0 : timeHere * k).ToString());
+                asString += asStr + $"[{mod.ModID}], ";
+                return (ItsFirstMod ? 0 : timeHere * k) + sum;
+            }
+            return 0;
+        }
+
+        // Суммируем общее время
+        //Dictionary<PlanSimulatorMod, float> OpersDurationsToEndLeft = new();
+
+        //void PrepareOpsForEnding(List<PlanSimulatorMod> mods, float expandK)
+        //{
+        //    foreach (var mod in mods)
+        //    {
+        //        string astr = "";
+        //        OpersDurationsToEndLeft.TryAdd(mod, getOpsDurToEnd(mod, expandK, ref astr));
+        //    }
+        //    /*
+             
+        //     */
+        //}
+
         /// <summary>
         /// Сравнение двух моделирований и возврат коэффициента похожести
         /// </summary>
@@ -691,7 +774,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         /// <param name="TotalProstoi"></param>
         /// <param name="ProstoiTimes"></param>
         /// <returns></returns>
-        public (double res, int errorsRate) F(
+        public (double res1, double res2, int errorsRate) F(
             PlanSimulatorBlock lastBlock,
             PlanSimulatorMod a,
             PlanSimulatorMod b,
@@ -706,6 +789,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             FrozenDictionary<Uco, PlanSimulatorCenterData[]>? centers_choosen,
             long TotalRechanges,
             long TotalProstoi,
+            int OpersHave,
             Dictionary<int, DateTime>? ProstoiTimes)
         {
             var masterDatas = b.FirstOperJust.SessionLink.MasterDataLinks;
@@ -733,7 +817,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var totalRechangesCopy = TotalRechanges; // копируем
             var totalProstoiCopy = TotalProstoi; // копируем
 
-            double final = 0;
+            double final = 0, final2 = 0;
             timeR = 0;
             timeP = 0;
             long timeRK = 0;
@@ -787,7 +871,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             // Если вышел за пределы допустимой наладочной длины на этом РЦ, то хреначим ошибку
             if (OperB.NeededNaladLength.HasValue && NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value > OperB.NeededNaladLength.Value.Length.Value) // TODO: в результате пустой след. налад. длины V ослепла
             {
-                errorsRate += 10000000;
+                //errorsRate += 10000000;
             }
 
             TrynaladLengthsSet(b.FirstOper, naladLengths.NaladLengthHere, true, naladLengths.NaladLengthFirst, naladLengths.NaladLengthOther, naladLengths.IsFirst);
@@ -806,7 +890,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     > maxTaraNamot) // сравниваем с макс намоткой на таре
                 {
                     // Вылез за пределы намотки! Такое НЕДОПУСТИМО, хотя мб G это потом и исправит
-                    errorsRate += 10000;
+                    //errorsRate += 10000;
                 }
 
                 foreach (var prev in etapID.PreviousStages)
@@ -908,9 +992,27 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             final += (OperB.IsLast ? 1 : 0) * Ks[18];
 
-            if (OperB.IsLast && !string.IsNullOrEmpty(OperB.OrderLink.OrderID.Version))
+            if (/*OperB.IsLast && */!string.IsNullOrEmpty(OperB.OrderLink.OrderID.Version))
             {
-                final += Ks[19] * (OperB.OrderLink.Deadline - lastDate).TotalDays;
+                var minDeadline = b.StagesAsNormal.Min(stage => stage.OrderLink.Deadline);
+                string secondsAsString = "";
+                var seconds = getOpsDurToEnd(b, 1.5f, ref secondsAsString)/*OpersDurationsToEndLeft[b]*/;
+                var timeWhenEnds = lastDate.AddSeconds(seconds);
+                var delta = timeWhenEnds - minDeadline;
+                //if (delta.Ticks < 0)
+                //{
+                //    final2 = Ks[19] * -delta.TotalDays;
+                //}
+                //else
+                //{
+                //}
+                final2 = Ks[19] * -delta.TotalDays;
+                //delta = new TimeSpan();
+
+                if (OpersHave % 1000 == 0)
+                {
+                    ordersWriterConc.Add($"{OpersHave};{(a == null ? "" : a.StagesAsNormal[0].GUID)};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{secondsAsString};{timeWhenEnds};{delta}");
+                }
             }
 
             RechangeTimesOnThisCenter += TimeSpan.FromSeconds(timeRK);
@@ -1050,7 +1152,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 if (Ks.Length > 28 && OperB.PrevDateTime.HasValue) final += Ks[28] * Math.Abs((lastDate - OperB.PrevDateTime.Value).TotalDays);
             }
 
-            return (final, errorsRate);
+            return (final, final2, errorsRate);
         }
 
     }

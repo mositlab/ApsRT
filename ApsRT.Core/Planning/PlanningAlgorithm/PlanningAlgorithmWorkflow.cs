@@ -33,26 +33,28 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         internal PlanSimulatorEngineResult BestValue;
 
+        double LastOrders;
         TimeSpan LastRechanges;
-
-        //internal bool NeverGraphs;
+        TimeSpan LastProstoi;
+        TimeSpan LastProduction;
+        double LastRedutantUsage;
 
         internal bool CheckRestrictions(PlanSimulatorEngineResult t)
         {
 
-            var val = ((t.DaysRuinedValue * 100.0 / BestValue.DaysRuinedValue) - 100.0);
+            var val = ((t.DaysRuinedValue * 100.0 / LastOrders) - 100.0);
             var R1 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[0];
 
             val = ((t.RechangesSeconds * 100.0 / LastRechanges) - 100.0);
             var R2 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[1];
 
-            val = ((t.ProstoiSeconds.TotalMinutes * 100.0 / BestValue.ProstoiSeconds.TotalMinutes) - 100.0);
+            val = ((t.ProstoiSeconds.TotalMinutes * 100.0 / LastProstoi.TotalMinutes) - 100.0);
             var R3 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[2];
 
-            val = ((t.ProductionSeconds * 100.0 / BestValue.ProductionSeconds) - 100.0);
+            val = ((t.ProductionSeconds * 100.0 / LastProduction) - 100.0);
             var R4 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[3];
 
-            val = ((t.TaraRedutantUsage * 100.0 / BestValue.TaraRedutantUsage) - 100.0);
+            val = ((t.TaraRedutantUsage * 100.0 / LastRedutantUsage) - 100.0);
             var R5 = double.IsNaN(val) || val <= LoadedData.CriteriasPossibleWorse[4];
 
             return R1 && R2 && R3 && R4 && R5;
@@ -64,8 +66,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         public void UpdateBestValues(PlanSimulatorEngineResult value)
         {
-
+            LastOrders = value.DaysRuinedValue;
             LastRechanges = value.RechangesSeconds;
+            LastProstoi = value.ProstoiSeconds;
+            LastProduction = value.ProductionSeconds;
+            LastRedutantUsage = value.TaraRedutantUsage;
         }
 
         internal PlanningAlgorithmWorkflow(Session.Session session, int generations, int cycles, double minutes, PlanSimulatorEngineResult originalValue, int rawDataCount)

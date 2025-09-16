@@ -1483,6 +1483,7 @@ namespace ApsRTCustomComponents
                             ((operLoc.Center == blockRC) ? "" : $"\r\nСтандартный РЦ: {operLoc.Center}") +
                             $"\r\nРанг: {currentRank}" +
                             (operLoc.PrevDateTime.HasValue ? $"\r\nПред. время: {operLoc.PrevDateTime.Value} + {(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)} = {operLoc.PrevDateTime.Value.Add(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)}" : "") +
+                            $"\r\nGUID партии: {operLoc.GetOrderOrPartiaCode()}" +
                             $"\r\nНоменклатура: {operLoc.Nomenklature}" +
                             //(centerGlobalData.ParallelModelling ? $"\r\n*Сокращённая" : "") +
                             $"\r\nПродукция: {operLoc.Production}" +
