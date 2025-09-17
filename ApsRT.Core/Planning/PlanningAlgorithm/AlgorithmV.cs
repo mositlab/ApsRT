@@ -547,11 +547,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 possibleFirstIndexes = new int[1] { basisLink.UsedPool.Blocks.First(x => x.Lists.All(y => y.PrevMods.Count == 0)).Lists[0].StagesAsNormal[0].Index }; // Ну она же всё равно первая
             }
 
-            var resu = Parallel.For(0, Math.Min(10, possibleFirstIndexes.Length), i =>
-            {
-                Sub(i, workflow, possibleFirstIndexes);
-            });
-            while (!resu.IsCompleted) ;
+            //var resu = Parallel.For(0, Math.Min(10, possibleFirstIndexes.Length), i =>
+            //{
+            //    Sub(i, workflow, possibleFirstIndexes);
+            //});
+            //while (!resu.IsCompleted) ;
+            Sub(0, workflow, possibleFirstIndexes);
 
             foreach (var line in ordersWriterConc) ordersWriter.WriteLine(line);
 
@@ -871,7 +872,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             // Если вышел за пределы допустимой наладочной длины на этом РЦ, то хреначим ошибку
             if (OperB.NeededNaladLength.HasValue && NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value > OperB.NeededNaladLength.Value.Length.Value) // TODO: в результате пустой след. налад. длины V ослепла
             {
-                //errorsRate += 10000000;
+                errorsRate += 10000000;
             }
 
             TrynaladLengthsSet(b.FirstOper, naladLengths.NaladLengthHere, true, naladLengths.NaladLengthFirst, naladLengths.NaladLengthOther, naladLengths.IsFirst);
@@ -890,7 +891,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     > maxTaraNamot) // сравниваем с макс намоткой на таре
                 {
                     // Вылез за пределы намотки! Такое НЕДОПУСТИМО, хотя мб G это потом и исправит
-                    //errorsRate += 10000;
+                    errorsRate += 10000;
                 }
 
                 foreach (var prev in etapID.PreviousStages)
