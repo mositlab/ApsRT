@@ -33,7 +33,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             return centerLink;
         }
 
-        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, DateTime StartTime, PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
+        public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, DateTime StartTime,
+            PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null, int StartFrom = 0, bool LinearRC = true/*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
             int currentFlag = Random.Shared.Next();
 
@@ -49,12 +50,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             //}
 
             // Проходимся по всем блокам
-            for (int blockIndex = 0; blockIndex < Blocks.Count; blockIndex++)
+            for (int blockIndex = StartFrom; blockIndex < Blocks.Count; blockIndex++)
             {
                 var block = Blocks[blockIndex];
                 //if (PoolIndex != MoveDataFromThisIndex) block.MoveCenterData(MoveDataFromThisIndex, PoolIndex);
                 
-                ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill);
+                ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill, LinearRC);
                 //if (AdditionalBlockIndex == blockIndex)
                 //{
                 //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, AdditionalBlock);
@@ -91,7 +92,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <param name="currentFlag">Текущий флаг расчёта</param>
         /// <param name="resultToFill">Поле для заполнения даннымми</param>
         /// <param name="previousResult"></param>
-        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, int currentFlag, PlanSimulatorEngineResult resultToFill/*, OpersBlock blockToCheckFirst*/)
+        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, int currentFlag, PlanSimulatorEngineResult resultToFill, bool LinearRC/*, OpersBlock blockToCheckFirst*/)
         {
             //var currentBlock = /*blockToCheckFirst ?? */pool.Blocks[blockIndex];
             currentBlock.BlockIndex[PoolIndex] = blockIndex;
