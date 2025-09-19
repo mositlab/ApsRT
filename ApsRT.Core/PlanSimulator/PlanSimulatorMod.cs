@@ -14,6 +14,8 @@ namespace ApsRT.Core.PlanSimulator
 
         public PlanSimulatorNaladLengthData[] NaladLengthData; // ТОЛЬКО для моделирований простых, для общих этапов там свои
         public PlanSimulatorDatesData[] MinDatesData;
+        public DateTime[] DateOfStart;
+        public DateTime[] DateOfEnd;
         public int[] Ranks;
 
         public FrozenDictionary<Uco, TimeSpan> AllTime;
@@ -48,6 +50,9 @@ namespace ApsRT.Core.PlanSimulator
 
         public PlanSimulatorMod(List<Stage> list, bool parrRC, PlanningModellingType type, int modId, int poolSize)
         {
+            this.DateOfStart = new DateTime[poolSize];
+            this.DateOfEnd = new DateTime[poolSize];
+
             ParallelRC = parrRC;
             if (type == PlanningModellingType.EasyFlagFromMES || type == PlanningModellingType.EasyFlagAfterPartias)
             {

@@ -416,7 +416,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                         lock (locker)
                         {
-                            if (resF.errorsRate <= bestErr && (resF.res1 < bestV1 || (resF.res1 == bestV1 && resF.res2 < bestV2)))
+                            if (resF.errorsRate <= bestErr && (resF.res1 < bestV1 /*|| (resF.res1 == bestV1 && (resF.res2 < bestV2 || isPar))*/))
                             {
                                 bestV1 = resF.res1;
                                 bestV2 = resF.res2;

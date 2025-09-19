@@ -51,10 +51,13 @@ namespace ApsRT.Core.Orders
                 }
 
                 var partia = PFPartiasData[pfPartia.Value];
-                partia.Fixed |= stage.Fixed;
-                partia.IsFact |= stage.IsFact;
-                partia.IsUserHandled |= stage.IsUserHandled;
-                partia.VPZ |= stage.VPZ;
+                if (!SessionLink.SettingsController.CurrentSettings.Demos_AllPartiasAreFree)
+                {
+                    partia.Fixed |= stage.Fixed;
+                    partia.IsFact |= stage.IsFact;
+                    partia.IsUserHandled |= stage.IsUserHandled;
+                    partia.VPZ |= stage.VPZ;
+                }
                 partia.RelatedGPs.Add(orderModel.OrderID); // Добавляем эту ГПшку в список тех, к кому он относится
             }
 

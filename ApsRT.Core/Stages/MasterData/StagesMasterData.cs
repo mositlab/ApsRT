@@ -265,6 +265,12 @@ namespace ApsRT.Core.Stages.MasterData
 
             ProcessTimeData(stage);
 
+            if (SessionLink.SettingsController.CurrentSettings.Demos_AllPartiasAreFree)
+            {
+                stage.Fixed = stage.IsFact = stage.IsUserHandled = stage.VPZ = false;
+                orderModel.PartiaPF = null;
+            }
+
             stage.OrderLink = masterDatas.OrdersMasterData.ProcessOrderData(stage, orderModel);
 
             if (SessionLink.SettingsController.CurrentSettings.Demos_AllDurationsAreOne)
@@ -305,6 +311,12 @@ namespace ApsRT.Core.Stages.MasterData
             }
 
             // Моделирование
+            if (SessionLink.SettingsController.CurrentSettings.Demos_AllPartiasAreFree)
+            {
+                stage.MesModelling = Uco.EmptyObject;
+                stage.EasyFlagOriginal = Guid.Empty;
+            }
+
             if (!stage.MesModelling.IsEmpty)
             {
                 MesModellingsInfo.TryAdd(stage.MesModelling.Code, (Colors.NewRandomColor(), new List<int>()));

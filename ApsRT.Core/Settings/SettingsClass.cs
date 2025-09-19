@@ -141,5 +141,7 @@ namespace ApsRT.Core.Settings
         public bool Demos_AllNaladLengthsAreClear { get; set; }
         [JsonProperty]
         public bool Demos_AllPrevDatesAreNull { get; set; }
+        [JsonProperty]
+        public bool Demos_AllPartiasAreFree { get; set; }
     }
 }

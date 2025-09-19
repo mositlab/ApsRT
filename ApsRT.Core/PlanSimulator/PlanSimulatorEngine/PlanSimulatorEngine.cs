@@ -218,8 +218,13 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     if (resultToFill.FirstStagesStartDate != null)
                         resultToFill.FirstStagesStartDate.TryAdd(firstID, centGlobalStruct.LastStartDate);
 
+                    MOD.DateOfStart[PoolIndex] = centGlobalStruct.LastStartDate;
+
                     // Попробуем заполнить интервалы длительностей, если надо
                     if (resultToFill.FirstStagesFullDurations != null) resultToFill.FirstStagesFullDurations.TryAdd(firstID, intervalHere);
+
+                    MOD.DateOfEnd[PoolIndex] = lastDateFinally;
+
 
                     // Попробуем заполнить ранги, если надо
                     //if (resultToFill.FirstStagesRanks != null) resultToFill.FirstStagesRanks.TryAdd(firstID, resultToFill.CurrentRank);
