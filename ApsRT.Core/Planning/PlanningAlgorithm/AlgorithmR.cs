@@ -406,7 +406,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         float Step2_1_CheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex)
         {
-            var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
+            //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
 
             /*
              new List<PlanSimulatorBlock>()
@@ -415,15 +415,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             };//
              */
 
-            mod.BlockLink.SetCenter(choosenCenter, poolIndex);
-            PlanSimulatorPool.MoveCentersInAllBlocks(swallowCopy, 0, poolIndex);
-            PlanSimulatorPool.InsertBlockSafe(swallowCopy, mod.BlockLink, swallowCopy.Count, poolIndex, 0);
-            PlanSimulatorPool.MoveMinDatesInAllBlocks(swallowCopy, 0, poolIndex);
+            //mod.BlockLink.SetCenter(choosenCenter, poolIndex);
+            //PlanSimulatorPool.MoveCentersInAllBlocks(swallowCopy, 0, poolIndex);
+            //PlanSimulatorPool.InsertBlockSafe(swallowCopy, mod.BlockLink, swallowCopy.Count, poolIndex, 0);
+            //PlanSimulatorPool.MoveMinDatesInAllBlocks(swallowCopy, 0, poolIndex);
 
-            var res = PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate);
-            PlanSimulatorEngineResult localResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(swallowCopy, poolIndex, basisLink.StartOfPlanningDate, res, StartFrom: swallowCopy.Count - 1, LinearRC: false);
+            //var res = PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate);
+            //PlanSimulatorEngineResult localResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(swallowCopy, poolIndex, basisLink.StartOfPlanningDate, res, StartFrom: swallowCopy.Count - 1, LinearRC: false);
 
-            var res1 = (float)(mod.DateOfEnd[poolIndex] - basisLink.MinAcceptableDate).TotalSeconds;
+            //var res1 = (float)(mod.DateOfEnd[poolIndex] - basisLink.MinAcceptableDate).TotalSeconds;
 
             //return 
             //string asString0 = "";
@@ -457,7 +457,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             TimeSpan prostoiDur = minDate - lastCenterDate;
 
-            var rechangesResult = operationA == null ? null : basisLink.SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(lastBlock.GetCenterData(0).CenterDataLink, new PlanSimulatorDatesData(minDate, 0, -1, -1), operationA.Stage, mod.FirstOperJust, choosenCenter));
+            var rechangesResult = operationA == null ? null : basisLink.SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(lastBlock.GetCenterData(0).CenterDataLink, mod.MinDatesData[0], operationA.Stage, mod.FirstOperJust, choosenCenter));
 
             TimeSpan rechesDur = rechangesResult == null ? new TimeSpan() : TimeSpan.FromSeconds(rechangesResult.Duration);
 
@@ -492,12 +492,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //var prostoi = res.ProstoiBeforeFirstStages.TryGetValue(mod.FirstOperJust.Index, out var pros) ? pros.ProstoiItself : null;
             //var reches = res.RechangesBeforeFirstStages[mod.FirstOperJust.Index];
 
-            if (res2 != res1)
-            {
-                ;
-            }
+            //if (res2 != res1)
+            //{
+            //    ;
+            //}
 
-            return res1;
+            return res2;
 
         }
 
