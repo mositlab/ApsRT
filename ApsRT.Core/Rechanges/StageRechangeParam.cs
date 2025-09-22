@@ -102,7 +102,7 @@ namespace ApsRT.Core.Rechanges
             return AsDiapazonIndex.TryGetValue(DataType, out var operVids)
                 && operVids.TryGetValue(OperVid, out var RCS)
                 && RCS.TryGetValue(RC, out var array)
-                ? array : null;
+                ? array : new int?[0];
         }
 
         #endregion

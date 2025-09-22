@@ -291,6 +291,59 @@ namespace ApsRT.Core.PlanSimulator
             }
         }
 
+        public static int InsertBlockSafe(List<PlanSimulatorBlock> Blocks, PlanSimulatorBlock block, int IndexToInsert, int PoolIndex, int indexToGetInfo)
+        {
+            int Prev = -1;
+            var center = block.GetCenterData(PoolIndex).Center;
+            var prevBlock = IndexToInsert == 0 ? -1 : Blocks.FindLastIndex(IndexToInsert - 1, x => x.GetCenterData(PoolIndex).Center == center);
+            if (prevBlock != -1)
+            {
+                Prev = prevBlock;
+                var prevBlockLink = Blocks[prevBlock];
+                var nextBlockWas = prevBlockLink.NextBlockOnThisRC[PoolIndex];//CenterDataLocalCopy[PoolIndex].l
+                if (nextBlockWas != null)
+                {
+                    nextBlockWas.PreviousBlockOnThisRC[PoolIndex] = block;
+                    //Next = nextBlockWas.BlockIndex;
+                }
+                prevBlockLink.NextBlockOnThisRC[PoolIndex] = block;
+
+                block.NextBlockOnThisRC[PoolIndex] = nextBlockWas;
+                block.PreviousBlockOnThisRC[PoolIndex] = prevBlockLink;
+            }
+            else
+            {
+                var nextBlock = IndexToInsert == Blocks.Count ? -1 : Blocks.FindIndex(IndexToInsert, x => x.GetCenterData(PoolIndex).Center == center);
+                if (nextBlock != -1)
+                {
+                    var nextBlockLink = Blocks[nextBlock];
+                    var prevBlockWas = nextBlockLink.PreviousBlockOnThisRC[PoolIndex];
+                    if (prevBlockWas != null)
+                    {
+                        prevBlockWas.NextBlockOnThisRC[PoolIndex] = block;
+                        Prev = prevBlockWas.BlockIndex[indexToGetInfo];
+                    }
+                    nextBlockLink.PreviousBlockOnThisRC[PoolIndex] = block;
+
+                    block.NextBlockOnThisRC[PoolIndex] = nextBlockLink;
+                    block.PreviousBlockOnThisRC[PoolIndex] = prevBlockWas;
+                }
+                else
+                {
+                    block.NextBlockOnThisRC[PoolIndex] = null;
+                    block.PreviousBlockOnThisRC[PoolIndex] = null;
+                }
+            }
+            Blocks.Insert(IndexToInsert, block);
+
+            //if (Prev != -1)
+            //{
+            //    Blocks[Prev].CenterDataLocalCopy[PoolIndex] = Blocks[Prev].CenterDataLocalCopy[indexToGetInfo];
+            //}
+
+            return Prev;
+        }
+
         public static List<PlanSimulatorBlock> CopyBlocksSwallow(List<PlanSimulatorBlock> Blocks)
         {
             return new List<PlanSimulatorBlock>(Blocks);
@@ -301,6 +354,23 @@ namespace ApsRT.Core.PlanSimulator
             var res0 = Parallel.For(0, Blocks.Count, i =>
             {
                 Blocks[i].MoveCenterData(from, to);
+                Blocks[i].CenterDataLocalCopy[to] = Blocks[i].CenterDataLocalCopy[from];
+            });
+            while (!res0.IsCompleted)
+            {
+                ;
+            }
+        }
+        public static void MoveMinDatesInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
+        {
+            var res0 = Parallel.For(0, Blocks.Count, i =>
+            {
+                for (int j = 0; j < Blocks[i].Lists.Count; j++)
+                {
+                    Blocks[i].Lists[j].MinDatesData[to] = new PlanSimulatorDatesData(Blocks[i].Lists[j].MinDatesData[from]);
+                    Blocks[i].Lists[j].DateOfStart[to] = Blocks[i].Lists[j].DateOfStart[from];
+                    Blocks[i].Lists[j].DateOfEnd[to] = Blocks[i].Lists[j].DateOfEnd[from];
+                }
             });
             while (!res0.IsCompleted)
             {

@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -297,6 +298,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             bool Success = false;
 
+            object globalLocker = new();
+
 
             object[] lockers = new object[basisLink.UsedPool.PoolSize];
             for (int i = 0; i < lockers.Length; i++) lockers[i] = new();
@@ -358,7 +361,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             {
                                 ;
                             }
-                            lock (lockers[IndexToWorkWith])
+                            lock (globalLocker)//lockers[IndexToWorkWith])
                             {
                                 float localResult = Step2_1_CheckBlock(mod, possibleRCs[j], IndexToWorkWith);
                                 lock (locker)
@@ -404,11 +407,45 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         float Step2_1_CheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex)
         {
             var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
-            PlanSimulatorPool.MoveCentersInAllBlocks(swallowCopy, 0, poolIndex);
 
-            PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngineResult localResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(swallowCopy, poolIndex, basisLink.StartOfPlanningDate, null);
+            /*
+             new List<PlanSimulatorBlock>()
+            {
+                mod.BlockLink
+            };//
+             */
+
+            mod.BlockLink.SetCenter(choosenCenter, poolIndex);
+            PlanSimulatorPool.MoveCentersInAllBlocks(swallowCopy, 0, poolIndex);
+            PlanSimulatorPool.InsertBlockSafe(swallowCopy, mod.BlockLink, swallowCopy.Count, poolIndex, 0);
+            PlanSimulatorPool.MoveMinDatesInAllBlocks(swallowCopy, 0, poolIndex);
+
+            var res = PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate);
+            PlanSimulatorEngineResult localResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(swallowCopy, poolIndex, basisLink.StartOfPlanningDate, res, StartFrom: swallowCopy.Count - 1, LinearRC: false);
+
+            var res1 = (float)(mod.DateOfEnd[poolIndex] - basisLink.MinAcceptableDate).TotalSeconds;
+
+            //return 
+            //string asString0 = "";
+
 
             var list = BlocksDependingOnCenter[choosenCenter];
+
+            //asString0 += $"Дата начала плана: {basisLink.StartOfPlanningDate}\r\n";
+            //for (int i = 0; i < list.Count; i++)
+            //{
+            //    asString0 += $"Кубик {list[i].ToString()}\r\n";
+            //    asString0 += $"Дата у центра: {list[i].CenterDataLocalCopy[poolIndex].LastDate}\r\n";
+            //    asString0 += $"Начал {list[i].Lists[0].DateOfStart[poolIndex]}\r\n";
+            //    asString0 += $"Длительность {list[i].Lists[0].AllTime[choosenCenter]}\r\n";
+            //    asString0 += $"Кончил {list[i].Lists[0].DateOfEnd[poolIndex]}\r\n";
+            //}
+            //asString0 += $"Кубик {mod.BlockLink.ToString()}\r\n";
+            //asString0 += $"Дата у центра: {(mod.BlockLink.CenterDataLocalCopy[0]?.LastDate.ToString() ?? "")}\r\n";
+            //asString0 += $"Мин дата: {mod.MinDatesData[0].MinValue}\r\n";
+            //asString0 += $"Начал {mod.DateOfStart[0]}\r\n";
+            //asString0 += $"Длительность {mod.AllTime[choosenCenter]}\r\n";
+            //asString0 += $"Кончил {mod.DateOfEnd[0]}\r\n";
 
             var lastBlock = list.Count == 0 ? null : list[^1];
             var operationA = list.Count == 0 ? null : lastBlock.Lists[0]?.FirstOper;
@@ -430,7 +467,37 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var lastDate = lastCenterDate + prostoiDur + rechesDur + mod.AllTime[choosenCenter];
 
-            return (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
+            var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
+
+            //string asStringX = "";
+
+            //asStringX = asString0;
+            //asStringX += $"Дата начала плана: {basisLink.StartOfPlanningDate}\r\n";
+            ////for (int i = 0; i < list.Count; i++)
+            ////{
+            ////    asStringX += $"Кубик {list[i].ToString()}\r\n";
+            ////    asStringX += $"Дата у центра: {list[i].CenterDataLocalCopy[poolIndex].LastDate}\r\n";
+            ////    asStringX += $"Начал {list[i].Lists[0].DateOfStart[poolIndex]}\r\n";
+            ////    asStringX += $"Длительность {list[i].Lists[0].AllTime[choosenCenter]}\r\n";
+            ////    asStringX += $"Кончил {list[i].Lists[0].DateOfEnd[poolIndex]}\r\n";
+            ////}
+            //asStringX += $"Кубик {mod.BlockLink.ToString()}\r\n";
+            //asStringX += $"Дата у центра: {lastCenterDate}\r\n";
+            //asStringX += $"Мин дата: {minDate}\r\n";
+            //asStringX += $"Начал {mod.DateOfStart[poolIndex]}\r\n";
+            //asStringX += $"Длительность {mod.AllTime[choosenCenter]}\r\n";
+            //asStringX += $"Кончил {mod.DateOfEnd[poolIndex]}\r\n";
+
+
+            //var prostoi = res.ProstoiBeforeFirstStages.TryGetValue(mod.FirstOperJust.Index, out var pros) ? pros.ProstoiItself : null;
+            //var reches = res.RechangesBeforeFirstStages[mod.FirstOperJust.Index];
+
+            if (res2 != res1)
+            {
+                ;
+            }
+
+            return res1;
 
         }
 

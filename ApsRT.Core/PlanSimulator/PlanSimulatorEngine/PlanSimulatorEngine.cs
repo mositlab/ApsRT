@@ -55,7 +55,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 var block = Blocks[blockIndex];
                 //if (PoolIndex != MoveDataFromThisIndex) block.MoveCenterData(MoveDataFromThisIndex, PoolIndex);
                 
-                ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill, LinearRC);
+                ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill, LinearRC, StartFrom);
                 //if (AdditionalBlockIndex == blockIndex)
                 //{
                 //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, AdditionalBlock);
@@ -92,7 +92,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <param name="currentFlag">Текущий флаг расчёта</param>
         /// <param name="resultToFill">Поле для заполнения даннымми</param>
         /// <param name="previousResult"></param>
-        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, int currentFlag, PlanSimulatorEngineResult resultToFill, bool LinearRC/*, OpersBlock blockToCheckFirst*/)
+        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, int currentFlag, PlanSimulatorEngineResult resultToFill, bool LinearRC, int startFrom/*, OpersBlock blockToCheckFirst*/)
         {
             //var currentBlock = /*blockToCheckFirst ?? */pool.Blocks[blockIndex];
             currentBlock.BlockIndex[PoolIndex] = blockIndex;
@@ -103,33 +103,54 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
             // Получаем данные по РЦ
             (var ChoosenCenter, var centGlobalStruct, var centerGlobalData) = currentBlock.GetCenterData(PoolIndex);
-            if (centGlobalStruct.Flag != currentFlag)
-            {
-                FillCenterWithSomeData(centGlobalStruct, ChoosenCenter, resultToFill.TimeOfStart);
-                centGlobalStruct.Flag = currentFlag;
 
-                // Двигаем график если надо, и сохраняем след. индекс
-                if (NonWorkingIntervalsMasterData.PreparedRCFixingData.TryGetValue(ChoosenCenter, out var val))
+            if (LinearRC)
+            {
+                // У нас один РЦ на весь график будет, будет браться из основного класса
+                if (centGlobalStruct.Flag != currentFlag)
                 {
-                    centGlobalStruct.LastDate += val.Duration;
-                    centGlobalStruct.NextNonWorkingInterval = val.NextInterval;
-                    centGlobalStruct.LastStartDate = centGlobalStruct.LastDate;
+                    FillCenterWithSomeData(centGlobalStruct, ChoosenCenter, resultToFill.TimeOfStart);
+                    centGlobalStruct.Flag = currentFlag;
+
+                    // Двигаем график если надо, и сохраняем след. индекс
+                    if (NonWorkingIntervalsMasterData.PreparedRCFixingData.TryGetValue(ChoosenCenter, out var val))
+                    {
+                        centGlobalStruct.LastDate += val.Duration;
+                        centGlobalStruct.NextNonWorkingInterval = val.NextInterval;
+                        centGlobalStruct.LastStartDate = centGlobalStruct.LastDate;
+                    }
                 }
+
+                currentBlock.PreviousBlockOnThisRC[PoolIndex] = centGlobalStruct.LastBlock;
+                if (centGlobalStruct.LastBlock != null) centGlobalStruct.LastBlock.NextBlockOnThisRC[PoolIndex] = currentBlock;
+                currentBlock.NextBlockOnThisRC[PoolIndex] = null;
+            }
+            else
+            {
+                // Мы возьмём КОПИЮ РЦ из предыдущего кубика.
+                var prevBlock = currentBlock.PreviousBlockOnThisRC[PoolIndex];
+                if (prevBlock != null)
+                {
+                    centGlobalStruct = prevBlock.CenterDataLocalCopy[PoolIndex].Copy();
+                }
+                else
+                {
+                    centGlobalStruct = FillCenterWithSomeData(null, ChoosenCenter, resultToFill.TimeOfStart);
+                    centGlobalStruct.Flag = currentFlag;
+
+                    // Двигаем график если надо, и сохраняем след. индекс
+                    if (NonWorkingIntervalsMasterData.PreparedRCFixingData.TryGetValue(ChoosenCenter, out var val))
+                    {
+                        centGlobalStruct.LastDate += val.Duration;
+                        centGlobalStruct.NextNonWorkingInterval = val.NextInterval;
+                        centGlobalStruct.LastStartDate = centGlobalStruct.LastDate;
+                    }
+                }
+
+                //currentBlock.PreviousBlockOnThisRC[PoolIndex] = centGlobalStruct.LastBlock;
             }
 
-            currentBlock.PreviousBlockOnThisRC[PoolIndex] = centGlobalStruct.LastBlock;
-            if (centGlobalStruct.LastBlock != null)
-            {
-                try
-                {
-                    centGlobalStruct.LastBlock.NextBlockOnThisRC[PoolIndex] = currentBlock;
-                }
-                catch
-                {
-                    ;
-                }
-            }
-            currentBlock.NextBlockOnThisRC[PoolIndex] = null;
+
 
             // Получаем инфу по всем данным со всех моделирований
             (bool Passed, PlanSimulatorDatesData Data)[] ParallelData = new (bool Passed, PlanSimulatorDatesData)[currentBlock.Lists.Count];
@@ -138,7 +159,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             // Сначала просто получаем сырые данные. Тут двигать пока ничего НЕ НАДО из-за нераб интервалов, это случится позже. Тут просто нужно данные получить, и разницу узнать
             for (int i = 0; i < ParallelData.Length; i++)
             {
-                ParallelData[i] = (false, FindMinTime(PoolIndex, currentBlock.Lists[i], currentFlag, resultToFill.Session.AssignedPlanningAlgorithm.MinAcceptableDate));
+                ParallelData[i] = (false, FindMinTime(PoolIndex, currentBlock.Lists[i], currentFlag, resultToFill.Session.AssignedPlanningAlgorithm.MinAcceptableDate, LinearRC));
             }
 
             // Теперь бродим по этим моделированиям
@@ -299,6 +320,15 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             }
 
             centGlobalStruct.LastBlock = currentBlock;
+
+            if (LinearRC)
+            {
+                currentBlock.CenterDataLocalCopy[PoolIndex] = centGlobalStruct.Copy(); // Копируем в текущую
+            }
+            else
+            {
+                currentBlock.CenterDataLocalCopy[PoolIndex] = centGlobalStruct.Copy(); // Поскольку я уже работаю с копией, то заново копировать её резона нет.
+            }
         }
 
         /// <summary>
@@ -462,12 +492,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <param name="modelling">Моделирование для которого получаем данные</param>
         /// <param name="neededFlag">Текущий "флаг расчёта"</param>
         /// <returns></returns>
-        static PlanSimulatorDatesData FindMinTime(int PoolIndex, PlanSimulatorMod modelling, int neededFlag, DateTime minDate)
+        static PlanSimulatorDatesData FindMinTime(int PoolIndex, PlanSimulatorMod modelling, int neededFlag, DateTime minDate, bool LinearRC)
         {
             var neededDate = modelling.FirstOperJust.Fixed ? modelling.FirstOperJust.StartTimeFact.Value : minDate;
 
             var kortez = modelling.MinDatesData[PoolIndex];//pool.DatesData[modelling.ModID];
-            if (kortez.Flag == neededFlag)
+            if (kortez.Flag == neededFlag || !LinearRC)
             {
                 if (kortez.MinValue > neededDate)
                 {

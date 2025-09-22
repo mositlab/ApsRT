@@ -572,7 +572,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 418);
+            label49.Location = new Point(959, 417);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -585,7 +585,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 415);
+            pictureBox1.Location = new Point(1099, 414);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -598,7 +598,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 465);
+            label48.Location = new Point(3, 464);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -699,9 +699,9 @@ namespace ApsRTCustomComponents
             PartiasTabPage.BackColor = Color.White;
             PartiasTabPage.Controls.Add(PartiasTabControl);
             PartiasTabPage.Controls.Add(materialTabSelector2);
-            PartiasTabPage.Location = new Point(4, 25);
+            PartiasTabPage.Location = new Point(4, 24);
             PartiasTabPage.Name = "PartiasTabPage";
-            PartiasTabPage.Size = new Size(1171, 501);
+            PartiasTabPage.Size = new Size(1171, 502);
             PartiasTabPage.TabIndex = 0;
             PartiasTabPage.Text = "Формирование партий";
             // 
@@ -713,7 +713,7 @@ namespace ApsRTCustomComponents
             PartiasTabControl.Location = new Point(0, 35);
             PartiasTabControl.Name = "PartiasTabControl";
             PartiasTabControl.SelectedIndex = 0;
-            PartiasTabControl.Size = new Size(1171, 466);
+            PartiasTabControl.Size = new Size(1171, 467);
             PartiasTabControl.TabIndex = 21;
             // 
             // AllPartiasTabControl
@@ -723,7 +723,7 @@ namespace ApsRTCustomComponents
             AllPartiasTabControl.Location = new Point(4, 25);
             AllPartiasTabControl.Name = "AllPartiasTabControl";
             AllPartiasTabControl.Padding = new Padding(3);
-            AllPartiasTabControl.Size = new Size(1163, 437);
+            AllPartiasTabControl.Size = new Size(1163, 438);
             AllPartiasTabControl.TabIndex = 0;
             AllPartiasTabControl.Text = "Полный расчёт";
             // 
@@ -754,7 +754,7 @@ namespace ApsRTCustomComponents
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer3);
-            splitContainer1.Size = new Size(1157, 431);
+            splitContainer1.Size = new Size(1157, 432);
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
             // 
@@ -814,7 +814,7 @@ namespace ApsRTCustomComponents
             AllForAllTextBox.Multiline = true;
             AllForAllTextBox.Name = "AllForAllTextBox";
             AllForAllTextBox.ScrollBars = ScrollBars.Both;
-            AllForAllTextBox.Size = new Size(398, 252);
+            AllForAllTextBox.Size = new Size(398, 253);
             AllForAllTextBox.TabIndex = 27;
             // 
             // label2
@@ -921,7 +921,7 @@ namespace ApsRTCustomComponents
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(PartiasDataTable);
-            splitContainer3.Size = new Size(751, 429);
+            splitContainer3.Size = new Size(751, 430);
             splitContainer3.SplitterDistance = 248;
             splitContainer3.TabIndex = 0;
             // 
@@ -943,7 +943,7 @@ namespace ApsRTCustomComponents
             PartiasDataTable.Location = new Point(0, 0);
             PartiasDataTable.Name = "PartiasDataTable";
             PartiasDataTable.RowHeadersWidth = 51;
-            PartiasDataTable.Size = new Size(751, 177);
+            PartiasDataTable.Size = new Size(751, 178);
             PartiasDataTable.TabIndex = 0;
             // 
             // Column1
@@ -1002,7 +1002,7 @@ namespace ApsRTCustomComponents
             HandPartiasTabControl.Location = new Point(4, 24);
             HandPartiasTabControl.Name = "HandPartiasTabControl";
             HandPartiasTabControl.Padding = new Padding(3);
-            HandPartiasTabControl.Size = new Size(1163, 439);
+            HandPartiasTabControl.Size = new Size(1163, 438);
             HandPartiasTabControl.TabIndex = 1;
             HandPartiasTabControl.Text = "Поштучное объединение";
             // 
@@ -1036,7 +1036,7 @@ namespace ApsRTCustomComponents
             // splitContainer4.Panel2
             // 
             splitContainer4.Panel2.Controls.Add(tabControl1);
-            splitContainer4.Size = new Size(1157, 362);
+            splitContainer4.Size = new Size(1157, 361);
             splitContainer4.SplitterDistance = 385;
             splitContainer4.TabIndex = 44;
             // 
@@ -1048,7 +1048,7 @@ namespace ApsRTCustomComponents
             TwoPartiasTextBox.Multiline = true;
             TwoPartiasTextBox.Name = "TwoPartiasTextBox";
             TwoPartiasTextBox.ScrollBars = ScrollBars.Both;
-            TwoPartiasTextBox.Size = new Size(385, 362);
+            TwoPartiasTextBox.Size = new Size(385, 361);
             TwoPartiasTextBox.TabIndex = 28;
             // 
             // tabControl1
@@ -1060,7 +1060,7 @@ namespace ApsRTCustomComponents
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(768, 362);
+            tabControl1.Size = new Size(768, 361);
             tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -1068,7 +1068,7 @@ namespace ApsRTCustomComponents
             tabPage1.Controls.Add(TwoPartiasPartia1View);
             tabPage1.Location = new Point(4, 25);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(760, 333);
+            tabPage1.Size = new Size(760, 332);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Партия 1";
             tabPage1.UseVisualStyleBackColor = true;
@@ -1080,7 +1080,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartia1View.Location = new Point(0, 0);
             TwoPartiasPartia1View.Margin = new Padding(0);
             TwoPartiasPartia1View.Name = "TwoPartiasPartia1View";
-            TwoPartiasPartia1View.Size = new Size(760, 333);
+            TwoPartiasPartia1View.Size = new Size(760, 332);
             TwoPartiasPartia1View.TabIndex = 0;
             // 
             // tabPage2
