@@ -1,5 +1,7 @@
 ﻿using ApsRT.Core.Leftovers;
+using ApsRT.Core.Planning.ParallelPlanning;
 using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.MasterData;
 using Azure;
 using Google.OrTools.Sat;
@@ -11,10 +13,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using UniversalPack.Extensions;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
-using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 
 namespace ApsRT.Core.Planning.PlanningAlgorithm
 {
@@ -44,6 +46,33 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             BlocksDependingOnCenter[center].Add(block);
             LinearPlan.Add(block);
             ExistingBlocks.Add(block);
+            OpersCopy.Remove(block);
+        }
+
+        void AddBlockParallel(PlanSimulatorBlock block, Uco center, PlanSimulatorBlock mainBlock)
+        {
+            block.SetCenter(center, 0);
+
+            var firstMod = block.Lists[0];
+
+            firstMod.BlockLink = mainBlock;
+
+            var tara = firstMod.FirstOperJust.CurrentTara;
+
+            mainBlock.Lists.Add(firstMod); // Добавляем мод
+                                           //lastBlock.FillKoeff += 0.25f; // TODO: другое значение вставить, мб передать в виде аргумента
+            //if (ThisTaraMustBeLast) lastBlock.FillKoeff = 1;
+            if (!mainBlock.ExistingTaraHere.ContainsKey(tara))
+            {
+                mainBlock.ExistingTaraHere.Add(tara, 0);
+            }
+
+            mainBlock.ExistingTaraHere[tara]++;
+
+            mainBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
+
+
+
             OpersCopy.Remove(block);
         }
 
@@ -310,6 +339,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 AvailableIndexes.Enqueue(i);
             }
 
+            var ParallelPlanningMasterData = basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData;
+
             while (OpersCopy.Count > 0)
             {
                 var PossibleOpersHere = OpersCopy.Where(x => x.Lists[0].FirstOperJust.Level == CurrentLevel
@@ -345,43 +376,150 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     PlanSimulatorMod ChoosenMod = null;
                     object locker = new object();
 
+                    bool WillBeParr = false;
+                    PlanSimulatorBlock parrBlock = null;
+
                     var process = Parallel.For(0, PossibleOpersHere.Length, i =>
                     {
                         var mod = PossibleOpersHere[i].Lists[0];
                         var possibleRCs = mod.PossibleRCsHere;
                         var subProcess = Parallel.For(0, possibleRCs.Count, j =>
                         {
+                            var currentCenter = possibleRCs[j];
+                            var list = BlocksDependingOnCenter[currentCenter]; // Возьмем список блоков на этом РЦ
 
-                            while (AvailableIndexes.Count == 0)
+
+                            if (!mod.FirstOperJust.CurrentTara.IsEmpty && mod.FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrID) && parrID != -1
+                            && ParallelPlanningMasterData.ParIDParams.TryGetValue(parrID, out var paramsHere)
+                            )
                             {
-                                ;
-                            }
-                            int IndexToWorkWith = 0;
-                            while (!AvailableIndexes.TryDequeue(out IndexToWorkWith))
-                            {
-                                ;
-                            }
-                            lock (globalLocker)//lockers[IndexToWorkWith])
-                            {
-                                float localResult = Step2_1_CheckBlock(mod, possibleRCs[j], IndexToWorkWith);
-                                lock (locker)
+                                var possibleParallelOpers = list
+                                .Where(block =>
+
+                                block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
+
+                                &&
+
+                                /*
+                                 a = block.Lists[0].AllTime[currentCenter]
+                                 b = mod.AllTime[currentCenter]
+                                 c = block.MaxTime(currentCenter)
+                                 Нужно проверить эти условия:
+                                 c - b >= 0 - это значит, что текущее моделирование по длительности не уступает тому, что уже там есть, и его можно юзать
+                                Чтобы использовать вместе с дельтой, нужно сделать так:
+                                c - b <= paramsHere.Delta
+                                А чтобы правило работало в обе стороны, юзаем math.abs:
+                                */
+                                Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds) <= paramsHere.Delta
+                                //paramsHere.Delta
+
+                                &&
+
+                                // Надо ещё, чтобы сюда влазила тара вся.
+                                ParallelPlanningMasterData.GetMostFreeTara(
+                                currentCenter,
+                                mod.FirstOperJust.OperationVid,
+                                parrID,
+                                mod.BlockLink.Lists.Count, //TODO: у общих этапов их количество может быть больше
+                                block.ExistingTaraHere,
+                                mod.FirstOperJust.CurrentTara,
+                                out var resultat
+                                ) >= 0
+
+
+                                ).ToArray();
+
+                                if (possibleParallelOpers.Length > 0)
                                 {
-                                    if (minResult > localResult)
+                                    ;
+                                    lock (locker)
                                     {
-                                        minResult = localResult;
-                                        ChoosenMod = mod;
-                                        ChoosenCenter = possibleRCs[j];
+
+                                        (PlanSimulatorBlock block, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
+                                        {
+                                            var deltaBetweenInnerOps = Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds); // Приходится заюзать то, что я описал выше, потому что близость операций можно определить по дельте между ними
+                                            deltaBetweenInnerOps = Math.Round(deltaBetweenInnerOps); // На будущее - уберу дробную часть
+
+
+                                            var dateDelta = Math.Abs((mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]).TotalSeconds);
+                                            dateDelta = Math.Round(dateDelta);
+
+                                            return (block, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
+                                        })
+                                        .OrderBy(x => x.crit1)
+                                        .ThenBy(y => y.crit2)
+                                        .ToArray();
+
+                                        var parrBlockVariant = variants.First();
+                                        float localResult = parrBlockVariant.TotalCost;
+                                        lock (locker)
+                                        {
+                                            if (localResult < minResult)
+                                            {
+                                                minResult = localResult;
+                                                ChoosenMod = mod;
+                                                ChoosenCenter = currentCenter;
+                                                WillBeParr = true;
+                                                parrBlock = parrBlockVariant.block;
+                                            }
+                                        }
                                     }
                                 }
-                                AvailableIndexes.Enqueue(IndexToWorkWith);
                             }
-
                         });
                         while (!subProcess.IsCompleted) ;
                     });
                     while (!process.IsCompleted) ;
 
-                    AddBlockToPlan(ChoosenMod.BlockLink, ChoosenCenter);
+                    // А теперь, если не было параллелизма, обычный варик
+                    if (!WillBeParr)
+                    {
+                        process = Parallel.For(0, PossibleOpersHere.Length, i =>
+                        {
+                            var mod = PossibleOpersHere[i].Lists[0];
+                            var possibleRCs = mod.PossibleRCsHere;
+                            var subProcess = Parallel.For(0, possibleRCs.Count, j =>
+                            {
+                                var currentCenter = possibleRCs[j];
+                                var list = BlocksDependingOnCenter[currentCenter]; // Возьмем список блоков на этом РЦ
+                                while (AvailableIndexes.Count == 0)
+                                {
+                                    ;
+                                }
+                                int IndexToWorkWith = 0;
+                                while (!AvailableIndexes.TryDequeue(out IndexToWorkWith))
+                                {
+                                    ;
+                                }
+                                lock (lockers[IndexToWorkWith])
+                                {
+                                    float localResult = Step2_1_CheckBlock(mod, currentCenter, IndexToWorkWith, list);
+                                    lock (locker)
+                                    {
+                                        if (minResult > localResult)
+                                        {
+                                            minResult = localResult;
+                                            ChoosenMod = mod;
+                                            ChoosenCenter = possibleRCs[j];
+                                        }
+                                    }
+                                    AvailableIndexes.Enqueue(IndexToWorkWith);
+                                }
+                            });
+                            while (!subProcess.IsCompleted) ;
+                        });
+                        while (!process.IsCompleted) ;
+                    }
+
+                    if (WillBeParr)
+                    {
+                        AddBlockParallel(ChoosenMod.BlockLink, ChoosenCenter, parrBlock);
+                    }
+                    else
+                    {
+                        AddBlockToPlan(ChoosenMod.BlockLink, ChoosenCenter);
+                    }
+
 
                     if (OpersCopy.Count == 0) Success = true;
 
@@ -404,7 +542,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         }
 
-        float Step2_1_CheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex)
+        //float Step2_1_CheckBlockParallel(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex, PlanSimulatorBlock blockToInsert)
+        //{
+
+        //}
+
+        float Step2_1_CheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex, List<PlanSimulatorBlock> list)
         {
             //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
 
@@ -429,7 +572,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //string asString0 = "";
 
 
-            var list = BlocksDependingOnCenter[choosenCenter];
+            ;
 
             //asString0 += $"Дата начала плана: {basisLink.StartOfPlanningDate}\r\n";
             //for (int i = 0; i < list.Count; i++)
