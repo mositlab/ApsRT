@@ -74,6 +74,37 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
 
             OpersCopy.Remove(block);
+
+
+            Queue<PlanSimulatorBlock> blocks = new();
+            blocks.Enqueue(block);
+
+            while (blocks.Count > 0)
+            {
+                var currentBlock = blocks.Dequeue();
+
+                if (!LinearPlan.Contains(currentBlock)) continue;
+
+                currentBlock.BlockIndex[0] = Math.Max(currentBlock.PreviousBlockOnThisRC[0] == null ? -1 : currentBlock.PreviousBlockOnThisRC[0].BlockIndex[0], currentBlock.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(prevMod => prevMod.BlockLink.BlockIndex[0]))) + 1;
+
+                if (currentBlock.NextBlockOnThisRC[0] != null && !blocks.Contains(currentBlock.NextBlockOnThisRC[0])) blocks.Enqueue(currentBlock.NextBlockOnThisRC[0]);
+
+
+                var blocksToAdd = currentBlock.Lists
+                    .Where(x => x != firstMod)
+                    .SelectMany(x => x.NextMods)
+                    .Distinct()
+                    .Select(x => x.BlockLink)
+                    .Distinct()
+                    .Where(x => x != currentBlock.NextBlockOnThisRC[0]);
+
+                foreach (var toAdd in blocksToAdd) if (!blocks.Contains(toAdd)) blocks.Enqueue(toAdd);
+
+            }
+
+
+
+            LinearPlan = LinearPlan.OrderBy(block => block.BlockIndex[0]).ToList();
         }
 
         void Step1_FirstStages()
@@ -294,6 +325,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             if (success)
             {
+                Console.WriteLine("R: successfully ending...");
                 poolCopy.Blocks = LinearPlan;
                 var ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count();
                 Console.WriteLine("R, end, " + ALL_COUNT);
@@ -323,6 +355,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             int CurrentLevel = 2; // Потому что мы первый уровень уже прошли, полагается.
 
+            int LevelCounter = 0;
+            int MaxLevelCounter = basisLink.UsedPool.Blocks.Count;
+
             int ErroredIterationsCount = 0;
 
             bool Success = false;
@@ -330,6 +365,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             object globalLocker = new();
 
 
+            Console.WriteLine("R: prepare lockers...");
             object[] lockers = new object[basisLink.UsedPool.PoolSize];
             for (int i = 0; i < lockers.Length; i++) lockers[i] = new();
             ConcurrentQueue<int> AvailableIndexes = new ConcurrentQueue<int>();
@@ -341,6 +377,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var ParallelPlanningMasterData = basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData;
 
+            Console.WriteLine("R: calculating...");
             while (OpersCopy.Count > 0)
             {
                 var PossibleOpersHere = OpersCopy.Where(x => x.Lists[0].FirstOperJust.Level == CurrentLevel
@@ -441,8 +478,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             deltaBetweenInnerOps = Math.Round(deltaBetweenInnerOps); // На будущее - уберу дробную часть
 
 
-                                            var dateDelta = Math.Abs((mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]).TotalSeconds);
+                                            var dateDeltaNoAbs = (mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]).TotalSeconds;
+                                            var dateDelta = Math.Abs(dateDeltaNoAbs);
                                             dateDelta = Math.Round(dateDelta);
+
+                                            var prostoi = dateDeltaNoAbs < 0 ? -dateDeltaNoAbs : 0;
 
                                             return (block, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
                                         })
@@ -501,6 +541,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                             minResult = localResult;
                                             ChoosenMod = mod;
                                             ChoosenCenter = possibleRCs[j];
+                                            WillBeParr = false;
                                         }
                                     }
                                     AvailableIndexes.Enqueue(IndexToWorkWith);
@@ -533,9 +574,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, LinearPlan.Count);
                 }
 
-
-                CurrentLevel++; // Обновляем уровень
-                if (CurrentLevel > MaxLevel) CurrentLevel = 0;
+                LevelCounter++;
+                if (LevelCounter >= MaxLevelCounter || PossibleOpersHere.Length == 0)
+                {
+                    LevelCounter = 0;
+                    CurrentLevel++; // Обновляем уровень
+                    if (CurrentLevel > MaxLevel) CurrentLevel = 0;
+                }
             }
 
             return Success;
@@ -555,9 +600,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
              new List<PlanSimulatorBlock>()
             {
                 mod.BlockLink
-            };//
+            };
              */
-
             //mod.BlockLink.SetCenter(choosenCenter, poolIndex);
             //PlanSimulatorPool.MoveCentersInAllBlocks(swallowCopy, 0, poolIndex);
             //PlanSimulatorPool.InsertBlockSafe(swallowCopy, mod.BlockLink, swallowCopy.Count, poolIndex, 0);
@@ -567,28 +611,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //PlanSimulatorEngineResult localResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(swallowCopy, poolIndex, basisLink.StartOfPlanningDate, res, StartFrom: swallowCopy.Count - 1, LinearRC: false);
 
             //var res1 = (float)(mod.DateOfEnd[poolIndex] - basisLink.MinAcceptableDate).TotalSeconds;
-
-            //return 
-            //string asString0 = "";
-
-
-            ;
-
-            //asString0 += $"Дата начала плана: {basisLink.StartOfPlanningDate}\r\n";
-            //for (int i = 0; i < list.Count; i++)
-            //{
-            //    asString0 += $"Кубик {list[i].ToString()}\r\n";
-            //    asString0 += $"Дата у центра: {list[i].CenterDataLocalCopy[poolIndex].LastDate}\r\n";
-            //    asString0 += $"Начал {list[i].Lists[0].DateOfStart[poolIndex]}\r\n";
-            //    asString0 += $"Длительность {list[i].Lists[0].AllTime[choosenCenter]}\r\n";
-            //    asString0 += $"Кончил {list[i].Lists[0].DateOfEnd[poolIndex]}\r\n";
-            //}
-            //asString0 += $"Кубик {mod.BlockLink.ToString()}\r\n";
-            //asString0 += $"Дата у центра: {(mod.BlockLink.CenterDataLocalCopy[0]?.LastDate.ToString() ?? "")}\r\n";
-            //asString0 += $"Мин дата: {mod.MinDatesData[0].MinValue}\r\n";
-            //asString0 += $"Начал {mod.DateOfStart[0]}\r\n";
-            //asString0 += $"Длительность {mod.AllTime[choosenCenter]}\r\n";
-            //asString0 += $"Кончил {mod.DateOfEnd[0]}\r\n";
 
             var lastBlock = list.Count == 0 ? null : list[^1];
             var operationA = list.Count == 0 ? null : lastBlock.Lists[0]?.FirstOper;
@@ -608,37 +630,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             if (prostoiDur.Ticks < 0) prostoiDur = TimeSpan.Zero;
 
-            var lastDate = lastCenterDate + prostoiDur + rechesDur + mod.AllTime[choosenCenter];
+            var time1 = lastCenterDate + prostoiDur + rechesDur;
+
+            var lastDate = time1 + mod.AllTime[choosenCenter];
+
+            //var res1 = (float)(time1 - minDate).TotalSeconds;
 
             var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
-
-            //string asStringX = "";
-
-            //asStringX = asString0;
-            //asStringX += $"Дата начала плана: {basisLink.StartOfPlanningDate}\r\n";
-            ////for (int i = 0; i < list.Count; i++)
-            ////{
-            ////    asStringX += $"Кубик {list[i].ToString()}\r\n";
-            ////    asStringX += $"Дата у центра: {list[i].CenterDataLocalCopy[poolIndex].LastDate}\r\n";
-            ////    asStringX += $"Начал {list[i].Lists[0].DateOfStart[poolIndex]}\r\n";
-            ////    asStringX += $"Длительность {list[i].Lists[0].AllTime[choosenCenter]}\r\n";
-            ////    asStringX += $"Кончил {list[i].Lists[0].DateOfEnd[poolIndex]}\r\n";
-            ////}
-            //asStringX += $"Кубик {mod.BlockLink.ToString()}\r\n";
-            //asStringX += $"Дата у центра: {lastCenterDate}\r\n";
-            //asStringX += $"Мин дата: {minDate}\r\n";
-            //asStringX += $"Начал {mod.DateOfStart[poolIndex]}\r\n";
-            //asStringX += $"Длительность {mod.AllTime[choosenCenter]}\r\n";
-            //asStringX += $"Кончил {mod.DateOfEnd[poolIndex]}\r\n";
-
-
-            //var prostoi = res.ProstoiBeforeFirstStages.TryGetValue(mod.FirstOperJust.Index, out var pros) ? pros.ProstoiItself : null;
-            //var reches = res.RechangesBeforeFirstStages[mod.FirstOperJust.Index];
-
-            //if (res2 != res1)
-            //{
-            //    ;
-            //}
 
             return res2;
 
