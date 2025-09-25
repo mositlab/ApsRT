@@ -77,7 +77,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
 
             Queue<PlanSimulatorBlock> blocks = new();
-            blocks.Enqueue(block);
+            blocks.Enqueue(mainBlock);
 
             while (blocks.Count > 0)
             {
@@ -354,6 +354,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
 
             int CurrentLevel = 2; // Потому что мы первый уровень уже прошли, полагается.
+            //CurrentLevel = 1; // Не пытайся поставить начало на 1, потому что почему-то это ухудшает план на 1-2 дня.
+
 
             int LevelCounter = 0;
             int MaxLevelCounter = basisLink.UsedPool.Blocks.Count;
@@ -512,7 +514,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     while (!process.IsCompleted) ;
 
                     // А теперь, если не было параллелизма, обычный варик
-                    if (!WillBeParr)
+                    if (true || !WillBeParr)
                     {
                         process = Parallel.For(0, PossibleOpersHere.Length, i =>
                         {
@@ -625,6 +627,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var rechangesResult = operationA == null ? null : basisLink.SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(lastBlock.GetCenterData(0).CenterDataLink, mod.MinDatesData[0], operationA.Stage, mod.FirstOperJust, choosenCenter));
 
             TimeSpan rechesDur = rechangesResult == null ? new TimeSpan() : TimeSpan.FromSeconds(rechangesResult.Duration);
+
+            // Чтобы сделать только переналадки, хватит вот этого критерия:
+            //return (float)rechesDur.TotalSeconds;
 
             prostoiDur -= rechesDur;
 
