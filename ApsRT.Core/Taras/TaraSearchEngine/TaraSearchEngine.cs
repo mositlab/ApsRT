@@ -113,11 +113,11 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var ModToTaraInfoLink = options.ModToTaraInfoLink;
 
 
-            if (allOpers.ModId != -1 && (ModToTaraInfoLink?.TryGetValue(allOpers.ModId, out var resu) ?? false))
-            {
-                searchData = resu;
-                return resu != null;
-            }
+            //if (allOpers.ModId != -1 && (ModToTaraInfoLink?.TryGetValue(allOpers.ModId, out var resu) ?? false))
+            //{
+            //    searchData = resu;
+            //    return resu != null;
+            //}
 
             bool willVspom = allOpers.FirstOperLink.UsesVspomTara || allOpers.AllOpers.AsValueEnumerable().Any(x => x.Nexts.AsValueEnumerable().Any(y => ALL[y].UsesVspomTara && ALL[y].NoChangeTara)); // Признак "вспом. тару" должен быть у текущего, либо у ребенка (и у ребенка должен быть признак не менять тару)
 
