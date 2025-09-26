@@ -124,196 +124,125 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             LinearPlan = LinearPlan.OrderBy(block => block.BlockIndex[0]).ToList();
         }
 
+        class RFirstStageResult
+        {
+            public PlanSimulatorBlock Block;
+            public Uco RC, Tara;
+            public double Max;
+            public bool ItsBadResult;
+            public double Cost;
+
+            public RFirstStageResult(PlanSimulatorBlock block, Uco rC, Uco tara, double max, bool itsBadResult, float cost)
+            {
+                Block = block;
+                RC = rC;
+                Tara = tara;
+                Max = max;
+                ItsBadResult = itsBadResult;
+                Cost = cost;
+            }
+        }
+
+        List<RFirstStageResult> Step1_1_PrepareFirstStages(PlanSimulatorBlock[] OpersForFirstLevelArray)
+        {
+            List<RFirstStageResult> firstResults = new();
+
+            for (int i = 0; i < OpersForFirstLevelArray.Length; i++)
+            {
+                var mod = OpersForFirstLevelArray[i].Lists[0];
+
+                TemporaryTaraSearchData data = null;
+
+                bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false)
+                {
+                    PrevsInfo = PrevsInfoForR,
+                    ModToTaraInfoLink = basisLink.ModToTaraInfo
+                });
+
+                bool anythingWas = false;
+                if (Can1)
+                {
+                    for (int j = 0; j < data.PossibleCentersAndTaras.Length; j++)
+                    {
+                        Uco currentCenter = data.PossibleCentersAndTaras[j].RC;
+                        Uco currentTara = data.PossibleCentersAndTaras[j].Tara;
+                        if (TaraSearchEngine.FilterAllVariants(mod, data, out var tara, out var rc, out var MaxNamot, out _, out _, new SumIsPossibleOptions(false)
+                        {
+                            LogSomeErrors = false,
+                            PrevsInfo = PrevsInfoForR,
+                            RCMustBeThis = new HashSet<Uco>() { currentCenter },
+                            TaraMustBeThis = new HashSet<Uco>() { currentTara },
+                            ModToTaraInfoLink = basisLink.ModToTaraInfo
+                        }))
+                        {
+                            firstResults.Add(new RFirstStageResult(mod.BlockLink, rc, tara, MaxNamot, false, 0));
+                            anythingWas = true;
+                        }
+                    }
+                }
+
+                // Придётся задействовать самую простую технику, но именно что ошибочную.
+                if (!Can1 || !anythingWas)
+                {
+                    foreach (var rc in mod.PossibleRCsHere)
+                    {
+                        firstResults.Add(new RFirstStageResult(mod.BlockLink, rc, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true, 0));
+                    }
+                }
+
+
+            }
+
+            return firstResults;
+        }
+
+        void Step1_2_PrepareValues(List<RFirstStageResult> firstResults)
+        {
+            double minDelta = double.MaxValue;
+            foreach (var link in firstResults)
+            {
+                var minDeadline = link.Block.Lists[0].StagesAsNormal.Min(x => x.OrderLink.Deadline);
+                var desiredRC = link.RC;
+                var blockDuration = link.Block.MaxTime(desiredRC);
+                DateTime blockEnd = basisLink.StartOfPlanningDate + blockDuration;
+                link.Cost = (blockEnd - minDeadline).TotalDays; // Получаем дельту. Если дедлайн был меньше, то и дельта будет положительная.
+                if (minDelta > link.Cost) minDelta = link.Cost;
+            }
+            foreach (var link in firstResults)
+            {
+                if (minDelta < 0) link.Cost -= minDelta; // Увеличиваем на эту самую дельту, чтобы избавиться от нулей.
+                link.Cost = (link.Cost * 1000) + 1; // Ну это чтобы не было 0, если пришёл в эту точку.
+            }
+        }
+
         void Step1_FirstStages()
         {
             Console.WriteLine("R: getting first ops...");
             var OpersForFirstLevelArray = OpersCopy.Where(block => block.Lists[0].FirstOperJust.Prevs.Count == 0).ToArray(); // Получаем те этапы, которые подходят именно в качестве первых.
 
-            Dictionary<Uco, int> CenterToIndex = new();
+            List<RFirstStageResult> firstResults = Step1_1_PrepareFirstStages(OpersForFirstLevelArray);
 
-            // Подготовим список кубиков и на какие РЦ они встанут
-            List<(PlanSimulatorBlock block, Uco Center)> OpersForFirstLevel = new();
-            for (int i = 0; i < OpersForFirstLevelArray.Length; i++)
+            Step1_2_PrepareValues(firstResults);
+
+            HashSet<Uco> passedCenters = new();
+            HashSet<PlanSimulatorBlock> passedBlocks = new();
+
+            var OpersForFirstLevelForSort = firstResults
+                .OrderBy(x => (x.ItsBadResult ? 1 : 0)) // Сначала уберем плохие результаты наверх
+                .ThenBy(x => x.Cost) // А теперь уже и по цене отсортируем
+                .ToArray();
+
+            for (int i = 0; i < OpersForFirstLevelForSort.Length; i++)
             {
-                var block = OpersForFirstLevelArray[i];
-                foreach (var rc in block.PossibleRCsHere)
-                {
-                    OpersForFirstLevel.Add((block, rc));
-                }
-            }
+                var element = OpersForFirstLevelForSort[i];
+                var center = element.RC;
+                var tara = element.Tara;
+                if (passedCenters.Contains(center) || passedBlocks.Contains(element.Block)) continue;
 
-            Console.WriteLine($"R: preparing solver for {OpersForFirstLevel.Count}...");
+                AddBlockToPlan(element.Block, center, tara);
 
-            double[] deltas = new double[OpersForFirstLevel.Count]; // Тут будут дельты
-
-            int[] values = new int[OpersForFirstLevel.Count]; // Получаем значения
-
-            int[] weights = new int[OpersForFirstLevel.Count]; // Веса
-
-            double minDelta = double.MaxValue;
-            for (int i = 0; i < OpersForFirstLevel.Count; i++)
-            {
-                var minDeadline = OpersForFirstLevel[i].block.Lists[0].StagesAsNormal.Min(x => x.OrderLink.Deadline);
-                var desiredRC = OpersForFirstLevel[i].Center;
-                CenterToIndex.TryAdd(desiredRC, CenterToIndex.Count);
-
-                var blockDuration = OpersForFirstLevel[i].block.MaxTime(desiredRC);
-                DateTime blockEnd = basisLink.StartOfPlanningDate + blockDuration;
-
-                deltas[i] = (blockEnd - minDeadline).TotalDays; // Получаем дельту. Если дедлайн был меньше, то и дельта будет положительная.
-                if (minDelta > deltas[i]) minDelta = deltas[i];
-            }
-
-            for (int i = 0; i < OpersForFirstLevel.Count; i++)
-            {
-                if (minDelta < 0) deltas[i] -= minDelta; // Увеличиваем на эту самую дельту, чтобы избавиться от нулей.
-                values[i] = (int)(deltas[i] * 1000) + 1; // Ну это чтобы не было 0, если пришёл в эту точку.
-            }
-
-            Console.WriteLine("R: creating solver...");
-
-            // Создадим решатель
-            CpModel model = new CpModel();
-
-            // Сначала просто создаём переменную
-            ILiteral[,] xNew = new ILiteral[OpersForFirstLevel.Count, CenterToIndex.Count];
-            for (int i = 0; i < OpersForFirstLevel.Count; i++)
-            {
-                for (int b = 0; b < CenterToIndex.Count; b++)
-                {
-                    xNew[i, b] = model.NewBoolVar($"Element: {OpersForFirstLevel[i].block.ToString()} to bin: {CenterToIndex.ElementAt(b).Value}");
-                }
-            }
-
-            Console.WriteLine("R: creating table...");
-
-            // Создаём таблицу для данных
-            int[,] IBtable = new int[OpersForFirstLevel.Count, CenterToIndex.Count];
-            // Заполняем ее данными по весу
-            for (int i = 0; i < OpersForFirstLevel.Count; i++)
-            {
-                for (int b = 0; b < CenterToIndex.Count; b++)
-                {
-                    if (OpersForFirstLevel[i].Center == CenterToIndex.ElementAt(b).Key) // ТОЛЬКО ДЛЯ ТЕХ, КУДА ЭТО ОПРЕДЕЛЕНО!!!
-                    {
-                        IBtable[i, b] = values[i];
-                    }
-                }
-            }
-
-            Console.WriteLine("R: creating restriction 1...");
-
-            // Ограничение: каждый предмет можно только в одну корзину, и при том не в каждую
-            for (int i = 0; i < OpersForFirstLevel.Count; i++)
-            {
-                List<ILiteral> literals = new List<ILiteral>();
-                List<ILiteral> literalsRestricted = new List<ILiteral>();
-                for (int b = 0; b < CenterToIndex.Count; b++)
-                {
-                    if (IBtable[i, b] == 0)
-                    {
-                        // Это значит, что ни аналога, ни обычного совпадения по номенклатуре не было (иначе бы заполнилась), поместить нельзя
-                        literalsRestricted.Add(xNew[i, b]);
-                    }
-                    else
-                    {
-                        // Поместить можно.
-                        literals.Add(xNew[i, b]);
-                    }
-                }
-                model.Add(Google.OrTools.Sat.LinearExpr.Sum(literalsRestricted) == 0); // В сумме запрещенных литератов быть не должно! Должен быть 0!
-                model.AddAtMostOne(literals); // А разрешенных - лишь 1!
-            }
-
-            Console.WriteLine("R: creating restriction 2...");
-
-            // Больше чем вместимость рюкзака - нельзя вместить
-            for (int b = 0; b < CenterToIndex.Count; b++)
-            {
-                List<ILiteral> items = new List<ILiteral>();
-                List<int> Weights = new();
-                for (int i = 0; i < OpersForFirstLevel.Count; i++)
-                {
-                    items.Add(xNew[i, b]);
-                    Weights.Add(1); // У НЕГО ВЕС 1
-                }
-                if (items.Count > 0)
-                {
-                    model.Add(Google.OrTools.Sat.LinearExpr.WeightedSum(items, Weights) <= 1); // не больше 1 собственно
-                }
-            }
-
-            Console.WriteLine("R: creating restriction 3...");
-
-            // На основании таблицы задаём удельную ценность
-            LinearExprBuilder obj = Google.OrTools.Sat.LinearExpr.NewBuilder();
-            for (int i = 0; i < OpersForFirstLevel.Count; i++)
-            {
-                for (int b = 0; b < CenterToIndex.Count; b++)
-                {
-                    obj.AddTerm(xNew[i, b], IBtable[i, b]); // Если не то подразделение, то этот остаток не настолько хорош, как другие.
-                }
-            }
-            model.Minimize(obj); // Не максимум, а МИНИМУМ ищи!
-
-            Console.WriteLine("R: solving...");
-
-            // Решалка
-            var dt0 = DateTime.Now;
-            CpSolver solverNew = new CpSolver();
-            CpSolverStatus status = CpSolverStatus.Unknown;
-            CustomCpSolverSolutionCallback cb = new CustomCpSolverSolutionCallback(500);
-            solverNew.StringParameters = "max_time_in_seconds:20.0";// enumerate_all_solutions:true; - было в документации, но и без нее всё работает
-            status = solverNew.Solve(model, cb);
-            var dt1 = DateTime.Now;
-            var delta = dt1 - dt0;
-            Console.WriteLine($"total time wasted on R solver is {delta}, writing results...");
-
-            bool success = status == CpSolverStatus.Optimal || status == CpSolverStatus.Feasible;
-
-            bool any = false;
-
-            if (success)
-            {
-                for (int i = 0; i < OpersForFirstLevel.Count; i++)
-                {
-                    for (int b = 0; b < CenterToIndex.Count; b++)
-                    {
-                        if (solverNew.BooleanValue(xNew[i, b]))
-                        {
-                            var element = OpersForFirstLevel[i];
-                            var center = CenterToIndex.ElementAt(b).Key;
-
-                            AddBlockToPlan(element.block, center, element.block.Lists[0].FirstOperJust.CurrentTara);
-
-                            any = true;
-                        }
-                    }
-                }
-            }
-            if (!success || !any)
-            {
-                Console.WriteLine($"solver R ended with {status}");
-                basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"solver for R ended with {status}");
-
-
-                HashSet<Uco> passedCenters = new();
-                HashSet<PlanSimulatorBlock> passedBlocks = new();
-
-                var OpersForFirstLevelForSort = OpersForFirstLevel.Select((x, index) => (element: x, value: values[index])).OrderBy(x => x.value).ToArray();
-
-                for (int i = 0; i < OpersForFirstLevelForSort.Length; i++)
-                {
-                    var element = OpersForFirstLevelForSort[i].element;
-                    var center = element.Center;
-                    if (passedCenters.Contains(center) || passedBlocks.Contains(element.block)) continue;
-
-                    AddBlockToPlan(element.block, center, element.block.Lists[0].FirstOperJust.CurrentTara);
-
-                    passedCenters.Add(center);
-                    passedBlocks.Add(element.block);
-                }
-
+                passedCenters.Add(center);
+                passedBlocks.Add(element.Block);
             }
         }
 
@@ -386,92 +315,146 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForR, ModToTaraInfoLink = basisLink.ModToTaraInfo });
 
-                var possibleRCs = mod.PossibleRCsHere;
-                var subProcess = Parallel.For(0, possibleRCs.Count, j =>
-                {
-                    var currentCenter = possibleRCs[j];
-                    var list = BlocksDependingOnCenter[currentCenter]; // Возьмем список блоков на этом РЦ
 
+                //if (Can1 && !mod.FirstOperJust.NoCheckNamotka && data.PossibleCentersAndTaras.Any(x => x.Tara.IsEmpty))
+                //{
+                //    ;
+                //}
 
-                    if (!mod.FirstOperJust.CurrentTara.IsEmpty && mod.FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrID) && parrID != -1
-                    && basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.ParIDParams.TryGetValue(parrID, out var paramsHere)
-                    )
-                    {
-                        var possibleParallelOpers = list
-                        .Where(block =>
+                bool anythingWas = false;
+                if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data);
 
-                        block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
+                if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass);
 
-                        &&
-
-                        /*
-                         a = block.Lists[0].AllTime[currentCenter]
-                         b = mod.AllTime[currentCenter]
-                         c = block.MaxTime(currentCenter)
-                         Нужно проверить эти условия:
-                         c - b >= 0 - это значит, что текущее моделирование по длительности не уступает тому, что уже там есть, и его можно юзать
-                        Чтобы использовать вместе с дельтой, нужно сделать так:
-                        c - b <= paramsHere.Delta
-                        А чтобы правило работало в обе стороны, юзаем math.abs:
-                        */
-                        Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds) <= paramsHere.Delta
-                        //paramsHere.Delta
-
-                        &&
-
-                        // Надо ещё, чтобы сюда влазила тара вся.
-                        basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.GetMostFreeTara(
-                        currentCenter,
-                        mod.FirstOperJust.OperationVid,
-                        parrID,
-                        mod.BlockLink.Lists.Count, //TODO: у общих этапов их количество может быть больше
-                        block.ExistingTaraHere,
-                        mod.FirstOperJust.CurrentTara,
-                        out var resultat
-                        ) >= 0
-
-
-                        ).ToArray();
-
-                        if (possibleParallelOpers.Length > 0)
-                        {
-                            (PlanSimulatorBlock block, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
-                            {
-                                var deltaBetweenInnerOps = Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds); // Приходится заюзать то, что я описал выше, потому что близость операций можно определить по дельте между ними
-                                deltaBetweenInnerOps = Math.Round(deltaBetweenInnerOps); // На будущее - уберу дробную часть
-
-
-                                var dateDeltaNoAbs = (mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]).TotalSeconds;
-                                var dateDelta = Math.Abs(dateDeltaNoAbs);
-                                dateDelta = Math.Round(dateDelta);
-
-                                var prostoi = dateDeltaNoAbs < 0 ? -dateDeltaNoAbs : 0;
-
-                                return (block, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
-                            })
-                            .OrderBy(x => x.crit1)
-                            .ThenBy(y => y.crit2)
-                            .ToArray();
-
-                            var parrBlockVariant = variants.First();
-                            float localResult = parrBlockVariant.TotalCost;
-                            lock (locker)
-                            {
-                                if (localResult < searcherClass.minResult)
-                                {
-                                    searcherClass.minResult = localResult;
-                                    searcherClass.ChoosenMod = mod;
-                                    searcherClass.ChoosenCenter = currentCenter;
-                                    searcherClass.WillBeParr = true;
-                                    searcherClass.parrBlock = parrBlockVariant.block;
-                                }
-                            }
-                        }
-                    }
-                });
-                while (!subProcess.IsCompleted) ;
             });
             while (!process.IsCompleted) ;
+        }
+
+        bool ParallelCheck(PlanSimulatorMod mod, RSearcher searcherClass, Uco currentCenter, Uco currentTara, double maxNamot, bool ForceThisTara)
+        {
+            bool result = false;
+            if (!mod.FirstOperJust.CurrentTara.IsEmpty && mod.FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrID) && parrID != -1
+            && basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.ParIDParams.TryGetValue(parrID, out var paramsHere)
+            )
+            {
+                var possibleParallelOpers = BlocksDependingOnCenter[currentCenter]
+                .Where(block =>
+
+                block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
+
+                &&
+
+                /*
+                 a = block.Lists[0].AllTime[currentCenter]
+                 b = mod.AllTime[currentCenter]
+                 c = block.MaxTime(currentCenter)
+                 Нужно проверить эти условия:
+                 c - b >= 0 - это значит, что текущее моделирование по длительности не уступает тому, что уже там есть, и его можно юзать
+                Чтобы использовать вместе с дельтой, нужно сделать так:
+                c - b <= paramsHere.Delta
+                А чтобы правило работало в обе стороны, юзаем math.abs:
+                */
+                Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds) <= paramsHere.Delta
+                //paramsHere.Delta
+
+                &&
+
+                // Надо ещё, чтобы сюда влазила тара вся.
+                basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.GetMostFreeTara(
+                currentCenter,
+                mod.FirstOperJust.OperationVid,
+                parrID,
+                mod.BlockLink.Lists.Count, //TODO: у общих этапов их количество может быть больше
+                block.ExistingTaraHere,
+                currentTara,//mod.FirstOperJust.CurrentTara,
+                out var resultat
+                ) >= 0
+
+
+                ).ToArray();
+
+                if (possibleParallelOpers.Length > 0)
+                {
+                    (PlanSimulatorBlock block, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
+                    {
+                        var deltaBetweenInnerOps = Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds); // Приходится заюзать то, что я описал выше, потому что близость операций можно определить по дельте между ними
+                        deltaBetweenInnerOps = Math.Round(deltaBetweenInnerOps); // На будущее - уберу дробную часть
+
+
+                        var dateDeltaNoAbs = (mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]).TotalSeconds;
+                        var dateDelta = Math.Abs(dateDeltaNoAbs);
+                        dateDelta = Math.Round(dateDelta);
+
+                        var prostoi = dateDeltaNoAbs < 0 ? -dateDeltaNoAbs : 0;
+
+                        return (block, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
+                    })
+                    .OrderBy(x => x.crit1)
+                    .ThenBy(y => y.crit2)
+                    .ToArray();
+
+                    result = true;
+                    var parrBlockVariant = variants.First();
+                    float localResult = parrBlockVariant.TotalCost;
+                    lock (locker)
+                    {
+                        bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
+                        bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
+
+                        if ((searcherClass.minResult > localResult || IneedItBcsItsGood)
+                           &&
+                           !ThisWillBrokeMyResult
+                           )
+                        {
+                            searcherClass.ThisResultIsBad = ForceThisTara;
+                            searcherClass.WillBeParr = true;
+                            searcherClass.parrBlock = parrBlockVariant.block;
+                            searcherClass.minResult = localResult;
+                            searcherClass.ChoosenMod = mod;
+                            searcherClass.MaxNamotka = ForceThisTara ? mod.FirstOperJust.CurrentTaraMaxCapacity : maxNamot;
+                            searcherClass.ChoosenCenter = currentCenter;
+                            searcherClass.ChoosenTara = currentTara;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        bool Step2_1_1_Check(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data)
+        {
+            bool result = false;
+            var possibleRCs = data.PossibleCentersAndTaras;
+            for (int j = 0; j < possibleRCs.Length; j++)
+            {
+                var currentCenter = possibleRCs[j].RC;
+                var currentTara = possibleRCs[j].Tara;
+                if (TaraSearchEngine.FilterAllVariants(mod, data, out var tara, out var rc, out var MaxNamot, out _, out _, new SumIsPossibleOptions(false)
+                {
+                    LogSomeErrors = false,
+                    PrevsInfo = PrevsInfoForR,
+                    RCMustBeThis = new HashSet<Uco>() { currentCenter },
+                    TaraMustBeThis = new HashSet<Uco>() { currentTara },
+                    ModToTaraInfoLink = basisLink.ModToTaraInfo
+                }))
+                {
+                    result |= ParallelCheck(mod, searcherClass, currentCenter, currentTara, MaxNamot, false);
+                }
+            }
+            return result;
+        }
+
+        void Step2_1_2_Errored(PlanSimulatorMod mod, RSearcher searcherClass)
+        {
+            var possibleRCs = mod.PossibleRCsHere;
+            //var subProcess = Parallel.For(0, possibleRCs.Count, j =>
+            for (int j = 0; j < possibleRCs.Count; j++)
+            {
+                var currentCenter = possibleRCs[j];
+                ParallelCheck(mod, searcherClass, currentCenter, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true);
+            }
+            //);
+            //while (!subProcess.IsCompleted) ;
         }
 
         void Step2_2_Linear(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass)
@@ -488,6 +471,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         PrevsInfo = PrevsInfoForR,
                         ModToTaraInfoLink = basisLink.ModToTaraInfo
                     });
+
+                    //if (Can1 && !mod.FirstOperJust.NoCheckNamotka && data.PossibleCentersAndTaras.Any(x => x.Tara.IsEmpty))
+                    //{
+                    //    ;
+                    //}
 
                     bool anythingWas = false;
                     if (Can1) anythingWas |= Step2_2_1_TaraAndRCsCheck(mod, searcherClass, data);
@@ -564,6 +552,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     ModToTaraInfoLink = basisLink.ModToTaraInfo
                 }))
                 {
+                    result = true; // Значит я так могу.
                     float localResult = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/);
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
@@ -578,10 +567,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             searcherClass.ChoosenMod = mod;
                             searcherClass.ChoosenCenter = ForceThisTara ? currentCenter : rc;
                             searcherClass.ChoosenTara = ForceThisTara ? currentTara : tara;
-                            if (!ForceThisTara) searcherClass.MaxNamotka = MaxNamot;
+                            searcherClass.MaxNamotka = ForceThisTara ? mod.FirstOperJust.CurrentTaraMaxCapacity : MaxNamot;
                             searcherClass.WillBeParr = false;
                             searcherClass.ThisResultIsBad = ForceThisTara;
-                            result = true;
                         }
                     }
                 }

@@ -63,7 +63,7 @@ namespace UniversalPack.Common
 
         public override string ToString()
         {
-            return $"{Label} [{Code}]";
+            return $"{Label} [{Code}]" + (IsEmpty ? " [пуст.]" : "");
         }
 
         public override bool Equals(object obj)
