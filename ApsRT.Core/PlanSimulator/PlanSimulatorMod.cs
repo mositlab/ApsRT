@@ -12,6 +12,11 @@ namespace ApsRT.Core.PlanSimulator
         public List<PlanSimulatorStage> Stages;
         public List<Stage> StagesAsNormal;
 
+        public bool IsFact { get; private set; }
+        public bool IsVPZ { get; private set; }
+        public bool IsFactOrVPZ { get; private set; }
+        public bool IsFixed { get; private set; }
+
         public PlanSimulatorNaladLengthData[] NaladLengthData; // ТОЛЬКО для моделирований простых, для общих этапов там свои
         public PlanSimulatorDatesData[] MinDatesData;
         public DateTime[] DateOfStart;
@@ -90,7 +95,10 @@ namespace ApsRT.Core.PlanSimulator
             FirstOper = Stages[0];
             ModType = type;
             ModID = modId;
-
+            IsFact = list.Any(x => x.IsFact);
+            IsVPZ = list.Any(x => x.VPZ);
+            IsFixed = list.Any(x => x.Fixed);
+            IsFactOrVPZ = IsVPZ || IsFact;
 
             foreach (var oper in list) // Создаём массив тех РЦ, которые однозначно есть на всех этапах
             {

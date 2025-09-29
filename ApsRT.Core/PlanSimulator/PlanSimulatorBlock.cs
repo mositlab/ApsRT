@@ -90,7 +90,9 @@ namespace ApsRT.Core.PlanSimulator
 
         public override string ToString()
         {
-            return $"[{string.Join(", ", Lists.Select(x => x.ModID))}] на РЦ: {ActualRC}";
+            return $"[{string.Join(", ", Lists.Select(x => x.ModID + (x.IsFixed ? "F" : "") + (x.IsFactOrVPZ ? "V" : "")
+
+            ))}] на РЦ: {ActualRC[0].Label}";
         }
 
         public PlanSimulatorBlock(List<PlanSimulatorMod> lists, Uco ActualRC, int PoolSize, float ParrKoeff, bool CreateTara)

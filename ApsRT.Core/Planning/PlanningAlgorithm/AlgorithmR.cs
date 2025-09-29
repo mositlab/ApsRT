@@ -45,6 +45,36 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         // Словарик для хранения выбранных тар для правильного алгоритма
         Dictionary<int, Uco> PrevsInfoForR = new ();
 
+        int FixedCompleted = 0, VPZCompleted = 0;
+
+        void AddFixedOrVPZ(PlanSimulatorMod firstMod)
+        {
+            if (firstMod.IsFixed)
+            {
+                FixedCompleted++;
+                VPZCompleted++;
+            }
+            else
+            {
+                if (firstMod.IsFactOrVPZ)
+                {
+                    VPZCompleted++;
+                }
+            }
+            //if (firstMod.IsFixed)
+            //{
+            //    basisLink.GLOBAL_FIXED_MIN--;
+            //    basisLink.GLOBAL_VPZ_MAX--;
+            //}
+            //else
+            //{
+            //    if (firstMod.IsFactOrVPZ)
+            //    {
+            //        basisLink.GLOBAL_VPZ_MAX--;
+            //    }
+            //}
+        }
+
         void UpdateTaraOnMod(PlanSimulatorMod mod, Uco tara)
         {
             foreach (var ooop in mod.StagesAsNormal)
@@ -56,12 +86,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         void AddBlockToPlan(PlanSimulatorBlock block, Uco center, Uco tara)
         {
-            UpdateTaraOnMod(block.Lists[0], tara);
+            var firstMod = block.Lists[0];
+            UpdateTaraOnMod(firstMod, tara);
             block.SetCenter(center, 0);
             BlocksDependingOnCenter[center].Add(block);
             LinearPlan.Add(block);
             ExistingBlocks.Add(block);
             OpersCopy.Remove(block);
+            AddFixedOrVPZ(firstMod);
         }
 
         void AddBlockParallel(PlanSimulatorBlock block, Uco center, Uco tara, PlanSimulatorBlock mainBlock)
@@ -88,7 +120,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             mainBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
 
-
+            AddFixedOrVPZ(firstMod);
 
             OpersCopy.Remove(block);
 
@@ -229,7 +261,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var OpersForFirstLevelForSort = firstResults
                 .OrderBy(x => (x.ItsBadResult ? 1 : 0)) // Сначала уберем плохие результаты наверх
-                .ThenBy(x => x.Cost) // А теперь уже и по цене отсортируем
+                .ThenBy(x => x.Block.Lists[0].IsFixed ? 0 : (x.Block.Lists[0].IsFactOrVPZ ? 1 : 2)) // Расставим ещё и в порядке "фикс.-впз.-свобод."
+                .ThenBy(x => x.Block.Lists[0].IsFixed && x.Block.Lists[0].FirstOperJust.StartTimeFact.HasValue ? (x.Block.Lists[0].FirstOperJust.StartTimeFact.Value - basisLink.StartOfPlanningDate).TotalSeconds : x.Cost) // А теперь уже и по цене отсортируем
                 .ToArray();
 
             for (int i = 0; i < OpersForFirstLevelForSort.Length; i++)
@@ -238,6 +271,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 var center = element.RC;
                 var tara = element.Tara;
                 if (passedCenters.Contains(center) || passedBlocks.Contains(element.Block)) continue;
+
+                //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
+                //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
 
                 AddBlockToPlan(element.Block, center, tara);
 
@@ -339,6 +375,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             {
                 var possibleParallelOpers = BlocksDependingOnCenter[currentCenter]
                 .Where(block =>
+
+                block.Lists[0].IsFixed == mod.IsFixed
+                &&
+                block.Lists[0].IsFactOrVPZ == mod.IsFactOrVPZ
+                &&
+                block.Lists[0].FirstOperJust.StartTimeFact == mod.FirstOperJust.StartTimeFact // Ну до кучи проверим ещё и это
+
+                &&
 
                 block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
 
@@ -554,6 +598,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 {
                     result = true; // Значит я так могу.
                     float localResult = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/);
+
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
                     lock (locker)
@@ -617,15 +662,31 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             Console.WriteLine("R: calculating...");
             while (OpersCopy.Count > 0)
             {
-                var PossibleOpersHere = OpersCopy.Where(x => x.Lists[0].FirstOperJust.Level == CurrentLevel
+
+                if (basisLink.WannaStop)
+                {
+                    break;
+                }
+
+                var PossibleOpersHere = OpersCopy.Where(x =>
+                
+                (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : x.Lists[0].FirstOperJust.Level == CurrentLevel) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
 
                 &&
 
-                x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink)) // Проверяем на хронологию
+                (FixedCompleted < basisLink.GLOBAL_FIXED_MIN || x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink))) // Проверяем на хронологию, если конечно это не фиксированные этапы.
 
                 &&
 
                 !ExistingBlocks.Contains(x)
+
+                &&
+
+                (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? x.Lists[0].IsFixed :
+                (
+                    VPZCompleted < basisLink.GLOBAL_VPZ_MAX ? x.Lists[0].IsFactOrVPZ
+                    : true
+                ))
 
                 ).ToArray();
 
@@ -651,6 +712,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
+
+                    //Console.WriteLine($"op {searcherClass.ChoosenMod.FirstOperJust.Index} on lvl {searcherClass.ChoosenMod.FirstOperJust.Level} had cost {searcherClass.minResult}");
+
                     if (searcherClass.WillBeParr)
                     {
                         AddBlockParallel(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara, searcherClass.parrBlock);
@@ -672,6 +736,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, LinearPlan.Count);
                 }
 
+                if (FixedCompleted < basisLink.GLOBAL_FIXED_MIN) continue; // Если я ещё не дошёл до нужного, то счётчик пока не включаем.
                 LevelCounter++;
                 if (LevelCounter >= MaxLevelCounter || PossibleOpersHere.Length == 0)
                 {
@@ -692,6 +757,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         float HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/)
         {
+
+
+            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
+
             var list = BlocksDependingOnCenter[choosenCenter];
             //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
 
