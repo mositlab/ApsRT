@@ -45,7 +45,20 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         // Словарик для хранения выбранных тар для правильного алгоритма
         Dictionary<int, Uco> PrevsInfoForR = new ();
 
+
+        Dictionary<int, Uco> OneRCGroupsForR = new (); // Ограничители "На Одном РЦ"
+
         int FixedCompleted = 0, VPZCompleted = 0;
+
+        void AddOneRCData(PlanSimulatorMod firstMod, Uco center)
+        {
+
+            if (firstMod.FirstOperJust.OnOneRC
+                && firstMod.BlockLink.PoolLink.ModIDToOnOneRCGroupID.TryGetValue(firstMod.ModID, out var groupID1))
+            {
+                OneRCGroupsForR.TryAdd(groupID1, center);
+            }
+        }
 
         void AddFixedOrVPZ(PlanSimulatorMod firstMod)
         {
@@ -89,6 +102,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var firstMod = block.Lists[0];
             UpdateTaraOnMod(firstMod, tara);
             block.SetCenter(center, 0);
+            AddOneRCData(firstMod, center);
             BlocksDependingOnCenter[center].Add(block);
             LinearPlan.Add(block);
             ExistingBlocks.Add(block);
@@ -121,6 +135,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             mainBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
 
             AddFixedOrVPZ(firstMod);
+
+            AddOneRCData(firstMod, center);
 
             OpersCopy.Remove(block);
 
@@ -351,14 +367,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForR, ModToTaraInfoLink = basisLink.ModToTaraInfo });
 
-
-                //if (Can1 && !mod.FirstOperJust.NoCheckNamotka && data.PossibleCentersAndTaras.Any(x => x.Tara.IsEmpty))
-                //{
-                //    ;
-                //}
+                (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
 
                 bool anythingWas = false;
-                if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data);
+                if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data, neededThisRC, allowedRC);
 
                 if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass);
 
@@ -465,7 +477,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return result;
         }
 
-        bool Step2_1_1_Check(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data)
+        bool Step2_1_1_Check(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC)
         {
             bool result = false;
             var possibleRCs = data.PossibleCentersAndTaras;
@@ -482,7 +494,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     ModToTaraInfoLink = basisLink.ModToTaraInfo
                 }))
                 {
-                    result |= ParallelCheck(mod, searcherClass, currentCenter, currentTara, MaxNamot, false);
+                    bool isBadAfterAll = CheckOneRCIsBad(allowedRC, NeedThisOneRC, currentCenter);
+                    result |= ParallelCheck(mod, searcherClass, currentCenter, currentTara, MaxNamot, isBadAfterAll);
                 }
             }
             return result;
@@ -501,6 +514,25 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //while (!subProcess.IsCompleted) ;
         }
 
+        bool CheckOneRCIsBad(List<Uco> allowedRC, Uco? NeedThisOneRC, Uco currentCenter)
+        {
+            return (allowedRC != null && !allowedRC.Contains(currentCenter))
+                || (NeedThisOneRC.HasValue && NeedThisOneRC.Value != currentCenter); // Если какое-то из этих условий не выполняется, то это ПЛОХОЙ рц для рассмотрения. Достаточно проверить две вещи - либо я раньше назначал РЦ, и это не тот, что нужен, ЛИБО - нет в списке РЦ подходящего.
+        }
+
+        (List<Uco> allowedRC, Uco? neededThisRC) GetOneRCInfo(PlanSimulatorMod mod)
+        {
+            List<Uco> allowedRC = null;
+            Uco? neededThisRC = null;
+            int groupID1 = -1;
+            if (mod.FirstOperJust.OnOneRC && mod.BlockLink.PoolLink.ModIDToOnOneRCGroupID.TryGetValue(mod.ModID, out groupID1))
+            {
+                allowedRC = mod.BlockLink.PoolLink.OnOneRCGroupData[groupID1].PossibleRCs;
+            }
+            if (groupID1 != -1 && OneRCGroupsForR.TryGetValue(groupID1, out var oneGroupRC)) neededThisRC = oneGroupRC;
+            return (allowedRC, neededThisRC);
+        }
+
         void Step2_2_Linear(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass)
         {
             if (true || !searcherClass.WillBeParr)
@@ -516,13 +548,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         ModToTaraInfoLink = basisLink.ModToTaraInfo
                     });
 
-                    //if (Can1 && !mod.FirstOperJust.NoCheckNamotka && data.PossibleCentersAndTaras.Any(x => x.Tara.IsEmpty))
-                    //{
-                    //    ;
-                    //}
+                    (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
 
                     bool anythingWas = false;
-                    if (Can1) anythingWas |= Step2_2_1_TaraAndRCsCheck(mod, searcherClass, data);
+                    if (Can1) anythingWas |= Step2_2_1_TaraAndRCsCheck(mod, searcherClass, data, neededThisRC, allowedRC);
 
                     //var was = searcherClass.ChoosenCenter;
                     if (!Can1 || !anythingWas)
@@ -534,7 +563,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             }
         }
 
-        bool Step2_2_1_TaraAndRCsCheck(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data)
+        bool Step2_2_1_TaraAndRCsCheck(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC)
         {
             bool result = false;
             var possibleRCs = data.PossibleCentersAndTaras;
@@ -544,7 +573,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             {
                 var currentCenter = possibleRCs[j].RC;
                 var currentTara = possibleRCs[j].Tara;
-                result |= TaraAndRCsSubchecker(mod, searcherClass, data, currentCenter, currentTara, false);
+
+
+                bool isBadAfterAll = CheckOneRCIsBad(allowedRC, NeedThisOneRC, currentCenter);
+
+                result |= TaraAndRCsSubchecker(mod, searcherClass, data, currentCenter, currentTara, isBadAfterAll);
             }
             return result;
             //);
