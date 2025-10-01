@@ -1,8 +1,10 @@
 ﻿using ApsRT.Core.Leftovers;
+using ApsRT.Core.NaladLengths;
 using ApsRT.Core.Planning.ParallelPlanning;
 using ApsRT.Core.PlanSimulator;
 using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.MasterData;
+using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
 using Google.OrTools.Sat;
@@ -93,6 +95,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             foreach (var ooop in mod.StagesAsNormal)
             {
                 ooop.CurrentTara = tara;
+                if (tara.IsEmpty) continue;
                 PrevsInfoForR.Add(ooop.Index, ooop.CurrentTara);
             }
         }
@@ -326,9 +329,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 Console.WriteLine("R: successfully ending...");
                 poolCopy.Blocks = LinearPlan;
                 var ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count();
-                Console.WriteLine("R, end, " + ALL_COUNT);
+                Console.WriteLine("R, count f, " + ALL_COUNT);
                 ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count();
-                Console.WriteLine("R, end, " + ALL_COUNT);
+                Console.WriteLine("R, count f, " + ALL_COUNT);
+
+                Step3_PostChecker();
+
                 ;
             }
             else
@@ -341,9 +347,119 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             Console.WriteLine($"R total time = {end - start}");
         }
 
+        void Step3_PostChecker()
+        {
+            Console.WriteLine("R, chronology check... ");
+            // 1-е условие выполнимости плана. Условие хронологии.
+            // Индекс блока каждого этапа должен быть меньше, чем индекс блока этапа, зависимого от рассматриваемого.
+            bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
+            Console.WriteLine(ChronologyCheck);
+
+            // 2-е условие. Условие пустых тар
+            // Каждый этап, имеющий один из признаков "НеПроверятьНамотку", "ВспомогательнаяОперация", должен иметь текущую тару, равную "ПУСТО", а отстутсвие этих признаков обязывает иметь текущую тару, НЕ равную "ПУСТО".
+            Console.WriteLine("R, empty taras check... ");
+            bool emptyTarasCheck = EmptyTarasCheck(LinearPlan, out int errIndex);
+            Console.WriteLine($"{emptyTarasCheck}, {errIndex}");
+
+            // 3-е условие. Условие выполнения признака "НеМенятьТару"
+            // Каждый этап, имеющий признак "НеМенятьТару", должен иметь ту же назначенную тару, что и его предыдущие этапы.
+            Console.WriteLine("R, no change tara check... ");
+            int noChangeTaraResult = NoChangeTaraCheck(LinearPlan, out int errIndex2);
+            Console.WriteLine($"{noChangeTaraResult}, {errIndex2}");
+
+
+            ;
+        }
+
+        bool EmptyTarasCheck(List<PlanSimulatorBlock> blocks, out int FirstErroredBlock)
+        {
+            FirstErroredBlock = -1;
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                var block = blocks[i];
+                foreach (var mod in block.Lists)
+                {
+                    foreach (var stage in mod.StagesAsNormal)
+                    {
+                        if (stage.IsVspom || stage.NoCheckNamotka)
+                        {
+                            if (!stage.CurrentTara.IsEmpty)
+                            {
+                                FirstErroredBlock = i;
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            if (stage.CurrentTara.IsEmpty)
+                            {
+                                FirstErroredBlock = i;
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        int NoChangeTaraCheck(List<PlanSimulatorBlock> blocks, out int FirstErroredBlock)
+        {
+            FirstErroredBlock = -1;
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                var block = blocks[i];
+                foreach (var mod in block.Lists)
+                {
+                    foreach (var stage in mod.StagesAsNormal)
+                    {
+                        if (stage.NoChangeTara)
+                        {
+                            var prevs = stage.Prevs
+                                .Select(index => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index])
+                                .Where(stage => !stage.IsVspom && !stage.NoCheckNamotka) // Это относится только к этапам, которые не вспомогательные, и проверяют намотку
+                                .Select(stage => stage.CurrentTara).ToHashSet(); // Берём у них текущую тару
+
+                            if (prevs.Count == 0) continue;
+
+                            if (prevs.Count > 1)
+                            {
+                                if (prevs.All(prev => prev == stage.CurrentTara)) continue;
+
+                                FirstErroredBlock = i;
+                                return 2;
+                            }
+                            else
+                            {
+                                if (prevs.First() != stage.CurrentTara)
+                                {
+                                    FirstErroredBlock = i;
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+
         object[] lockers;
         ConcurrentQueue<int> AvailableIndexes;
         public object locker = new object();
+
+        struct RTempResult
+        {
+            public TimeSpan Rechanges;
+            public TimeSpan DeltaFromStart;
+            public float TotalCost;
+            
+            public bool IsBetterThanOther(RTempResult otherResult)
+            {
+                return DeltaFromStart < otherResult.DeltaFromStart;
+            }
+
+        }
 
         class RSearcher
         {
@@ -357,7 +473,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             public PlanSimulatorBlock parrBlock = null;
         }
 
-        void Step2_1_Parallel(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass)
+        void Step2_1_Parallel(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
         {
             var process = Parallel.For(0, PossibleOpersHere.Length, i =>
             {
@@ -370,62 +486,84 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
 
                 bool anythingWas = false;
-                if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data, neededThisRC, allowedRC);
+                if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data, neededThisRC, allowedRC, LastResult);
 
-                if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass);
+                if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass, LastResult);
 
             });
             while (!process.IsCompleted) ;
         }
 
-        bool ParallelCheck(PlanSimulatorMod mod, RSearcher searcherClass, Uco currentCenter, Uco currentTara, double maxNamot, bool ForceThisTara)
+        bool ParallelCheck(PlanSimulatorMod mod, RSearcher searcherClass, Uco currentCenter, Uco currentTara, double maxNamot, bool ForceThisTara, PlanSimulatorEngineResult LastResult)
         {
             bool result = false;
             if (!mod.FirstOperJust.CurrentTara.IsEmpty && mod.FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrID) && parrID != -1
             && basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.ParIDParams.TryGetValue(parrID, out var paramsHere)
             )
             {
+                var NaladLengthsMasterData = basisLink.SessionLink.MasterDataLinks.NaladLengthsMasterData;
                 var possibleParallelOpers = BlocksDependingOnCenter[currentCenter]
                 .Where(block =>
+                {
+                    var rechangesResult = LastResult.RechangesBeforeFirstStages[block.Lists[0].FirstOperJust.Index].RechangeItself;
+                    bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(rechangesResult, block.PreviousBlockOnThisRC[0]?.Lists[0]);
+                    var OperB = mod.FirstOperJust;
+                    GottenNaladLengthStruct naladLengths = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OperB, currentCenter, asFirst);
+                    /*
 
-                block.Lists[0].IsFixed == mod.IsFixed
-                &&
-                block.Lists[0].IsFactOrVPZ == mod.IsFactOrVPZ
-                &&
-                block.Lists[0].FirstOperJust.StartTimeFact == mod.FirstOperJust.StartTimeFact // Ну до кучи проверим ещё и это
+            if 
+            {
+                itsBadResult = true;
+            }
+                     */
 
-                &&
+                    return
 
-                block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
+                    (!OperB.NeededNaladLength.HasValue || NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value <= OperB.NeededNaladLength.Value.Length.Value)
 
-                &&
+                    &&
 
-                /*
-                 a = block.Lists[0].AllTime[currentCenter]
-                 b = mod.AllTime[currentCenter]
-                 c = block.MaxTime(currentCenter)
-                 Нужно проверить эти условия:
-                 c - b >= 0 - это значит, что текущее моделирование по длительности не уступает тому, что уже там есть, и его можно юзать
-                Чтобы использовать вместе с дельтой, нужно сделать так:
-                c - b <= paramsHere.Delta
-                А чтобы правило работало в обе стороны, юзаем math.abs:
-                */
-                Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds) <= paramsHere.Delta
-                //paramsHere.Delta
 
-                &&
+                    block.Lists[0].IsFixed == mod.IsFixed
+                    &&
+                    block.Lists[0].IsFactOrVPZ == mod.IsFactOrVPZ
+                    &&
+                    block.Lists[0].FirstOperJust.StartTimeFact == mod.FirstOperJust.StartTimeFact // Ну до кучи проверим ещё и это
 
-                // Надо ещё, чтобы сюда влазила тара вся.
-                basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.GetMostFreeTara(
-                currentCenter,
-                mod.FirstOperJust.OperationVid,
-                parrID,
-                mod.BlockLink.Lists.Count, //TODO: у общих этапов их количество может быть больше
-                block.ExistingTaraHere,
-                currentTara,//mod.FirstOperJust.CurrentTara,
-                out var resultat
-                ) >= 0
+                    &&
 
+                    block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
+
+                    &&
+
+                    /*
+                     a = block.Lists[0].AllTime[currentCenter]
+                     b = mod.AllTime[currentCenter]
+                     c = block.MaxTime(currentCenter)
+                     Нужно проверить эти условия:
+                     c - b >= 0 - это значит, что текущее моделирование по длительности не уступает тому, что уже там есть, и его можно юзать
+                    Чтобы использовать вместе с дельтой, нужно сделать так:
+                    c - b <= paramsHere.Delta
+                    А чтобы правило работало в обе стороны, юзаем math.abs:
+                    */
+                    Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds) <= paramsHere.Delta
+                    //paramsHere.Delta
+
+                    &&
+
+                    // Надо ещё, чтобы сюда влазила тара вся.
+                    basisLink.SessionLink.MasterDataLinks.ParallelPlanningMasterData.GetMostFreeTara(
+                    currentCenter,
+                    mod.FirstOperJust.OperationVid,
+                    parrID,
+                    mod.BlockLink.Lists.Count, //TODO: у общих этапов их количество может быть больше
+                    block.ExistingTaraHere,
+                    currentTara,//mod.FirstOperJust.CurrentTara,
+                    out var resultat
+                    ) >= 0;
+
+
+                }
 
                 ).ToArray();
 
@@ -477,7 +615,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return result;
         }
 
-        bool Step2_1_1_Check(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC)
+        bool Step2_1_1_Check(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC, PlanSimulatorEngineResult LastResult)
         {
             bool result = false;
             var possibleRCs = data.PossibleCentersAndTaras;
@@ -494,21 +632,23 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     ModToTaraInfoLink = basisLink.ModToTaraInfo
                 }))
                 {
+                    // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
+
                     bool isBadAfterAll = CheckOneRCIsBad(allowedRC, NeedThisOneRC, currentCenter);
-                    result |= ParallelCheck(mod, searcherClass, currentCenter, currentTara, MaxNamot, isBadAfterAll);
+                    result |= ParallelCheck(mod, searcherClass, rc, tara/*currentCenter, currentTara*/, MaxNamot, isBadAfterAll, LastResult);
                 }
             }
             return result;
         }
 
-        void Step2_1_2_Errored(PlanSimulatorMod mod, RSearcher searcherClass)
+        void Step2_1_2_Errored(PlanSimulatorMod mod, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
         {
             var possibleRCs = mod.PossibleRCsHere;
             //var subProcess = Parallel.For(0, possibleRCs.Count, j =>
             for (int j = 0; j < possibleRCs.Count; j++)
             {
                 var currentCenter = possibleRCs[j];
-                ParallelCheck(mod, searcherClass, currentCenter, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true);
+                ParallelCheck(mod, searcherClass, currentCenter, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true, LastResult);
             }
             //);
             //while (!subProcess.IsCompleted) ;
@@ -538,6 +678,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             if (true || !searcherClass.WillBeParr)
             {
                 var process = Parallel.For(0, PossibleOpersHere.Length, i =>
+                //for (int i = 0; i < PossibleOpersHere.Length; i++)
                 {
                     var mod = PossibleOpersHere[i].Lists[0];
 
@@ -558,7 +699,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     {
                         Step2_2_2_ForcedCheckNoTara(mod, searcherClass, data);
                     }
-                });
+                }
+                );
                 while (!process.IsCompleted) ;
             }
         }
@@ -629,8 +771,35 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     ModToTaraInfoLink = basisLink.ModToTaraInfo
                 }))
                 {
+                    var stage = mod.FirstOperJust;
+                    if (mod.FirstOperJust.NoChangeTara)
+                    {
+                        var prevs = mod.StagesAsNormal.SelectMany(stage => stage.Prevs)
+                            .Select(index => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index])
+                            .Where(stage => !stage.IsVspom && !stage.NoCheckNamotka) // Это относится только к этапам, которые не вспомогательные, и проверяют намотку
+                            .Select(stage => stage.CurrentTara).ToHashSet(); // Берём у них текущую тару
+
+                        if (prevs.Count > 1)
+                        {
+                            if (!prevs.All(prev => prev == currentTara))
+                            {
+                                ;
+                            }
+                        }
+                        else
+                        {
+                            if (prevs.Count > 0 && prevs.First() != currentTara)
+                            {
+                                ;
+                            }
+                        }
+                        ;
+                    }
+                    // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
+
                     result = true; // Значит я так могу.
-                    float localResult = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/);
+                    float localResult = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/, out bool itsBadResult);
+                    //ForceThisTara |= itsBadResult; // Если это хуевый результат, то смотрим на это.
 
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
@@ -662,9 +831,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         {
             Console.WriteLine("R: get max level...");
             int MaxLevel = OpersCopy.Max(x => x.Lists.Max(y => y.StagesAsNormal.Max(z => z.Level)));
-
-
-            PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngineResult LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, null);
+            
+            PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngineResult LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate));
 
             basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
 
@@ -707,7 +875,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 &&
 
-                (FixedCompleted < basisLink.GLOBAL_FIXED_MIN || x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink))) // Проверяем на хронологию, если конечно это не фиксированные этапы.
+                (/*FixedCompleted < basisLink.GLOBAL_FIXED_MIN ||*/ x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink))) // Проверяем на хронологию, если конечно это не фиксированные этапы.
 
                 &&
 
@@ -741,11 +909,36 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     RSearcher searcherClass = new();
 
-                    Step2_1_Parallel(PossibleOpersHere, searcherClass); // Попробуем параллель поискать
+                    Step2_1_Parallel(PossibleOpersHere, searcherClass, LastResult); // Попробуем параллель поискать
 
                     Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
+                    //foreach (var stage in searcherClass.ChoosenMod.StagesAsNormal)
+                    //{
+                    //    if (stage.NoChangeTara)
+                    //    {
+                    //        var prevs = stage.Prevs
+                    //            .Select(index => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index])
+                    //            .Where(stage => !stage.IsVspom && !stage.NoCheckNamotka) // Это относится только к этапам, которые не вспомогательные, и проверяют намотку
+                    //            .Select(stage => stage.CurrentTara).ToHashSet(); // Берём у них текущую тару
 
+                    //        if (prevs.Count == 0) continue;
+
+                    //        if (prevs.Count > 1)
+                    //        {
+                    //            if (prevs.All(prev => prev == stage.CurrentTara)) continue;
+
+                    //            ;
+                    //        }
+                    //        else
+                    //        {
+                    //            if (prevs.First() != stage.CurrentTara)
+                    //            {
+                    //                ;
+                    //            }
+                    //        }
+                    //    }
+                    //}
                     //Console.WriteLine($"op {searcherClass.ChoosenMod.FirstOperJust.Index} on lvl {searcherClass.ChoosenMod.FirstOperJust.Level} had cost {searcherClass.minResult}");
 
                     if (searcherClass.WillBeParr)
@@ -757,16 +950,27 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         AddBlockToPlan(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara);
                     }
 
+                    if (searcherClass.ChoosenMod.NextMods.Count == 0 && OpersCopy.Count > 0)
+                    {
+                        MaxLevel = OpersCopy.Max(x => x.Lists.Max(y => y.StagesAsNormal.Max(z => z.Level)));
+                    }
+
                     if (OpersCopy.Count == 0) Success = true;
 
                     ErroredIterationsCount = 0;
 
-                    LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, null); // Вызывем симулятор плана
+                    LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана
                     
                     basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
                     basisLink.UsedWorkflow.Generation++;
 
                     basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, LinearPlan.Count);
+                }
+
+                if (LinearPlan.Count % 500 == 0)
+                {
+                    Console.WriteLine($"R: {LinearPlan.Count}");
+                    basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"step 1: {LinearPlan.Count} / {OpersCopy.Count} done\r\n");
                 }
 
                 if (FixedCompleted < basisLink.GLOBAL_FIXED_MIN) continue; // Если я ещё не дошёл до нужного, то счётчик пока не включаем.
@@ -776,6 +980,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     LevelCounter = 0;
                     CurrentLevel++; // Обновляем уровень
                     if (CurrentLevel > MaxLevel) CurrentLevel = 0;
+                    Console.WriteLine($"R: switched to level {CurrentLevel}, left {OpersCopy.Count}");
+                    basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"R: switched to level {CurrentLevel}, left {OpersCopy.Count}\r\n");
                 }
             }
 
@@ -788,9 +994,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         //}
 
-        float HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/)
+        float HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, out bool itsBadResult)
         {
-
+            itsBadResult = false;
 
             if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
 
@@ -826,6 +1032,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var rechangesResult = operationA == null ? null : basisLink.SessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(new(lastBlock.GetCenterData(0).CenterDataLink, mod.MinDatesData[0], operationA.Stage, mod.FirstOperJust, choosenCenter));
 
             TimeSpan rechesDur = rechangesResult == null ? new TimeSpan() : TimeSpan.FromSeconds(rechangesResult.Duration);
+
+            var NaladLengthsMasterData = basisLink.SessionLink.MasterDataLinks.NaladLengthsMasterData;
+
+            bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(rechangesResult, lastBlock?.Lists[0]);
+            var OperB = mod.FirstOperJust;
+            GottenNaladLengthStruct naladLengths = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OperB, choosenCenter, asFirst);
+            if (OperB.NeededNaladLength.HasValue && NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value > OperB.NeededNaladLength.Value.Length.Value)
+            {
+                itsBadResult = true;
+            }
 
             // Чтобы сделать только переналадки, хватит вот этого критерия:
             //return (float)rechesDur.TotalSeconds;

@@ -47,11 +47,15 @@ namespace ApsRT.Core.Settings
             CriteriasPossibleWorse = new double[] {15, 15, 15, 15, 15, 15, 15 },
             CriteriasMinIterations = new int[] { 100, 100, 100, 100, 100, 100, 100 },
             CriteriasMaxIterations = new int[] { 200, 200, 200, 200, 200, 200, 200 },
-            MaxOldSessionPathsDays = 3
+            MaxOldSessionPathsDays = 3,
+            UseR = false
         };
 
 
         #region Для алгоритмов планирования
+
+        [JsonProperty]
+        public bool UseR { get; set; }
 
         [JsonProperty]
         public int PoolSize { get; set; }

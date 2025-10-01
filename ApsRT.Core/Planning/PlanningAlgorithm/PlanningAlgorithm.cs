@@ -130,9 +130,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 CurrentStage = PlanningAlgorithmStage.RunningV;
                 CurrentStageChanged?.Invoke(CurrentStage, UsedPool.Blocks.Count);
-                var Step1 = new AlgorithmR(this);// new AlgorithmV(this);
                 SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 1 started");
-                Step1.Start(UsedWorkflow);
+
+                if (SessionLink.SettingsController.CurrentSettings.UseR)
+                {
+                    var Step1 = new AlgorithmR(this);// new AlgorithmV(this);
+                    Step1.Start(UsedWorkflow);
+                }
+                else
+                {
+                    var Step1 = new AlgorithmV(this);// new AlgorithmV(this);
+                    Step1.Start(UsedWorkflow);
+                }
+
                 if (WannaStop)
                 {
                     CurrentStage = PlanningAlgorithmStage.Failed;
@@ -496,7 +506,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return;
         }
 
-        bool CheckChronology(List<PlanSimulatorBlock> opers, out int operN, out int childToFix)
+        public bool CheckChronology(List<PlanSimulatorBlock> opers, out int operN, out int childToFix)
         {
             var good = true;
             var Already = new HashSet<int>();

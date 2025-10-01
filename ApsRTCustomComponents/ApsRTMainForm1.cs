@@ -309,6 +309,10 @@ namespace ApsRTCustomComponents
             UseOnlyMaxCriteriasSettingsCheckBox.Checked = settings.UseOnlyMaxCriteriasSettings;
             UseOnlyMaxCriteriasSettingsCheckBox.CheckedChanged += (sender, args) => { settings.UseOnlyMaxCriteriasSettings = ((CheckBox)sender).Checked; };
 
+
+            UseRCheckBox.Checked = settings.UseR;
+            UseRCheckBox.CheckedChanged += (sender, args) => { settings.UseR = ((CheckBox)sender).Checked; };
+
             criteriaRadioButton1.Checked = settings.UsedCriteria == 0;
             criteriaRadioButton1.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 0; };
             criteriaRadioButton2.Checked = settings.UsedCriteria == 1;
@@ -1521,7 +1525,7 @@ namespace ApsRTCustomComponents
                             operLoc2.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value,
                             operLoc.Fixed ? Color.Maroon : (operLoc.IsFact ? Color.Gray : (operLoc.VPZ ? Color.RoyalBlue : null)),
                             operLoc.Center == blockRC ? null : Color.Orange,
-                            operLoc.Prevs.Count == 0 && operLoc.Nexts.Count == 0 ? Color.Lime : (operLoc.CurrentTara.IsEmpty && !operLoc.IsVspom ? Color.Red : (operLoc.ParallelPlanningIDs.All(x => x.Value == -1) && centerGlobalData.CanBeParallel ? Color.OrangeRed : null)),
+                            operLoc.Prevs.Count == 0 && operLoc.Nexts.Count == 0 ? Color.Lime : (operLoc.CurrentTara.IsEmpty && !operLoc.IsVspom && !operLoc.NoCheckNamotka ? Color.Brown : (operLoc.ParallelPlanningIDs.All(x => x.Value == -1) && centerGlobalData.CanBeParallel ? Color.OrangeRed : null)),
                             operLoc.IsCustomModelling ? Custom_MODELLING[operLoc.CustomModelling].Color : (operLoc.MesModelling.Code == Guid.Empty ? (Color?)null : MODELLING[operLoc.MesModelling.Code].Color),// || opers_list.CustomModelling > -1 // opersHere.Count == 1 ||
                             operLoc.Color
                             //, opers_list.CustomModellingColor

@@ -311,6 +311,7 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            UseRCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -572,7 +573,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 417);
+            label49.Location = new Point(959, 416);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -585,7 +586,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 414);
+            pictureBox1.Location = new Point(1099, 413);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -598,7 +599,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 464);
+            label48.Location = new Point(3, 463);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -1002,7 +1003,7 @@ namespace ApsRTCustomComponents
             HandPartiasTabControl.Location = new Point(4, 24);
             HandPartiasTabControl.Name = "HandPartiasTabControl";
             HandPartiasTabControl.Padding = new Padding(3);
-            HandPartiasTabControl.Size = new Size(1163, 438);
+            HandPartiasTabControl.Size = new Size(1163, 439);
             HandPartiasTabControl.TabIndex = 1;
             HandPartiasTabControl.Text = "Поштучное объединение";
             // 
@@ -1036,7 +1037,7 @@ namespace ApsRTCustomComponents
             // splitContainer4.Panel2
             // 
             splitContainer4.Panel2.Controls.Add(tabControl1);
-            splitContainer4.Size = new Size(1157, 361);
+            splitContainer4.Size = new Size(1157, 362);
             splitContainer4.SplitterDistance = 385;
             splitContainer4.TabIndex = 44;
             // 
@@ -1048,7 +1049,7 @@ namespace ApsRTCustomComponents
             TwoPartiasTextBox.Multiline = true;
             TwoPartiasTextBox.Name = "TwoPartiasTextBox";
             TwoPartiasTextBox.ScrollBars = ScrollBars.Both;
-            TwoPartiasTextBox.Size = new Size(385, 361);
+            TwoPartiasTextBox.Size = new Size(385, 362);
             TwoPartiasTextBox.TabIndex = 28;
             // 
             // tabControl1
@@ -1060,7 +1061,7 @@ namespace ApsRTCustomComponents
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(768, 361);
+            tabControl1.Size = new Size(768, 362);
             tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -1068,7 +1069,7 @@ namespace ApsRTCustomComponents
             tabPage1.Controls.Add(TwoPartiasPartia1View);
             tabPage1.Location = new Point(4, 25);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(760, 332);
+            tabPage1.Size = new Size(760, 333);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Партия 1";
             tabPage1.UseVisualStyleBackColor = true;
@@ -1080,7 +1081,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartia1View.Location = new Point(0, 0);
             TwoPartiasPartia1View.Margin = new Padding(0);
             TwoPartiasPartia1View.Name = "TwoPartiasPartia1View";
-            TwoPartiasPartia1View.Size = new Size(760, 332);
+            TwoPartiasPartia1View.Size = new Size(760, 333);
             TwoPartiasPartia1View.TabIndex = 0;
             // 
             // tabPage2
@@ -1088,7 +1089,7 @@ namespace ApsRTCustomComponents
             tabPage2.Controls.Add(TwoPartiasPartia2View);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
-            tabPage2.Size = new Size(760, 334);
+            tabPage2.Size = new Size(760, 333);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Партия 2";
             tabPage2.UseVisualStyleBackColor = true;
@@ -1100,7 +1101,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartia2View.Location = new Point(0, 0);
             TwoPartiasPartia2View.Margin = new Padding(0);
             TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
-            TwoPartiasPartia2View.Size = new Size(760, 334);
+            TwoPartiasPartia2View.Size = new Size(760, 333);
             TwoPartiasPartia2View.TabIndex = 0;
             // 
             // tabPage3
@@ -1108,7 +1109,7 @@ namespace ApsRTCustomComponents
             tabPage3.Controls.Add(TwoPartiasPartiaResView);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(760, 334);
+            tabPage3.Size = new Size(760, 333);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Результат";
             tabPage3.UseVisualStyleBackColor = true;
@@ -1120,7 +1121,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartiaResView.Location = new Point(0, 0);
             TwoPartiasPartiaResView.Margin = new Padding(0);
             TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
-            TwoPartiasPartiaResView.Size = new Size(760, 334);
+            TwoPartiasPartiaResView.Size = new Size(760, 333);
             TwoPartiasPartiaResView.TabIndex = 1;
             // 
             // label8
@@ -2336,9 +2337,9 @@ namespace ApsRTCustomComponents
             // 
             SettingsTabPage.BackColor = Color.White;
             SettingsTabPage.Controls.Add(splitContainer2);
-            SettingsTabPage.Location = new Point(4, 24);
+            SettingsTabPage.Location = new Point(4, 25);
             SettingsTabPage.Name = "SettingsTabPage";
-            SettingsTabPage.Size = new Size(1171, 502);
+            SettingsTabPage.Size = new Size(1171, 501);
             SettingsTabPage.TabIndex = 3;
             SettingsTabPage.Text = "Настройки";
             // 
@@ -2374,8 +2375,8 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.Controls.Add(BackupStagesDurationNumericUpDown);
             splitContainer2.Panel2.Controls.Add(PartiasMaxDaysLabel);
             splitContainer2.Panel2.Controls.Add(PartiasMaxDaysNumericUpDown);
-            splitContainer2.Size = new Size(1171, 502);
-            splitContainer2.SplitterDistance = 186;
+            splitContainer2.Size = new Size(1171, 501);
+            splitContainer2.SplitterDistance = 185;
             splitContainer2.TabIndex = 37;
             // 
             // HoppersPanel
@@ -2385,7 +2386,7 @@ namespace ApsRTCustomComponents
             HoppersPanel.Dock = DockStyle.Fill;
             HoppersPanel.Location = new Point(0, 0);
             HoppersPanel.Name = "HoppersPanel";
-            HoppersPanel.Size = new Size(1171, 186);
+            HoppersPanel.Size = new Size(1171, 185);
             HoppersPanel.TabIndex = 25;
             // 
             // label51
@@ -2487,6 +2488,7 @@ namespace ApsRTCustomComponents
             // 
             // groupBox7
             // 
+            groupBox7.Controls.Add(UseRCheckBox);
             groupBox7.Controls.Add(UsePseudoTaraCheckBox);
             groupBox7.Controls.Add(CreateStopMe);
             groupBox7.Controls.Add(CreateKillMeCheckBox);
@@ -4241,6 +4243,22 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
+            // UseRCheckBox
+            // 
+            UseRCheckBox.BackColor = Color.Black;
+            UseRCheckBox.Depth = 0;
+            UseRCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseRCheckBox.ForeColor = Color.CornflowerBlue;
+            UseRCheckBox.Location = new Point(3, 232);
+            UseRCheckBox.Margin = new Padding(0);
+            UseRCheckBox.MouseLocation = new Point(-1, -1);
+            UseRCheckBox.Name = "UseRCheckBox";
+            UseRCheckBox.Ripple = true;
+            UseRCheckBox.Size = new Size(309, 30);
+            UseRCheckBox.TabIndex = 37;
+            UseRCheckBox.Text = "R";
+            UseRCheckBox.UseVisualStyleBackColor = false;
+            // 
             // ApsRTMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -4712,5 +4730,6 @@ namespace ApsRTCustomComponents
         private Button button4;
         private Label label51;
         private NumericUpDown MaxOldSessionPathsDaysNumericUpDown;
+        private MaterialCheckBox UseRCheckBox;
     }
 }
