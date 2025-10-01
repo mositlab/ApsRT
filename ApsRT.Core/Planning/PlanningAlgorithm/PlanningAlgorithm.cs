@@ -162,9 +162,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 CurrentStage = PlanningAlgorithmStage.RunningG;
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
-                var G = new AlgorithmG(this);
-                SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
-                //G.Start(UsedPool.PoolSize, 1);
+                
+                if (!SessionLink.SettingsController.CurrentSettings.UseR)
+                {
+                    var G = new AlgorithmG(this);
+                    SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
+                    G.Start(UsedPool.PoolSize, 1);
+                }
 
                 if (WannaStop)
                 {
