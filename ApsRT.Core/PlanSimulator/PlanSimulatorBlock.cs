@@ -25,7 +25,7 @@ namespace ApsRT.Core.PlanSimulator
         public PlanSimulatorBlock[] NextBlockOnThisRC;
         //public DateTime[] DateOfStart;
         //public DateTime[] DateOfEnd;
-        public PlanSimulatorCenterData[] CenterDataLocalCopy;
+        //public PlanSimulatorCenterData[] CenterDataLocalCopy;
 
         public (Uco Center, PlanSimulatorCenterData CenterDataLink, CenterBaseModel CenterModelDataLink) GetCenterData(int PoolIndex)
         {
@@ -81,7 +81,7 @@ namespace ApsRT.Core.PlanSimulator
         {
             if (lastCount != Lists.Count)
             {
-                _maxTime = Lists[0].PossibleRCsHere.ToFrozenDictionary(center => center, center => Lists.Max(x => x.AllTime[center]));
+                _maxTime = /*Lists[0].*/PossibleRCsHere.ToFrozenDictionary(center => center, center => Lists.Max(x => x.AllTime[center]));
                 lastCount = Lists.Count;
             }
             return _maxTime[center];
@@ -106,7 +106,7 @@ namespace ApsRT.Core.PlanSimulator
             this.NextBlockOnThisRC = new PlanSimulatorBlock[PoolSize];
             //this.DateOfStart = new DateTime[PoolSize];
             //this.DateOfEnd = new DateTime[PoolSize];
-            this.CenterDataLocalCopy = new PlanSimulatorCenterData[PoolSize];
+            //this.CenterDataLocalCopy = new PlanSimulatorCenterData[PoolSize];
             this.ActualRC[0] = ActualRC; // Потом будет назначено всем, в пуле.
             FillKoeff = ParrKoeff;
             //UpdatePossibleRCsHere();

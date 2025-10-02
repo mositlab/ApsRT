@@ -7,6 +7,12 @@ namespace ApsRT.Core.PlanSimulator
 {
     public class PlanSimulatorMod : IAbleForTaraCalcInterface
     {
+        public override string ToString()
+        {
+            return $"[{ModID}], opers: [ {string.Join(", ", StagesAsNormal.Select(x => x.Index))} ], block {BlockLink}";
+        }
+
+
         public PlanSimulatorBlock BlockLink;
 
         public List<PlanSimulatorStage> Stages;

@@ -525,6 +525,18 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     for (var j = 0; j < opers[currentBlockIndex].Lists[o].StagesAsNormal.Count; j++)
                     {
                         var currentID = opers[currentBlockIndex].Lists[o].StagesAsNormal[j].Index;
+
+                        bool PrevsAreGood = true;
+                        foreach (var prev in opers[currentBlockIndex].Lists[o].StagesAsNormal[j].Prevs)
+                        {
+                            if (!Already.Contains(prev))
+                            {
+                                PrevsAreGood = false;
+                                break;
+                            }
+                        }
+
+
                         for (var h = 0; h < opers[currentBlockIndex].Lists[o].StagesAsNormal[j].Nexts.Count; h++)
                         {
                             var op = opers[currentBlockIndex].Lists[o].StagesAsNormal[j];
@@ -532,6 +544,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             //var f = opers.FindIndex(x => x.Lists.Any(y => y.Any(z => z.ID == opers[i].Lists[o][j].Prevs[h])));//opers.FindIndex(ref opers, , 0, false);
                             if (Already.Contains(childID) && BlockIndexes[childID] != currentBlockIndex && !op.Fixed) // Уже есть ребенок???
                             {
+
+
                                 good = false;
                                 operN = currentBlockIndex;
                                 childToFix = BlockIndexes[childID];

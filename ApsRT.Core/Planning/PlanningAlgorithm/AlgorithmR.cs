@@ -147,28 +147,105 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             Queue<PlanSimulatorBlock> blocks = new();
             blocks.Enqueue(mainBlock);
 
-            while (blocks.Count > 0)
+            HashSet<(PlanSimulatorBlock from, PlanSimulatorBlock what)> alreadyHaveIt = new();
+
+            var list = BlocksDependingOnCenter[center];
+
+            var point = list.IndexOf(mainBlock);
+            var point2 = list.IndexOf(block);
+
+            int startIndex = mainBlock.BlockIndex[0];
+
+            for (int i = startIndex; i < LinearPlan.Count; i++)
             {
-                var currentBlock = blocks.Dequeue();
+                var currentBlock = LinearPlan[i];
 
-                if (!LinearPlan.Contains(currentBlock)) continue;
+                int prevBlockIndex = currentBlock.PreviousBlockOnThisRC[0] == null ? -1 : currentBlock.PreviousBlockOnThisRC[0].BlockIndex[0];
 
-                currentBlock.BlockIndex[0] = Math.Max(currentBlock.PreviousBlockOnThisRC[0] == null ? -1 : currentBlock.PreviousBlockOnThisRC[0].BlockIndex[0], currentBlock.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(prevMod => prevMod.BlockLink.BlockIndex[0]))) + 1;
+                if (prevBlockIndex >= LinearPlan.Count - 1)
+                {
+                    ;
+                }
 
-                if (currentBlock.NextBlockOnThisRC[0] != null && !blocks.Contains(currentBlock.NextBlockOnThisRC[0])) blocks.Enqueue(currentBlock.NextBlockOnThisRC[0]);
+                int worstPrev = currentBlock.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(prevMod => prevMod.BlockLink.BlockIndex[0]));
 
+                if (worstPrev >= LinearPlan.Count - 1)
+                {
+                    ;
+                }
 
-                var blocksToAdd = currentBlock.Lists
-                    .Where(x => x != firstMod)
-                    .SelectMany(x => x.NextMods)
-                    .Distinct()
-                    .Select(x => x.BlockLink)
-                    .Distinct()
-                    .Where(x => x != currentBlock.NextBlockOnThisRC[0]);
-
-                foreach (var toAdd in blocksToAdd) if (!blocks.Contains(toAdd)) blocks.Enqueue(toAdd);
-
+                currentBlock.BlockIndex[0] = Math.Max(prevBlockIndex, worstPrev) + 1;
             }
+
+
+            //Console.WriteLine("-----------------------");
+
+            //while (blocks.Count > 0)
+            //{
+            //    var currentBlock = blocks.Dequeue();
+
+            //    if (!LinearPlan.Contains(currentBlock)) continue;
+
+            //    //Console.WriteLine(currentBlock.ToString());
+            //    var listLocal = BlocksDependingOnCenter[center];
+
+            //    int prevBlockIndex = currentBlock.PreviousBlockOnThisRC[0] == null ? -1 : currentBlock.PreviousBlockOnThisRC[0].BlockIndex[0];
+
+            //    if (prevBlockIndex >= LinearPlan.Count - 1)
+            //    {
+            //        ;
+            //    }
+
+            //    int worstPrev = currentBlock.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(prevMod => prevMod.BlockLink.BlockIndex[0]));
+
+            //    if (worstPrev >= LinearPlan.Count - 1)
+            //    {
+            //        ;
+            //    }
+
+            //    currentBlock.BlockIndex[0] = Math.Max(prevBlockIndex, worstPrev) + 1;
+
+            //    //if (currentBlock.NextBlockOnThisRC[0] == null)
+            //    //{
+            //    //    ;
+            //    //}
+
+            //    if (currentBlock.NextBlockOnThisRC[0] != null && !blocks.Contains(currentBlock.NextBlockOnThisRC[0]) && LinearPlan.Contains(currentBlock.NextBlockOnThisRC[0]))
+            //    {
+            //        var key = (currentBlock, currentBlock.NextBlockOnThisRC[0]);
+            //        if (alreadyHaveIt.Contains(key))
+            //        {
+            //            ;
+            //        }
+            //        alreadyHaveIt.Add(key);
+            //        Console.WriteLine($"БЛОК [ {currentBlock} ] ---> сосед [ {currentBlock.NextBlockOnThisRC[0]} ]");
+            //        blocks.Enqueue(currentBlock.NextBlockOnThisRC[0]);
+            //    }
+
+            //    var blocksToAdd = currentBlock.Lists
+            //        .Where(x => x != firstMod)
+            //        .SelectMany(x => x.NextMods)
+            //        .Distinct()
+            //        .Select(x => x.BlockLink)
+            //        .Distinct()
+            //        .Where(x => LinearPlan.Contains(x) && x != currentBlock.NextBlockOnThisRC[0]);
+
+            //    foreach (var toAdd in blocksToAdd)
+            //    {
+            //        if (!blocks.Contains(toAdd))
+            //        {
+            //            var key = (currentBlock, toAdd);
+            //            if (alreadyHaveIt.Contains(key))
+            //            {
+            //                ;
+            //            }
+            //            Console.WriteLine($"БЛОК [ {currentBlock} ] ---> ребёнок [ {toAdd} ]");
+            //            alreadyHaveIt.Add(key);
+            //            blocks.Enqueue(toAdd);
+            //        }
+            //    }
+
+            //}
 
 
 
@@ -448,6 +525,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         ConcurrentQueue<int> AvailableIndexes;
         public object locker = new object();
 
+
+        //class RWriterClass
+        //{
+        //    public int IterationIndex;
+        //    public int ChoosenStageIndex;
+        //    public int PreviousStageIndex;
+        //    public Uco ChoosenRC;
+        //    public int HowMuchLeft;
+        //    public double CriteriaValue;
+        //}
+        //Dictionary<(int ID, Uco RC, Uco Tara, bool Parr), (float Value, bool IsGood)> RWriterElements = new();
+
+
         struct RTempResult
         {
             public TimeSpan Rechanges;
@@ -609,6 +699,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             searcherClass.ChoosenCenter = currentCenter;
                             searcherClass.ChoosenTara = currentTara;
                         }
+                        //RWriterElements.TryAdd((mod.FirstOperJust.Index, currentCenter, currentTara, true), (localResult, !ForceThisTara));
                     }
                 }
             }
@@ -771,30 +862,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     ModToTaraInfoLink = basisLink.ModToTaraInfo
                 }))
                 {
-                    var stage = mod.FirstOperJust;
-                    if (mod.FirstOperJust.NoChangeTara)
-                    {
-                        var prevs = mod.StagesAsNormal.SelectMany(stage => stage.Prevs)
-                            .Select(index => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index])
-                            .Where(stage => !stage.IsVspom && !stage.NoCheckNamotka) // Это относится только к этапам, которые не вспомогательные, и проверяют намотку
-                            .Select(stage => stage.CurrentTara).ToHashSet(); // Берём у них текущую тару
-
-                        if (prevs.Count > 1)
-                        {
-                            if (!prevs.All(prev => prev == currentTara))
-                            {
-                                ;
-                            }
-                        }
-                        else
-                        {
-                            if (prevs.Count > 0 && prevs.First() != currentTara)
-                            {
-                                ;
-                            }
-                        }
-                        ;
-                    }
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
                     result = true; // Значит я так могу.
@@ -818,6 +885,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             searcherClass.WillBeParr = false;
                             searcherClass.ThisResultIsBad = ForceThisTara;
                         }
+                        //RWriterElements.TryAdd((mod.FirstOperJust.Index, ForceThisTara ? currentCenter : rc, ForceThisTara ? currentTara : tara, false), (localResult, !ForceThisTara));
                     }
                 }
 
@@ -860,10 +928,30 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 AvailableIndexes.Enqueue(i);
             }
 
+            //StreamWriter sw = new StreamWriter("R_test1.csv", false, Encoding.UTF8);
+
+            //sw.WriteLine(
+                //"НомерИтерации;НомерВыбранногоЭтапа;НомерПредыдущегоЭтапа;РЦ;КолвоОставшихсяЭлементов;ЗначениеКритерия;КолвоЭтаповСЭтимЗначением;КоличествоЭтаповОт0До5Процентов;ИДРассмотренныхЭлементов"
+
+                /*
+                 i.	Номер итерации
+    ii.	Номер выбранного этапа
+    iii.	Номер предыдущего этапа
+    iv.	РЦ, на который рассматривалась расстановка
+    v.	Количество оставшихся элементов
+    vii.	Значение критерия
+    vi.	Количество этапов с таким же значением критерия
+    viii.	Количество оставшихся этапов, со значением критерия, в пределах от 0% до 5% от лучшего.
+    ix.	ID элементов, которые были рассмотрены (10-15 шт.)
+
+                 */
+               // );
+
             Console.WriteLine("R: calculating...");
+            int iterationIndex = -1;
             while (OpersCopy.Count > 0)
             {
-
+                iterationIndex++;
                 if (basisLink.WannaStop)
                 {
                     break;
@@ -909,37 +997,42 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     RSearcher searcherClass = new();
 
+                    //RWriterElements.Clear();
+
                     Step2_1_Parallel(PossibleOpersHere, searcherClass, LastResult); // Попробуем параллель поискать
 
                     Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
-                    //foreach (var stage in searcherClass.ChoosenMod.StagesAsNormal)
+                    //int prevWas = BlocksDependingOnCenter[searcherClass.ChoosenCenter].Count > 0 ? BlocksDependingOnCenter[searcherClass.ChoosenCenter][^1].Lists[0].FirstOperJust.Index : -1;
+
+                    //var elements = RWriterElements
+                    //    .Where(x => x.Value.IsGood);
+
+                    //var elements05 = elements.Where(x =>
                     //{
-                    //    if (stage.NoChangeTara)
-                    //    {
-                    //        var prevs = stage.Prevs
-                    //            .Select(index => basisLink.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index])
-                    //            .Where(stage => !stage.IsVspom && !stage.NoCheckNamotka) // Это относится только к этапам, которые не вспомогательные, и проверяют намотку
-                    //            .Select(stage => stage.CurrentTara).ToHashSet(); // Берём у них текущую тару
+                    //    var valuePercent = (x.Value.Value * 100 / searcherClass.minResult) - 100;
+                    //    return Math.Abs(valuePercent) <= 5;
+                    //});
 
-                    //        if (prevs.Count == 0) continue;
+                    //var elementsStrict = elements05.Where(x => x.Value.Value == searcherClass.minResult);
 
-                    //        if (prevs.Count > 1)
-                    //        {
-                    //            if (prevs.All(prev => prev == stage.CurrentTara)) continue;
+                    //sw.WriteLine(
+                    //    $"{iterationIndex};{searcherClass.ChoosenMod.FirstOperJust.Index};{prevWas};{searcherClass.ChoosenCenter};{OpersCopy.Count};{searcherClass.minResult};{elementsStrict.Count()};{elements05.Count()};{string.Join(",", elements05.Take(10).Select(x => $"{x.Key.ID} [{x.Key.Parr}]"))}"
 
-                    //            ;
-                    //        }
-                    //        else
-                    //        {
-                    //            if (prevs.First() != stage.CurrentTara)
-                    //            {
-                    //                ;
-                    //            }
-                    //        }
-                    //    }
-                    //}
-                    //Console.WriteLine($"op {searcherClass.ChoosenMod.FirstOperJust.Index} on lvl {searcherClass.ChoosenMod.FirstOperJust.Level} had cost {searcherClass.minResult}");
+                        /*
+                         i.	Номер итерации
+            ii.	Номер выбранного этапа
+            iii.	Номер предыдущего этапа
+            iv.	РЦ, на который рассматривалась расстановка
+            v.	Количество оставшихся элементов
+            vii.	Значение критерия
+            vi.	Количество этапов с таким же значением критерия
+            viii.	Количество оставшихся этапов, со значением критерия, в пределах от 0% до 5% от лучшего.
+            ix.	ID элементов, которые были рассмотрены (10-15 шт.)
+
+                         */
+
+                        //);
 
                     if (searcherClass.WillBeParr)
                     {
@@ -949,6 +1042,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     {
                         AddBlockToPlan(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara);
                     }
+
+
+                    //bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
+                    //if (!ChronologyCheck)
+                    //{
+                    //    ;
+                    //}
 
                     if (searcherClass.ChoosenMod.NextMods.Count == 0 && OpersCopy.Count > 0)
                     {
@@ -984,6 +1084,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"R: switched to level {CurrentLevel}, left {OpersCopy.Count}\r\n");
                 }
             }
+
+            //sw.Close();
 
             return Success;
 

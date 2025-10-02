@@ -354,7 +354,7 @@ namespace ApsRT.Core.PlanSimulator
             var res0 = Parallel.For(0, Blocks.Count, i =>
             {
                 Blocks[i].MoveCenterData(from, to);
-                Blocks[i].CenterDataLocalCopy[to] = Blocks[i].CenterDataLocalCopy[from];
+                //Blocks[i].CenterDataLocalCopy[to] = Blocks[i].CenterDataLocalCopy[from];
             });
             while (!res0.IsCompleted)
             {
