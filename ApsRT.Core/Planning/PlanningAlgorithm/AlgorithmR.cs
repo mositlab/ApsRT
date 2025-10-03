@@ -542,18 +542,44 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         {
             public TimeSpan Rechanges;
             public TimeSpan DeltaFromStart;
+            public TimeSpan DeltaFromDeadline;
             public float TotalCost;
-            
-            public bool IsBetterThanOther(RTempResult otherResult)
+            public bool IsFromSameOrder;
+
+            public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromDeadline, bool isFromSameOrder, float totalCost)
             {
-                return DeltaFromStart < otherResult.DeltaFromStart;
+                Rechanges = rechanges;
+                DeltaFromStart = deltaFromStart;
+                TotalCost = totalCost;
+                DeltaFromDeadline = deltaFromDeadline;
+                IsFromSameOrder = isFromSameOrder;
+            }
+
+            public bool IsBetterThanOther(RTempResult otherResult, bool NoSteps)
+            {
+                if (otherResult.TotalCost == float.MaxValue && TotalCost < float.MaxValue) return true;
+
+                if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
+
+                return
+                    TotalCost < otherResult.TotalCost
+                    || (TotalCost == otherResult.TotalCost && Rechanges < otherResult.Rechanges)
+                    || (TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline < otherResult.DeltaFromDeadline)
+                    || (TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder && !otherResult.IsFromSameOrder)
+                    ;
+
+                //return Rechanges < otherResult.Rechanges || (Rechanges == otherResult.Rechanges && TotalCost < otherResult.TotalCost);
+                
+                //if (otherResult.Rechanges > Rechanges) return true;
+
+                //return DeltaFromStart < otherResult.DeltaFromStart;
             }
 
         }
 
         class RSearcher
         {
-            public float minResult = float.MaxValue;
+            public RTempResult minResult = new RTempResult(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, false, float.MaxValue);
             public Uco ChoosenCenter = Uco.EmptyObject;
             public Uco ChoosenTara = Uco.EmptyObject;
             public double MaxNamotka = 0;
@@ -679,13 +705,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     result = true;
                     var parrBlockVariant = variants.First();
-                    float localResult = parrBlockVariant.TotalCost;
+                    float localResult0 = parrBlockVariant.TotalCost;
+
+                    var dateOfEnd = basisLink.StartOfPlanningDate + TimeSpan.FromSeconds(parrBlockVariant.crit1 + Math.Max(parrBlockVariant.block.MaxTime(currentCenter).TotalSeconds, mod.AllTime[currentCenter].TotalSeconds));
+
+                    var minDeadline = mod.StagesAsNormal.Min(x => x.OrderLink.Deadline);
+                    var minDeadline2 = parrBlockVariant.block.Lists.Min(list => list.StagesAsNormal.Min(stage => stage.OrderLink.Deadline));
+                    if (minDeadline2 < minDeadline) minDeadline = minDeadline2;
+
+                    HashSet<OrderID> orders = mod.StagesAsNormal.Select(x => x.OrderLink.OrderID).ToHashSet();
+                    bool IsFromSameOrder = parrBlockVariant.block.Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID)));
+
+
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, IsFromSameOrder, localResult0);
+
                     lock (locker)
                     {
                         bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                         bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
 
-                        if ((searcherClass.minResult > localResult || IneedItBcsItsGood)
+                        if ((localResult.IsBetterThanOther(searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
                            &&
                            !ThisWillBrokeMyResult
                            )
@@ -865,14 +904,28 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
                     result = true; // Значит я так могу.
-                    float localResult = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/, out bool itsBadResult);
+                    var localResultData = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/, out bool itsBadResult);
                     //ForceThisTara |= itsBadResult; // Если это хуевый результат, то смотрим на это.
+
+                    var dateofend = basisLink.StartOfPlanningDate + localResultData.TotalTime;
+
+                    var mindeadline = mod.StagesAsNormal.Min(x => x.OrderLink.Deadline);
+
+                    var delta = mindeadline - dateofend;
+
+                    var list = BlocksDependingOnCenter[currentCenter];
+
+                    HashSet<OrderID> orders = mod.StagesAsNormal.Select(x => x.OrderLink.OrderID).ToHashSet();
+
+                    bool IsFromSameOrder = list.Count > 0 ? list[^1].Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID))) : false;
+
+                    RTempResult localResult = new RTempResult(localResultData.Rechanges, localResultData.TotalTime, delta, IsFromSameOrder, (float)localResultData.TotalTime.TotalSeconds);
 
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
                     lock (locker)
                     {
-                        if ((searcherClass.minResult > localResult || IneedItBcsItsGood)
+                        if ((localResult.IsBetterThanOther(searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
                             &&
                             !ThisWillBrokeMyResult
                             )
@@ -1091,16 +1144,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         }
 
+
+        void Step2_1_AllOpersCheck()
+        {
+            
+        }
+
+
+
+
+
         //float Step2_1_CheckBlockParallel(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex, PlanSimulatorBlock blockToInsert)
         //{
 
         //}
 
-        float HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, out bool itsBadResult)
+        (TimeSpan Rechanges, TimeSpan TotalTime) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, out bool itsBadResult)
         {
             itsBadResult = false;
 
-            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
+            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
 
             var list = BlocksDependingOnCenter[choosenCenter];
             //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
@@ -1160,7 +1223,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
 
-            return res2;
+            return (rechesDur, lastDate - basisLink.MinAcceptableDate);
 
         }
 

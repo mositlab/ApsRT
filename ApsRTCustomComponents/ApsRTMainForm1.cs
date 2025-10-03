@@ -313,6 +313,12 @@ namespace ApsRTCustomComponents
             UseRCheckBox.Checked = settings.UseR;
             UseRCheckBox.CheckedChanged += (sender, args) => { settings.UseR = ((CheckBox)sender).Checked; };
 
+            UseRStarCheckBox.Checked = settings.UseRStar;
+            UseRStarCheckBox.CheckedChanged += (sender, args) => { settings.UseRStar = ((CheckBox)sender).Checked; };
+
+            UseGCheckBox.Checked = settings.UseG;
+            UseGCheckBox.CheckedChanged += (sender, args) => { settings.UseG = ((CheckBox)sender).Checked; };
+
             criteriaRadioButton1.Checked = settings.UsedCriteria == 0;
             criteriaRadioButton1.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 0; };
             criteriaRadioButton2.Checked = settings.UsedCriteria == 1;
@@ -1148,7 +1154,7 @@ namespace ApsRTCustomComponents
                     PlanningAlgorithmStage.RunningV => "Шаг 1...",
                     PlanningAlgorithmStage.RunningG => "Шаг 2...",
                     PlanningAlgorithmStage.FailedV => "V завершен с ошибкой",
-                    PlanningAlgorithmStage.Complete => "Завершено.",
+                    PlanningAlgorithmStage.Complete => $"Завершено. ({sessionLink.AssignedPlanningAlgorithm.LastDate})",
                     PlanningAlgorithmStage.Failed => "Ошибка."
                 };
                 PlanningProcessBar.Maximum = arg2;

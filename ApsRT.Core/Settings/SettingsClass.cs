@@ -56,6 +56,10 @@ namespace ApsRT.Core.Settings
 
         [JsonProperty]
         public bool UseR { get; set; }
+        [JsonProperty]
+        public bool UseRStar { get; set; }
+        [JsonProperty]
+        public bool UseG { get; set; }
 
         [JsonProperty]
         public int PoolSize { get; set; }

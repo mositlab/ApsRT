@@ -186,6 +186,7 @@ namespace ApsRTCustomComponents
             button2 = new Button();
             button1 = new Button();
             groupBox7 = new GroupBox();
+            UseRCheckBox = new MaterialCheckBox();
             UsePseudoTaraCheckBox = new MaterialCheckBox();
             CreateStopMe = new MaterialCheckBox();
             CreateKillMeCheckBox = new MaterialCheckBox();
@@ -311,7 +312,8 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            UseRCheckBox = new MaterialCheckBox();
+            UseGCheckBox = new MaterialCheckBox();
+            UseRStarCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -573,7 +575,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 416);
+            label49.Location = new Point(959, 415);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -586,7 +588,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 413);
+            pictureBox1.Location = new Point(1099, 412);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -599,7 +601,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 463);
+            label48.Location = new Point(3, 462);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -1089,7 +1091,7 @@ namespace ApsRTCustomComponents
             tabPage2.Controls.Add(TwoPartiasPartia2View);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
-            tabPage2.Size = new Size(760, 333);
+            tabPage2.Size = new Size(760, 334);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Партия 2";
             tabPage2.UseVisualStyleBackColor = true;
@@ -1101,7 +1103,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartia2View.Location = new Point(0, 0);
             TwoPartiasPartia2View.Margin = new Padding(0);
             TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
-            TwoPartiasPartia2View.Size = new Size(760, 333);
+            TwoPartiasPartia2View.Size = new Size(760, 334);
             TwoPartiasPartia2View.TabIndex = 0;
             // 
             // tabPage3
@@ -1109,7 +1111,7 @@ namespace ApsRTCustomComponents
             tabPage3.Controls.Add(TwoPartiasPartiaResView);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(760, 333);
+            tabPage3.Size = new Size(760, 334);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Результат";
             tabPage3.UseVisualStyleBackColor = true;
@@ -1121,7 +1123,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartiaResView.Location = new Point(0, 0);
             TwoPartiasPartiaResView.Margin = new Padding(0);
             TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
-            TwoPartiasPartiaResView.Size = new Size(760, 333);
+            TwoPartiasPartiaResView.Size = new Size(760, 334);
             TwoPartiasPartiaResView.TabIndex = 1;
             // 
             // label8
@@ -2488,6 +2490,8 @@ namespace ApsRTCustomComponents
             // 
             // groupBox7
             // 
+            groupBox7.Controls.Add(UseRStarCheckBox);
+            groupBox7.Controls.Add(UseGCheckBox);
             groupBox7.Controls.Add(UseRCheckBox);
             groupBox7.Controls.Add(UsePseudoTaraCheckBox);
             groupBox7.Controls.Add(CreateStopMe);
@@ -2502,6 +2506,22 @@ namespace ApsRTCustomComponents
             groupBox7.TabIndex = 44;
             groupBox7.TabStop = false;
             groupBox7.Text = "Основное";
+            // 
+            // UseRCheckBox
+            // 
+            UseRCheckBox.BackColor = Color.Black;
+            UseRCheckBox.Depth = 0;
+            UseRCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseRCheckBox.ForeColor = Color.CornflowerBlue;
+            UseRCheckBox.Location = new Point(3, 232);
+            UseRCheckBox.Margin = new Padding(0);
+            UseRCheckBox.MouseLocation = new Point(-1, -1);
+            UseRCheckBox.Name = "UseRCheckBox";
+            UseRCheckBox.Ripple = true;
+            UseRCheckBox.Size = new Size(309, 30);
+            UseRCheckBox.TabIndex = 37;
+            UseRCheckBox.Text = "R";
+            UseRCheckBox.UseVisualStyleBackColor = false;
             // 
             // UsePseudoTaraCheckBox
             // 
@@ -4243,21 +4263,37 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // UseRCheckBox
+            // UseGCheckBox
             // 
-            UseRCheckBox.BackColor = Color.Black;
-            UseRCheckBox.Depth = 0;
-            UseRCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            UseRCheckBox.ForeColor = Color.CornflowerBlue;
-            UseRCheckBox.Location = new Point(3, 232);
-            UseRCheckBox.Margin = new Padding(0);
-            UseRCheckBox.MouseLocation = new Point(-1, -1);
-            UseRCheckBox.Name = "UseRCheckBox";
-            UseRCheckBox.Ripple = true;
-            UseRCheckBox.Size = new Size(309, 30);
-            UseRCheckBox.TabIndex = 37;
-            UseRCheckBox.Text = "R";
-            UseRCheckBox.UseVisualStyleBackColor = false;
+            UseGCheckBox.BackColor = Color.Black;
+            UseGCheckBox.Depth = 0;
+            UseGCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseGCheckBox.ForeColor = Color.CornflowerBlue;
+            UseGCheckBox.Location = new Point(3, 262);
+            UseGCheckBox.Margin = new Padding(0);
+            UseGCheckBox.MouseLocation = new Point(-1, -1);
+            UseGCheckBox.Name = "UseGCheckBox";
+            UseGCheckBox.Ripple = true;
+            UseGCheckBox.Size = new Size(309, 30);
+            UseGCheckBox.TabIndex = 38;
+            UseGCheckBox.Text = "G";
+            UseGCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // UseRStarCheckBox
+            // 
+            UseRStarCheckBox.BackColor = Color.Black;
+            UseRStarCheckBox.Depth = 0;
+            UseRStarCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseRStarCheckBox.ForeColor = Color.CornflowerBlue;
+            UseRStarCheckBox.Location = new Point(3, 292);
+            UseRStarCheckBox.Margin = new Padding(0);
+            UseRStarCheckBox.MouseLocation = new Point(-1, -1);
+            UseRStarCheckBox.Name = "UseRStarCheckBox";
+            UseRStarCheckBox.Ripple = true;
+            UseRStarCheckBox.Size = new Size(309, 30);
+            UseRStarCheckBox.TabIndex = 39;
+            UseRStarCheckBox.Text = "R*";
+            UseRStarCheckBox.UseVisualStyleBackColor = false;
             // 
             // ApsRTMainForm1
             // 
@@ -4731,5 +4767,7 @@ namespace ApsRTCustomComponents
         private Label label51;
         private NumericUpDown MaxOldSessionPathsDaysNumericUpDown;
         private MaterialCheckBox UseRCheckBox;
+        private MaterialCheckBox UseRStarCheckBox;
+        private MaterialCheckBox UseGCheckBox;
     }
 }

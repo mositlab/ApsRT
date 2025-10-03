@@ -163,7 +163,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 CurrentStage = PlanningAlgorithmStage.RunningG;
                 CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
                 
-                if (!SessionLink.SettingsController.CurrentSettings.UseR)
+                if (SessionLink.SettingsController.CurrentSettings.UseG)
                 {
                     var G = new AlgorithmG(this);
                     SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
