@@ -724,7 +724,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                         bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
 
-                        if ((localResult.IsBetterThanOther(searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
+                        if ((localResult.IsBetterThanOther(searcherClass.minResult, true || !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
                            &&
                            !ThisWillBrokeMyResult
                            )
