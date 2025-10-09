@@ -35,6 +35,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             this.basisLink = basisLink;
         }
 
+        double gamma;
 
         List<PlanSimulatorBlock> OpersCopy;
 
@@ -386,6 +387,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             Console.WriteLine("R, beg, " + OpersCopy.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
 
+
+            gamma = basisLink.SessionLink.SettingsController.CurrentSettings.TGamma;
 
             //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
@@ -904,7 +907,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
                     result = true; // Значит я так могу.
-                    var localResultData = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith/*, list*/, out bool itsBadResult);
+                    var localResultData = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith, basisLink.SessionLink.SettingsController.CurrentSettings.RGlobalTimeDelta ? basisLink.StartOfPlanningDate : mod.PossibleRCsHere.Min(x =>
+                    {
+                        var list = BlocksDependingOnCenter[x];
+                        if (list.Count == 0) return basisLink.StartOfPlanningDate;
+                        return list[^1].Lists[0].DateOfStart[0] + list[^1].MaxTime(x);
+                    }),
+                    out bool itsBadResult);
                     //ForceThisTara |= itsBadResult; // Если это хуевый результат, то смотрим на это.
 
                     var dateofend = basisLink.StartOfPlanningDate + localResultData.TotalTime;
@@ -919,7 +928,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     bool IsFromSameOrder = list.Count > 0 ? list[^1].Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID))) : false;
 
-                    RTempResult localResult = new RTempResult(localResultData.Rechanges, localResultData.TotalTime, delta, IsFromSameOrder, (float)localResultData.TotalTime.TotalSeconds);
+                    RTempResult localResult = new RTempResult(localResultData.Rechanges, localResultData.TotalTime, delta, IsFromSameOrder, (float)(localResultData.TotalTime.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds));
 
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
@@ -1097,11 +1106,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     }
 
 
-                    //bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
-                    //if (!ChronologyCheck)
-                    //{
-                    //    ;
-                    //}
+                    bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
+                    if (!ChronologyCheck)
+                    {
+                        ;
+                    }
 
                     if (searcherClass.ChoosenMod.NextMods.Count == 0 && OpersCopy.Count > 0)
                     {
@@ -1159,7 +1168,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         //}
 
-        (TimeSpan Rechanges, TimeSpan TotalTime) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, out bool itsBadResult)
+        (TimeSpan Rechanges, TimeSpan TotalTime) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out bool itsBadResult)
         {
             itsBadResult = false;
 
@@ -1221,9 +1230,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //var res1 = (float)(time1 - minDate).TotalSeconds;
 
-            var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
+            //var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
 
-            return (rechesDur, lastDate - basisLink.MinAcceptableDate);
+            return (rechesDur, lastDate - startDate);
 
         }
 

@@ -48,7 +48,8 @@ namespace ApsRT.Core.Settings
             CriteriasMinIterations = new int[] { 100, 100, 100, 100, 100, 100, 100 },
             CriteriasMaxIterations = new int[] { 200, 200, 200, 200, 200, 200, 200 },
             MaxOldSessionPathsDays = 3,
-            UseR = false
+            UseR = false,
+            TGamma = 0.05
         };
 
 
@@ -57,9 +58,19 @@ namespace ApsRT.Core.Settings
         [JsonProperty]
         public bool UseR { get; set; }
         [JsonProperty]
+        public bool RGlobalTimeDelta { get; set; }
+        [JsonProperty]
         public bool UseRStar { get; set; }
         [JsonProperty]
+        public bool UseT { get; set; }
+        [JsonProperty]
         public bool UseG { get; set; }
+        [JsonProperty]
+        public double TGamma { get; set; }
+        [JsonProperty]
+        public double TMaxDays { get; set; }
+        [JsonProperty]
+        public double TMaxDaysPercent { get; set; }
 
         [JsonProperty]
         public int PoolSize { get; set; }

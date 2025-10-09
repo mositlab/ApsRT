@@ -17,6 +17,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
         public TimeSpan RechangesSeconds { get; set; } // ЕСТЬ
 
+        public TimeSpan RechangesSecondsWithoutLunches { get; set; } // ЕСТЬ
+
         /// <summary>
         /// Дата окончания самого загруженного по переналадкам РЦ
         /// </summary>

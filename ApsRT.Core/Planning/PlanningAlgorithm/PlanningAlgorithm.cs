@@ -150,6 +150,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     return false;
                 }
 
+                if (SessionLink.SettingsController.CurrentSettings.UseT)
+                {
+                    SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
+                    CurrentStage = PlanningAlgorithmStage.RunningT;
+                    var T = new AlgorithmT(this);// new AlgorithmV(this);
+                    T.Start();
+                    if (WannaStop)
+                    {
+                        CurrentStage = PlanningAlgorithmStage.Failed;
+                        CurrentStageChanged?.Invoke(CurrentStage, 0);
+                        return false;
+                    }
+                }
 
                 NaladLengthsFixer();
                 if (WannaStop)
@@ -160,22 +173,24 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 }
 
 
-                CurrentStage = PlanningAlgorithmStage.RunningG;
-                CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
-                
+
                 if (SessionLink.SettingsController.CurrentSettings.UseG)
                 {
+                    SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 3 started");
+
+                    CurrentStage = PlanningAlgorithmStage.RunningG;
+                    CurrentStageChanged?.Invoke(CurrentStage, LoadedData.UseMinutes ? (int)(LoadedData.MinutesCount * 100) : (LoadedData.UseCycles ? LoadedData.CyclesCount : LoadedData.IterationsCount));
+
                     var G = new AlgorithmG(this);
-                    SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
                     G.Start(UsedPool.PoolSize, 1);
+                    if (WannaStop)
+                    {
+                        CurrentStage = PlanningAlgorithmStage.Failed;
+                        CurrentStageChanged?.Invoke(CurrentStage, 0);
+                        return false;
+                    }
                 }
 
-                if (WannaStop)
-                {
-                    CurrentStage = PlanningAlgorithmStage.Failed;
-                    CurrentStageChanged?.Invoke(CurrentStage, 0);
-                    return false;
-                }
 
                 CurrentStage = PlanningAlgorithmStage.Complete;
                 CurrentStageChanged?.Invoke(CurrentStage, 1);
@@ -542,7 +557,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             var op = opers[currentBlockIndex].Lists[o].StagesAsNormal[j];
                             var childID = op.Nexts[h];
                             //var f = opers.FindIndex(x => x.Lists.Any(y => y.Any(z => z.ID == opers[i].Lists[o][j].Prevs[h])));//opers.FindIndex(ref opers, , 0, false);
-                            if (Already.Contains(childID) && BlockIndexes[childID] != currentBlockIndex && !op.Fixed) // Уже есть ребенок???
+                            if (!PrevsAreGood && Already.Contains(childID) && BlockIndexes[childID] != currentBlockIndex && !op.Fixed) // Уже есть ребенок???
                             {
 
 

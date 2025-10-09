@@ -316,8 +316,30 @@ namespace ApsRTCustomComponents
             UseRStarCheckBox.Checked = settings.UseRStar;
             UseRStarCheckBox.CheckedChanged += (sender, args) => { settings.UseRStar = ((CheckBox)sender).Checked; };
 
+            UseTCheckBox.Checked = settings.UseT;
+            UseTCheckBox.CheckedChanged += (sender, args) => { settings.UseT = ((CheckBox)sender).Checked; };
+
             UseGCheckBox.Checked = settings.UseG;
             UseGCheckBox.CheckedChanged += (sender, args) => { settings.UseG = ((CheckBox)sender).Checked; };
+
+            GammaSlider.Value = (int)(settings.TGamma * 1000);
+            GammaLabel.Text = settings.TGamma.ToString();
+            GammaSlider.ValueChanged += (sender, args) =>
+            {
+                var val = ((TrackBar)sender).Value / 1000.0;
+                settings.TGamma = val;
+                GammaLabel.Text = val.ToString();
+            };
+
+            RGlobDeltaCheckBox.Checked = settings.RGlobalTimeDelta;
+            RGlobDeltaCheckBox.CheckedChanged += (sender, args) => { settings.RGlobalTimeDelta = ((CheckBox)sender).Checked; };
+
+            TMaxDaysNumericUpDown.Value = (decimal)settings.TMaxDays;
+            TMaxDaysNumericUpDown.ValueChanged += (sender, args) => { settings.TMaxDays = (int)((NumericUpDown)sender).Value; };
+            TMaxDaysPercentNumericUpDown.Value = (decimal)settings.TMaxDaysPercent;
+            TMaxDaysPercentNumericUpDown.ValueChanged += (sender, args) => { settings.TMaxDaysPercent = (int)((NumericUpDown)sender).Value; };
+
+
 
             criteriaRadioButton1.Checked = settings.UsedCriteria == 0;
             criteriaRadioButton1.CheckedChanged += (sender, args) => { if (((RadioButton)sender).Checked) settings.UsedCriteria = 0; };
@@ -1152,7 +1174,8 @@ namespace ApsRTCustomComponents
                     PlanningAlgorithmStage.Preparing => "1. Подготовка",
                     PlanningAlgorithmStage.Prepared => "Данные подготовлены",
                     PlanningAlgorithmStage.RunningV => "Шаг 1...",
-                    PlanningAlgorithmStage.RunningG => "Шаг 2...",
+                    PlanningAlgorithmStage.RunningT => "Шаг 2...",
+                    PlanningAlgorithmStage.RunningG => "Шаг 3...",
                     PlanningAlgorithmStage.FailedV => "V завершен с ошибкой",
                     PlanningAlgorithmStage.Complete => $"Завершено. ({sessionLink.AssignedPlanningAlgorithm.LastDate})",
                     PlanningAlgorithmStage.Failed => "Ошибка."
@@ -1183,9 +1206,14 @@ namespace ApsRTCustomComponents
                             PlanningProcessLabel.Text = $"Шаг 1: {N} / {PlanningProcessBar.Maximum}";
                         }
 
+                        if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningT)
+                        {
+                            PlanningProcessLabel.Text = $"Шаг 2: {algorithm.UsedWorkflow.Generation} | лучшая: {algorithm.LastGen} ({algorithm.LastDate})";
+                        }
+
                         if (algorithm.CurrentStage == PlanningAlgorithmStage.RunningG)
                         {
-                            PlanningProcessLabel.Text = $"Шаг 2: {algorithm.UsedWorkflow.Generation} - критерий {algorithm.UsedWorkflow.currentMode} [ {algorithm.UsedWorkflow.currDynCounter} / {algorithm.UsedWorkflow.maxDynCounter} ] | лучшая: {algorithm.LastGen} ({algorithm.LastDate})";
+                            PlanningProcessLabel.Text = $"Шаг 3: {algorithm.UsedWorkflow.Generation} - критерий {algorithm.UsedWorkflow.currentMode} [ {algorithm.UsedWorkflow.currDynCounter} / {algorithm.UsedWorkflow.maxDynCounter} ] | лучшая: {algorithm.LastGen} ({algorithm.LastDate})";
                         }
 
                         updateUI();

@@ -13,8 +13,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         Prepared = 2,
         RunningV = 3,
         FailedV = 4,
-        RunningG = 5,
-        Complete = 6,
-        Failed = 7
+        RunningT = 5,
+        RunningG = 6,
+        Complete = 7,
+        Failed = 8
     }
 }

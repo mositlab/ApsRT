@@ -179,6 +179,20 @@ namespace ApsRTCustomComponents
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
+            groupBox8 = new GroupBox();
+            UseRCheckBox = new MaterialCheckBox();
+            TMaxDaysNumericUpDown = new NumericUpDown();
+            RGlobDeltaCheckBox = new MaterialCheckBox();
+            label57 = new Label();
+            UseRStarCheckBox = new MaterialCheckBox();
+            TMaxDaysPercentNumericUpDown = new NumericUpDown();
+            UseTCheckBox = new MaterialCheckBox();
+            label56 = new Label();
+            UseGCheckBox = new MaterialCheckBox();
+            label54 = new Label();
+            GammaSlider = new TrackBar();
+            GammaLabel = new Label();
+            label55 = new Label();
             label51 = new Label();
             MaxOldSessionPathsDaysNumericUpDown = new NumericUpDown();
             button4 = new Button();
@@ -186,7 +200,6 @@ namespace ApsRTCustomComponents
             button2 = new Button();
             button1 = new Button();
             groupBox7 = new GroupBox();
-            UseRCheckBox = new MaterialCheckBox();
             UsePseudoTaraCheckBox = new MaterialCheckBox();
             CreateStopMe = new MaterialCheckBox();
             CreateKillMeCheckBox = new MaterialCheckBox();
@@ -195,6 +208,7 @@ namespace ApsRTCustomComponents
             HideConsoleCheckBox = new MaterialCheckBox();
             LogErrorsCheckBox = new MaterialCheckBox();
             groupBox6 = new GroupBox();
+            VKoeffsTextBox = new TextBox();
             criteriaRadioButton7 = new MaterialRadioButton();
             materialRadioButtonAuto = new MaterialRadioButton();
             CriteriasMaxIterationsNumericUpDown7 = new NumericUpDown();
@@ -205,7 +219,6 @@ namespace ApsRTCustomComponents
             CriteriasPossibleWorseNumericUpDown6 = new NumericUpDown();
             label9 = new Label();
             CriteriasMaxIterationsNumericUpDown5 = new NumericUpDown();
-            VKoeffsTextBox = new TextBox();
             CriteriasMinIterationsNumericUpDown5 = new NumericUpDown();
             CriteriasPossibleWorseNumericUpDown5 = new NumericUpDown();
             CriteriasMaxIterationsNumericUpDown4 = new NumericUpDown();
@@ -312,8 +325,6 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            UseGCheckBox = new MaterialCheckBox();
-            UseRStarCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -414,6 +425,10 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
+            groupBox8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)TMaxDaysNumericUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)TMaxDaysPercentNumericUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)GammaSlider).BeginInit();
             ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).BeginInit();
             groupBox7.SuspendLayout();
             groupBox6.SuspendLayout();
@@ -575,7 +590,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 415);
+            label49.Location = new Point(959, 409);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -588,7 +603,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 412);
+            pictureBox1.Location = new Point(1099, 406);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -601,7 +616,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 462);
+            label48.Location = new Point(3, 456);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2359,6 +2374,7 @@ namespace ApsRTCustomComponents
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.AutoScroll = true;
+            splitContainer2.Panel2.Controls.Add(groupBox8);
             splitContainer2.Panel2.Controls.Add(label51);
             splitContainer2.Panel2.Controls.Add(MaxOldSessionPathsDaysNumericUpDown);
             splitContainer2.Panel2.Controls.Add(button4);
@@ -2390,6 +2406,195 @@ namespace ApsRTCustomComponents
             HoppersPanel.Name = "HoppersPanel";
             HoppersPanel.Size = new Size(1171, 185);
             HoppersPanel.TabIndex = 25;
+            // 
+            // groupBox8
+            // 
+            groupBox8.Controls.Add(UseRCheckBox);
+            groupBox8.Controls.Add(TMaxDaysNumericUpDown);
+            groupBox8.Controls.Add(RGlobDeltaCheckBox);
+            groupBox8.Controls.Add(label57);
+            groupBox8.Controls.Add(UseRStarCheckBox);
+            groupBox8.Controls.Add(TMaxDaysPercentNumericUpDown);
+            groupBox8.Controls.Add(UseTCheckBox);
+            groupBox8.Controls.Add(label56);
+            groupBox8.Controls.Add(UseGCheckBox);
+            groupBox8.Controls.Add(label54);
+            groupBox8.Controls.Add(GammaSlider);
+            groupBox8.Controls.Add(GammaLabel);
+            groupBox8.Controls.Add(label55);
+            groupBox8.Location = new Point(16, 300);
+            groupBox8.Name = "groupBox8";
+            groupBox8.Size = new Size(1151, 106);
+            groupBox8.TabIndex = 86;
+            groupBox8.TabStop = false;
+            groupBox8.Text = "Планирование";
+            // 
+            // UseRCheckBox
+            // 
+            UseRCheckBox.BackColor = Color.Black;
+            UseRCheckBox.Depth = 0;
+            UseRCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseRCheckBox.ForeColor = Color.CornflowerBlue;
+            UseRCheckBox.Location = new Point(5, 19);
+            UseRCheckBox.Margin = new Padding(0);
+            UseRCheckBox.MouseLocation = new Point(-1, -1);
+            UseRCheckBox.Name = "UseRCheckBox";
+            UseRCheckBox.Ripple = true;
+            UseRCheckBox.Size = new Size(52, 30);
+            UseRCheckBox.TabIndex = 37;
+            UseRCheckBox.Text = "R";
+            UseRCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // TMaxDaysNumericUpDown
+            // 
+            TMaxDaysNumericUpDown.BackColor = Color.CornflowerBlue;
+            TMaxDaysNumericUpDown.BorderStyle = BorderStyle.None;
+            TMaxDaysNumericUpDown.DecimalPlaces = 2;
+            TMaxDaysNumericUpDown.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            TMaxDaysNumericUpDown.ForeColor = Color.White;
+            TMaxDaysNumericUpDown.Location = new Point(547, 64);
+            TMaxDaysNumericUpDown.Margin = new Padding(0);
+            TMaxDaysNumericUpDown.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            TMaxDaysNumericUpDown.Name = "TMaxDaysNumericUpDown";
+            TMaxDaysNumericUpDown.Size = new Size(97, 19);
+            TMaxDaysNumericUpDown.TabIndex = 85;
+            TMaxDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
+            // 
+            // RGlobDeltaCheckBox
+            // 
+            RGlobDeltaCheckBox.BackColor = Color.Black;
+            RGlobDeltaCheckBox.Depth = 0;
+            RGlobDeltaCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            RGlobDeltaCheckBox.ForeColor = Color.CornflowerBlue;
+            RGlobDeltaCheckBox.Location = new Point(960, 57);
+            RGlobDeltaCheckBox.Margin = new Padding(0);
+            RGlobDeltaCheckBox.MouseLocation = new Point(-1, -1);
+            RGlobDeltaCheckBox.Name = "RGlobDeltaCheckBox";
+            RGlobDeltaCheckBox.Ripple = true;
+            RGlobDeltaCheckBox.Size = new Size(184, 30);
+            RGlobDeltaCheckBox.TabIndex = 41;
+            RGlobDeltaCheckBox.Text = "R - глобальная дельта";
+            RGlobDeltaCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // label57
+            // 
+            label57.AutoSize = true;
+            label57.Font = new Font("Microsoft Sans Serif", 10F);
+            label57.Location = new Point(325, 64);
+            label57.Name = "label57";
+            label57.Size = new Size(219, 17);
+            label57.TabIndex = 84;
+            label57.Text = "T: макс. дней удлинения плана:";
+            // 
+            // UseRStarCheckBox
+            // 
+            UseRStarCheckBox.BackColor = Color.Black;
+            UseRStarCheckBox.Depth = 0;
+            UseRStarCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseRStarCheckBox.ForeColor = Color.CornflowerBlue;
+            UseRStarCheckBox.Location = new Point(57, 19);
+            UseRStarCheckBox.Margin = new Padding(0);
+            UseRStarCheckBox.MouseLocation = new Point(-1, -1);
+            UseRStarCheckBox.Name = "UseRStarCheckBox";
+            UseRStarCheckBox.Ripple = true;
+            UseRStarCheckBox.Size = new Size(56, 30);
+            UseRStarCheckBox.TabIndex = 39;
+            UseRStarCheckBox.Text = "R*";
+            UseRStarCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // TMaxDaysPercentNumericUpDown
+            // 
+            TMaxDaysPercentNumericUpDown.BackColor = Color.CornflowerBlue;
+            TMaxDaysPercentNumericUpDown.BorderStyle = BorderStyle.None;
+            TMaxDaysPercentNumericUpDown.DecimalPlaces = 2;
+            TMaxDaysPercentNumericUpDown.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            TMaxDaysPercentNumericUpDown.ForeColor = Color.White;
+            TMaxDaysPercentNumericUpDown.Location = new Point(252, 65);
+            TMaxDaysPercentNumericUpDown.Margin = new Padding(0);
+            TMaxDaysPercentNumericUpDown.Name = "TMaxDaysPercentNumericUpDown";
+            TMaxDaysPercentNumericUpDown.Size = new Size(70, 19);
+            TMaxDaysPercentNumericUpDown.TabIndex = 83;
+            TMaxDaysPercentNumericUpDown.TextAlign = HorizontalAlignment.Center;
+            // 
+            // UseTCheckBox
+            // 
+            UseTCheckBox.BackColor = Color.Black;
+            UseTCheckBox.Depth = 0;
+            UseTCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseTCheckBox.ForeColor = Color.CornflowerBlue;
+            UseTCheckBox.Location = new Point(113, 19);
+            UseTCheckBox.Margin = new Padding(0);
+            UseTCheckBox.MouseLocation = new Point(-1, -1);
+            UseTCheckBox.Name = "UseTCheckBox";
+            UseTCheckBox.Ripple = true;
+            UseTCheckBox.Size = new Size(56, 30);
+            UseTCheckBox.TabIndex = 40;
+            UseTCheckBox.Text = "T";
+            UseTCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // label56
+            // 
+            label56.AutoSize = true;
+            label56.Font = new Font("Microsoft Sans Serif", 10F);
+            label56.Location = new Point(7, 65);
+            label56.Name = "label56";
+            label56.Size = new Size(242, 17);
+            label56.TabIndex = 82;
+            label56.Text = "T: макс. процент удлинения плана:";
+            // 
+            // UseGCheckBox
+            // 
+            UseGCheckBox.BackColor = Color.Black;
+            UseGCheckBox.Depth = 0;
+            UseGCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            UseGCheckBox.ForeColor = Color.CornflowerBlue;
+            UseGCheckBox.Location = new Point(169, 19);
+            UseGCheckBox.Margin = new Padding(0);
+            UseGCheckBox.MouseLocation = new Point(-1, -1);
+            UseGCheckBox.Name = "UseGCheckBox";
+            UseGCheckBox.Ripple = true;
+            UseGCheckBox.Size = new Size(55, 30);
+            UseGCheckBox.TabIndex = 38;
+            UseGCheckBox.Text = "G";
+            UseGCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // label54
+            // 
+            label54.AutoSize = true;
+            label54.Font = new Font("Microsoft Sans Serif", 9F);
+            label54.Location = new Point(227, 25);
+            label54.Name = "label54";
+            label54.Size = new Size(85, 15);
+            label54.TabIndex = 79;
+            label54.Text = "Переналадки";
+            // 
+            // GammaSlider
+            // 
+            GammaSlider.Location = new Point(318, 23);
+            GammaSlider.Maximum = 1000;
+            GammaSlider.Name = "GammaSlider";
+            GammaSlider.Size = new Size(722, 45);
+            GammaSlider.TabIndex = 78;
+            GammaSlider.Value = 5;
+            // 
+            // GammaLabel
+            // 
+            GammaLabel.AutoSize = true;
+            GammaLabel.Location = new Point(1046, 40);
+            GammaLabel.Name = "GammaLabel";
+            GammaLabel.Size = new Size(42, 17);
+            GammaLabel.TabIndex = 81;
+            GammaLabel.Text = "0.00х";
+            // 
+            // label55
+            // 
+            label55.AutoSize = true;
+            label55.Font = new Font("Microsoft Sans Serif", 9F);
+            label55.Location = new Point(1046, 25);
+            label55.Name = "label55";
+            label55.Size = new Size(51, 15);
+            label55.TabIndex = 80;
+            label55.Text = "Дельта";
             // 
             // label51
             // 
@@ -2425,7 +2630,7 @@ namespace ApsRTCustomComponents
             button4.FlatStyle = FlatStyle.Flat;
             button4.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
             button4.ForeColor = Color.White;
-            button4.Location = new Point(1034, 454);
+            button4.Location = new Point(1041, 493);
             button4.Name = "button4";
             button4.Size = new Size(126, 36);
             button4.TabIndex = 48;
@@ -2443,7 +2648,7 @@ namespace ApsRTCustomComponents
             button3.FlatStyle = FlatStyle.Flat;
             button3.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
             button3.ForeColor = Color.White;
-            button3.Location = new Point(937, 454);
+            button3.Location = new Point(944, 493);
             button3.Name = "button3";
             button3.Size = new Size(91, 36);
             button3.TabIndex = 47;
@@ -2461,7 +2666,7 @@ namespace ApsRTCustomComponents
             button2.FlatStyle = FlatStyle.Flat;
             button2.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
             button2.ForeColor = Color.White;
-            button2.Location = new Point(937, 413);
+            button2.Location = new Point(944, 452);
             button2.Name = "button2";
             button2.Size = new Size(223, 36);
             button2.TabIndex = 46;
@@ -2479,7 +2684,7 @@ namespace ApsRTCustomComponents
             button1.FlatStyle = FlatStyle.Flat;
             button1.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
             button1.ForeColor = Color.White;
-            button1.Location = new Point(937, 373);
+            button1.Location = new Point(944, 412);
             button1.Name = "button1";
             button1.Size = new Size(223, 36);
             button1.TabIndex = 45;
@@ -2490,9 +2695,6 @@ namespace ApsRTCustomComponents
             // 
             // groupBox7
             // 
-            groupBox7.Controls.Add(UseRStarCheckBox);
-            groupBox7.Controls.Add(UseGCheckBox);
-            groupBox7.Controls.Add(UseRCheckBox);
             groupBox7.Controls.Add(UsePseudoTaraCheckBox);
             groupBox7.Controls.Add(CreateStopMe);
             groupBox7.Controls.Add(CreateKillMeCheckBox);
@@ -2502,26 +2704,10 @@ namespace ApsRTCustomComponents
             groupBox7.Controls.Add(LogErrorsCheckBox);
             groupBox7.Location = new Point(321, 3);
             groupBox7.Name = "groupBox7";
-            groupBox7.Size = new Size(315, 355);
+            groupBox7.Size = new Size(315, 240);
             groupBox7.TabIndex = 44;
             groupBox7.TabStop = false;
             groupBox7.Text = "Основное";
-            // 
-            // UseRCheckBox
-            // 
-            UseRCheckBox.BackColor = Color.Black;
-            UseRCheckBox.Depth = 0;
-            UseRCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            UseRCheckBox.ForeColor = Color.CornflowerBlue;
-            UseRCheckBox.Location = new Point(3, 232);
-            UseRCheckBox.Margin = new Padding(0);
-            UseRCheckBox.MouseLocation = new Point(-1, -1);
-            UseRCheckBox.Name = "UseRCheckBox";
-            UseRCheckBox.Ripple = true;
-            UseRCheckBox.Size = new Size(309, 30);
-            UseRCheckBox.TabIndex = 37;
-            UseRCheckBox.Text = "R";
-            UseRCheckBox.UseVisualStyleBackColor = false;
             // 
             // UsePseudoTaraCheckBox
             // 
@@ -2643,6 +2829,7 @@ namespace ApsRTCustomComponents
             // 
             // groupBox6
             // 
+            groupBox6.Controls.Add(VKoeffsTextBox);
             groupBox6.Controls.Add(criteriaRadioButton7);
             groupBox6.Controls.Add(materialRadioButtonAuto);
             groupBox6.Controls.Add(CriteriasMaxIterationsNumericUpDown7);
@@ -2653,7 +2840,6 @@ namespace ApsRTCustomComponents
             groupBox6.Controls.Add(CriteriasPossibleWorseNumericUpDown6);
             groupBox6.Controls.Add(label9);
             groupBox6.Controls.Add(CriteriasMaxIterationsNumericUpDown5);
-            groupBox6.Controls.Add(VKoeffsTextBox);
             groupBox6.Controls.Add(CriteriasMinIterationsNumericUpDown5);
             groupBox6.Controls.Add(CriteriasPossibleWorseNumericUpDown5);
             groupBox6.Controls.Add(CriteriasMaxIterationsNumericUpDown4);
@@ -2683,10 +2869,17 @@ namespace ApsRTCustomComponents
             groupBox6.Controls.Add(label43);
             groupBox6.Location = new Point(642, 3);
             groupBox6.Name = "groupBox6";
-            groupBox6.Size = new Size(525, 355);
+            groupBox6.Size = new Size(525, 298);
             groupBox6.TabIndex = 43;
             groupBox6.TabStop = false;
             groupBox6.Text = "Критерии оптимизации";
+            // 
+            // VKoeffsTextBox
+            // 
+            VKoeffsTextBox.Location = new Point(92, 271);
+            VKoeffsTextBox.Name = "VKoeffsTextBox";
+            VKoeffsTextBox.Size = new Size(227, 23);
+            VKoeffsTextBox.TabIndex = 39;
             // 
             // criteriaRadioButton7
             // 
@@ -2816,7 +3009,7 @@ namespace ApsRTCustomComponents
             // 
             label9.AutoSize = true;
             label9.Font = new Font("Microsoft Sans Serif", 9F);
-            label9.Location = new Point(10, 292);
+            label9.Location = new Point(10, 274);
             label9.Name = "label9";
             label9.Size = new Size(66, 15);
             label9.TabIndex = 40;
@@ -2836,13 +3029,6 @@ namespace ApsRTCustomComponents
             CriteriasMaxIterationsNumericUpDown5.TabIndex = 69;
             CriteriasMaxIterationsNumericUpDown5.TextAlign = HorizontalAlignment.Center;
             CriteriasMaxIterationsNumericUpDown5.Value = new decimal(new int[] { 200, 0, 0, 0 });
-            // 
-            // VKoeffsTextBox
-            // 
-            VKoeffsTextBox.Location = new Point(92, 289);
-            VKoeffsTextBox.Name = "VKoeffsTextBox";
-            VKoeffsTextBox.Size = new Size(227, 23);
-            VKoeffsTextBox.TabIndex = 39;
             // 
             // CriteriasMinIterationsNumericUpDown5
             // 
@@ -3091,7 +3277,7 @@ namespace ApsRTCustomComponents
             // 
             label40.AutoSize = true;
             label40.Font = new Font("Microsoft Sans Serif", 9F);
-            label40.Location = new Point(9, 322);
+            label40.Location = new Point(325, 274);
             label40.Name = "label40";
             label40.Size = new Size(67, 15);
             label40.TabIndex = 45;
@@ -3115,9 +3301,9 @@ namespace ApsRTCustomComponents
             // 
             // CriteriasListTextBox
             // 
-            CriteriasListTextBox.Location = new Point(92, 318);
+            CriteriasListTextBox.Location = new Point(392, 271);
             CriteriasListTextBox.Name = "CriteriasListTextBox";
-            CriteriasListTextBox.Size = new Size(227, 23);
+            CriteriasListTextBox.Size = new Size(115, 23);
             CriteriasListTextBox.TabIndex = 44;
             // 
             // criteriaRadioButton6
@@ -3242,7 +3428,7 @@ namespace ApsRTCustomComponents
             groupBox2.Controls.Add(groupBox4);
             groupBox2.Controls.Add(label12);
             groupBox2.Controls.Add(groupBox3);
-            groupBox2.Location = new Point(3, 364);
+            groupBox2.Location = new Point(15, 401);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(928, 136);
             groupBox2.TabIndex = 42;
@@ -4087,7 +4273,7 @@ namespace ApsRTCustomComponents
             ClearAllSessionErrorsButton.FlatStyle = FlatStyle.Flat;
             ClearAllSessionErrorsButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             ClearAllSessionErrorsButton.ForeColor = Color.White;
-            ClearAllSessionErrorsButton.Location = new Point(3, 307);
+            ClearAllSessionErrorsButton.Location = new Point(322, 249);
             ClearAllSessionErrorsButton.Name = "ClearAllSessionErrorsButton";
             ClearAllSessionErrorsButton.Size = new Size(315, 51);
             ClearAllSessionErrorsButton.TabIndex = 38;
@@ -4107,7 +4293,7 @@ namespace ApsRTCustomComponents
             HandSessionPostDataProcessButton.ForeColor = Color.White;
             HandSessionPostDataProcessButton.Location = new Point(3, 249);
             HandSessionPostDataProcessButton.Name = "HandSessionPostDataProcessButton";
-            HandSessionPostDataProcessButton.Size = new Size(315, 52);
+            HandSessionPostDataProcessButton.Size = new Size(315, 51);
             HandSessionPostDataProcessButton.TabIndex = 37;
             HandSessionPostDataProcessButton.Text = "Ручной пост-процессинг данных сессии";
             HandSessionPostDataProcessButton.UseCompatibleTextRendering = true;
@@ -4263,38 +4449,6 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // UseGCheckBox
-            // 
-            UseGCheckBox.BackColor = Color.Black;
-            UseGCheckBox.Depth = 0;
-            UseGCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            UseGCheckBox.ForeColor = Color.CornflowerBlue;
-            UseGCheckBox.Location = new Point(3, 262);
-            UseGCheckBox.Margin = new Padding(0);
-            UseGCheckBox.MouseLocation = new Point(-1, -1);
-            UseGCheckBox.Name = "UseGCheckBox";
-            UseGCheckBox.Ripple = true;
-            UseGCheckBox.Size = new Size(309, 30);
-            UseGCheckBox.TabIndex = 38;
-            UseGCheckBox.Text = "G";
-            UseGCheckBox.UseVisualStyleBackColor = false;
-            // 
-            // UseRStarCheckBox
-            // 
-            UseRStarCheckBox.BackColor = Color.Black;
-            UseRStarCheckBox.Depth = 0;
-            UseRStarCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            UseRStarCheckBox.ForeColor = Color.CornflowerBlue;
-            UseRStarCheckBox.Location = new Point(3, 292);
-            UseRStarCheckBox.Margin = new Padding(0);
-            UseRStarCheckBox.MouseLocation = new Point(-1, -1);
-            UseRStarCheckBox.Name = "UseRStarCheckBox";
-            UseRStarCheckBox.Ripple = true;
-            UseRStarCheckBox.Size = new Size(309, 30);
-            UseRStarCheckBox.TabIndex = 39;
-            UseRStarCheckBox.Text = "R*";
-            UseRStarCheckBox.UseVisualStyleBackColor = false;
-            // 
             // ApsRTMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -4419,6 +4573,11 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
+            groupBox8.ResumeLayout(false);
+            groupBox8.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)TMaxDaysNumericUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)TMaxDaysPercentNumericUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)GammaSlider).EndInit();
             ((System.ComponentModel.ISupportInitialize)MaxOldSessionPathsDaysNumericUpDown).EndInit();
             groupBox7.ResumeLayout(false);
             groupBox7.PerformLayout();
@@ -4769,5 +4928,16 @@ namespace ApsRTCustomComponents
         private MaterialCheckBox UseRCheckBox;
         private MaterialCheckBox UseRStarCheckBox;
         private MaterialCheckBox UseGCheckBox;
+        private MaterialCheckBox UseTCheckBox;
+        private Label label54;
+        private TrackBar GammaSlider;
+        private Label label55;
+        private Label GammaLabel;
+        private MaterialCheckBox RGlobDeltaCheckBox;
+        private NumericUpDown TMaxDaysNumericUpDown;
+        private Label label57;
+        private NumericUpDown TMaxDaysPercentNumericUpDown;
+        private Label label56;
+        private GroupBox groupBox8;
     }
 }

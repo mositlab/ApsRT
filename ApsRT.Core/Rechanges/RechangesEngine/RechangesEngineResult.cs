@@ -16,6 +16,11 @@ namespace ApsRT.Core.Rechanges.RechangesEngine
 
         public bool IsDynamicSolution { get; set; }
 
+        public override string ToString()
+        {
+            return $"RER {Duration} secs";
+        }
+
         public Dictionary<Guid, Rechange> ToLinearDictionary()
         {
             if (Result == null) return null;

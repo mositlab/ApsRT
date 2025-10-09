@@ -21,6 +21,11 @@ namespace ApsRT.Core.Planning
             //LastInterval = prevInterval;
         }
 
+        public override string ToString()
+        {
+            return $"CI {Duration} -> {NextInterval}";
+        }
+
         /// <summary>
         /// Длительность, уже с учетом интервалов
         /// </summary>

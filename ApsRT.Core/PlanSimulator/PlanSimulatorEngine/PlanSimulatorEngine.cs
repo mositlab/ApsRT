@@ -442,6 +442,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         static void AlreadyFillRechanges(PlanSimulatorCenterData centGlobalStruct, RechangesEngineResult result, CachedInterval rechangeDur, PlanSimulatorEngineResult resultToFill, int NextStageID, int lastStageID)
         {
             centGlobalStruct.LastDate += rechangeDur.Duration;
+            resultToFill.RechangesSecondsWithoutLunches = resultToFill.RechangesSecondsWithoutLunches.Add(TimeSpan.FromSeconds(result?.Duration ?? 0));
             resultToFill.RechangesSeconds = resultToFill.RechangesSeconds.Add(rechangeDur.Duration);
             centGlobalStruct.RechangesTime = centGlobalStruct.RechangesTime.Add(rechangeDur.Duration);
             centGlobalStruct.LastStartDate = centGlobalStruct.LastDate;

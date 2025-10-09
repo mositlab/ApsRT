@@ -349,6 +349,18 @@ namespace ApsRT.Core.PlanSimulator
             return new List<PlanSimulatorBlock>(Blocks);
         }
 
+        public static void MoveBlockIndexesInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
+        {
+            var res0 = Parallel.For(0, Blocks.Count, i =>
+            {
+                Blocks[i].BlockIndex[to] = Blocks[i].BlockIndex[from];// (from, to);
+                //Blocks[i].CenterDataLocalCopy[to] = Blocks[i].CenterDataLocalCopy[from];
+            });
+            while (!res0.IsCompleted)
+            {
+                ;
+            }
+        }
         public static void MoveCentersInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
         {
             var res0 = Parallel.For(0, Blocks.Count, i =>
