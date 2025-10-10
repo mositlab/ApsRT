@@ -2,6 +2,8 @@
 using ApsRT.Core.Taras.TaraSearchEngine;
 using System.Collections.Frozen;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 
 namespace ApsRT.Core.PlanSimulator
 {
@@ -22,6 +24,9 @@ namespace ApsRT.Core.PlanSimulator
         public bool IsVPZ { get; private set; }
         public bool IsFactOrVPZ { get; private set; }
         public bool IsFixed { get; private set; }
+        public int WorstOrderPriority { get; private set; }
+
+        public HashSet<OrderID> OrdersHere { get; private set; }
 
         public PlanSimulatorNaladLengthData[] NaladLengthData; // ТОЛЬКО для моделирований простых, для общих этапов там свои
         public PlanSimulatorDatesData[] MinDatesData;
@@ -105,6 +110,8 @@ namespace ApsRT.Core.PlanSimulator
             IsVPZ = list.Any(x => x.VPZ);
             IsFixed = list.Any(x => x.Fixed);
             IsFactOrVPZ = IsVPZ || IsFact;
+            WorstOrderPriority = list.Min(x => x.OrderLink.Priority); // 0 - самый высокий приоритет
+            OrdersHere = StagesAsNormal.Select(x => x.OrderLink.OrderID).ToHashSet();
 
             foreach (var oper in list) // Создаём массив тех РЦ, которые однозначно есть на всех этапах
             {

@@ -154,6 +154,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 {
                     SessionLink.AssignedLogger.LogQueue.Enqueue("planning step 2 started");
                     CurrentStage = PlanningAlgorithmStage.RunningT;
+                    CurrentStageChanged?.Invoke(CurrentStage, 1000);
                     var T = new AlgorithmT(this);// new AlgorithmV(this);
                     T.Start();
                     if (WannaStop)
