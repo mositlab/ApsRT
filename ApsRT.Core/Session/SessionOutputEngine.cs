@@ -564,6 +564,7 @@ namespace ApsRT.Core.Session
                 "Дата начала;" +
                 "Дата конца;" +
                 "Длительность;" +
+                "ДлительностьСек;" +
                 "ID;" +
                 "GUID;" +
                 "Регистратор;" +
@@ -618,7 +619,8 @@ namespace ApsRT.Core.Session
                             $"Простой;" +
                             $"{start:G};" +
                             $"{(start + prostoi.interval.Duration):G};" +
-                            $"{prostoi.interval.Duration:G}" +
+                            $"{prostoi.interval.Duration:G};" +
+                            $"{(int)prostoi.interval.Duration.TotalSeconds}" +
                             $";;;;;;;;;;" +
                             $"{blockRC}";
                         rangesManual.WriteLine(finastr);
@@ -631,7 +633,8 @@ namespace ApsRT.Core.Session
                         var finastr = $"{fileN};Переналадки;" +
                             $"{start:G};" +
                             $"{(start.Add(rechanges.interval.Duration)):G};" +
-                            $"{rechanges.interval.Duration:G}" +
+                            $"{rechanges.interval.Duration:G};" +
+                            $"{(int)rechanges.interval.Duration.TotalSeconds}" +
                             $";{nextOper.Index};{nextOper.GUID};{nextOper.Registrator}" +
                             $";;;;;;;{blockRC};;;;;;;;" +
 
@@ -679,6 +682,7 @@ namespace ApsRT.Core.Session
                             $"{start:G};" +
                             $"{start + duration:G};" +
                             $"{duration:G};" +
+                            $"{(int)duration.TotalSeconds};" +
                             $"{operLoc.Index};" +
                             $"{operLoc.GUID};" +
                             $"{operLoc.Registrator};" +

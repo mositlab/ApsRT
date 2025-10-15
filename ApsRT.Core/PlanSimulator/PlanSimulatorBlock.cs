@@ -92,7 +92,7 @@ namespace ApsRT.Core.PlanSimulator
         {
             return $"[{string.Join(", ", Lists.Select(x => x.ModID + (x.IsFixed ? "F" : "") + (x.IsFactOrVPZ ? "V" : "")
 
-            ))}] на РЦ: {ActualRC[0].Label}";
+            ))}] на РЦ: {ActualRC[0].Label}, hash {GetHashCode()}";
         }
 
         public PlanSimulatorBlock(List<PlanSimulatorMod> lists, Uco ActualRC, int PoolSize, float ParrKoeff, bool CreateTara)

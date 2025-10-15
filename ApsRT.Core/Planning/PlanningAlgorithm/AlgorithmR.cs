@@ -545,6 +545,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         {
             public TimeSpan Rechanges;
             public TimeSpan DeltaFromStart;
+            public TimeSpan DeltaFromStartNoOp;
             public TimeSpan DeltaFromDeadline;
             public float TotalCost;
             public bool IsFromSameOrder;
@@ -553,7 +554,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             public int ErrorsCount;
 
-            public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromDeadline, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount)
+            public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount)
             {
                 Rechanges = rechanges;
                 DeltaFromStart = deltaFromStart;
@@ -563,6 +564,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 this.OrderPriority = OrderPriority;
                 Level = level;
                 ErrorsCount = errorsCount;
+                DeltaFromStartNoOp = deltaFromStartNoOp;
             }
 
             public bool IsBetterThanOther(RTempResult otherResult, bool NoSteps)
@@ -572,6 +574,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 if (ErrorsCount > otherResult.ErrorsCount) return false;
 
                 if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
+
+                //return
+                //    Rechanges < otherResult.Rechanges
+                //    || (Rechanges == otherResult.Rechanges && DeltaFromStart < otherResult.DeltaFromStart);
 
                 return
                     OrderPriority < otherResult.OrderPriority
@@ -593,7 +599,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         class RSearcher
         {
-            public RTempResult minResult = new RTempResult(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, int.MaxValue, false, int.MaxValue, float.MaxValue, int.MaxValue);
+            public RTempResult minResult = new RTempResult(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, int.MaxValue, false, int.MaxValue, float.MaxValue, int.MaxValue);
             public Uco ChoosenCenter = Uco.EmptyObject;
             public Uco ChoosenTara = Uco.EmptyObject;
             public double MaxNamotka = 0;
@@ -731,7 +737,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     bool IsFromSameOrder = parrBlockVariant.block.Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID)));
 
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0);
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0);
 
                     lock (locker)
                     {
@@ -942,11 +948,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     RTempResult localResult = new RTempResult(
                         localResultData.Rechanges,
                         localResultData.TotalTime,
+                        localResultData.TotalTimeNoOp,
                         delta,
                         mod.WorstOrderPriority,
                         IsFromSameOrder,
                         mod.FirstOperJust.Level,
-                        (float)(localResultData.TotalTime.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
+                        (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
                         errors
                         );
 
@@ -1188,11 +1195,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         //}
 
-        (TimeSpan Rechanges, TimeSpan TotalTime) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
+        (TimeSpan Rechanges, TimeSpan TotalTime, TimeSpan TotalTimeNoOp) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
         {
             errorsCount = 0;
 
-            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
+            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
 
             var list = BlocksDependingOnCenter[choosenCenter];
             //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
@@ -1252,7 +1259,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
 
-            return (rechesDur, lastDate - startDate);
+            return (rechesDur, lastDate - startDate, time1 - startDate);
 
         }
 

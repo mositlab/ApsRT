@@ -3,12 +3,14 @@ using ApsRT.Core.Planning;
 using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
+using Google.OrTools.ConstraintSolver;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
@@ -289,6 +291,169 @@ namespace ApsRT.Core.PlanSimulator
             {
                 block.UpdatePossibleRCsHere();
             }
+        }
+
+        static int moveLeftIt(List<PlanSimulatorBlock> Blocks, PlanSimulatorBlock block, int PoolIndex)
+        {
+            var myIndex = Blocks.IndexOf(block);
+            var firstLeftBlock = Blocks.FindLastIndex(myIndex - 1, blockL => blockL.GetCenterData(PoolIndex).Center == block.GetCenterData(PoolIndex).Center);
+
+
+            var depends = block.Lists
+                     .SelectMany(mod => mod.PrevMods)
+                     .Select(mod => mod.BlockLink)
+                     .Distinct()
+                     .OrderBy(block => block.BlockIndex[PoolIndex]);
+
+            int maxPrevIndex = -1;
+            foreach (var dep in depends)
+            {
+                int prev = moveLeftIt(Blocks, dep, PoolIndex);
+                maxPrevIndex = Math.Max(prev, maxPrevIndex);
+            }
+
+
+            if (maxPrevIndex > firstLeftBlock) firstLeftBlock = maxPrevIndex;
+
+            firstLeftBlock++;
+
+            Blocks.RemoveAt(myIndex);
+            Blocks.Insert(firstLeftBlock, block);
+            return firstLeftBlock; // Теперь это его индекс
+
+        }
+
+        static void adder(List<PlanSimulatorBlock> finalResult, List<PlanSimulatorBlock> blocksToSet, bool toBack, int PoolReadIndex, int PoolWriteIndex)
+        {
+            blocksToSet = blocksToSet.Where(block => !finalResult.Contains(block)).ToList();
+            //for (int i = 0; i < blocksToSet.Count; i++)
+            //{
+            //    var opsHere = blocksToSet[i].Lists.SelectMany(mod => mod.StagesAsNormal).ToHashSet();
+            //    var suchkaIndex = finalResult.FindIndex(block => block.Lists.SelectMany(mod => mod.StagesAsNormal).Any(op => opsHere.Contains(op)));
+            //    if (suchkaIndex > -1)
+            //    {
+            //        var getThisblock = finalResult[suchkaIndex];
+            //        ;
+            //    }
+            //}
+
+            if (toBack)
+                finalResult.InsertRange(0, blocksToSet);
+            else
+                finalResult.AddRange(blocksToSet);
+
+            var listToPrev = blocksToSet
+                .SelectMany(block => block.Lists)
+                .SelectMany(mod => mod.PrevMods)
+                .Select(mod => mod.BlockLink)
+                .Distinct()
+                .Where(block => !finalResult.Contains(block))
+                .OrderBy(block => block.BlockIndex[PoolReadIndex])
+                .ToList();
+
+            var listToNext = blocksToSet
+                .SelectMany(block => block.Lists)
+                .SelectMany(mod => mod.NextMods)
+                .Select(mod => mod.BlockLink)
+                .Distinct()
+                .Where(block => !finalResult.Contains(block) && !listToPrev.Contains(block))
+                .OrderBy(block => block.BlockIndex[PoolReadIndex])
+                .ToList();
+
+            if (listToPrev.Count > 0) adder(finalResult, listToPrev, true, PoolReadIndex, PoolWriteIndex);
+            if (listToNext.Count > 0) adder(finalResult, listToNext, false, PoolReadIndex, PoolWriteIndex);
+        }
+
+        static void addThis(List<PlanSimulatorBlock> finalResult, List<PlanSimulatorBlock> blocksToSet, List<PlanSimulatorBlock> Blocks)
+        {
+            blocksToSet = blocksToSet.Where(block => !finalResult.Contains(block)).ToList();
+            if (blocksToSet.Count == 0) return;
+
+            finalResult.AddRange(blocksToSet);
+
+            var listToNext = blocksToSet
+                .SelectMany(block => block.Lists)
+                .SelectMany(mod => mod.NextMods)
+                .Select(mod => mod.BlockLink)
+                .Distinct()
+                .Where(block => !finalResult.Contains(block))
+                .OrderBy(block => Blocks.IndexOf(block))
+                .ToList();
+
+            if (listToNext.Count > 0) addThis(finalResult, listToNext, Blocks);
+        }
+
+        public static List<PlanSimulatorBlock> Refragmentate(List<PlanSimulatorBlock> Blocks, int PoolReadIndex, int PoolWriteIndex)
+        {
+            //Dictionary<>
+
+            List<PlanSimulatorBlock> finalResult = new();
+            addThis(finalResult, Blocks.Where(block => block.Lists
+                .SelectMany(mod => mod.PrevMods)
+                .Select(mod => mod.BlockLink)
+                .Count() == 0)
+                .OrderBy(block => Blocks.IndexOf(block))
+                .ToList(), Blocks);
+
+
+
+            //List<PlanSimulatorBlock> finalResult = new();
+
+
+            //List<PlanSimulatorBlock> blocksToSet = Blocks.Where(x => x.GetCenterData(PoolReadIndex).Center == NeededCenter)
+            //    .OrderBy(x => x.BlockIndex[PoolReadIndex])
+            //    .ToList();
+
+            //adder(finalResult, blocksToSet, true, PoolReadIndex, PoolWriteIndex);
+
+            //Blocks = Blocks.Where(block => !finalResult.Contains(block)).ToList(); // Осталась часть тех, что не вошли в план, будучи на других РЦ
+
+            ////var groupedByLevel = Blocks.
+
+            //// Остались вообще независимые. Просто суём их в самый конец.
+            //Blocks = Blocks.Where(block => !finalResult.Contains(block)).ToList();
+            //finalResult.AddRange(Blocks);
+
+            for (int i = 0; i < finalResult.Count; i++)
+            {
+                finalResult[i].BlockIndex[PoolWriteIndex] = i;
+            }
+
+            return finalResult;
+
+
+            //moveLeftIt(Blocks, target, PoolIndex);
+
+
+
+
+            //HashSet<PlanSimulatorBlock> collected = new();
+            //List<PlanSimulatorBlock> collectedList = new();
+            //Queue<PlanSimulatorBlock> queue = new();
+            //queue.Enqueue(target);
+
+            //while (queue.Count > 0)
+            //{
+            //    var current = queue.Dequeue();
+            //    if (collected.Add(current))
+            //    {
+            //        collectedList.Add(current);
+            //        var depends = current.Lists
+            //            .SelectMany(mod => BACK ? mod.PrevMods : mod.NextMods)
+            //            .Select(mod => mod.BlockLink)
+            //            .Distinct();
+            //        foreach (var dep in depends)
+            //        {
+            //            queue.Enqueue(dep);
+            //        }
+            //        if (BACK && current.PreviousBlockOnThisRC[PoolIndex] != null) queue.Enqueue(current.PreviousBlockOnThisRC[PoolIndex]);
+            //        if (!BACK && current.NextBlockOnThisRC[PoolIndex] != null) queue.Enqueue(current.NextBlockOnThisRC[PoolIndex]);
+            //    }
+            //}
+
+            //var movingSequence = Blocks.Where(b => collected.Contains(b)).OrderByDescending(b => collectedList.IndexOf(b)).ToList();
+            //Blocks.RemoveAll(b => collected.Contains(b));
+            //Blocks.InsertRange(BACK ? 0 : Blocks.Count, movingSequence);
         }
 
         public static int InsertBlockSafe(List<PlanSimulatorBlock> Blocks, PlanSimulatorBlock block, int IndexToInsert, int PoolIndex, int indexToGetInfo)

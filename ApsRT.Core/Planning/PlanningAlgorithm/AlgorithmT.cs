@@ -144,13 +144,21 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 var centerID = blockLink.GetCenterData(INDEX).Center;
 
+                PlanSimulatorPool.MoveCentersInAllBlocks(OpersCopy, INDEX, 1);
+                PlanSimulatorPool.MoveBlockIndexesInAllBlocks(OpersCopy, INDEX, 1);
 
+                //OpersCopy = PlanSimulatorPool.Refragmentate(OpersCopy, 0, 1);
 
+                //var chron = basisLink.CheckChronology(OpersCopy, out _, out _);
+                //if (!chron)
+                //{
+                //    ;
+                //}
 
                 var opertoIns = OpersCopy[blockIndex];
                 OpersCopy.RemoveAt(blockIndex); // Удаляем её, намереваясь потом вставить
 
-                (int MIN, int MAX, int Prev, int Next) = poolCopy.FindDiapazons(opertoIns, INDEX, centerID, blockIndex);
+                (int MIN, int MAX, int Prev, int Next) = poolCopy.FindDiapazons(opertoIns, 1, centerID, blockIndex);
 
                 //if (errs)
                 //{
@@ -212,7 +220,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 var possibleBlocks = OpersCopy
                     .Where(block => block != opertoIns.NextBlockOnThisRC[INDEX]
-                    && block.BlockIndex[INDEX] >= MIN && block.BlockIndex[INDEX] < MAX
+                    && block.BlockIndex[INDEX] >= MIN
+                    && block.BlockIndex[INDEX] < MAX
                     && block.GetCenterData(INDEX).Center == centerID);
 
                 var possibleBlocksFinal = possibleBlocks.Select((block, e_index) =>
@@ -286,7 +295,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                         var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(OpersCopy);
 
-
                         var neededPoint = swallowCopy.FindIndex(x => x == first.Block);
 
                         if (neededPoint != pointToInsert)
@@ -296,7 +304,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
 
                         swallowCopy.Insert(pointToInsert, D);
-                        PlanSimulatorPool.MoveCentersInAllBlocks(swallowCopy, INDEX, 1);
+
+                        var chron = basisLink.CheckChronology(swallowCopy, out _, out _);
+                        if (!chron)
+                        {
+                            ;
+                        }
+
+
                         var localResult = PlanSimulatorEngine.CalculatePlan(swallowCopy, 1, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate));
 
                         var Awas = first.A;
@@ -369,7 +384,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         var intervalsWas = difference.Sum(x => x.Was.Interval.Duration.TotalSeconds);
 
                         var link = TransitionsCost[D][first.Block];
-                        if (localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches && localResult.ProductionSeconds <= worstPossiblePlanLength)
+                        if (localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches && localResult.ProductionSeconds <= worstPossiblePlanLength && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount)
                         {
                             ;
                             //LastResult = localResult;
