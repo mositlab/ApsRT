@@ -334,11 +334,16 @@ namespace ApsRTCustomComponents
             RGlobDeltaCheckBox.Checked = settings.RGlobalTimeDelta;
             RGlobDeltaCheckBox.CheckedChanged += (sender, args) => { settings.RGlobalTimeDelta = ((CheckBox)sender).Checked; };
 
-            TMaxDaysNumericUpDown.Value = (decimal)settings.TMaxDays;
-            TMaxDaysNumericUpDown.ValueChanged += (sender, args) => { settings.TMaxDays = (int)((NumericUpDown)sender).Value; };
-            TMaxDaysPercentNumericUpDown.Value = (decimal)settings.TMaxDaysPercent;
-            TMaxDaysPercentNumericUpDown.ValueChanged += (sender, args) => { settings.TMaxDaysPercent = (int)((NumericUpDown)sender).Value; };
+            RNewDeadlineCheckBox.Checked = settings.RNewDeadlineCounter;
+            RNewDeadlineCheckBox.CheckedChanged += (sender, args) => { settings.RNewDeadlineCounter = ((CheckBox)sender).Checked; };
 
+            TMaxDaysNumericUpDown.Value = (decimal)settings.TMaxDays;
+            TMaxDaysNumericUpDown.ValueChanged += (sender, args) => { settings.TMaxDays = (double)((NumericUpDown)sender).Value; };
+            TMaxDaysPercentNumericUpDown.Value = (decimal)settings.TMaxDaysPercent;
+            TMaxDaysPercentNumericUpDown.ValueChanged += (sender, args) => { settings.TMaxDaysPercent = (double)((NumericUpDown)sender).Value; };
+
+            StagesPercentNumericUpDown.Value = (decimal)settings.Test_PercentOfStages;
+            StagesPercentNumericUpDown.ValueChanged += (sender, args) => { settings.Test_PercentOfStages = (double)((NumericUpDown)sender).Value; };
 
 
             criteriaRadioButton1.Checked = settings.UsedCriteria == 0;

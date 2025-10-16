@@ -241,6 +241,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             Console.WriteLine("4.3 - order them");
             (GLOBAL_FIXED_MIN, GLOBAL_VPZ_MAX) = Order_Fixed_VPZ_Free(ref ops, true/*OpersAreNotHighlyStricted*/);
 
+            var percent = SessionLink.SettingsController.CurrentSettings.Test_PercentOfStages;
+            if (percent != 0 && percent != 100)
+            {
+                ops = ops.Take((int)(ops.Count * percent / 100.0)).ToList();
+            }
+
             Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
             Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count());
 
@@ -598,6 +604,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //lock (LockerObject)
             //{
             //}
+            UsedPool = ops[0].PoolLink;
             UsedPool.BestPoolIndex = indexToWrite;
             UsedPool.Blocks = ops;
             LastGen = UsedWorkflow.Generation;
@@ -969,5 +976,29 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         #endregion
 
+
+
+        public float getOpsDurToEnd(PlanSimulatorMod mod, float k, ref string asString, HashSet<PlanSimulatorMod> modsCreated = null)
+        {
+            bool ItsFirstMod = modsCreated == null;
+            modsCreated ??= new();
+            var timeHere = (int)mod.AllTime.Max(x => x.Value.TotalSeconds);
+            if (true/*!modsCreated.Contains(mod)*/)
+            {
+                //asString = 
+                modsCreated.Add(mod);
+                var sum = 0f;
+                foreach (var nextMod in mod.NextMods)
+                {
+                    sum += getOpsDurToEnd(nextMod, k, ref asString, modsCreated);
+                    //asString += asStringSub + $"[{next}]" + ",";
+                }
+                //asString = 
+                var asStr = ((ItsFirstMod ? 0 : timeHere * k).ToString());
+                asString += asStr + $"[{mod.ModID}], ";
+                return (ItsFirstMod ? 0 : timeHere * k) + sum;
+            }
+            return 0;
+        }
     }
 }

@@ -719,28 +719,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         }
 
-        float getOpsDurToEnd(PlanSimulatorMod mod, float k, ref string asString, HashSet<PlanSimulatorMod> modsCreated = null)
-        {
-            bool ItsFirstMod = modsCreated == null;
-            modsCreated ??= new();
-            var timeHere = (int)mod.AllTime.Max(x => x.Value.TotalSeconds);
-            if (true/*!modsCreated.Contains(mod)*/)
-            {
-                //asString = 
-                modsCreated.Add(mod);
-                var sum = 0f;
-                foreach (var nextMod in mod.NextMods)
-                {
-                    sum += getOpsDurToEnd(nextMod, k, ref asString, modsCreated);
-                    //asString += asStringSub + $"[{next}]" + ",";
-                }
-                //asString = 
-                var asStr = ((ItsFirstMod ? 0 : timeHere * k).ToString());
-                asString += asStr + $"[{mod.ModID}], ";
-                return (ItsFirstMod ? 0 : timeHere * k) + sum;
-            }
-            return 0;
-        }
 
         // Суммируем общее время
         //Dictionary<PlanSimulatorMod, float> OpersDurationsToEndLeft = new();
@@ -997,7 +975,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             {
                 var minDeadline = b.StagesAsNormal.Min(stage => stage.OrderLink.Deadline);
                 string secondsAsString = "";
-                var seconds = getOpsDurToEnd(b, 1.5f, ref secondsAsString)/*OpersDurationsToEndLeft[b]*/;
+                var seconds = basisLink.getOpsDurToEnd(b, 1.5f, ref secondsAsString)/*OpersDurationsToEndLeft[b]*/;
                 var timeWhenEnds = lastDate.AddSeconds(seconds);
                 var delta = timeWhenEnds - minDeadline;
                 //if (delta.Ticks < 0)

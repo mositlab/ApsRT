@@ -49,7 +49,8 @@ namespace ApsRT.Core.Settings
             CriteriasMaxIterations = new int[] { 200, 200, 200, 200, 200, 200, 200 },
             MaxOldSessionPathsDays = 3,
             UseR = false,
-            TGamma = 0.05
+            TGamma = 0.05,
+            Test_PercentOfStages = 100
         };
 
 
@@ -59,6 +60,8 @@ namespace ApsRT.Core.Settings
         public bool UseR { get; set; }
         [JsonProperty]
         public bool RGlobalTimeDelta { get; set; }
+        [JsonProperty]
+        public bool RNewDeadlineCounter { get; set; }
         [JsonProperty]
         public bool UseRStar { get; set; }
         [JsonProperty]
@@ -71,6 +74,8 @@ namespace ApsRT.Core.Settings
         public double TMaxDays { get; set; }
         [JsonProperty]
         public double TMaxDaysPercent { get; set; }
+        [JsonProperty]
+        public double Test_PercentOfStages { get; set; }
 
         [JsonProperty]
         public int PoolSize { get; set; }

@@ -547,6 +547,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             public TimeSpan DeltaFromStart;
             public TimeSpan DeltaFromStartNoOp;
             public TimeSpan DeltaFromDeadline;
+            //public TimeSpan DeltaFromDeadlineHeuristic;
             public float TotalCost;
             public bool IsFromSameOrder;
             public int OrderPriority;
@@ -554,17 +555,18 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             public int ErrorsCount;
 
-            public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount)
+            public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount)
             {
                 Rechanges = rechanges;
                 DeltaFromStart = deltaFromStart;
                 TotalCost = totalCost;
                 DeltaFromDeadline = deltaFromDeadline;
                 IsFromSameOrder = isFromSameOrder;
-                this.OrderPriority = OrderPriority;
+                this.OrderPriority = 0;//OrderPriority;
                 Level = level;
                 ErrorsCount = errorsCount;
                 DeltaFromStartNoOp = deltaFromStartNoOp;
+                //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
             }
 
             public bool IsBetterThanOther(RTempResult otherResult, bool NoSteps)
@@ -727,7 +729,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     var parrBlockVariant = variants.First();
                     float localResult0 = parrBlockVariant.TotalCost;
 
-                    var dateOfEnd = basisLink.StartOfPlanningDate + TimeSpan.FromSeconds(parrBlockVariant.crit1 + Math.Max(parrBlockVariant.block.MaxTime(currentCenter).TotalSeconds, mod.AllTime[currentCenter].TotalSeconds));
+                    DateTime dateOfEnd;
+                    /*
+                     
+                    var dateofend = basisLink.StartOfPlanningDate + ( ? (localResultData.TotalTimeNoOp + TimeSpan.FromSeconds()) : localResultData.TotalTime);
+                     */
+
+                    if (basisLink.SessionLink.SettingsController.CurrentSettings.RNewDeadlineCounter)
+                    {
+                        string logString = "";
+                        dateOfEnd = basisLink.StartOfPlanningDate + TimeSpan.FromSeconds(parrBlockVariant.crit1 + Math.Max(
+                            
+                            parrBlockVariant.block.Lists.Max(list => basisLink.getOpsDurToEnd(list, 1.5f, ref logString)),
+                            
+                            basisLink.getOpsDurToEnd(mod, 1.5f, ref logString)));
+                    }
+                    else
+                    {
+                        dateOfEnd = basisLink.StartOfPlanningDate + TimeSpan.FromSeconds(parrBlockVariant.crit1 + Math.Max(parrBlockVariant.block.MaxTime(currentCenter).TotalSeconds, mod.AllTime[currentCenter].TotalSeconds));
+                    }
+
 
                     var minDeadline = mod.StagesAsNormal.Min(x => x.OrderLink.Deadline);
                     var minDeadline2 = parrBlockVariant.block.Lists.Min(list => list.StagesAsNormal.Min(stage => stage.OrderLink.Deadline));
@@ -932,8 +953,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     }),
                     out int errors);
                     //ForceThisTara |= itsBadResult; // Если это хуевый результат, то смотрим на это.
-
-                    var dateofend = basisLink.StartOfPlanningDate + localResultData.TotalTime;
+                    string logString = "";
+                    var dateofend = basisLink.StartOfPlanningDate + (basisLink.SessionLink.SettingsController.CurrentSettings.RNewDeadlineCounter ? (localResultData.TotalTimeNoOp + TimeSpan.FromSeconds(basisLink.getOpsDurToEnd(mod, 1.5f, ref logString))) : localResultData.TotalTime);
 
                     var mindeadline = mod.StagesAsNormal.Min(x => x.OrderLink.Deadline);
 

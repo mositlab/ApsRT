@@ -180,6 +180,9 @@ namespace ApsRTCustomComponents
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
             groupBox8 = new GroupBox();
+            StagesPercentNumericUpDown = new NumericUpDown();
+            label58 = new Label();
+            RNewDeadlineCheckBox = new MaterialCheckBox();
             UseRCheckBox = new MaterialCheckBox();
             TMaxDaysNumericUpDown = new NumericUpDown();
             RGlobDeltaCheckBox = new MaterialCheckBox();
@@ -426,6 +429,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
             groupBox8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)StagesPercentNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)TMaxDaysNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)TMaxDaysPercentNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)GammaSlider).BeginInit();
@@ -590,7 +594,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 409);
+            label49.Location = new Point(959, 402);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -603,7 +607,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 406);
+            pictureBox1.Location = new Point(1099, 399);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -616,7 +620,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 456);
+            label48.Location = new Point(3, 449);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2409,6 +2413,9 @@ namespace ApsRTCustomComponents
             // 
             // groupBox8
             // 
+            groupBox8.Controls.Add(StagesPercentNumericUpDown);
+            groupBox8.Controls.Add(label58);
+            groupBox8.Controls.Add(RNewDeadlineCheckBox);
             groupBox8.Controls.Add(UseRCheckBox);
             groupBox8.Controls.Add(TMaxDaysNumericUpDown);
             groupBox8.Controls.Add(RGlobDeltaCheckBox);
@@ -2428,6 +2435,47 @@ namespace ApsRTCustomComponents
             groupBox8.TabIndex = 86;
             groupBox8.TabStop = false;
             groupBox8.Text = "Планирование";
+            // 
+            // StagesPercentNumericUpDown
+            // 
+            StagesPercentNumericUpDown.BackColor = Color.CornflowerBlue;
+            StagesPercentNumericUpDown.BorderStyle = BorderStyle.None;
+            StagesPercentNumericUpDown.DecimalPlaces = 2;
+            StagesPercentNumericUpDown.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            StagesPercentNumericUpDown.ForeColor = Color.White;
+            StagesPercentNumericUpDown.Location = new Point(547, 84);
+            StagesPercentNumericUpDown.Margin = new Padding(0);
+            StagesPercentNumericUpDown.Name = "StagesPercentNumericUpDown";
+            StagesPercentNumericUpDown.Size = new Size(97, 19);
+            StagesPercentNumericUpDown.TabIndex = 88;
+            StagesPercentNumericUpDown.TextAlign = HorizontalAlignment.Center;
+            StagesPercentNumericUpDown.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            // 
+            // label58
+            // 
+            label58.AutoSize = true;
+            label58.Font = new Font("Microsoft Sans Serif", 10F);
+            label58.Location = new Point(325, 84);
+            label58.Name = "label58";
+            label58.Size = new Size(124, 17);
+            label58.TabIndex = 87;
+            label58.Text = "% этапов в плане";
+            // 
+            // RNewDeadlineCheckBox
+            // 
+            RNewDeadlineCheckBox.BackColor = Color.Black;
+            RNewDeadlineCheckBox.Depth = 0;
+            RNewDeadlineCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            RNewDeadlineCheckBox.ForeColor = Color.CornflowerBlue;
+            RNewDeadlineCheckBox.Location = new Point(736, 59);
+            RNewDeadlineCheckBox.Margin = new Padding(0);
+            RNewDeadlineCheckBox.MouseLocation = new Point(-1, -1);
+            RNewDeadlineCheckBox.Name = "RNewDeadlineCheckBox";
+            RNewDeadlineCheckBox.Ripple = true;
+            RNewDeadlineCheckBox.Size = new Size(224, 30);
+            RNewDeadlineCheckBox.TabIndex = 86;
+            RNewDeadlineCheckBox.Text = "Счётчик дедлайнов Анисова";
+            RNewDeadlineCheckBox.UseVisualStyleBackColor = false;
             // 
             // UseRCheckBox
             // 
@@ -4575,6 +4623,7 @@ namespace ApsRTCustomComponents
             splitContainer2.ResumeLayout(false);
             groupBox8.ResumeLayout(false);
             groupBox8.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)StagesPercentNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)TMaxDaysNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)TMaxDaysPercentNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)GammaSlider).EndInit();
@@ -4939,5 +4988,8 @@ namespace ApsRTCustomComponents
         private NumericUpDown TMaxDaysPercentNumericUpDown;
         private Label label56;
         private GroupBox groupBox8;
+        private MaterialCheckBox RNewDeadlineCheckBox;
+        private NumericUpDown StagesPercentNumericUpDown;
+        private Label label58;
     }
 }
