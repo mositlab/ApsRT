@@ -1005,6 +1005,32 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return result;
         }
 
+        IEnumerable<PlanSimulatorBlock> GetOpersToCheckByLevel(int Level)
+        {
+            var PossibleOpersHere = OpersCopy.Where(x =>
+
+            (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : (Level == -1 || x.Lists[0].FirstOperJust.Level == Level)) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
+
+            &&
+
+            /*FixedCompleted < basisLink.GLOBAL_FIXED_MIN ||*/ x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink)) // Проверяем на хронологию, если конечно это не фиксированные этапы.
+
+            &&
+
+            !ExistingBlocks.Contains(x)
+
+            &&
+
+            (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? x.Lists[0].IsFixed :
+
+                VPZCompleted < basisLink.GLOBAL_VPZ_MAX ? x.Lists[0].IsFactOrVPZ
+                : true
+            )
+
+            );
+            return PossibleOpersHere;
+        }
+
         bool Step2_Process()
         {
             Console.WriteLine("R: get max level...");
@@ -1067,27 +1093,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     break;
                 }
 
-                var PossibleOpersHere = OpersCopy.Where(x =>
-                
-                (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : x.Lists[0].FirstOperJust.Level == CurrentLevel) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
-
-                &&
-
-                (/*FixedCompleted < basisLink.GLOBAL_FIXED_MIN ||*/ x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink))) // Проверяем на хронологию, если конечно это не фиксированные этапы.
-
-                &&
-
-                !ExistingBlocks.Contains(x)
-
-                &&
-
-                (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? x.Lists[0].IsFixed :
-                (
-                    VPZCompleted < basisLink.GLOBAL_VPZ_MAX ? x.Lists[0].IsFactOrVPZ
-                    : true
-                ))
-
-                ).ToArray();
+                var PossibleOpersHere = GetOpersToCheckByLevel(CurrentLevel).ToArray();
 
                 if (PossibleOpersHere.Length == 0)
                 {
@@ -1113,6 +1119,27 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
+                    if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
+                    {
+                        var nextPossibleOpers = GetOpersToCheckByLevel(-1)
+                            .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
+                            .ToArray();
+
+                        RSearcher searcherClass2 = new();
+
+                        Step2_1_Parallel(nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
+
+                        Step2_2_Linear(nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
+
+                        if (
+                            (!searcherClass2.ThisResultIsBad && searcherClass.ThisResultIsBad)
+                            || (searcherClass.ThisResultIsBad == searcherClass2.ThisResultIsBad && searcherClass2.minResult.ErrorsCount < searcherClass.minResult.ErrorsCount)
+                            )
+                        {
+                            searcherClass = searcherClass2;
+                        }
+                    }
+
                     //int prevWas = BlocksDependingOnCenter[searcherClass.ChoosenCenter].Count > 0 ? BlocksDependingOnCenter[searcherClass.ChoosenCenter][^1].Lists[0].FirstOperJust.Index : -1;
 
                     //var elements = RWriterElements
@@ -1129,20 +1156,20 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     //sw.WriteLine(
                     //    $"{iterationIndex};{searcherClass.ChoosenMod.FirstOperJust.Index};{prevWas};{searcherClass.ChoosenCenter};{OpersCopy.Count};{searcherClass.minResult};{elementsStrict.Count()};{elements05.Count()};{string.Join(",", elements05.Take(10).Select(x => $"{x.Key.ID} [{x.Key.Parr}]"))}"
 
-                        /*
-                         i.	Номер итерации
-            ii.	Номер выбранного этапа
-            iii.	Номер предыдущего этапа
-            iv.	РЦ, на который рассматривалась расстановка
-            v.	Количество оставшихся элементов
-            vii.	Значение критерия
-            vi.	Количество этапов с таким же значением критерия
-            viii.	Количество оставшихся этапов, со значением критерия, в пределах от 0% до 5% от лучшего.
-            ix.	ID элементов, которые были рассмотрены (10-15 шт.)
+                    /*
+                     i.	Номер итерации
+        ii.	Номер выбранного этапа
+        iii.	Номер предыдущего этапа
+        iv.	РЦ, на который рассматривалась расстановка
+        v.	Количество оставшихся элементов
+        vii.	Значение критерия
+        vi.	Количество этапов с таким же значением критерия
+        viii.	Количество оставшихся этапов, со значением критерия, в пределах от 0% до 5% от лучшего.
+        ix.	ID элементов, которые были рассмотрены (10-15 шт.)
 
-                         */
+                     */
 
-                        //);
+                    //);
 
                     if (searcherClass.WillBeParr)
                     {
