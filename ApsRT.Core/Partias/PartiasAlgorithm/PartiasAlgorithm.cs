@@ -415,6 +415,12 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                         PartiaHasErrors[guidToSet] = true;
                     }
                 }
+
+                if (guidToSet.ToString() == "ff760144-9d5b-11f0-be4a-3cecef1c38f6")
+                {
+                    ;
+                }
+
                 var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110), Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {
@@ -989,7 +995,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 };
                     opsForEasyLife.RemoveAt(0);
 
-                    if (IdsHere[0].ZadelCode == 0) // Если НЕТ задела - то тогда МОЖНО
+                    if (IdsHere[0].ZadelCode == 0 && !PartiasConnectorEngine.PartiasConnectorEngine.ModOnOneRC(IdsHere[0], out _)) // Если НЕТ задела И не на одном рц - то тогда МОЖНО
                     {
                         var sps1 = sdvigF.Opers
                             .SelectMany(x => x.Prevs) // Берём ВСЕХ предков у моделирования
@@ -1010,7 +1016,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             if (idhere.ZadelCode != 0) continue; // Если задел есть, то пропускаю его.
 
                             //ALL[idhere].Prevs.Select(x => IDtoSdvig.TryGetValue(x, out var l) ? l : null).ToList();
-                            if (SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(first, idhere1, out _, out _, out _, true) && first.Level == idhere1.Level) // общ этапам нужно обязательно чекать альт рц, поэтому true
+                            if (SessionLink.MasterDataLinks.MergeConditionsMasterData.StagesEqualityCheck(first, idhere1, out _, out _, out _, true) && first.Level == idhere1.Level && !PartiasConnectorEngine.PartiasConnectorEngine.ModOnOneRC(idhere, out _)/*idhere1.OnOneRC*/) // общ этапам нужно обязательно чекать альт рц, поэтому true
                             {
                                 if (first.IsFictive && first.NoChangeTara && idhere1.NoChangeTara)
                                 {

@@ -67,13 +67,13 @@ namespace ApsRT.Core.Session
 
         internal void LogThread()
         {
-            session.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
-            if (string.IsNullOrEmpty(sessionPath))
+            session.SessionOptions.GetPreparedOutputPath(out var outputPath);
+            if (string.IsNullOrEmpty(outputPath))
             {
-                sessionPath = "logs/";
+                outputPath = "logs/";
                 if (!Directory.Exists("logs/")) Directory.CreateDirectory("logs/");
             }
-            logPath = sessionPath;
+            logPath = outputPath;
             //StreamWriter fs = new StreamWriter(Loader.LogFile, true);
             while (true)
             {

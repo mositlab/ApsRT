@@ -1,6 +1,7 @@
 ﻿using ApsRT.Core.Centers.MasterData;
 using ApsRT.Core.Leftovers;
 using ApsRT.Core.Partias.PartiasAlgorithm;
+using ApsRT.Core.Planning.PlanningAlgorithm.R;
 using ApsRT.Core.PlanSimulator;
 using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.MasterData;
@@ -242,9 +243,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             (GLOBAL_FIXED_MIN, GLOBAL_VPZ_MAX) = Order_Fixed_VPZ_Free(ref ops, true/*OpersAreNotHighlyStricted*/);
 
             var percent = SessionLink.SettingsController.CurrentSettings.Test_PercentOfStages;
-            if (percent != 0 && percent != 100)
+            if (percent != 0/* && percent != 100*/)
             {
-                ops = ops.Take((int)(ops.Count * percent / 100.0)).ToList();
+                ops = ops.Take((int)(percent/*ops.Count * percent / 100.0*/)).ToList();
             }
 
             Console.WriteLine(ops.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
@@ -996,7 +997,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 //asString = 
                 var asStr = ((ItsFirstMod ? 0 : timeHere * k).ToString());
                 asString += asStr + $"[{mod.ModID}], ";
-                return (ItsFirstMod ? 0 : timeHere * k) + sum;
+                return (ItsFirstMod ? 0 : (timeHere * k + 12 * 60 * 60)) + sum;
             }
             return 0;
         }

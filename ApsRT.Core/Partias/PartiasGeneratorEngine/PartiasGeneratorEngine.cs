@@ -1,6 +1,9 @@
-﻿using Azure;
-using ApsRT.Core.Partias.PartiasClasses;
+﻿using ApsRT.Core.Partias.PartiasClasses;
+using ApsRT.Core.Partias.PartiasConnectorEngine;
+using ApsRT.Core.Partias.Zadels;
 using ApsRT.Core.Stages;
+using ApsRT.Core.Taras.TaraSearchEngine;
+using Azure;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,10 +11,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using ApsRT.Core.Partias.Zadels;
-using ApsRT.Core.Taras.TaraSearchEngine;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 {
@@ -207,11 +209,17 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
 
             // Постобработка
+
+
+            //var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
+            //finalResult.ForOneRCGroups = ForOneRCGroups;
+            //PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
+
             for (int i = 0; i < partia1.Count; i++)
             {
                 for (int j = 0; j < partia1[i].Count; j++)
                 {
-                    partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog);
+                    partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog/*, finalResult*/);
                 }
             }
 
@@ -221,7 +229,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         }
 
 
-        static PartiaModelling checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog)
+        static PartiaModelling checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog/*, PartiasConnectorEngineResult finalResult*/)
         {
             var DoneIDS = engineData.DoneIDS;
             var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
@@ -258,7 +266,22 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // Основная функция - поиск тары
 
             Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvigWas.Opers[0].Index, out var rtara) ? rtara : null);
-            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out var tara, out var rc, out var max, out var form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false }))
+
+
+            // + ограничения на одном рц запомним
+            //if (opers.Any(x => x.GUID.ToString() == "a860f322-6702-11f0-be4a-3cecef1c38f6"))
+            //{
+            //    ;
+            //}
+
+            var listOnOneRc1 = new PartiaModellingSmall(opers);
+
+            //var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
+
+
+            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var tara, out var rc, out var max, out var form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
+                //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+            }))
             {
                 // Нашлась, отработала хорошо.
                 // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
@@ -273,7 +296,9 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
             else
             {
-                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(opers), out tara, out rc, out max, out form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs }))
+                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out tara, out rc, out max, out form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
+                    //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                }))
                 {
                     // Нашлась, отработала хорошо.
                     // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.

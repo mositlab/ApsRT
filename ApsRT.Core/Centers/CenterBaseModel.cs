@@ -21,8 +21,8 @@ namespace ApsRT.Core.Centers
         [DataRecordCodedObjectColumn("РабочийЦентр_GUID", "РабочийЦентр")]
         public Uco CenterName { get; set; }
 
-        [DataRecordCodedObjectColumn("ВидРабочегоЦентра_GUID", "ВидРабочегоЦентра")]
-        public Uco CenterType { get; set; }
+        //[DataRecordCodedObjectColumn("ВидРабочегоЦентра_GUID", "ВидРабочегоЦентра")]
+        //public Uco CenterType { get; set; }
 
         [DataRecordCodedObjectColumn("Подразделение_GUID", "Подразделение")]
         public Uco Subdivision { get; set; }

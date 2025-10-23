@@ -147,6 +147,26 @@ namespace ApsRT.Core.Session
                     opts.LaunchPath = arg.Substring(5);
                     continue;
                 }
+                if (arg.StartsWith("out:"))
+                {
+                    opts.OutputPath = arg.Substring(4);
+                    continue;
+                }
+                if (arg.StartsWith("gamma:"))
+                {
+                    opts.DesiredGamma = double.Parse(arg.Substring(6).Replace('.', ','));
+                    continue;
+                }
+                if (arg.StartsWith("count:"))
+                {
+                    opts.DesiredPercent = double.Parse(arg.Substring(6).Replace('.', ','));
+                    continue;
+                }
+                if (arg.StartsWith("settings:"))
+                {
+                    opts.DesiredSettingsPath = arg.Substring(9);
+                    continue;
+                }
                 //if (arg.StartsWith("key:"))
                 //{
                 //    key = arg.Substring(4);
@@ -185,12 +205,18 @@ namespace ApsRT.Core.Session
             //AppDomain.CurrentDomain.ProcessExit += delegate { EndSession(0); };
 
             // Чекаю возможность создать папку
+
             if (!SessionOptions.GetPreparedLaunchPath(out var sessionPath))
             {
                 if (SessionOptions.IsSilent)
                     EndSession(602);
             }
 
+            if (!SessionOptions.GetPreparedOutputPath(out var outPath))
+            {
+                if (SessionOptions.IsSilent)
+                    EndSession(603);
+            }
 
             if (!Directory.Exists(SessionOptions.SessionsPath))
             {
@@ -212,7 +238,10 @@ namespace ApsRT.Core.Session
             AssignedLogger.LogQueue.Enqueue($"flags: silent {SessionOptions.IsSilent}, part {SessionOptions.LaunchPartia}, plan {SessionOptions.LaunchPlan}, zadel {SessionOptions.LaunchZadel}\r\n");
 
             // Загружаем настройки
+            if (!string.IsNullOrEmpty(SessionOptions.DesiredSettingsPath)) SettingsController.SavePath = SessionOptions.DesiredSettingsPath;
             SettingsController.Load(data);
+            if (SessionOptions.DesiredGamma.HasValue) SettingsController.CurrentSettings.TGamma = SessionOptions.DesiredGamma.Value;
+            if (SessionOptions.DesiredPercent.HasValue) SettingsController.CurrentSettings.Test_PercentOfStages = SessionOptions.DesiredPercent.Value;
 
             // Убираем старые сессии чтоб не засирать папку sessions
             SessionOptions.ClearSessionOldPaths(SettingsController.CurrentSettings.MaxOldSessionPathsDays);

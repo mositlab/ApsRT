@@ -9,7 +9,7 @@ namespace ApsRT.Core.Settings
 {
     public class SettingsController
     {
-        public string SavePath { get; set; } = "settings.txt";
+        public string SavePath { get; set; } = "settings rt.txt";
         public SettingsClass CurrentSettings { get; set; } = new();
         public SpecialSettings SpecialSettings { get; set; } = new();
         public event Action OnSettingsLoaded;

@@ -52,7 +52,7 @@ namespace ApsRT.Core.Session
         public void CheckFiles()
         {
 
-            SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+            SessionLink.SessionOptions.GetPreparedOutputPath(out var outputPath);
 
             List<string> list = new List<string>();
 
@@ -75,23 +75,23 @@ namespace ApsRT.Core.Session
                 }
             }
 
-            CheckFile(sessionPath + RangesManualFileName, 500);
-            CheckFile(sessionPath + RangesManualFileNameOld, 501);
-            CheckFile(sessionPath + ModsFileName, 502);
-            CheckFile(sessionPath + ModsFileNameOld, 503);
-            CheckFile(sessionPath + NaladLengthsFileName, 504);
-            CheckFile(sessionPath + OrdersFileName, 505);
-            CheckFile(sessionPath + OrdersFileNameOld, 506);
-            CheckFile(sessionPath + SessionLink.DataErrors.DatasErrorsFile, 507, true);
+            CheckFile(outputPath + RangesManualFileName, 500);
+            CheckFile(outputPath + RangesManualFileNameOld, 501);
+            CheckFile(outputPath + ModsFileName, 502);
+            CheckFile(outputPath + ModsFileNameOld, 503);
+            CheckFile(outputPath + NaladLengthsFileName, 504);
+            CheckFile(outputPath + OrdersFileName, 505);
+            CheckFile(outputPath + OrdersFileNameOld, 506);
+            CheckFile(outputPath + SessionLink.DataErrors.DatasErrorsFile, 507, true);
             //CheckFile("dataErrorsBig.csv", 508);
-            CheckFile(sessionPath + RechangesFileName, 509);
-            CheckFile(sessionPath + OutputFileName, 510);
-            CheckFile(sessionPath + OutputFileNameOld, 511);
-            CheckFile(sessionPath + ZadelsFileName, 512);
-            CheckFile(sessionPath + RechangesFileNameOld, 513);
-            CheckFile(sessionPath + MaterialsDeficitsFileName, 514);
-            CheckFile(sessionPath + StatsFileName, 515);
-            CheckFile(sessionPath + StatsFileNameOld, 516);
+            CheckFile(outputPath + RechangesFileName, 509);
+            CheckFile(outputPath + OutputFileName, 510);
+            CheckFile(outputPath + OutputFileNameOld, 511);
+            CheckFile(outputPath + ZadelsFileName, 512);
+            CheckFile(outputPath + RechangesFileNameOld, 513);
+            CheckFile(outputPath + MaterialsDeficitsFileName, 514);
+            CheckFile(outputPath + StatsFileName, 515);
+            CheckFile(outputPath + StatsFileNameOld, 516);
             //CheckFile(SessionLink.DataErrors.PartiasErrorsFile, 514, true);
             //CheckFile(SessionLink.DataErrors.PartiasErrorsBigFile, 515, true);
 
@@ -105,12 +105,12 @@ namespace ApsRT.Core.Session
 
         public (PlanSimulatorEngineResult result, List<PlanSimulatorBlock> copy, int PoolIndex) Output(bool ForcedToRecreate, bool asOld = false)
         {
-            SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+            SessionLink.SessionOptions.GetPreparedOutputPath(out var outputPath);
 
             // Вызов вывода заделов
             try
             {
-                OutputZadelsToFile(sessionPath + ZadelsFileName);
+                OutputZadelsToFile(outputPath + ZadelsFileName);
             }
             catch (Exception e)
             {
@@ -143,24 +143,24 @@ namespace ApsRT.Core.Session
                 PlanSimulatorEngine.CalculatePlan(blocksToCopy, algorithm.UsedPool.BestPoolIndex, algorithm.MinAcceptableDate, result);
 
 
-                OutputMaterialsDeficitsToFile(sessionPath + MaterialsDeficitsFileName, blocksToCopy, result.FirstStagesStartDate);
+                OutputMaterialsDeficitsToFile(outputPath + MaterialsDeficitsFileName, blocksToCopy, result.FirstStagesStartDate);
 
-                OutputRechangesToFile(sessionPath + (asOld ? RechangesFileNameOld : RechangesFileName), result.RechangesBeforeFirstStages, result.FirstStagesStartDate);
+                OutputRechangesToFile(outputPath + (asOld ? RechangesFileNameOld : RechangesFileName), result.RechangesBeforeFirstStages, result.FirstStagesStartDate);
 
-                OutputRanksManualToFile(sessionPath + (asOld ? RangesManualFileNameOld : RangesManualFileName), blocksToCopy, algorithm.UsedPool.BestPoolIndex, result, algorithm.MinAcceptableDate);
+                OutputRanksManualToFile(outputPath + (asOld ? RangesManualFileNameOld : RangesManualFileName), blocksToCopy, algorithm.UsedPool.BestPoolIndex, result, algorithm.MinAcceptableDate);
 
-                OutputResultToFile(sessionPath + (asOld ? OutputFileNameOld : OutputFileName), blocksToCopy, algorithm.UsedPool.BestPoolIndex, result);
+                OutputResultToFile(outputPath + (asOld ? OutputFileNameOld : OutputFileName), blocksToCopy, algorithm.UsedPool.BestPoolIndex, result);
 
-                OutputNaladLengths(sessionPath + NaladLengthsFileName, blocksToCopy, algorithm.UsedPool.BestPoolIndex, null);
+                OutputNaladLengths(outputPath + NaladLengthsFileName, blocksToCopy, algorithm.UsedPool.BestPoolIndex, null);
 
-                OutputOrdersToFile(sessionPath + (asOld ? OrdersFileNameOld : OrdersFileName), algorithm.UsedPool.OrdersData, algorithm.UsedPool.BestPoolIndex);
+                OutputOrdersToFile(outputPath + (asOld ? OrdersFileNameOld : OrdersFileName), algorithm.UsedPool.OrdersData, algorithm.UsedPool.BestPoolIndex);
 
-                OutputMods(sessionPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
+                OutputMods(outputPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
 
                 // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
-                OutputLeftovers(sessionPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (sessionPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
+                OutputLeftovers(outputPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (outputPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
 
-                OutputStats(sessionPath + (asOld ? StatsFileNameOld : StatsFileName), result, algorithm.OriginalValue);
+                OutputStats(outputPath + (asOld ? StatsFileNameOld : StatsFileName), result, algorithm.OriginalValue);
 
                 return (result, blocksToCopy, algorithm.UsedPool.BestPoolIndex);
             }
@@ -383,7 +383,7 @@ namespace ApsRT.Core.Session
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
 
-            SessionLink.SessionOptions.GetPreparedLaunchPath(out var sessionPath);
+            SessionLink.SessionOptions.GetPreparedOutputPath(out var outputPath);
 
             StreamWriter fullOutput = null;
             if (!SessionLink.SessionOptions.IsSilent)
@@ -391,7 +391,7 @@ namespace ApsRT.Core.Session
                 try
                 {
                     var tine = DateTime.Now;
-                    fullOutput = new StreamWriter($"{sessionPath}Отчет - наладочные длины.csv"/* ({tine.Year}-{tine.Month}-{tine.Day} {tine.Hour}.{tine.Minute}.{tine.Second})*/, false, Encoding.UTF8);
+                    fullOutput = new StreamWriter($"{outputPath}Отчет - наладочные длины.csv"/* ({tine.Year}-{tine.Month}-{tine.Day} {tine.Hour}.{tine.Minute}.{tine.Second})*/, false, Encoding.UTF8);
                 }
                 catch
                 {

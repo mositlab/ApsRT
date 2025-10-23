@@ -594,7 +594,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 402);
+            label49.Location = new Point(959, 401);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -607,7 +607,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 399);
+            pictureBox1.Location = new Point(1099, 398);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -620,7 +620,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 449);
+            label48.Location = new Point(3, 448);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2445,11 +2445,11 @@ namespace ApsRTCustomComponents
             StagesPercentNumericUpDown.ForeColor = Color.White;
             StagesPercentNumericUpDown.Location = new Point(547, 84);
             StagesPercentNumericUpDown.Margin = new Padding(0);
+            StagesPercentNumericUpDown.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             StagesPercentNumericUpDown.Name = "StagesPercentNumericUpDown";
             StagesPercentNumericUpDown.Size = new Size(97, 19);
             StagesPercentNumericUpDown.TabIndex = 88;
             StagesPercentNumericUpDown.TextAlign = HorizontalAlignment.Center;
-            StagesPercentNumericUpDown.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
             // label58
             // 

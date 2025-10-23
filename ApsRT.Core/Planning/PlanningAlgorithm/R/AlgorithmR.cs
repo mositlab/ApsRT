@@ -23,7 +23,7 @@ using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, s
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 
-namespace ApsRT.Core.Planning.PlanningAlgorithm
+namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 {
     internal class AlgorithmR
     {
@@ -253,25 +253,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             LinearPlan = LinearPlan.OrderBy(block => block.BlockIndex[0]).ToList();
         }
 
-        class RFirstStageResult
-        {
-            public PlanSimulatorBlock Block;
-            public Uco RC, Tara;
-            public double Max;
-            public bool ItsBadResult;
-            public double Cost;
-
-            public RFirstStageResult(PlanSimulatorBlock block, Uco rC, Uco tara, double max, bool itsBadResult, float cost)
-            {
-                Block = block;
-                RC = rC;
-                Tara = tara;
-                Max = max;
-                ItsBadResult = itsBadResult;
-                Cost = cost;
-            }
-        }
-
         List<RFirstStageResult> Step1_1_PrepareFirstStages(PlanSimulatorBlock[] OpersForFirstLevelArray)
         {
             List<RFirstStageResult> firstResults = new();
@@ -340,7 +321,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             foreach (var link in firstResults)
             {
                 if (minDelta < 0) link.Cost -= minDelta; // Увеличиваем на эту самую дельту, чтобы избавиться от нулей.
-                link.Cost = (link.Cost * 1000) + 1; // Ну это чтобы не было 0, если пришёл в эту точку.
+                link.Cost = link.Cost * 1000 + 1; // Ну это чтобы не было 0, если пришёл в эту точку.
             }
         }
 
@@ -357,8 +338,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             HashSet<PlanSimulatorBlock> passedBlocks = new();
 
             var OpersForFirstLevelForSort = firstResults
-                .OrderBy(x => (x.ItsBadResult ? 1 : 0)) // Сначала уберем плохие результаты наверх
-                .ThenBy(x => x.Block.Lists[0].IsFixed ? 0 : (x.Block.Lists[0].IsFactOrVPZ ? 1 : 2)) // Расставим ещё и в порядке "фикс.-впз.-свобод."
+                .OrderBy(x => x.ItsBadResult ? 1 : 0) // Сначала уберем плохие результаты наверх
+                .ThenBy(x => x.Block.Lists[0].IsFixed ? 0 : x.Block.Lists[0].IsFactOrVPZ ? 1 : 2) // Расставим ещё и в порядке "фикс.-впз.-свобод."
                 .ThenBy(x => x.Block.Lists[0].IsFixed && x.Block.Lists[0].FirstOperJust.StartTimeFact.HasValue ? (x.Block.Lists[0].FirstOperJust.StartTimeFact.Value - basisLink.StartOfPlanningDate).TotalSeconds : x.Cost) // А теперь уже и по цене отсортируем
                 .ToArray();
 
@@ -539,77 +520,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         //    public double CriteriaValue;
         //}
         //Dictionary<(int ID, Uco RC, Uco Tara, bool Parr), (float Value, bool IsGood)> RWriterElements = new();
-
-
-        struct RTempResult
-        {
-            public TimeSpan Rechanges;
-            public TimeSpan DeltaFromStart;
-            public TimeSpan DeltaFromStartNoOp;
-            public TimeSpan DeltaFromDeadline;
-            //public TimeSpan DeltaFromDeadlineHeuristic;
-            public float TotalCost;
-            public bool IsFromSameOrder;
-            public int OrderPriority;
-            public int Level;
-
-            public int ErrorsCount;
-
-            public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount)
-            {
-                Rechanges = rechanges;
-                DeltaFromStart = deltaFromStart;
-                TotalCost = totalCost;
-                DeltaFromDeadline = deltaFromDeadline;
-                IsFromSameOrder = isFromSameOrder;
-                this.OrderPriority = 0;//OrderPriority;
-                Level = level;
-                ErrorsCount = errorsCount;
-                DeltaFromStartNoOp = deltaFromStartNoOp;
-                //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
-            }
-
-            public bool IsBetterThanOther(RTempResult otherResult, bool NoSteps)
-            {
-                if (otherResult.TotalCost == float.MaxValue && TotalCost < float.MaxValue) return true;
-
-                if (ErrorsCount > otherResult.ErrorsCount) return false;
-
-                if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
-
-                //return
-                //    Rechanges < otherResult.Rechanges
-                //    || (Rechanges == otherResult.Rechanges && DeltaFromStart < otherResult.DeltaFromStart);
-
-                return
-                    OrderPriority < otherResult.OrderPriority
-                    || (OrderPriority == otherResult.OrderPriority && TotalCost < otherResult.TotalCost)
-                    || (OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges < otherResult.Rechanges)
-                    || (OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline < otherResult.DeltaFromDeadline)
-                    || (OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder && !otherResult.IsFromSameOrder)
-                    || (OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder == otherResult.IsFromSameOrder && Level < otherResult.Level)
-                    ;
-
-                //return Rechanges < otherResult.Rechanges || (Rechanges == otherResult.Rechanges && TotalCost < otherResult.TotalCost);
-                
-                //if (otherResult.Rechanges > Rechanges) return true;
-
-                //return DeltaFromStart < otherResult.DeltaFromStart;
-            }
-
-        }
-
-        class RSearcher
-        {
-            public RTempResult minResult = new RTempResult(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, int.MaxValue, false, int.MaxValue, float.MaxValue, int.MaxValue);
-            public Uco ChoosenCenter = Uco.EmptyObject;
-            public Uco ChoosenTara = Uco.EmptyObject;
-            public double MaxNamotka = 0;
-            public bool ThisResultIsBad = true;
-            public PlanSimulatorMod ChoosenMod = null;
-            public bool WillBeParr = false;
-            public PlanSimulatorBlock parrBlock = null;
-        }
 
         void Step2_1_Parallel(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
         {
@@ -827,8 +737,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
         bool CheckOneRCIsBad(List<Uco> allowedRC, Uco? NeedThisOneRC, Uco currentCenter)
         {
-            return (allowedRC != null && !allowedRC.Contains(currentCenter))
-                || (NeedThisOneRC.HasValue && NeedThisOneRC.Value != currentCenter); // Если какое-то из этих условий не выполняется, то это ПЛОХОЙ рц для рассмотрения. Достаточно проверить две вещи - либо я раньше назначал РЦ, и это не тот, что нужен, ЛИБО - нет в списке РЦ подходящего.
+            return allowedRC != null && !allowedRC.Contains(currentCenter)
+                || NeedThisOneRC.HasValue && NeedThisOneRC.Value != currentCenter; // Если какое-то из этих условий не выполняется, то это ПЛОХОЙ рц для рассмотрения. Достаточно проверить две вещи - либо я раньше назначал РЦ, и это не тот, что нужен, ЛИБО - нет в списке РЦ подходящего.
         }
 
         (List<Uco> allowedRC, Uco? neededThisRC) GetOneRCInfo(PlanSimulatorMod mod)
@@ -954,7 +864,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     out int errors);
                     //ForceThisTara |= itsBadResult; // Если это хуевый результат, то смотрим на это.
                     string logString = "";
-                    var dateofend = basisLink.StartOfPlanningDate + (basisLink.SessionLink.SettingsController.CurrentSettings.RNewDeadlineCounter ? (localResultData.TotalTimeNoOp + TimeSpan.FromSeconds(basisLink.getOpsDurToEnd(mod, 1.5f, ref logString))) : localResultData.TotalTime);
+                    var dateofend = basisLink.StartOfPlanningDate + (basisLink.SessionLink.SettingsController.CurrentSettings.RNewDeadlineCounter ? localResultData.TotalTimeNoOp + TimeSpan.FromSeconds(basisLink.getOpsDurToEnd(mod, 1.5f, ref logString)) : localResultData.TotalTime);
 
                     var mindeadline = mod.StagesAsNormal.Min(x => x.OrderLink.Deadline);
 
@@ -1009,7 +919,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         {
             var PossibleOpersHere = OpersCopy.Where(x =>
 
-            (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : (Level == -1 || x.Lists[0].FirstOperJust.Level == Level)) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
+            (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : Level == -1 || x.Lists[0].FirstOperJust.Level == Level) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
 
             &&
 
@@ -1036,7 +946,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             Console.WriteLine("R: get max level...");
             int MaxLevel = OpersCopy.Max(x => x.Lists.Max(y => y.StagesAsNormal.Max(z => z.Level)));
             
-            PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngineResult LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate));
+            PlanSimulatorEngineResult LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate));
 
             basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
 
@@ -1119,26 +1029,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
-                    if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
-                    {
-                        var nextPossibleOpers = GetOpersToCheckByLevel(-1)
-                            .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
-                            .ToArray();
+                    //if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
+                    //{
+                    //    var nextPossibleOpers = GetOpersToCheckByLevel(-1)
+                    //        .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
+                    //        .ToArray();
 
-                        RSearcher searcherClass2 = new();
+                    //    RSearcher searcherClass2 = new();
 
-                        Step2_1_Parallel(nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
+                    //    Step2_1_Parallel(nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
 
-                        Step2_2_Linear(nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
+                    //    Step2_2_Linear(nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
 
-                        if (
-                            (!searcherClass2.ThisResultIsBad && searcherClass.ThisResultIsBad)
-                            || (searcherClass.ThisResultIsBad == searcherClass2.ThisResultIsBad && searcherClass2.minResult.ErrorsCount < searcherClass.minResult.ErrorsCount)
-                            )
-                        {
-                            searcherClass = searcherClass2;
-                        }
-                    }
+                    //    if (
+                    //        !searcherClass2.ThisResultIsBad && searcherClass.ThisResultIsBad
+                    //        || searcherClass.ThisResultIsBad == searcherClass2.ThisResultIsBad && searcherClass2.minResult.ErrorsCount < searcherClass.minResult.ErrorsCount
+                    //        )
+                    //    {
+                    //        searcherClass = searcherClass2;
+                    //    }
+                    //}
 
                     //int prevWas = BlocksDependingOnCenter[searcherClass.ChoosenCenter].Count > 0 ? BlocksDependingOnCenter[searcherClass.ChoosenCenter][^1].Lists[0].FirstOperJust.Index : -1;
 
@@ -1196,7 +1106,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     ErroredIterationsCount = 0;
 
-                    LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана
+                    LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана
                     
                     basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
                     basisLink.UsedWorkflow.Generation++;
@@ -1227,21 +1137,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             return Success;
 
         }
-
-
-        void Step2_1_AllOpersCheck(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass)
-        {
-            
-        }
-
-
-
-
-
-        //float Step2_1_CheckBlockParallel(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex, PlanSimulatorBlock blockToInsert)
-        //{
-
-        //}
 
         (TimeSpan Rechanges, TimeSpan TotalTime, TimeSpan TotalTimeNoOp) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
         {
@@ -1287,10 +1182,17 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             bool asFirst = NaladLengthsMasterData.ItsFirstLaunch(rechangesResult, lastBlock?.Lists[0]);
             var OperB = mod.FirstOperJust;
             GottenNaladLengthStruct naladLengths = NaladLengthsMasterData.GetNaladLengthsForCurrentStageOnly(OperB, choosenCenter, asFirst);
-            if (OperB.NeededNaladLength.HasValue && NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value > OperB.NeededNaladLength.Value.Length.Value)
+            if (OperB.NeededNaladLength.HasValue)
             {
-                errorsCount = 1000000;
+                var a = NaladLengthsMasterData.NaladLengthsConverted(naladLengths.NaladLengthHere, OperB.EdIzmClassificator, OperB.KgKm).Value;
+                var b = OperB.NeededNaladLength.Value.Length.Value;
+                if (a > b)
+                {
+                    errorsCount = 1000000;//(int)((a - b) * 1000f);
+                }
             }
+                
+               
 
             // Чтобы сделать только переналадки, хватит вот этого критерия:
             //return (float)rechesDur.TotalSeconds;

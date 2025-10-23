@@ -50,7 +50,7 @@ namespace ApsRT.Core.Settings
             MaxOldSessionPathsDays = 3,
             UseR = false,
             TGamma = 0.05,
-            Test_PercentOfStages = 100
+            Test_PercentOfStages = 0
         };
 
 

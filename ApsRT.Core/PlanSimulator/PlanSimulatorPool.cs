@@ -219,13 +219,15 @@ namespace ApsRT.Core.PlanSimulator
             ModIDToOnOneRCGroupID.Clear();
             OnOneRCGroupData.Clear();
 
-            var modsToGroup = Blocks.SelectMany(x => x.Lists).Where(x => x.FirstOperJust.OnOneRC); // Выберем все нужные моды
+            var modsToGroup = Blocks.SelectMany(x => x.Lists).Where(x => x.StagesAsNormal.Any(s => s.OnOneRC)); // Выберем все нужные моды
 
             var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), mod.FirstOperJust.Level, mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature));
             foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
             {
                 var groupID = OnOneRCGroupData.Count;
-                var modList = group/*.Select(x => x.ModID)*/.ToList();
+                var modList = group/*.Select(x => x.ModID)*/.Where(x => x.EasyLifeData == null).ToList();
+
+                if (modList.Count == 0) continue;
 
                 List<Uco> rcs = null;
                 foreach (var mod in group)

@@ -133,7 +133,7 @@ namespace ApsRT.Core.Stages.MasterData
                 if (centersMasterData.RCRoutesToListDic.TryGetValue(stage.RCRoute, out var LIST))
                 {
                     stage.PossibleCenters = LIST;
-                    if (stage.Center.IsEmpty)
+                    if (stage.Center.EmptyCheck())
                     {
                         stage.Center = LIST[0];
                         stage.OriginalCenter = LIST[0];
@@ -281,12 +281,12 @@ namespace ApsRT.Core.Stages.MasterData
             if (stage.DurationNorm == 0)
             {
                 // Инфы нет! Придётся делать по другому
+                stage.SetStaticDuration(null, stage.Count);
             }
             else
             {
-                var Duration = (int)(stage.DurationNorm * stage.Count); // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
-                if (Duration == 0) Duration = 1; // Поставим 1 если внезапно
-                stage.SetStaticDuration(Duration);
+                // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
+                stage.SetStaticDuration(stage.DurationNorm, stage.Count);
             }
 
             if (stage.PovivsMerged)

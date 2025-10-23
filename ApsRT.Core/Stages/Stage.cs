@@ -354,7 +354,18 @@ namespace ApsRT.Core.Stages
         /// </summary>
         int? StaticDuration;
 
-        public void SetStaticDuration(int seconds) => StaticDuration = seconds;
+        double countToTime;
+
+        public void SetStaticDuration(float? seconds, double count)
+        {
+            countToTime = count;
+            if (seconds.HasValue)
+            {
+                var Duration = (int)(seconds.Value * count);
+                if (Duration == 0) Duration = 1; // Поставим 1 если внезапно
+                StaticDuration = Duration;
+            }
+        }
 
         /// <summary>
         /// Длительность конкретно этого этапа в зависимости от РЦ
@@ -371,15 +382,18 @@ namespace ApsRT.Core.Stages
 
         int getDurationDynamic(Uco RC)
         {
-            if (StaticDuration.HasValue) return StaticDuration.Value;
             var masterData = SessionLink.MasterDataLinks.StagesTypicalDurationsMasterData;
             var currSets = SessionLink.SettingsController.CurrentSettings;
 
             // Если нет информации там, ищу в базах данных
-            if (masterData.AnyDurations && masterData.TryGetTypicalDuration(RC, this, out var time))
+            if (masterData.AnyDurations && masterData.TryGetTypicalDuration(RC, this, out var timePerEd))
             {
-                return time;
+                var integ = (int)(timePerEd * countToTime);
+                if (integ == 0) integ = 1;
+                return integ;
             }
+
+            if (StaticDuration.HasValue) return StaticDuration.Value;
 
             return currSets.OriginalDurationTime;
         }

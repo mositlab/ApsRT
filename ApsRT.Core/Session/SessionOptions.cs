@@ -19,8 +19,14 @@ namespace ApsRT.Core.Session
             Jsort = false;
 
         public string LaunchPath { get; set; }
+        public string OutputPath { get; set; }
 
+        public const string OutsPath = "outs";
         public const string SessionsPath = "sessions";
+
+        public double? DesiredGamma = null;
+        public double? DesiredPercent = null;
+        public string DesiredSettingsPath = null;
 
         /// <summary>
         /// Дополнительный метод, который позволяет удалить старые каталоги
@@ -39,6 +45,30 @@ namespace ApsRT.Core.Session
                 {
                     Console.WriteLine(item + " ---> created: " + date + " ---> days: " + days);
                     Directory.Delete(item, true);
+                }
+            }
+        }
+
+        public bool GetPreparedOutputPath(out string path)
+        {
+            if (string.IsNullOrEmpty(OutputPath))
+            {
+                return GetPreparedLaunchPath(out path);
+            }
+            else
+            {
+                try
+                {
+                    if (!Directory.Exists(OutsPath)) Directory.CreateDirectory(OutsPath);
+                    var mergedPath = $"{OutsPath}/{OutputPath}/";
+                    if (!Directory.Exists(mergedPath)) Directory.CreateDirectory(mergedPath);
+                    path = mergedPath;
+                    return true;
+                }
+                catch
+                {
+                    path = "";
+                    return false;
                 }
             }
         }
