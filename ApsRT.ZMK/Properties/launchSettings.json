@@ -2,7 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "guid:кос3",
+      "commandLineArgs": "guid:омерова\r\nsettings:settings_rt_alur.txt",
       "hotReloadEnabled": true
     }
   }

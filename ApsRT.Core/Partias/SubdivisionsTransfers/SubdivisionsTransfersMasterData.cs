@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApsRT.Core.Stages.Hoppers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ namespace ApsRT.Core.Partias.SubdivisionsTransfers
     {
         internal Dictionary<Uco, Dictionary<Uco, int>> TimeInSeconds;
 
+        public void ClearAll() => TimeInSeconds = null;
+
         internal int GetSubdivisionTransferTime(Uco From, Uco To)
         {
             if (TimeInSeconds == null) return 0;
@@ -19,6 +22,18 @@ namespace ApsRT.Core.Partias.SubdivisionsTransfers
                 return val;
             }
             return 0;
+        }
+
+        public bool TryAddTypicalDuration(SubdivisionsTransferDataLoaderModel model)
+        {
+            return TryAddTypicalDuration(model.SubFrom, model.SubTo, model.Duration);
+        }
+
+        public bool TryAddTypicalDuration(Uco SubFrom, Uco SubTo, int Duration)
+        {
+            if (TimeInSeconds == null) TimeInSeconds = new();
+            TimeInSeconds.TryAdd(SubFrom, new());
+            return TimeInSeconds[SubFrom].TryAdd(SubTo, Duration);
         }
     }
 }
