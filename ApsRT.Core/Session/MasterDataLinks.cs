@@ -12,10 +12,11 @@ using ApsRT.Core.Partias.MergeConditions;
 using ApsRT.Core.Stages.MasterData;
 using ApsRT.Core.Planning.ParallelPlanning;
 using ApsRT.Core.Orders;
-using ApsRT.Core.Partias.SubdivisionsTransfers;
 using ApsRT.Core.Partias.Zadels;
 using ApsRT.Core.NaladLengths;
 using ApsRT.Core.Leftovers;
+using ApsRT.Core.SubdivisionsTransfers;
+using ApsRT.Core.RottingTime;
 
 namespace ApsRT.Core.Session
 {
@@ -41,6 +42,8 @@ namespace ApsRT.Core.Session
         public ZadelsMasterData ZadelsMasterData { get; set; }
 
         public SubdivisionsTransfersMasterData SubdivisionsTransfersMasterData { get; set; } = new();
+
+        public RottingTimeMasterData RottingTimeMasterData { get; set; } = new();
 
         public OrdersMasterData OrdersMasterData { get; set; }
 

@@ -49,5 +49,8 @@ namespace ApsRT.Core.Stages.Hoppers
 
         [DataRecordColumn("ВспомогательнаяТара", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, defaultIfFail: true)]
         public bool VspomTara { get; set; }
+
+        [DataRecordColumn("ДатаЗавершения", defaultIfFail: true)]
+        public DateTime? WhenWasReady { get; set; }
     }
 }

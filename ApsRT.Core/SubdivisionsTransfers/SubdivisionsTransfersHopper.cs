@@ -13,7 +13,7 @@ using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ApsRT.Core.Stages.Hoppers;
 
-namespace ApsRT.Core.Partias.SubdivisionsTransfers
+namespace ApsRT.Core.SubdivisionsTransfers
 {
     [Hopper(Label = "Перемещение по цехам", IsDirectory = false, IsMultiple = false, UsesGuid = false, SessionPathAvailable = false)]
     public class SubdivisionsTransfersHopper : IHopperInterface

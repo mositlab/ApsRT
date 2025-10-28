@@ -19,7 +19,7 @@ using ApsRT.Core.Orders;
 using ApsRT.Core.NaladLengths;
 using System.Drawing;
 
-namespace ApsRT.Core.Partias.SubdivisionsTransfers
+namespace ApsRT.Core.SubdivisionsTransfers
 {
     public class SubdivisionsTransferDataLoaderModel : BaseDataLoaderModel
     {
