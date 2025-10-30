@@ -34,12 +34,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         }
 
         public static PlanSimulatorEngineResult CalculatePlan(List<PlanSimulatorBlock> Blocks, int PoolIndex, DateTime StartTime,
-            PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null/*, int StartFrom = 0, bool LinearRC = true*//*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
+            PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null, int StartFrom = 0, int? uniqueCalcFlag = null/*,  bool LinearRC = true*//*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
-            int currentFlag = Random.Shared.Next();
-
-
-            resultToFill ??= new PlanSimulatorEngineResult(Blocks[0].Lists[0].FirstOperJust.SessionLink, StartTime); // Начинаем хотя бы так
+            resultToFill ??= new PlanSimulatorEngineResult(Blocks[0].Lists[0].FirstOperJust.SessionLink, StartTime, uniqueCalcFlag); // Начинаем хотя бы так
             resultToFill.GlobalPlanEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate; // В любом случае на всякий случай задаем это
             resultToFill.MostRechangedRCEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate;
 
@@ -50,12 +47,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             //}
 
             // Проходимся по всем блокам
-            for (int blockIndex = 0/*StartFrom*/; blockIndex < Blocks.Count; blockIndex++)
+            for (int blockIndex = StartFrom/*StartFrom*/; blockIndex < Blocks.Count; blockIndex++)
             {
                 var block = Blocks[blockIndex];
                 //if (PoolIndex != MoveDataFromThisIndex) block.MoveCenterData(MoveDataFromThisIndex, PoolIndex);
                 
-                ProcessBlock(block, PoolIndex, blockIndex, currentFlag, resultToFill/*, LinearRC, StartFrom*/);
+                ProcessBlock(block, PoolIndex, blockIndex, resultToFill/*, LinearRC, StartFrom*/);
                 //if (AdditionalBlockIndex == blockIndex)
                 //{
                 //    ProcessBlock(pool, blockIndex, currentFlag, resultToFill, AdditionalBlock);
@@ -92,8 +89,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <param name="currentFlag">Текущий флаг расчёта</param>
         /// <param name="resultToFill">Поле для заполнения даннымми</param>
         /// <param name="previousResult"></param>
-        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, int currentFlag, PlanSimulatorEngineResult resultToFill/*, bool LinearRC, int startFrom*//*, OpersBlock blockToCheckFirst*/)
+        static void ProcessBlock(PlanSimulatorBlock currentBlock, int PoolIndex, int blockIndex, PlanSimulatorEngineResult resultToFill/*, bool LinearRC, int startFrom*//*, OpersBlock blockToCheckFirst*/)
         {
+            int currentFlag = resultToFill.UniqueCalcFlag;
             //var currentBlock = /*blockToCheckFirst ?? */pool.Blocks[blockIndex];
             currentBlock.BlockIndex[PoolIndex] = blockIndex;
             var NonWorkingIntervalsMasterData = resultToFill.Session.MasterDataLinks.WorkingIntervalsMasterData;

@@ -41,6 +41,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         FrozenDictionary<Uco, List<PlanSimulatorBlock>> BlocksDependingOnCenter;
 
+        FrozenDictionary<int, List<PlanSimulatorBlock>> GroupedByLevel;
+
         List<PlanSimulatorBlock> LinearPlan = new();
 
         HashSet<PlanSimulatorBlock> ExistingBlocks = new();
@@ -111,6 +113,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             LinearPlan.Add(block);
             ExistingBlocks.Add(block);
             OpersCopy.Remove(block);
+            var level = block.Lists[0].FirstOperJust.Level;
+            GroupedByLevel[level].Remove(block);
             AddFixedOrVPZ(firstMod);
         }
 
@@ -142,6 +146,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             AddOneRCData(firstMod, center);
 
+            var level = block.Lists[0].FirstOperJust.Level;
+            GroupedByLevel[level].Remove(block);
             OpersCopy.Remove(block);
 
 
@@ -378,6 +384,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             poolCopy.PrepareAllRCsOnBlocks();
             BlocksDependingOnCenter = poolCopy.CentersData.ToFrozenDictionary(x => x.Key, x => new List<PlanSimulatorBlock>());
 
+            GroupedByLevel = OpersCopy.GroupBy(block => block.Lists[0].FirstOperJust.Level).ToFrozenDictionary(x => x.Key, x => x.ToList());
+
             // Сейчас лучший индекс - 0.
 
             // Получаем самый максимальный уровень, по которому только можно ходить.
@@ -541,12 +549,76 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         Console.WriteLine($"{i}: {(PriemTaraError ? "P" : "")} {taraToCheck} {mod.FirstOperJust} [{mod}] {{{mod.ModType}}}, prevs are: {string.Join(",", mod.PrevMods.Select(x => $"{x} and his tara was {x.FirstOperJust.CurrentTara}"))}");
                         Console.WriteLine("trying to fix...");
 
+                        var prevsIds = mod.PrevMods.ToList(); // toLIst - чтоб копия образовалась
 
+                        for (int j = 0; j < prevsIds.Count; j++)
+                        {
+                            if (prevsIds[j].FirstOperJust.NoChangeTara)
+                            {
+                                prevsIds.AddRange(prevsIds[j].PrevMods);
+                                prevsIds.RemoveAt(j);
+                                j--;
+                                continue;
+                            }
+                            if (prevsIds[j].FirstOperJust.IsVspom || prevsIds[j].FirstOperJust.NoCheckNamotka/* || finalOps[i].UsesVspomTara || IDtoSdvig[finalOps[i].ID].ZadelCode != 0*/)
+                            {
+                                prevsIds.RemoveAt(j);
+                                j--;
+                            }
+                        }
+
+                        //public void PrepareRecommendedTara()
+                        //{
+                        //    var partias = Blocks.GroupBy(x => x.Lists[0].FirstOperJust.GetOrderOrPartiaCode());
+                        //    foreach (var group in partias)
+                        //    {
+                        //        //if (group.Key.ToString() == "ea3e2b21-7e56-11f0-be4a-3cecef1c38f6")
+                        //        //{
+                        //        //    ;
+                        //        //}
+                        //        var modsHere = group.Select(x => x.Lists[0]);
+                        //        var modsToCheck = modsHere
+                        //            //.Where(mod => mod.PrevMods.Count > 1)
+                        //            ;
+                        //        foreach (var sdvig in modsToCheck)
+                        //        {
+
+
+
+                        //            if (prevsIds.Count < 2 || prevsIds.All(x => x.FirstOperJust.Level == prevsIds[0].FirstOperJust.Level && x.FirstOperJust.OperationVid == prevsIds[0].FirstOperJust.OperationVid)) continue;
+
+                        //            if (prevsIds.FindIndex(x => x.FirstOperJust.Index == 14434) > -1)
+                        //            {
+                        //                ;//ApsRT.Core.Taras.TaraSearchEngine.IAbleForTaraCalcInterface.FirstOperLink = {Оп. :14434 [9c64b7b6-6d03-11f0-be4a-3cecef1c38f6]}
+                        //            }
+
+                        //            var possibleRCs = sdvig.FirstOperJust.PossibleCenters ?? new() { sdvig.FirstOperJust.OriginalCenter };
+                        //            foreach (var rc in possibleRCs) // пройдемся по каждому РЦ и найдём вариант, при котором все prevsSdvigs смогут найти себе пару.
+                        //            {
+                        //                List<(bool Can, Uco Tara, PlanSimulatorMod sdvig)> analysis = prevsIds.Select(sdvigToCheck =>
+                        //                {
+                        //                    bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
+                        //                    return (can, tara, sdvigToCheck);
+                        //                }).ToList();
+
+                        //                if (analysis.All(x => x.Can))
+                        //                {
+                        //                    foreach (var an in analysis)
+                        //                    {
+                        //                        if (!an.sdvig.FirstOperJust.NoChangeTara && !an.sdvig.FirstOperJust.NoCheckNamotka)
+                        //                            RecommendedTara.TryAdd(an.sdvig, an.Tara);
+                        //                    }
+                        //                    break; // Ну и уходим отсюда тут же
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
                     }
 
-                        /*
-                         .GetNeededTaras(center, ) && TaraNeedsToBeHere.All(x => x.IsEmpty || has.Contains(x))
-                         */
+                    /*
+                     .GetNeededTaras(center, ) && TaraNeedsToBeHere.All(x => x.IsEmpty || has.Contains(x))
+                     */
 
                 }
             }
@@ -995,19 +1067,30 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         IEnumerable<PlanSimulatorBlock> GetOpersToCheckByLevel(int Level)
         {
-            var PossibleOpersHere = OpersCopy.Where(x =>
+            //другая попытка, хуже:
+List<PlanSimulatorBlock> toCheck;
+            if (FixedCompleted < basisLink.GLOBAL_FIXED_MIN || Level == -1) toCheck = OpersCopy;
+            else
+            {
+                if (GroupedByLevel.TryGetValue(Level, out var list)) toCheck = list;
+                else return Array.Empty<PlanSimulatorBlock>();
+            }
+            var PossibleOpersHere = toCheck.Where(x =>
 
-            (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : Level == -1 || x.Lists[0].FirstOperJust.Level == Level) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
+
+                        //var PossibleOpersHere = OpersCopy.Where(x =>
+
+                        //(FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? true : Level == -1 || x.Lists[0].FirstOperJust.Level == Level) // Если я расставляю фиксированные, там насрать на уровень, там главное дата.
+
+                        //&&
+
+                        /*FixedCompleted < basisLink.GLOBAL_FIXED_MIN ||*/ x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink)) // Проверяем на хронологию, если конечно это не фиксированные этапы.
 
             &&
 
-            /*FixedCompleted < basisLink.GLOBAL_FIXED_MIN ||*/ x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink)) // Проверяем на хронологию, если конечно это не фиксированные этапы.
+            //!ExistingBlocks.Contains(x)
 
-            &&
-
-            !ExistingBlocks.Contains(x)
-
-            &&
+            //&&
 
             (FixedCompleted < basisLink.GLOBAL_FIXED_MIN ? x.Lists[0].IsFixed :
 
@@ -1195,7 +1278,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     ErroredIterationsCount = 0;
 
-                    LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана
+                    if (searcherClass.WillBeParr)
+                    {
+                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - придётся полный, без флагов и прочего.
+                    }
+                    else
+                    {
+                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate, LastResult.UniqueCalcFlag), StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
+                    }
+
                     
                     basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
                     basisLink.UsedWorkflow.Generation++;
@@ -1207,6 +1298,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 {
                     Console.WriteLine($"R: {LinearPlan.Count}");
                     basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"step 1: {LinearPlan.Count} / {OpersCopy.Count} done\r\n");
+                    LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - НА ВСЯКИЙ СЛУЧАЙ.
                 }
 
                 if (FixedCompleted < basisLink.GLOBAL_FIXED_MIN) continue; // Если я ещё не дошёл до нужного, то счётчик пока не включаем.

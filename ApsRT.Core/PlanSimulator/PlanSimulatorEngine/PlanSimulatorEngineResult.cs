@@ -15,6 +15,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
         public int CurrentRank = 0;
 
+        public int UniqueCalcFlag { get; }
+
         public TimeSpan RechangesSeconds { get; set; } // ЕСТЬ
 
         public TimeSpan RechangesSecondsWithoutLunches { get; set; } // ЕСТЬ
@@ -103,7 +105,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
         public Session.Session Session { get; }
 
-        public PlanSimulatorEngineResult(Session.Session session, DateTime timeOfStart)
+        public PlanSimulatorEngineResult(Session.Session session, DateTime timeOfStart, int? uniqueCalcFlag = null)
         {
             Session = session;
             TimeOfStart = timeOfStart;
@@ -111,11 +113,12 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             MostRechangedRCEndDate = timeOfStart;
             StagesWithBrokenFixedNaladLengths = new();
             ModellingsWithBrokenFreeNaladLengths = new();
+            UniqueCalcFlag = uniqueCalcFlag ?? Random.Shared.Next();
         }
 
-        public static PlanSimulatorEngineResult CreateFullInstance(Session.Session session, DateTime StartTime)
+        public static PlanSimulatorEngineResult CreateFullInstance(Session.Session session, DateTime StartTime, int? uniqueCalcFlag = null)
         {
-            PlanSimulatorEngineResult result = new PlanSimulatorEngineResult(session, StartTime);
+            PlanSimulatorEngineResult result = new PlanSimulatorEngineResult(session, StartTime, uniqueCalcFlag);
             //result.CentersTimes = new Dictionary<CodedObject<string>, CenterTimesClass>();
             result.FirstStagesFullDurations = new Dictionary<int, CachedInterval>();
             //result.FirstStagesRanks = new Dictionary<int, int>();
