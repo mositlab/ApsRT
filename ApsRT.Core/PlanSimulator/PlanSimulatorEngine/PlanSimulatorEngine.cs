@@ -37,8 +37,11 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             PlanSimulatorEngineResult resultToFill, PlanSimulatorEngineResult prevResult = null, int StartFrom = 0, int? uniqueCalcFlag = null/*,  bool LinearRC = true*//*, int AdditionalBlockIndex = -1, OpersBlock AdditionalBlock = null*/)
         {
             resultToFill ??= new PlanSimulatorEngineResult(Blocks[0].Lists[0].FirstOperJust.SessionLink, StartTime, uniqueCalcFlag); // Начинаем хотя бы так
-            resultToFill.GlobalPlanEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate; // В любом случае на всякий случай задаем это
-            resultToFill.MostRechangedRCEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate;
+            if (StartFrom == 0)
+            {
+                resultToFill.GlobalPlanEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate; // В любом случае на всякий случай задаем это
+                resultToFill.MostRechangedRCEndDate = resultToFill.TimeOfStart;// Orders.MinAcceptableDate;
+            }
 
             //if (prevResult != null) // Мы копируем их, чтобы не сломать пред. результат + сохранить данные с предыдущего расчёта
             //{

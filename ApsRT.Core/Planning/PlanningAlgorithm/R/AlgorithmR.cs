@@ -1284,7 +1284,7 @@ List<PlanSimulatorBlock> toCheck;
                     }
                     else
                     {
-                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate, LastResult.UniqueCalcFlag), StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
+                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
                     }
 
                     
