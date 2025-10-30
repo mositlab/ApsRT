@@ -798,7 +798,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 if (allowedToMoveOn)
                 {
-                    var possible = searchData.PossibleCentersAndTaras.Where((x, index) => (searchData.AvailableResults == null || searchData.AvailableResults[index])
+                    var possible = searchData.PossibleCentersAndTaras.Where((x, index) => (searchData.AvailableResults == null || searchData.AvailableResults[index] >= 0)
                         &&
                         allRCs.Contains(x.RC)
                         &&

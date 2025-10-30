@@ -12,7 +12,11 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
     public class TemporaryTaraSearchData
     {
         internal (Uco RC, Uco Tara)[] PossibleCentersAndTaras;
-        internal bool[] AvailableResults;
+
+        /*
+         -1 = недоступно, 0 = не менять тару итп, > 0 = макс намотка
+         */
+        internal double[] AvailableResults;
         internal (Uco Tara, DimensionUnit Format, double Namot)[] BARABANAS;
         internal StringBuilder errorMessage;
         internal double sum;

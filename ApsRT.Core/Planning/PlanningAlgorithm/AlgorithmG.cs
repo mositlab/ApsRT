@@ -164,7 +164,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 && TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere.ToList(), prevs, options.TaraMustBeThis.ToList(), out _, out var allRCs, out _, false)
                 )
             {
-                var possible = searchData.PossibleCentersAndTaras.AsValueEnumerable().Where((x, index) => (searchData.AvailableResults == null || searchData.AvailableResults[index])
+                var possible = searchData.PossibleCentersAndTaras.AsValueEnumerable().Where((x, index) => (searchData.AvailableResults == null || searchData.AvailableResults[index] >= 0)
                 &&
                 allRCs.Contains(x.RC)
                 &&

@@ -801,10 +801,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.OrderByDescending(x => CentersDataSet.CentersData[x.RC].Subdivision == options.RecommendedSubdivision.Value ? 1 : 0).ToArray();
             }
 
-            if (options.SaveAvailableResults) searchData.AvailableResults = new bool[searchData.PossibleCentersAndTaras.Length];
+            if (options.SaveAvailableResults) searchData.AvailableResults = new double[searchData.PossibleCentersAndTaras.Length];
 
             for (int h = 0; h < searchData.PossibleCentersAndTaras.Length; h++)
             {
+                if (options.SaveAvailableResults) searchData.AvailableResults[h] = -1;
+
                 var center = searchData.PossibleCentersAndTaras[h];
 
                 if (!NotChangeTaraMustBeThis.IsEmpty && center.Tara != NotChangeTaraMustBeThis)
@@ -854,7 +856,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     Max = 0;
                     FinalRC = center.RC;
                     used_format = DimensionUnit.Unknown;
-                    if (options.SaveAvailableResults) searchData.AvailableResults[h] = true;
+                    if (options.SaveAvailableResults) searchData.AvailableResults[h] = 0;
                 }
                 else
                 {
@@ -869,7 +871,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         bool technicallyPossible = (namot.Namot >= sum
                             || someOpers.ZadelCode != 0); // Не меньше суммы должна быть намотка, ну либо это что с ЗАДЕЛАМИ, поэтому тут проверять на макс намотку не следует (Алёна, 17.06);
 
-                        if (options.SaveAvailableResults) searchData.AvailableResults[h] = technicallyPossible;
+                        if (options.SaveAvailableResults) searchData.AvailableResults[h] = namot.Namot;
 
                         if (technicallyPossible
 
