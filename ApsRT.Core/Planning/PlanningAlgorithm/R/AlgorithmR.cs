@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using System.Xml.Linq;
 using UniversalPack.Extensions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -93,20 +94,24 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             //}
         }
 
-        void UpdateTaraOnMod(PlanSimulatorMod mod, Uco tara)
+        void UpdateTaraOnMod(PlanSimulatorMod mod, Uco tara, double max, bool withRewrite)
         {
             foreach (var ooop in mod.StagesAsNormal)
             {
                 ooop.CurrentTara = tara;
+                ooop.CurrentTaraMaxCapacity = max;
                 if (tara.EmptyCheck()) continue;
-                PrevsInfoForR.Add(ooop.Index, ooop.CurrentTara);
+                if (withRewrite)
+                    PrevsInfoForR[ooop.Index] = ooop.CurrentTara;
+                else
+                    PrevsInfoForR.Add(ooop.Index, ooop.CurrentTara);
             }
         }
 
-        void AddBlockToPlan(PlanSimulatorBlock block, Uco center, Uco tara)
+        void AddBlockToPlan(PlanSimulatorBlock block, Uco center, Uco tara, double max)
         {
             var firstMod = block.Lists[0];
-            UpdateTaraOnMod(firstMod, tara);
+            UpdateTaraOnMod(firstMod, tara, max, false);
             block.SetCenter(center, 0);
             AddOneRCData(firstMod, center);
             BlocksDependingOnCenter[center].Add(block);
@@ -118,7 +123,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             AddFixedOrVPZ(firstMod);
         }
 
-        void AddBlockParallel(PlanSimulatorBlock block, Uco center, Uco tara, PlanSimulatorBlock mainBlock)
+        void AddBlockParallel(PlanSimulatorBlock block, Uco center, Uco tara, double max, PlanSimulatorBlock mainBlock)
         {
             block.SetCenter(center, 0);
 
@@ -126,7 +131,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             firstMod.BlockLink = mainBlock;
 
-            UpdateTaraOnMod(firstMod, tara);
+            UpdateTaraOnMod(firstMod, tara, max, false);
 
             //var tara = firstMod.FirstOperJust.CurrentTara;
 
@@ -359,7 +364,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
                 //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
 
-                AddBlockToPlan(element.Block, center, tara);
+                AddBlockToPlan(element.Block, center, tara, element.Max);
 
                 passedCenters.Add(center);
                 passedBlocks.Add(element.Block);
@@ -567,6 +572,74 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             }
                         }
 
+                        var possibleRCs = mod.FirstOperJust.PossibleCenters ?? new() { mod.FirstOperJust.OriginalCenter };
+                        foreach (var rc in possibleRCs) // пройдемся по каждому РЦ и найдём вариант, при котором все prevsSdvigs смогут найти себе пару.
+                        {
+                            List<(bool Can, Uco RC, Uco Tara, double Max, PlanSimulatorMod sdvig)> analysis = prevsIds.Select(sdvigToCheck =>
+                            {
+                                bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out var rcOut, out var max, out _, out _, out _, new SumIsPossibleOptions(false)
+                                { 
+                                    PrevsInfo = PrevsInfoForR,
+                                    LogSomeErrors = false, 
+                                    NextRCsExcludeNoChangeTara = true, 
+                                    SearchForMaxTara = true,
+                                    NextRCsMustBeThese = new() { rc } 
+                                });
+                                return (can, rcOut, tara, max, sdvigToCheck);
+                            }).ToList();
+
+                            if (analysis.All(x => x.Can) && TaraSearchEngine.SumIsPossible(mod, out var TaraLoc, out var RCLoc, out var MALocX, out _, out _, out _, new SumIsPossibleOptions(false)
+                            {
+                                PrevsInfo = PrevsInfoForR,
+                                LogSomeErrors = false,
+                                RCMustBeThis = new() { rc }
+                            }))
+                            {
+                                Console.WriteLine("fixed!");
+                                mod.BlockLink.SetCenter(RCLoc, 0); // Обновим этому сдвигу РЦ и прочее
+                                UpdateTaraOnMod(mod, TaraLoc, MALocX, true);
+                                foreach (var an in analysis)
+                                {
+                                    if (!an.sdvig.FirstOperJust.NoChangeTara && !an.sdvig.FirstOperJust.NoCheckNamotka
+                                        && an.Tara != an.sdvig.FirstOperJust.CurrentTara) // Имеет смысл перезначать?
+                                    {
+                                        an.sdvig.BlockLink.SetCenter(an.RC, 0); // Обновим этому сдвигу РЦ и прочее
+                                        UpdateTaraOnMod(an.sdvig, an.Tara, an.Max, true);
+                                        var nextMods = new Queue<PlanSimulatorMod>(an.sdvig.NextMods);
+                                        while (nextMods.Count > 0) // Пока они есть?
+                                        {
+                                            var modToReset = nextMods.Dequeue();
+                                            if (modToReset.FirstOperJust.NoChangeTara && modToReset != mod)
+                                            {
+                                                if (TaraSearchEngine.SumIsPossible(modToReset, out var Tara, out var RC, out var MAX, out _, out _, out _, new SumIsPossibleOptions(false)
+                                                {
+                                                    PrevsInfo = PrevsInfoForR,
+                                                    LogSomeErrors = false,
+                                                    NextRCsExcludeNoChangeTara = true,
+                                                    SearchForMaxTara = true,
+                                                    NextRCsMustBeThese = new() { rc }
+                                                }))
+                                                {
+                                                    modToReset.BlockLink.SetCenter(RC, 0);
+                                                    UpdateTaraOnMod(modToReset, Tara, MAX, true);
+                                                    foreach (var next in modToReset.NextMods) nextMods.Enqueue(next);
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("but failed then...");
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+                                var LastResult = PlanSimulatorEngine.CalculatePlan(blocks, 0, basisLink.StartOfPlanningDate, null); // Пересчитываем.
+                                basisLink.UpdateBcsSuccess(LastResult, blocks, 0);
+
+                                //i = -1; // Начнём затем сначала всё
+                                break; // Ну и уходим отсюда тут же
+                            }
+                        }
                         //public void PrepareRecommendedTara()
                         //{
                         //    var partias = Blocks.GroupBy(x => x.Lists[0].FirstOperJust.GetOrderOrPartiaCode());
@@ -592,25 +665,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         //                ;//ApsRT.Core.Taras.TaraSearchEngine.IAbleForTaraCalcInterface.FirstOperLink = {Оп. :14434 [9c64b7b6-6d03-11f0-be4a-3cecef1c38f6]}
                         //            }
 
-                        //            var possibleRCs = sdvig.FirstOperJust.PossibleCenters ?? new() { sdvig.FirstOperJust.OriginalCenter };
-                        //            foreach (var rc in possibleRCs) // пройдемся по каждому РЦ и найдём вариант, при котором все prevsSdvigs смогут найти себе пару.
-                        //            {
-                        //                List<(bool Can, Uco Tara, PlanSimulatorMod sdvig)> analysis = prevsIds.Select(sdvigToCheck =>
-                        //                {
-                        //                    bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
-                        //                    return (can, tara, sdvigToCheck);
-                        //                }).ToList();
-
-                        //                if (analysis.All(x => x.Can))
-                        //                {
-                        //                    foreach (var an in analysis)
-                        //                    {
-                        //                        if (!an.sdvig.FirstOperJust.NoChangeTara && !an.sdvig.FirstOperJust.NoCheckNamotka)
-                        //                            RecommendedTara.TryAdd(an.sdvig, an.Tara);
-                        //                    }
-                        //                    break; // Ну и уходим отсюда тут же
-                        //                }
-                        //            }
                         //        }
                         //    }
                         //}
@@ -1255,11 +1309,11 @@ List<PlanSimulatorBlock> toCheck;
 
                     if (searcherClass.WillBeParr)
                     {
-                        AddBlockParallel(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara, searcherClass.parrBlock);
+                        AddBlockParallel(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara, searcherClass.MaxNamotka, searcherClass.parrBlock);
                     }
                     else
                     {
-                        AddBlockToPlan(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara);
+                        AddBlockToPlan(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara, searcherClass.MaxNamotka);
                     }
 
 
@@ -1284,8 +1338,8 @@ List<PlanSimulatorBlock> toCheck;
                     }
                     else
                     {
-                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
-                        //LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - придётся полный, без флагов и прочего.
+                        //LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
+                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - придётся полный, без флагов и прочего.
                     }
 
 
