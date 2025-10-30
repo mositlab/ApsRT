@@ -46,14 +46,48 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             //    Rechanges < otherResult.Rechanges
             //    || (Rechanges == otherResult.Rechanges && DeltaFromStart < otherResult.DeltaFromStart);
 
-            return
-                OrderPriority < otherResult.OrderPriority
-                || OrderPriority == otherResult.OrderPriority && TotalCost < otherResult.TotalCost
-                || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges < otherResult.Rechanges
-                || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline < otherResult.DeltaFromDeadline
-                || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder && !otherResult.IsFromSameOrder
-                || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder == otherResult.IsFromSameOrder && Level < otherResult.Level
-                ;
+            //return
+            //    OrderPriority < otherResult.OrderPriority
+            //    || OrderPriority == otherResult.OrderPriority && TotalCost < otherResult.TotalCost
+            //    || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges < otherResult.Rechanges
+            //    || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline < otherResult.DeltaFromDeadline
+            //    || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder && !otherResult.IsFromSameOrder
+            //    || OrderPriority == otherResult.OrderPriority && TotalCost == otherResult.TotalCost && Rechanges == otherResult.Rechanges && DeltaFromDeadline == otherResult.DeltaFromDeadline && IsFromSameOrder == otherResult.IsFromSameOrder && Level < otherResult.Level
+            //    ;
+
+            /*
+            Ступени улучшения:
+                НаОдномРЦ выполнено ИСТИНА
+                Рекомендуемая тара ИСТИНА
+                Ошибки (длин) минимум
+                Этот вариант ошибочен ЛОЖЬ
+                Простои+Переналадки минимум
+                Переналадки минимум
+                Дедлайн минимум
+                Из одного заказа ИСТИНА
+                Уровень минимум
+             */
+
+            //if (TaraIsRecommended && !otherResult.TaraIsRecommended) return true;
+            //if (!TaraIsRecommended && otherResult.TaraIsRecommended) return false;
+
+            if (TotalCost < otherResult.TotalCost) return true;
+            if (TotalCost > otherResult.TotalCost) return false;
+
+            if (Rechanges < otherResult.Rechanges) return true;
+            if (Rechanges > otherResult.Rechanges) return false;
+
+            if (DeltaFromDeadline < otherResult.DeltaFromDeadline) return true;
+            if (DeltaFromDeadline > otherResult.DeltaFromDeadline) return false;
+
+            if (IsFromSameOrder && !otherResult.IsFromSameOrder) return true;
+            if (!IsFromSameOrder && otherResult.IsFromSameOrder) return false;
+
+            if (Level < otherResult.Level) return true;
+            if (Level > otherResult.Level) return false;
+
+            return false;
+
 
             //return Rechanges < otherResult.Rechanges || (Rechanges == otherResult.Rechanges && TotalCost < otherResult.TotalCost);
 

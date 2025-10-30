@@ -261,6 +261,11 @@ namespace ApsRT.Core.Stages.MasterData
             foreach (var prop in PropsMasterData.PropStringToIndex) stage.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
             #endregion
 
+            if (SessionLink.SettingsController.CurrentSettings.Demos_NoOneRC)
+            {
+                stage.OnOneRC = false;
+            }
+
             ProcessRCData(stage);
 
             ProcessTimeData(stage);

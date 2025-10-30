@@ -96,7 +96,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             foreach (var ooop in mod.StagesAsNormal)
             {
                 ooop.CurrentTara = tara;
-                if (tara.IsEmpty) continue;
+                if (tara.EmptyCheck()) continue;
                 PrevsInfoForR.Add(ooop.Index, ooop.CurrentTara);
             }
         }
@@ -374,6 +374,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
             poolCopy.PrepareOnOneRCData();
+            //poolCopy.PrepareRecommendedTara();
             poolCopy.PrepareAllRCsOnBlocks();
             BlocksDependingOnCenter = poolCopy.CentersData.ToFrozenDictionary(x => x.Key, x => new List<PlanSimulatorBlock>());
 
@@ -419,22 +420,25 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             // 2-е условие. Условие пустых тар
             // Каждый этап, имеющий один из признаков "НеПроверятьНамотку", "ВспомогательнаяОперация", должен иметь текущую тару, равную "ПУСТО", а отстутсвие этих признаков обязывает иметь текущую тару, НЕ равную "ПУСТО".
             Console.WriteLine("R, empty taras check... ");
-            bool emptyTarasCheck = EmptyTarasCheck(LinearPlan, out int errIndex);
-            Console.WriteLine($"{emptyTarasCheck}, {errIndex}");
+            bool emptyTarasCheck = EmptyTarasCheck(LinearPlan/*, out int errIndex*/);
+            Console.WriteLine($"{emptyTarasCheck}");
 
             // 3-е условие. Условие выполнения признака "НеМенятьТару"
             // Каждый этап, имеющий признак "НеМенятьТару", должен иметь ту же назначенную тару, что и его предыдущие этапы.
             Console.WriteLine("R, no change tara check... ");
-            int noChangeTaraResult = NoChangeTaraCheck(LinearPlan, out int errIndex2);
-            Console.WriteLine($"{noChangeTaraResult}, {errIndex2}");
+            bool noChangeTaraResult = NoChangeTaraCheck(LinearPlan/*, out int errIndex2*/);
+            Console.WriteLine($"{noChangeTaraResult}");
 
-
+            // 4-е условие.
+            Console.WriteLine("R, tara check... ");
+            bool taraResult = TaraCheck(LinearPlan/*, out int errIndex2*/);
+            Console.WriteLine($"{taraResult}");
             ;
         }
 
-        bool EmptyTarasCheck(List<PlanSimulatorBlock> blocks, out int FirstErroredBlock)
+        bool EmptyTarasCheck(List<PlanSimulatorBlock> blocks/*, out int FirstErroredBlock*/)
         {
-            FirstErroredBlock = -1;
+            var FirstErroredBlock = -1;
             for (int i = 0; i < blocks.Count; i++)
             {
                 var block = blocks[i];
@@ -447,7 +451,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             if (!stage.CurrentTara.IsEmpty)
                             {
                                 FirstErroredBlock = i;
-                                return false;
+                                Console.WriteLine($"{i}: {stage} [{mod}]");
+                                //return false;
                             }
                         }
                         else
@@ -455,18 +460,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             if (stage.CurrentTara.IsEmpty)
                             {
                                 FirstErroredBlock = i;
-                                return false;
+                                Console.WriteLine($"{i}: {stage} [{mod}]");
+                                //return false;
                             }
                         }
                     }
                 }
             }
-            return true;
+            return FirstErroredBlock == -1;
         }
 
-        int NoChangeTaraCheck(List<PlanSimulatorBlock> blocks, out int FirstErroredBlock)
+        bool NoChangeTaraCheck(List<PlanSimulatorBlock> blocks/*, out int FirstErroredBlock*/)
         {
-            FirstErroredBlock = -1;
+            var FirstErroredBlock = -1;
             for (int i = 0; i < blocks.Count; i++)
             {
                 var block = blocks[i];
@@ -488,21 +494,63 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                 if (prevs.All(prev => prev == stage.CurrentTara)) continue;
 
                                 FirstErroredBlock = i;
-                                return 2;
+                                Console.WriteLine($"{i}: no all same taras {stage} [{mod}]");
                             }
                             else
                             {
                                 if (prevs.First() != stage.CurrentTara)
                                 {
                                     FirstErroredBlock = i;
-                                    return 1;
+                                    Console.WriteLine($"{i}: no same tara {stage} [{mod}]");
                                 }
                             }
                         }
                     }
                 }
             }
-            return 0;
+            return FirstErroredBlock == -1;
+        }
+
+
+        bool TaraCheck(List<PlanSimulatorBlock> blocks/*, out int FirstErroredBlock*/)
+        {
+            var TaraDataSet = basisLink.SessionLink.MasterDataLinks.TarasMasterData;
+            var FirstErroredBlock = -1;
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                var block = blocks[i];
+                var center = block.GetCenterData(0).Center;
+                foreach (var mod in block.Lists)
+                {
+                    var taraToCheck = mod.FirstOperJust.CurrentTara;
+
+                    if (taraToCheck.IsEmpty) continue;
+
+                    bool PriemTaraError = false;
+                    if (TaraDataSet.GetNeededTaras(center, mod.FirstOperJust.OperationVid, null).priem.TryGetValue(false, out var has) && has.Contains(taraToCheck))
+                    {
+                        // Всё ок
+                    }
+                    else
+                    {
+                        PriemTaraError = true;
+                    }
+
+                    if (PriemTaraError)
+                    {
+                        Console.WriteLine($"{i}: {(PriemTaraError ? "P" : "")} {taraToCheck} {mod.FirstOperJust} [{mod}] {{{mod.ModType}}}, prevs are: {string.Join(",", mod.PrevMods.Select(x => $"{x} and his tara was {x.FirstOperJust.CurrentTara}"))}");
+                        Console.WriteLine("trying to fix...");
+
+
+                    }
+
+                        /*
+                         .GetNeededTaras(center, ) && TaraNeedsToBeHere.All(x => x.IsEmpty || has.Contains(x))
+                         */
+
+                }
+            }
+            return FirstErroredBlock == -1;
         }
 
         object[] lockers;
@@ -668,7 +716,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     bool IsFromSameOrder = parrBlockVariant.block.Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID)));
 
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0);
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/);
 
                     lock (locker)
                     {
@@ -704,14 +752,28 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             {
                 var currentCenter = possibleRCs[j].RC;
                 var currentTara = possibleRCs[j].Tara;
-                if (TaraSearchEngine.FilterAllVariants(mod, data, out var tara, out var rc, out var MaxNamot, out _, out _, new SumIsPossibleOptions(false)
-                {
-                    LogSomeErrors = false,
-                    PrevsInfo = PrevsInfoForR,
-                    RCMustBeThis = new HashSet<Uco>() { currentCenter },
-                    TaraMustBeThis = new HashSet<Uco>() { currentTara },
-                    ModToTaraInfoLink = basisLink.ModToTaraInfo
-                }))
+
+                Uco tara = Uco.EmptyObject;
+                Uco rc = Uco.EmptyObject;
+                double MaxNamot = 0;
+                /*
+                 
+                    
+                 */
+
+
+                if (
+                    mod.EasyLifeData == null ? AcceptableFilterAllVariants(mod, data, currentCenter, currentTara, out tara, out rc, out MaxNamot) :
+                    (mod.EasyLifeData.All(easy => AcceptableFilterAllVariants(easy.Value.AsMod, data, currentCenter, currentTara, out tara, out rc, out MaxNamot)))
+                    )
+                //if (TaraSearchEngine.FilterAllVariants(mod, data, out var tara, out var rc, out var MaxNamot, out _, out _, new SumIsPossibleOptions(false)
+                //{
+                //    LogSomeErrors = false,
+                //    PrevsInfo = PrevsInfoForR,
+                //    RCMustBeThis = new HashSet<Uco>() { currentCenter },
+                //    TaraMustBeThis = new HashSet<Uco>() { currentTara },
+                //    ModToTaraInfoLink = basisLink.ModToTaraInfo
+                //}))
                 {
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
@@ -817,7 +879,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             for (int j = 0; j < possibleRCs.Count; j++)
             {
                 var currentCenter = possibleRCs[j];
-                TaraAndRCsSubchecker(mod, searcherClass, data, currentCenter, mod.FirstOperJust.CurrentTara, true);
+                TaraAndRCsSubchecker(mod, searcherClass, data, currentCenter, mod.FirstOperJust.CurrentTara /*Если вспомогательный или НеМенятьНамотку, то тара всё равно будет пустая*/, true);
             }
             //);
             //while (!subProcess.IsCompleted)
@@ -826,6 +888,22 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             //}
         }
 
+        bool AcceptableFilterAllVariants(IAbleForTaraCalcInterface mod, TemporaryTaraSearchData data, Uco currentCenter, Uco currentTara, out Uco tara, out Uco rc, out double MaxNamot)
+        {
+            tara = Uco.EmptyObject;
+            rc = Uco.EmptyObject;
+            MaxNamot = 0;
+            return TaraSearchEngine.FilterAllVariants(mod, data, out tara, out rc, out MaxNamot, out _, out _, new SumIsPossibleOptions(false)
+            {
+                LogSomeErrors = false,
+                PrevsInfo = PrevsInfoForR,
+                RCMustBeThis = new HashSet<Uco>() { currentCenter },
+                TaraMustBeThis = new HashSet<Uco>() { currentTara },
+                ModToTaraInfoLink = basisLink.ModToTaraInfo
+            });
+        }
+        
+        
         bool TaraAndRCsSubchecker(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco currentCenter, Uco currentTara, bool ForceThisTara)
         {
             bool result = false;
@@ -843,14 +921,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 Uco tara = Uco.EmptyObject;
                 Uco rc = Uco.EmptyObject;
                 double MaxNamot = 0;
-                if (ForceThisTara || TaraSearchEngine.FilterAllVariants(mod, data, out tara, out rc, out MaxNamot, out _, out _, new SumIsPossibleOptions(false)
-                {
-                    LogSomeErrors = false,
-                    PrevsInfo = PrevsInfoForR,
-                    RCMustBeThis = new HashSet<Uco>() { currentCenter },
-                    TaraMustBeThis = new HashSet<Uco>() { currentTara },
-                    ModToTaraInfoLink = basisLink.ModToTaraInfo
-                }))
+                if (ForceThisTara ||
+                    (
+                    
+                    mod.EasyLifeData == null ? AcceptableFilterAllVariants(mod, data, currentCenter, currentTara, out tara, out rc, out MaxNamot) : 
+                    (mod.EasyLifeData.All(easy => AcceptableFilterAllVariants(easy.Value.AsMod, data, currentCenter, currentTara, out tara, out rc, out MaxNamot)))
+                    )
+                    )
                 {
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
@@ -886,6 +963,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         mod.FirstOperJust.Level,
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
                         errors
+                        //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
@@ -1029,26 +1107,26 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
-                    //if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
-                    //{
-                    //    var nextPossibleOpers = GetOpersToCheckByLevel(-1)
-                    //        .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
-                    //        .ToArray();
+                    if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
+                    {
+                        var nextPossibleOpers = GetOpersToCheckByLevel(-1)
+                            .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
+                            .ToArray();
 
-                    //    RSearcher searcherClass2 = new();
+                        RSearcher searcherClass2 = new();
 
-                    //    Step2_1_Parallel(nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
+                        Step2_1_Parallel(nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
 
-                    //    Step2_2_Linear(nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
+                        Step2_2_Linear(nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
 
-                    //    if (
-                    //        !searcherClass2.ThisResultIsBad && searcherClass.ThisResultIsBad
-                    //        || searcherClass.ThisResultIsBad == searcherClass2.ThisResultIsBad && searcherClass2.minResult.ErrorsCount < searcherClass.minResult.ErrorsCount
-                    //        )
-                    //    {
-                    //        searcherClass = searcherClass2;
-                    //    }
-                    //}
+                        if (
+                            !searcherClass2.ThisResultIsBad && searcherClass.ThisResultIsBad
+                            || searcherClass.ThisResultIsBad == searcherClass2.ThisResultIsBad && searcherClass2.minResult.ErrorsCount < searcherClass.minResult.ErrorsCount
+                            )
+                        {
+                            searcherClass = searcherClass2;
+                        }
+                    }
 
                     //int prevWas = BlocksDependingOnCenter[searcherClass.ChoosenCenter].Count > 0 ? BlocksDependingOnCenter[searcherClass.ChoosenCenter][^1].Lists[0].FirstOperJust.Index : -1;
 
@@ -1081,6 +1159,17 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     //);
 
+                    if (searcherClass.ThisResultIsBad)
+                    {
+                        Console.WriteLine($"badly set {searcherClass.ChoosenMod} {{{searcherClass.ChoosenMod.ModType}}} as {LinearPlan.Count} on RC {searcherClass.ChoosenCenter} (was {searcherClass.ChoosenMod.FirstOperJust.Center}), tara was {searcherClass.ChoosenMod.FirstOperJust.CurrentTara}, now {searcherClass.ChoosenTara}");
+                    }
+
+                    //if (searcherClass.ChoosenMod.BlockLink.PoolLink.RecommendedTara.TryGetValue(searcherClass.ChoosenMod, out var recTara))
+                    //{
+                    //    if (searcherClass.ChoosenTara != recTara)
+                    //        Console.WriteLine($"set {searcherClass.ChoosenMod}, recommended: {recTara}, but got {searcherClass.ChoosenTara}");
+                    //}
+
                     if (searcherClass.WillBeParr)
                     {
                         AddBlockParallel(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara, searcherClass.parrBlock);
@@ -1091,11 +1180,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     }
 
 
-                    bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
-                    if (!ChronologyCheck)
-                    {
-                        ;
-                    }
+                    //bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
+                    //if (!ChronologyCheck)
+                    //{
+                    //    ;
+                    //}
 
                     if (searcherClass.ChoosenMod.NextMods.Count == 0 && OpersCopy.Count > 0)
                     {

@@ -1,4 +1,5 @@
 ﻿using ApsRT.Core.NaladLengths;
+using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Planning;
 using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.Stages;
@@ -208,6 +209,70 @@ namespace ApsRT.Core.PlanSimulator
             ModLinks = modLinks.ToFrozenDictionary();
         }
 
+        //public void PrepareRecommendedTara()
+        //{
+        //    var partias = Blocks.GroupBy(x => x.Lists[0].FirstOperJust.GetOrderOrPartiaCode());
+        //    foreach (var group in partias)
+        //    {
+        //        //if (group.Key.ToString() == "ea3e2b21-7e56-11f0-be4a-3cecef1c38f6")
+        //        //{
+        //        //    ;
+        //        //}
+        //        var modsHere = group.Select(x => x.Lists[0]);
+        //        var modsToCheck = modsHere
+        //            //.Where(mod => mod.PrevMods.Count > 1)
+        //            ;
+        //        foreach (var sdvig in modsToCheck)
+        //        {
+
+
+        //            var prevsIds = sdvig.PrevMods.ToList(); // toLIst - чтоб копия образовалась
+
+        //            for (int i = 0; i < prevsIds.Count; i++)
+        //            {
+        //                if (prevsIds[i].FirstOperJust.NoChangeTara)
+        //                {
+        //                    prevsIds.AddRange(prevsIds[i].PrevMods);
+        //                    prevsIds.RemoveAt(i);
+        //                    i--;
+        //                    continue;
+        //                }
+        //                if (prevsIds[i].FirstOperJust.IsVspom || prevsIds[i].FirstOperJust.NoCheckNamotka/* || finalOps[i].UsesVspomTara || IDtoSdvig[finalOps[i].ID].ZadelCode != 0*/)
+        //                {
+        //                    prevsIds.RemoveAt(i);
+        //                    i--;
+        //                }
+        //            }
+
+        //            if (prevsIds.Count < 2 || prevsIds.All(x => x.FirstOperJust.Level == prevsIds[0].FirstOperJust.Level && x.FirstOperJust.OperationVid == prevsIds[0].FirstOperJust.OperationVid)) continue;
+
+        //            if (prevsIds.FindIndex(x => x.FirstOperJust.Index == 14434) > -1)
+        //            {
+        //                ;//ApsRT.Core.Taras.TaraSearchEngine.IAbleForTaraCalcInterface.FirstOperLink = {Оп. :14434 [9c64b7b6-6d03-11f0-be4a-3cecef1c38f6]}
+        //            }
+
+        //            var possibleRCs = sdvig.FirstOperJust.PossibleCenters ?? new() { sdvig.FirstOperJust.OriginalCenter };
+        //            foreach (var rc in possibleRCs) // пройдемся по каждому РЦ и найдём вариант, при котором все prevsSdvigs смогут найти себе пару.
+        //            {
+        //                List<(bool Can, Uco Tara, PlanSimulatorMod sdvig)> analysis = prevsIds.Select(sdvigToCheck =>
+        //                {
+        //                    bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
+        //                    return (can, tara, sdvigToCheck);
+        //                }).ToList();
+
+        //                if (analysis.All(x => x.Can))
+        //                {
+        //                    foreach (var an in analysis)
+        //                    {
+        //                        if (!an.sdvig.FirstOperJust.NoChangeTara && !an.sdvig.FirstOperJust.NoCheckNamotka)
+        //                            RecommendedTara.TryAdd(an.sdvig, an.Tara);
+        //                    }
+        //                    break; // Ну и уходим отсюда тут же
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
 
         public Dictionary<int, int> ModIDToOnOneRCGroupID = new();

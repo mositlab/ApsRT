@@ -146,9 +146,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
             searchData.errorMessage?.Append($"Поиск тар и рц для: {string.Join("; ", allOpers.AllOpers)}\r\n");
 
-            if (allOpers.FirstOperLink.NoCheckNamotka)
+            if (allOpers.FirstOperLink.NoCheckNamotka || allOpers.FirstOperLink.IsVspom)
             {
-                searchData.errorMessage?.Append($"{allOpers.FirstOperLink}: не проверяет намотку. Сразу ухожу.\r\n");
+                searchData.errorMessage?.Append($"{allOpers.FirstOperLink}: не проверяет намотку - NoCheckNamotka={allOpers.FirstOperLink.NoCheckNamotka} | IsVspom={allOpers.FirstOperLink.IsVspom}. Сразу ухожу.\r\n");
 
                 List<Uco> rcs = null;
 
@@ -157,7 +157,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     var res = element.PossibleCenters ?? new List<Uco>() { element.OriginalCenter };
                     rcs = (rcs == null) ? res : rcs.AsValueEnumerable().Intersect(res).ToList();
                 }
-                searchData.PossibleCentersAndTaras = rcs.AsValueEnumerable().Select(x => (RC: x, Tara: new Uco(Guid.Empty, ""))).ToArray();
+                searchData.PossibleCentersAndTaras = rcs.AsValueEnumerable().Select(x => (RC: x, Tara: Uco.EmptyObject)).ToArray();
                 return searchData.PossibleCentersAndTaras.Length > 0;
             }
 
@@ -715,19 +715,29 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             used_format = DimensionUnit.Unknown;
             Max = options.SearchForMaxTara ? -1 : double.MaxValue;
             notChangeTara = false;
-            var sum = searchData.sum + options.NaladLength;
+            var sum = someOpers.Sum + options.NaladLength;
             var errorMessage = searchData.errorMessage;
             var opersFormat = searchData.opersFormat;
 
             // Если - исключения из номенклатуры
-            if (someOpers.FirstOperLink.NoCheckNamotka)
+            if (someOpers.FirstOperLink.NoCheckNamotka || someOpers.FirstOperLink.IsVspom)
             {
                 searchData.errorMessage?.Append($"{someOpers.FirstOperLink}: не проверяет намотку. Сразу проверяю.\r\n");
-                var center = searchData.PossibleCentersAndTaras[0];
-                TaraName = center.Tara;
                 Max = 0;
-                FinalRC = center.RC;
                 used_format = DimensionUnit.Unknown;
+                if (options.RCMustBeThis == null || options.RCMustBeThis.Count == 0)
+                {
+                    var center = searchData.PossibleCentersAndTaras[0];
+                    TaraName = center.Tara;
+                    FinalRC = center.RC;
+                }
+                else
+                {
+                    var center = searchData.PossibleCentersAndTaras.Where(pair => options.RCMustBeThis.Contains(pair.RC)).FirstOrDefault();
+                    if (center.RC.EmptyCheck()) return false;
+                    TaraName = center.Tara;
+                    FinalRC = center.RC;
+                }
                 return true;
             }
 

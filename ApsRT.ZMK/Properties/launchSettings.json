@@ -2,6 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
+      "commandLineArgs": "settings:settings_rt_kos.txt",
       "hotReloadEnabled": true
     }
   }

@@ -78,7 +78,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             MergeConditions.Clear();
             MergeConditionsByOperationTypeGuid?.Clear();
             DoNotCheckWindingsByOperationTypeGuid?.Clear();
-            CentersIntersectionCache = null;
+            //CentersIntersectionCache = null;
         }
 
         /// <summary>
@@ -106,29 +106,29 @@ namespace ApsRT.Core.Partias.MergeConditions
                 .ToHashSet();
         }
 
-        bool?[,] CentersIntersectionCache;
-        bool FindCentersIntersectionData(Stage op1, Stage op2)
-        {
-            var i = op1.Index;
-            var j = op2.Index;
-            if (i > j)
-            {
-                var tmp = i;
-                i = j;
-                j = tmp;
-            }
-            if (CentersIntersectionCache[i, j].HasValue) return CentersIntersectionCache[i, j].Value;
-            var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
-            var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
-            CentersIntersectionCache[i, j] = op1Centers.AsValueEnumerable().Intersect(op2Centers).Any();
-            return CentersIntersectionCache[i, j].Value;
-        }
-        public void Prepare(Session.Session session)
-        {
-            var stages = session.MasterDataLinks.StagesMasterData.AllStages;
-            var count = stages.Count;
-            CentersIntersectionCache = new bool?[count, count];
-        }
+        //bool?[,] CentersIntersectionCache;
+        //bool FindCentersIntersectionData(Stage op1, Stage op2)
+        //{
+        //    var i = op1.Index;
+        //    var j = op2.Index;
+        //    if (i > j)
+        //    {
+        //        var tmp = i;
+        //        i = j;
+        //        j = tmp;
+        //    }
+        //    if (CentersIntersectionCache[i, j].HasValue) return CentersIntersectionCache[i, j].Value;
+        //    var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
+        //    var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
+        //    CentersIntersectionCache[i, j] = op1Centers.AsValueEnumerable().Intersect(op2Centers).Any();
+        //    return CentersIntersectionCache[i, j].Value;
+        //}
+        //public void Prepare(Session.Session session)
+        //{
+        //    var stages = session.MasterDataLinks.StagesMasterData.AllStages;
+        //    var count = stages.Count;
+        //    CentersIntersectionCache = new bool?[count, count];
+        //}
 
         #region Метод для проверки, обращающийся к НСИ для выяснения, могут ли объединяться эти два этапчика
 
