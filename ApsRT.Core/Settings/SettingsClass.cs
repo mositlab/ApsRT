@@ -169,5 +169,7 @@ namespace ApsRT.Core.Settings
         public bool Demos_AllPartiasAreFree { get; set; }
         [JsonProperty]
         public bool Demos_NoOneRC { get; set; }
+        [JsonProperty]
+        public bool Demos_BigNaladLengthsFile { get; set; }
     }
 }

@@ -386,7 +386,7 @@ namespace ApsRT.Core.Session
             SessionLink.SessionOptions.GetPreparedOutputPath(out var outputPath);
 
             StreamWriter fullOutput = null;
-            if (!SessionLink.SessionOptions.IsSilent)
+            if (!SessionLink.SessionOptions.IsSilent && SessionLink.SettingsController.CurrentSettings.Demos_BigNaladLengthsFile)
             {
                 try
                 {

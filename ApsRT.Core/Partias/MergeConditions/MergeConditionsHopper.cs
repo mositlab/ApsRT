@@ -22,7 +22,7 @@ namespace ApsRT.Core.Partias.MergeConditions
         public void AfterLoading()
         {
             MergeConditionsMasterData.MakeIndexes();
-            MergeConditionsMasterData.Prepare(session);
+            //MergeConditionsMasterData.Prepare(session);
         }
 
         public void BeforeAllLoading(Session.Session session, string[] filenames)
