@@ -38,6 +38,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
         {
             if (otherResult.TotalCost == float.MaxValue && TotalCost < float.MaxValue) return true;
 
+            if (ErrorsCount < otherResult.ErrorsCount) return true;
             if (ErrorsCount > otherResult.ErrorsCount) return false;
 
             if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;

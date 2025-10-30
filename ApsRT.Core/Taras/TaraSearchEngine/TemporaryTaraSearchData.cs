@@ -13,9 +13,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
     {
         internal (Uco RC, Uco Tara)[] PossibleCentersAndTaras;
 
-        /*
-         -1 = недоступно, 0 = не менять тару итп, > 0 = макс намотка
-         */
+        /// <summary>
+        /// -1 = недоступно, 0 = не менять тару итп, > 0 = макс намотка
+        /// </summary>
         internal double[] AvailableResults;
         internal (Uco Tara, DimensionUnit Format, double Namot)[] BARABANAS;
         internal StringBuilder errorMessage;

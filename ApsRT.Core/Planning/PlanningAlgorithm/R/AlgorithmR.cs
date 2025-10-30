@@ -656,7 +656,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 bool anythingWas = false;
                 if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data, neededThisRC, allowedRC, LastResult);
 
-                if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass, LastResult);
+                //if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass, LastResult);
 
             });
             while (!process.IsCompleted) ;
@@ -1285,9 +1285,10 @@ List<PlanSimulatorBlock> toCheck;
                     else
                     {
                         LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
+                        //LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - придётся полный, без флагов и прочего.
                     }
 
-                    
+
                     basisLink.UpdateBcsSuccess(LastResult, LinearPlan, 0);
                     basisLink.UsedWorkflow.Generation++;
 

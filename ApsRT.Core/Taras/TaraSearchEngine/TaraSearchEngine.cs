@@ -719,6 +719,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var errorMessage = searchData.errorMessage;
             var opersFormat = searchData.opersFormat;
 
+            if (options.SaveAvailableResults) searchData.AvailableResults = new double[searchData.PossibleCentersAndTaras.Length]; // Пока тут всё 0
+
             // Если - исключения из номенклатуры
             if (someOpers.FirstOperLink.NoCheckNamotka || someOpers.FirstOperLink.IsVspom)
             {
@@ -801,7 +803,6 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.OrderByDescending(x => CentersDataSet.CentersData[x.RC].Subdivision == options.RecommendedSubdivision.Value ? 1 : 0).ToArray();
             }
 
-            if (options.SaveAvailableResults) searchData.AvailableResults = new double[searchData.PossibleCentersAndTaras.Length];
 
             for (int h = 0; h < searchData.PossibleCentersAndTaras.Length; h++)
             {
