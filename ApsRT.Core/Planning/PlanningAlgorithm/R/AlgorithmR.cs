@@ -1338,8 +1338,47 @@ List<PlanSimulatorBlock> toCheck;
                     }
                     else
                     {
-                        //LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
-                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - придётся полный, без флагов и прочего.
+                        var LastResult1 = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
+
+
+                        //var reches = LastResult1.RechangesBeforeFirstStages[LinearPlan[^1].Lists[0].FirstOperJust.Index];
+                        //var prostoi = LastResult1.ProstoiBeforeFirstStages.TryGetValue(LinearPlan[^1].Lists[0].FirstOperJust.Index, out var res) ? res : (ProstoiItself: new PlanSimulatorDatesData(DateTime.MinValue, -1, -1, -1), new CachedInterval(TimeSpan.Zero, Array.Empty<int>(), -1));
+
+
+                        //LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - придётся полный, без флагов и прочего.
+                        //var reches2 = LastResult.RechangesBeforeFirstStages[LinearPlan[^1].Lists[0].FirstOperJust.Index];
+                        //var prostoi2 = LastResult.ProstoiBeforeFirstStages.TryGetValue(LinearPlan[^1].Lists[0].FirstOperJust.Index, out var res2) ? res2 : (ProstoiItself: new PlanSimulatorDatesData(DateTime.MinValue, -1, -1, -1), new CachedInterval(TimeSpan.Zero, Array.Empty<int>(), -1));
+
+                        //if (prostoi.GetHashCode() == prostoi2.GetHashCode())
+                        //{
+                        //    ;
+                        //}
+
+                        //if (LastResult1.GlobalPlanEndDate != LastResult.GlobalPlanEndDate)
+                        //{
+                        //    ;
+                        //}
+
+                        ////if (prostoi.ProstoiItself.MinValue > DateTime.MinValue)
+                        ////{
+                        ////    ;
+                        ////}
+                        ////if (prostoi2.ProstoiItself.MinValue > DateTime.MinValue)
+                        ////{
+                        ////    ;
+                        ////}
+
+                        //if (prostoi.ProstoiItself.MinValue != prostoi2.ProstoiItself.MinValue)
+                        //{
+                        //    ;
+                        //}
+
+                        //var dur1 = reches.RechangeItself?.Duration ?? 0;
+                        //var dur2 = reches2.RechangeItself?.Duration ?? 0;
+                        //if (dur1 != dur2)
+                        //{
+                        //    ;
+                        //}
                     }
 
 
