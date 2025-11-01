@@ -6,6 +6,7 @@ using System.Text;
 using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ZLinq;
+using System.Collections.Frozen;
 
 namespace ApsRT.Core.Partias.MergeConditions
 {
@@ -17,14 +18,14 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// <summary>
         /// Набор данных условий объединения
         /// </summary>
-        public IDictionary<(Guid, Guid), MergeConditionsBaseModel> MergeConditions { get; } = new Dictionary<(Guid, Guid), MergeConditionsBaseModel>();
+        public IDictionary<(Guid, Guid), MergeConditionsUniversalModel> MergeConditionsOnLoad { get; } = new Dictionary<(Guid, Guid), MergeConditionsUniversalModel>();
 
         /// <summary>
         /// Индекс условий объединения по GUID типа тех. операции и подразделения
         /// </summary>
-        public Dictionary<Guid, Dictionary<Guid, MergeConditionsBaseModel>> MergeConditionsByOperationTypeGuid { get; private set; }
+        public FrozenDictionary<Guid, FrozenDictionary<Guid, MergeConditionsUniversalModel>> MergeConditionsByOperationTypeGuid { get; private set; }
 
-        public MergeConditionsBaseModel GetMergeConditionSafeByOperVidAndSub(Guid operVid, Guid sub)
+        public MergeConditionsUniversalModel GetMergeConditionSafeByOperVidAndSub(Guid operVid, Guid sub)
         {
             if (MergeConditionsByOperationTypeGuid == null) return null;
             if (MergeConditionsByOperationTypeGuid.TryGetValue(operVid, out var subs))
@@ -59,6 +60,9 @@ namespace ApsRT.Core.Partias.MergeConditions
         }
 
 
+        /// <summary>
+        /// Глобальный список настроек партий, загружаемый ещё до самих настроек
+        /// </summary>
         public IDictionary<string, PropsLinkerClass> MergeConditionsGlobalList { get; } = new Dictionary<string, PropsLinkerClass>();
 
         /// <summary>
@@ -75,8 +79,8 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// </summary>
         public void ClearMergeConditions()
         {
-            MergeConditions.Clear();
-            MergeConditionsByOperationTypeGuid?.Clear();
+            MergeConditionsOnLoad.Clear();
+            MergeConditionsByOperationTypeGuid = null;
             DoNotCheckWindingsByOperationTypeGuid?.Clear();
             //CentersIntersectionCache = null;
         }
@@ -86,20 +90,19 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// </summary>
         public void MakeIndexes()
         {
-            MergeConditionsByOperationTypeGuid?.Clear();
-            MergeConditionsByOperationTypeGuid = MergeConditions
+            MergeConditionsByOperationTypeGuid = MergeConditionsOnLoad
                 .GroupBy(x => x.Key.Item1)
-                .ToDictionary(x => x.Key, x => x.ToDictionary(y => y.Key.Item2, y => y.Value));
+                .ToFrozenDictionary(x => x.Key, x => x.ToFrozenDictionary(y => y.Key.Item2, y => y.Value));
 
             DoNotCheckWindingsByOperationTypeGuid?.Clear();
-            DoNotCheckWindingsByOperationTypeGuid = MergeConditions
+            DoNotCheckWindingsByOperationTypeGuid = MergeConditionsOnLoad
                 .Where(e => e.Value.DoNotCheckWindings && e.Value.Subdivision.IsEmpty)
                 .Select(e => e.Key.Item1)
                 .Distinct()
                 .ToHashSet();
 
             DoNotCheckWindingsByOperationTypeGuidWithSub?.Clear();
-            DoNotCheckWindingsByOperationTypeGuidWithSub = MergeConditions
+            DoNotCheckWindingsByOperationTypeGuidWithSub = MergeConditionsOnLoad
                 .Where(e => e.Value.DoNotCheckWindings && !e.Value.Subdivision.IsEmpty)
                 .Select(e => e.Key)
                 .Distinct()
@@ -314,7 +317,7 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// а о ИНФЕ для переналадок: напряжение, сечение и тд. 
         /// в виде хэшей или индексов
         /// </remarks>
-        bool CheckByCondition(Stage op1, Stage op2, MergeConditionsBaseModel condition, out string reason, out string smallreason, bool forObshEtaps = false)
+        bool CheckByCondition(Stage op1, Stage op2, MergeConditionsUniversalModel condition, out string reason, out string smallreason, bool forObshEtaps = false)
         {
             var reasonBuilder = new StringBuilder($"для вида тех. операции {condition.OperationType} задан набор условий у {op1.GUID} и {op2.GUID}");
 

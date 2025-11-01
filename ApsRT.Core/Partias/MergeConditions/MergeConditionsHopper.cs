@@ -17,6 +17,10 @@ namespace ApsRT.Core.Partias.MergeConditions
         Session.Session session;
         MergeConditionsMasterData MergeConditionsMasterData;
 
+        public const string DoNotCheckWindingsConst = "НеУчитыватьМаксимальныеНамотки";
+        public const string CheckMaterialsConst = "УчитыватьИсходныеКомплектующие";
+        public const string CheckWorkCenterRouteConst = "УчитыватьПересеченияРЦмаршрута";
+
         public void ActionFile(string filename) { }
 
         public void AfterLoading()
@@ -36,20 +40,65 @@ namespace ApsRT.Core.Partias.MergeConditions
 
         public void OnLoading(int rowIndex, IDataReader data, DataLoaderOptions options)
         {
-            var model = new MergeConditionsBaseModel();
-            model.LoadFromDataRecord(data, options);
-
-            model.PropsConditions = new List<PropsLinkerClass>();
-            foreach (var prop in MergeConditionsMasterData.MergeConditionsGlobalList)
+            if (session.SettingsController.CurrentSettings.UseMatrixMergeConditions)
             {
-                if (data[prop.Key].ConvertToOrDefault(string.Empty).IsYes()) model.PropsConditions.Add(prop.Value); // Добавляем проп который надо сравнить
+                var model = new MergeConditionsMatrixDataLoaderModel();
+                model.LoadFromDataRecord(data, options);
+
+                foreach (var prop in MergeConditionsMasterData.MergeConditionsGlobalList)
+                {
+                    if (model.PropsConditions == null) model.PropsConditions = new List<PropsLinkerClass>();
+                    if (data[prop.Key].ConvertToOrDefault(string.Empty).IsYes()) model.PropsConditions.Add(prop.Value); // Добавляем проп который надо сравнить
+                }
+
+                // дополнительные проверки
+
+                MergeConditionsMasterData.MergeConditionsOnLoad.Add((model.OperationType.Code, model.Subdivision.Code), new MergeConditionsUniversalModel(model));
+
+            }
+            else
+            {
+                var model = new MergeConditionsFlowedDataLoaderModel();
+                model.LoadFromDataRecord(data, options);
+
+                var key = (model.OperationType.Code, model.Subdivision.Code);
+                if (!MergeConditionsMasterData.MergeConditionsOnLoad.ContainsKey(key)) MergeConditionsMasterData.MergeConditionsOnLoad.Add(key, new MergeConditionsUniversalModel(model.OperationType, model.Subdivision));
+
+                var mergeCondClass = MergeConditionsMasterData.MergeConditionsOnLoad[key];
+
+                if (MergeConditionsMasterData.MergeConditionsGlobalList.TryGetValue(model.Param, out var prop))
+                {
+                    if (mergeCondClass.PropsConditions == null) mergeCondClass.PropsConditions = new List<PropsLinkerClass>();
+                    mergeCondClass.PropsConditions.Add(prop);
+                }
+                else
+                {
+                    switch (model.Param)
+                    {
+                        case DoNotCheckWindingsConst:
+                            {
+                                mergeCondClass.DoNotCheckWindings = true;
+                                break;
+                            }
+                        case CheckMaterialsConst:
+                            {
+                                mergeCondClass.CheckMaterials = true;
+                                break;
+                            }
+                        case CheckWorkCenterRouteConst:
+                            {
+                                mergeCondClass.CheckWorkCenterRoute = true;
+                                break;
+                            }
+                        default:
+                            {
+                                Console.WriteLine($"unknown '{model.Param}'");
+                                break;
+                            }
+                    }
+                }
             }
 
-            if (model.PropsConditions.Count == 0) model.PropsConditions = null;
-
-            // дополнительные проверки
-
-            MergeConditionsMasterData.MergeConditions.Add((model.OperationType.Code, model.Subdivision.Code), model);
         }
     }
 }

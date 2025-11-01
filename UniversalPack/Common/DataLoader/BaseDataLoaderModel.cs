@@ -390,7 +390,7 @@ namespace UniversalPack.Common.DataLoader
             if (value is null || value == DBNull.Value)
             {
                 return attribute.DefaultIfNull
-                    ? 2
+                    ? 255
                     : null;
             }
 
@@ -403,9 +403,11 @@ namespace UniversalPack.Common.DataLoader
 
             return (byte)(strValue switch
             {
+                "" => 255,
                 "Число" => 0,
                 "Идентификатор" => 1,
-                _ => 2
+                "Строка" => 2,
+                _ => 3
             });
         }
 

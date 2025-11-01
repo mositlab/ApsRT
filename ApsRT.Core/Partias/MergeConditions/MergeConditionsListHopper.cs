@@ -43,7 +43,14 @@ namespace ApsRT.Core.Partias.MergeConditions
         {
             var model = new MergeConditionsListDataLoaderModel();
             model.LoadFromDataRecord(data, options);
-            MergeConditionsMasterData.MergeConditionsGlobalList.Add(model.MergeConditionParamName, PropsMasterData.GenerateLinks(model.PropName));
+            if (PropsMasterData.GenerateLinks(model.PropName, out var linker))
+            {
+                MergeConditionsMasterData.MergeConditionsGlobalList.Add(model.MergeConditionParamName, linker);
+            }
+            else
+            {
+                Console.WriteLine($"can't generate prop link for '{model.PropName}'");
+            }
         }
     }
 }

@@ -120,7 +120,14 @@ namespace ApsRT.Core.Planning.ParallelPlanning
                 // 7.1 Оставшиеся столбцы - для характеристики
                 if (!characters.ListOfChars.ContainsKey(model.Char))
                 {
-                    characters.ListOfChars.Add(model.Char, new ConcreteCharacteristic(model.Min ?? 0, model.Max ?? 0, PropsMasterData.GenerateLinks(model.ColumnName), model.Value, model.ValueGUID ?? Guid.Empty)); // Добавляем
+                    if (PropsMasterData.GenerateLinks(model.ColumnName, out var linker))
+                    {
+                        characters.ListOfChars.Add(model.Char, new ConcreteCharacteristic(model.Min ?? 0, model.Max ?? 0, linker, model.Value, model.ValueGUID ?? Guid.Empty)); // Добавляем
+                    }
+                    else
+                    {
+                        Console.WriteLine($"can't generate prop link for '{model.ColumnName}'");
+                    }
                 }
             }
         }

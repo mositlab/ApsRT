@@ -459,6 +459,9 @@ namespace ApsRTCustomComponents
             CreateStopMe.Checked = settings.CreateStopMe;
             CreateStopMe.CheckedChanged += (sender, args) => { settings.CreateStopMe = ((CheckBox)sender).Checked; };
 
+            MatrixMergeConditionsCheckBox.Checked = settings.UseMatrixMergeConditions;
+            MatrixMergeConditionsCheckBox.CheckedChanged += (sender, args) => { settings.UseMatrixMergeConditions = ((CheckBox)sender).Checked; };
+
             PartiasMaxDaysNumericUpDown.Value = (decimal)settings.MaxDaysBetweenPartias;
             PartiasMaxDaysNumericUpDown.ValueChanged += (sender, args) => { settings.MaxDaysBetweenPartias = (double)((NumericUpDown)sender).Value; };
 

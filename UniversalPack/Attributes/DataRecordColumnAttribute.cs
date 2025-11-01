@@ -28,7 +28,7 @@ namespace UniversalPack.Attributes
             StringToBooleanIsYes,
 
             /// <summary>
-            /// Конвертация в byte, где 0 - число, 1 - гуид, 2 - строка
+            /// Конвертация в byte, где 255 = пусто, 0 - число, 1 - гуид, 2 - строка, 3 - неизвестно
             /// </summary>
             StringToTypeIndex,
 

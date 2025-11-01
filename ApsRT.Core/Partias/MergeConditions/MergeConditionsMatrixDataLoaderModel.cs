@@ -9,13 +9,13 @@ namespace ApsRT.Core.Partias.MergeConditions
     /// <summary>
     /// Модель параметров объединения
     /// </summary>
-    public class MergeConditionsBaseModel : BaseDataLoaderModel
+    public class MergeConditionsMatrixDataLoaderModel : BaseDataLoaderModel
     {
         private static readonly ICollection<FieldConverterInfo> _fieldConverters;
 
-        static MergeConditionsBaseModel()
+        static MergeConditionsMatrixDataLoaderModel()
         {
-            _fieldConverters = DefineFieldConverters<MergeConditionsBaseModel>();
+            _fieldConverters = DefineFieldConverters<MergeConditionsMatrixDataLoaderModel>();
         }
 
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;

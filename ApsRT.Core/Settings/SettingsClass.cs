@@ -50,7 +50,8 @@ namespace ApsRT.Core.Settings
             MaxOldSessionPathsDays = 3,
             UseR = false,
             TGamma = 0.05,
-            Test_PercentOfStages = 0
+            Test_PercentOfStages = 0,
+            UseMatrixMergeConditions = true
         };
 
 
@@ -144,6 +145,8 @@ namespace ApsRT.Core.Settings
 
         [JsonProperty]
         public bool AutoDataLoad { get; set; }
+        [JsonProperty]
+        public bool UseMatrixMergeConditions { get; set; }
 
         [JsonProperty]
         public bool UsePseudoTara { get; set; }
