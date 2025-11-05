@@ -10,12 +10,13 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Partias.MergeConditions
 {
-    [Hopper(Label = "Список усл. объединений", IsDirectory = false, IsMultiple = false, UsesGuid = false, NeededHoppers = new string[] { nameof(PropsListHopper) })]
+    [Hopper(Label = "Список усл. объединений", IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = true, NeededHoppers = new string[] { nameof(PropsListHopper) })]
     internal class MergeConditionsListHopper : IHopperInterface
     {
 
         MergeConditionsMasterData MergeConditionsMasterData;
         PropsMasterData PropsMasterData;
+        Session.Session session;
 
         void IHopperInterface.ActionFile(string filename)
         {
@@ -29,6 +30,7 @@ namespace ApsRT.Core.Partias.MergeConditions
 
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
         {
+            this.session = session;
             MergeConditionsMasterData = session.MasterDataLinks.MergeConditionsMasterData;
             PropsMasterData = session.MasterDataLinks.PropsMasterData;
             MergeConditionsMasterData.ClearMergeConditionsList();
@@ -50,6 +52,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             else
             {
                 Console.WriteLine($"can't generate prop link for '{model.PropName}'");
+                session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.CantLinkProp, model.MergeConditionParamName);
             }
         }
     }

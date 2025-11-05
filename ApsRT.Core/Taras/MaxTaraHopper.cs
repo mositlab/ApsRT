@@ -7,7 +7,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Taras
 {
-    [Hopper(Label = "Макс намотки", IsDirectory = false,
+    [Hopper(Label = "Макс намотки", IsDirectory = false, MustBeFilledWithData = true,
         IsMultiple = false, UsesGuid = false, NeededHoppers = new[] { nameof(StagesHopper), nameof(UsedTaraHopper) /*"Opers", "UsedTara"*/ })]
     internal class MaxTaraHopper : IHopperInterface
     {

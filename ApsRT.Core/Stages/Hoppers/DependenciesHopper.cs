@@ -10,7 +10,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Stages.Hoppers
 {
-    [Hopper(Label = "Зависимости", IsDirectory = false, IsMultiple = false, UsesGuid = true, SessionPathAvailable = true,
+    [Hopper(Label = "Зависимости", IsDirectory = false, IsMultiple = false, UsesGuid = true, SessionPathAvailable = true, MustBeFilledWithData = true,
         NeededHoppers = new[] { nameof(StagesHopper) })]
     internal class DependenciesHopper : IHopperInterface
     {

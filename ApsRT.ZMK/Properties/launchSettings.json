@@ -2,7 +2,6 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "options:launch.txt",
       "hotReloadEnabled": true
     }
   }

@@ -7,7 +7,7 @@ using UniversalPack.Extensions;
 
 namespace ApsRT.Core.Taras
 {
-    [Hopper(Label = "Применяемая тара", IsDirectory = false,
+    [Hopper(Label = "Применяемая тара", IsDirectory = false, MustBeFilledWithData = true,
         IsMultiple = false, UsesGuid = false, NeededHoppers = new[] { nameof(CentersParamsHopper), nameof(AlternativeCentersHopper)/*"CharsRC", "AltRCs"*/ })]
     internal class UsedTaraHopper : IHopperInterface
     {

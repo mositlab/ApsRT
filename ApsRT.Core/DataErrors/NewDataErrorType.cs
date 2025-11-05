@@ -27,6 +27,15 @@
         SomeFileIsOpened, // открыты файлы
         CorruptedDataFile, // повреждены файлы с данными
 
+        EmptyDataTable, // пустая таблица с данными
+
+        EmptyPropType, // пустой тип пропа
+        UnknownPropType, // странный тип пропа
+
+        CantLinkProp, // не удаётся создать ссылку на проп
+
+        UnknownPartiaParam, // неизвестная настройка
+
         NotEnoughMaxOnTaras, // тара найдена, но не хватает макс намотки
         NotEnoughMaxOnTarasVspom, // то же, но вспом
         NoTaraNMaxIntersection, // Не найдена основная тара для рассчитанного количества с учетом выбранной тары по макс намотке и приемной таре по цепочке по таре.

@@ -10,7 +10,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Centers.Hoppers
 {
-    [Hopper(Label = "Характеристики РЦ", IsDirectory = false, IsMultiple = false, UsesGuid = false)]
+    [Hopper(Label = "Характеристики РЦ", IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = true)]
     public class CentersParamsHopper : IHopperInterface
     {
 

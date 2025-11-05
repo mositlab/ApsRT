@@ -8,6 +8,14 @@ namespace ApsRT.Core.Props
 {
     public class PropsMasterData
     {
+        public PropsMasterData(Session.Session session)
+        {
+            this.session = session;
+        }
+
+        Session.Session session { get; init; }
+
+
         public Dictionary<string, int> PropStringToIndex = new();
 
         public Dictionary<string, int> PropNumberToIndex = new();
@@ -44,6 +52,7 @@ namespace ApsRT.Core.Props
                 case 255:
                     {
                         Console.WriteLine($"{key} - empty type!");
+                        session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.EmptyPropType, key);
                         break;
                     }
                 case 0: WorkWith(PropNumberToIndex, key); break;
@@ -52,6 +61,7 @@ namespace ApsRT.Core.Props
                 case 3:
                     {
                         Console.WriteLine($"{key} - unknown type!");
+                        session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.UnknownPropType, key);
                         break;
                     }
             }

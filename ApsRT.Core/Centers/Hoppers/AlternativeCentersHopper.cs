@@ -12,7 +12,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Centers.Hoppers
 {
-    [Hopper(Label = "Альт. РЦ", IsDirectory = false, IsMultiple = false, UsesGuid = false,/* LoadWhenOnlyZadel = false,*/
+    [Hopper(Label = "Альт. РЦ", IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = true,/* LoadWhenOnlyZadel = false,*/
         NeededHoppers = new[] { nameof(CentersParamsHopper) })]
     public class AlternativeCentersHopper : IHopperInterface
     {

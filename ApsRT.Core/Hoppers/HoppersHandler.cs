@@ -96,7 +96,18 @@ namespace ApsRT.Core.Hoppers
             foreach (var module in Hoppers)
             {
                 //var module = ModulesList.ElementAt(i);//.Value;
-                if (!Paths.ContainsKey(module.Name) || Paths[module.Name].Length == 0 || module.Data.LoadedFlag)
+                if (!Paths.ContainsKey(module.Name))
+                {
+                    continue;//return;
+                }
+
+                if (Paths[module.Name].Length == 0)
+                {
+                    if (module.Data.MustBeFilledWithData) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, module.Data.Label);
+                    continue;//return;
+                }
+
+                if (module.Data.LoadedFlag)
                 {
                     continue;//return;
                 }
@@ -263,11 +274,15 @@ namespace ApsRT.Core.Hoppers
                     var i = 1;
                     var counter = 0;
 
+                    bool hasAnyRows = false;
+
                     while (reader.Read())
                     {
                         hopperInterface.OnLoading(i, reader, options);
 
                         OnLoadingEvent?.Invoke(hopperData, hopperInterface, counter);
+
+                        hasAnyRows = true;
 
                         i++;
 
@@ -281,6 +296,7 @@ namespace ApsRT.Core.Hoppers
 
                     }
                     OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, i);
+                    if (hopperData.MustBeFilledWithData && !hasAnyRows) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, hopperData.Label);
                 }
             }
         }
@@ -314,6 +330,8 @@ namespace ApsRT.Core.Hoppers
 
                     connection.SafeOpen();
 
+                    bool hasAnyRows = false;
+
                     using (var reader = command.ExecuteReader())
                     using (var wrapper = new SqlDataReaderWrapper(reader))
                     {
@@ -333,6 +351,8 @@ namespace ApsRT.Core.Hoppers
 
                             OnLoadingEvent?.Invoke(hopperData, hopperInterface, counter);
 
+                            hasAnyRows = true;
+
                             counter++;
 
                             //if (show)
@@ -347,6 +367,7 @@ namespace ApsRT.Core.Hoppers
                     }
 
                     connection.SafeClose();
+                    if (hopperData.MustBeFilledWithData && !hasAnyRows) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, hopperData.Label);
                 }
             }
 

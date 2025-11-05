@@ -65,6 +65,7 @@ namespace ApsRTCustomComponents
         private void ClearAllSessionErrorsButton_Click(object sender, EventArgs e)
         {
             sessionLink.DataErrors.NewDataErrors.Clear();
+            sessionLink.DataErrors.NewDataErrorsNoStages.Clear();
         }
 
         public ApsRTMainForm1(Session sessionLink, string versionName, Color[] colors)

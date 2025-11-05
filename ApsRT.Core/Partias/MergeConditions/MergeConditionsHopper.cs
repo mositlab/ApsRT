@@ -11,7 +11,7 @@ namespace ApsRT.Core.Partias.MergeConditions
     /// <summary>
     /// Загрузчик условий объединения
     /// </summary>
-    [Hopper(Label = "Усл. объединения", IsDirectory = false, IsMultiple = false, UsesGuid = false, NeededHoppers = new string[] {nameof(MergeConditionsListHopper), nameof(StagesHopper) })]
+    [Hopper(Label = "Усл. объединения", IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = true, NeededHoppers = new string[] {nameof(MergeConditionsListHopper), nameof(StagesHopper) })]
     internal sealed class MergeConditionsHopper : IHopperInterface
     {
         Session.Session session;
@@ -73,7 +73,7 @@ namespace ApsRT.Core.Partias.MergeConditions
                 }
                 else
                 {
-                    switch (model.Param)
+                    switch (model.Param.Trim())
                     {
                         case DoNotCheckWindingsConst:
                             {
@@ -93,6 +93,7 @@ namespace ApsRT.Core.Partias.MergeConditions
                         default:
                             {
                                 Console.WriteLine($"unknown '{model.Param}'");
+                                session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.UnknownPartiaParam, model.Param);
                                 break;
                             }
                     }

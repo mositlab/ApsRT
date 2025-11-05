@@ -35,6 +35,7 @@ namespace ApsRT.Core.Session
             OrdersMasterData = new OrdersMasterData(SessionLink);
             NaladLengthsMasterData = new NaladLengthsMasterData(SessionLink);
             LeftoversMasterData = new LeftoversMasterData(SessionLink);
+            PropsMasterData = new PropsMasterData(SessionLink);
         }
 
         public NaladLengthsMasterData NaladLengthsMasterData { get; set; }
@@ -82,7 +83,7 @@ namespace ApsRT.Core.Session
         /// </summary>
         public TarasMasterData TarasMasterData { get; init; }
 
-        public PropsMasterData PropsMasterData { get; init; } = new();
+        public PropsMasterData PropsMasterData { get; init; }
 
     }
 }

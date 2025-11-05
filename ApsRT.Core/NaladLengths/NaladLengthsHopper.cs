@@ -14,7 +14,7 @@ using UniversalPack.Extensions;
 
 namespace ApsRT.Core.NaladLengths
 {
-    [Hopper(Label = "Наладочные длины", IsDirectory = false, IsMultiple = false, UsesGuid = false, /*LoadWhenOnlyZadel = false,*/
+    [Hopper(Label = "Наладочные длины", IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = true, /*LoadWhenOnlyZadel = false,*/
         NeededHoppers = new[] { nameof(StagesHopper), nameof(AlternativeCentersHopper) })]
     public class NaladLengthsHopper : IHopperInterface
     {

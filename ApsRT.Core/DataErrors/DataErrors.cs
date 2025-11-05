@@ -41,6 +41,17 @@ namespace ApsRT.Core.DataErrors
             }
         }
 
+        public ConcurrentBag<(NewDataErrorType type, DataErrorStruct data)> NewDataErrorsNoStages = new();
+
+        public void AddNewPartiaError(NewDataErrorType error, string errorData)
+        {
+            NewDataErrorsNoStages.Add((error, new DataErrorStruct(errorData)));
+            if (!NewDataErrors.ContainsKey(-1))
+            {
+                NewDataErrors.TryAdd(-1, new());
+            }
+        }
+
         internal bool TryOutputDataErrors()
         {
             bool HasErrors = false;
@@ -127,7 +138,13 @@ namespace ApsRT.Core.DataErrors
                 HasErrors = true;
                 foreach (var element in NewDataErrors)
                 {
-                    foreach (var error in element.Value)
+                    var errorsFromNoStages = NewDataErrorsNoStages.Select(x => new KeyValuePair<NewDataErrorType, DataErrorStruct>(x.type, x.data));
+                    var list = element.Value.ToList();
+                    if (element.Key == -1) list.AddRange(errorsFromNoStages);
+
+                    //var list = element.Key == -1 ? .AddRange().ToArray() : element.Value.ToArray();
+
+                    foreach (var error in list)
                     {
                         var message = error.Key switch
                         {
@@ -158,6 +175,15 @@ namespace ApsRT.Core.DataErrors
                             NewDataErrorType.SomeFileIsOpened => "Некоторые файлы открыты другим процессом/пользователем и недоступны для записи.",//: {0}.",
 
                             NewDataErrorType.CorruptedDataFile => "Ошибка при загрузке модуля данных '{0}'. Обратитесь к администратору.",
+
+                            NewDataErrorType.EmptyDataTable => "Пустая таблица модуля данных '{0}'. Обратитесь к администратору.",
+
+                            NewDataErrorType.EmptyPropType => "Неизвестный тип реквизита для '{0}'. Обратитесь к администратору.",
+                            NewDataErrorType.UnknownPropType => "Неизвестный тип реквизита для '{0}'. Обратитесь к администратору.",
+
+                            NewDataErrorType.CantLinkProp => "Не удаётся создать ссылку на реквизит для '{0}'. Обратитесь к администратору.",
+
+                            NewDataErrorType.UnknownPartiaParam => "Неизвестная настройка '{0}'. Обратитесь к администратору.",
 
                             NewDataErrorType.NotEnoughMaxOnTaras => "Не найдена основная тара для рассчитанного количества с учетом выбранной тары по макс намотке и приемной таре по цепочке по таре (количество этапа слишком велико).",
                             NewDataErrorType.NotEnoughMaxOnTarasVspom => "Не найдена вспомогательная тара для рассчитанного количества с учетом выбранной тары по макс намотке и приемной таре по цепочке по таре (количество этапа слишком велико).",

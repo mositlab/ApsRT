@@ -389,9 +389,7 @@ namespace UniversalPack.Common.DataLoader
 
             if (value is null || value == DBNull.Value)
             {
-                return attribute.DefaultIfNull
-                    ? 255
-                    : null;
+                return (byte)255;
             }
 
             if (value is byte byteValue)
@@ -403,6 +401,7 @@ namespace UniversalPack.Common.DataLoader
 
             return (byte)(strValue switch
             {
+                null => 255,
                 "" => 255,
                 "Число" => 0,
                 "Идентификатор" => 1,

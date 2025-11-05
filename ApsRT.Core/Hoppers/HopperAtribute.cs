@@ -27,5 +27,7 @@ namespace ApsRT.Core.Hoppers
         public string[] NeededHoppers { get; set; }
         public bool LoadedFlag { get; set; }
         public int HopperIndex { get; set; }
+
+        public bool MustBeFilledWithData { get; set; }
     }
 }
