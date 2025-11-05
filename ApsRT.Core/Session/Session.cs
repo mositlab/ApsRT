@@ -1,9 +1,10 @@
-﻿using Google.Protobuf.Compiler;
-using ApsRT.Core.DataErrors;
+﻿using ApsRT.Core.DataErrors;
 using ApsRT.Core.Hoppers;
 using ApsRT.Core.Partias.PartiasAlgorithm;
 using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.Settings;
+using Google.Protobuf.Compiler;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -167,6 +168,12 @@ namespace ApsRT.Core.Session
                     opts.DesiredSettingsPath = arg.Substring(9);
                     continue;
                 }
+                if (arg.StartsWith("options:"))
+                {
+                    var DesiredOptionsPath = arg.Substring(8);
+                    opts.SessionOptionsLoaded = JsonConvert.DeserializeObject<SessionOptionsLoaded>(File.ReadAllText(DesiredOptionsPath, Encoding.UTF8));
+                    continue;
+                }
                 //if (arg.StartsWith("key:"))
                 //{
                 //    key = arg.Substring(4);
@@ -278,7 +285,45 @@ namespace ApsRT.Core.Session
 
         async public Task LoadDataAndProcessAsync()
         {
-            await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(SettingsController.CurrentSettings.HoppersPaths));
+            // Сначала пройдёмся по путям для хопперов
+            Dictionary<string, string[]> finalPaths;
+            if (SessionOptions.SessionOptionsLoaded == null
+                ||
+                SessionOptions.SessionOptionsLoaded.CustomHoppersPaths == null
+                ||
+                SessionOptions.SessionOptionsLoaded.CustomHoppersPaths.Count == 0
+                )
+            {
+                // Просто возьмем то, что у нас есть
+                finalPaths = SettingsController.CurrentSettings.HoppersPaths;
+            }
+            else
+            {
+                finalPaths = new();
+                foreach (var el in SessionOptions.SessionOptionsLoaded.CustomHoppersPaths)
+                {
+                    finalPaths.Add(el.Key, el.Value);
+                }
+
+                // Если есть, что добавлять, то смотрим
+                if (SettingsController.CurrentSettings.HoppersPaths != null && SettingsController.CurrentSettings.HoppersPaths.Count > 0)
+                {
+                    foreach (var el in SettingsController.CurrentSettings.HoppersPaths)
+                    {
+                        if (finalPaths.TryGetValue(el.Key, out var pathsHere))
+                        {
+                            // Здесь в теории можно сравнить и перезаписать пустые, но делать мы этого на данный момент не будем.
+                        }
+                        else
+                        {
+                            // Просто добавляем, если нету
+                            finalPaths.Add(el.Key, el.Value);
+                        }
+                    }
+                }
+            }
+
+            await Task.Run(() => HoppersHandler.LoadAllHoppersAsync(finalPaths));
 
             PostDataProcess();
 

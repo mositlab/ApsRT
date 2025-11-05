@@ -28,6 +28,8 @@ namespace ApsRT.Core.Session
         public double? DesiredPercent = null;
         public string DesiredSettingsPath = null;
 
+        public SessionOptionsLoaded SessionOptionsLoaded { get; set; }
+
         /// <summary>
         /// Дополнительный метод, который позволяет удалить старые каталоги
         /// </summary>

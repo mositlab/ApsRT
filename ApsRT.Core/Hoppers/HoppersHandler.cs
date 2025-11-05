@@ -187,6 +187,8 @@ namespace ApsRT.Core.Hoppers
             {
                 var path = paths[z].StartsWith("SQL:") || Path.IsPathRooted(paths[z]) || !hopperData.SessionPathAvailable ? paths[z] : (sessionPath + paths[z]);//paths[z];
 
+                Console.WriteLine($"path[{z}]: {path}");
+
                 if (hopperData.IsDirectory)
                 {
                     // это папочная хрень
