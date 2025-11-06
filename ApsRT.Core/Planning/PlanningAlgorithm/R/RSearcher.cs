@@ -12,7 +12,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 {
     class RSearcher
     {
-        public RTempResult minResult = new RTempResult(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, int.MaxValue, false, int.MaxValue, float.MaxValue, int.MaxValue, double.MinValue);
+        public RTempResult minResult = new RTempResult(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, int.MaxValue, false, int.MaxValue, float.MaxValue, int.MaxValue, double.MinValue, int.MaxValue);
         public Uco ChoosenCenter = Uco.EmptyObject;
         public Uco ChoosenTara = Uco.EmptyObject;
         public double MaxNamotka = 0;

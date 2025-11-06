@@ -203,6 +203,8 @@ namespace ApsRTCustomComponents
             button2 = new Button();
             button1 = new Button();
             groupBox7 = new GroupBox();
+            TransferToGammaCheckBox = new MaterialCheckBox();
+            MatrixMergeConditionsCheckBox = new MaterialCheckBox();
             UsePseudoTaraCheckBox = new MaterialCheckBox();
             CreateStopMe = new MaterialCheckBox();
             CreateKillMeCheckBox = new MaterialCheckBox();
@@ -328,7 +330,6 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            MatrixMergeConditionsCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -595,7 +596,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 400);
+            label49.Location = new Point(959, 397);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -608,7 +609,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 397);
+            pictureBox1.Location = new Point(1099, 394);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -621,7 +622,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 447);
+            label48.Location = new Point(3, 444);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2744,6 +2745,7 @@ namespace ApsRTCustomComponents
             // 
             // groupBox7
             // 
+            groupBox7.Controls.Add(TransferToGammaCheckBox);
             groupBox7.Controls.Add(MatrixMergeConditionsCheckBox);
             groupBox7.Controls.Add(UsePseudoTaraCheckBox);
             groupBox7.Controls.Add(CreateStopMe);
@@ -2758,6 +2760,38 @@ namespace ApsRTCustomComponents
             groupBox7.TabIndex = 44;
             groupBox7.TabStop = false;
             groupBox7.Text = "Основное";
+            // 
+            // TransferToGammaCheckBox
+            // 
+            TransferToGammaCheckBox.BackColor = Color.Black;
+            TransferToGammaCheckBox.Depth = 0;
+            TransferToGammaCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            TransferToGammaCheckBox.ForeColor = Color.CornflowerBlue;
+            TransferToGammaCheckBox.Location = new Point(3, 262);
+            TransferToGammaCheckBox.Margin = new Padding(0);
+            TransferToGammaCheckBox.MouseLocation = new Point(-1, -1);
+            TransferToGammaCheckBox.Name = "TransferToGammaCheckBox";
+            TransferToGammaCheckBox.Ripple = true;
+            TransferToGammaCheckBox.Size = new Size(309, 30);
+            TransferToGammaCheckBox.TabIndex = 38;
+            TransferToGammaCheckBox.Text = "Переход в цеха входит в гамму";
+            TransferToGammaCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // MatrixMergeConditionsCheckBox
+            // 
+            MatrixMergeConditionsCheckBox.BackColor = Color.Black;
+            MatrixMergeConditionsCheckBox.Depth = 0;
+            MatrixMergeConditionsCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            MatrixMergeConditionsCheckBox.ForeColor = Color.CornflowerBlue;
+            MatrixMergeConditionsCheckBox.Location = new Point(3, 232);
+            MatrixMergeConditionsCheckBox.Margin = new Padding(0);
+            MatrixMergeConditionsCheckBox.MouseLocation = new Point(-1, -1);
+            MatrixMergeConditionsCheckBox.Name = "MatrixMergeConditionsCheckBox";
+            MatrixMergeConditionsCheckBox.Ripple = true;
+            MatrixMergeConditionsCheckBox.Size = new Size(309, 30);
+            MatrixMergeConditionsCheckBox.TabIndex = 37;
+            MatrixMergeConditionsCheckBox.Text = "Матричные настройки партий";
+            MatrixMergeConditionsCheckBox.UseVisualStyleBackColor = false;
             // 
             // UsePseudoTaraCheckBox
             // 
@@ -4499,22 +4533,6 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // MatrixMergeConditionsCheckBox
-            // 
-            MatrixMergeConditionsCheckBox.BackColor = Color.Black;
-            MatrixMergeConditionsCheckBox.Depth = 0;
-            MatrixMergeConditionsCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            MatrixMergeConditionsCheckBox.ForeColor = Color.CornflowerBlue;
-            MatrixMergeConditionsCheckBox.Location = new Point(3, 232);
-            MatrixMergeConditionsCheckBox.Margin = new Padding(0);
-            MatrixMergeConditionsCheckBox.MouseLocation = new Point(-1, -1);
-            MatrixMergeConditionsCheckBox.Name = "MatrixMergeConditionsCheckBox";
-            MatrixMergeConditionsCheckBox.Ripple = true;
-            MatrixMergeConditionsCheckBox.Size = new Size(309, 30);
-            MatrixMergeConditionsCheckBox.TabIndex = 37;
-            MatrixMergeConditionsCheckBox.Text = "Матричные настройки партий";
-            MatrixMergeConditionsCheckBox.UseVisualStyleBackColor = false;
-            // 
             // ApsRTMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -5010,5 +5028,6 @@ namespace ApsRTCustomComponents
         private NumericUpDown StagesPercentNumericUpDown;
         private Label label58;
         private MaterialCheckBox MatrixMergeConditionsCheckBox;
+        private MaterialCheckBox TransferToGammaCheckBox;
     }
 }

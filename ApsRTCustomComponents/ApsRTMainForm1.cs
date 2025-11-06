@@ -310,6 +310,8 @@ namespace ApsRTCustomComponents
             UseOnlyMaxCriteriasSettingsCheckBox.Checked = settings.UseOnlyMaxCriteriasSettings;
             UseOnlyMaxCriteriasSettingsCheckBox.CheckedChanged += (sender, args) => { settings.UseOnlyMaxCriteriasSettings = ((CheckBox)sender).Checked; };
 
+            TransferToGammaCheckBox.Checked = settings.TransferToGamma;
+            TransferToGammaCheckBox.CheckedChanged += (sender, args) => { settings.TransferToGamma = ((CheckBox)sender).Checked; };
 
             UseRCheckBox.Checked = settings.UseR;
             UseRCheckBox.CheckedChanged += (sender, args) => { settings.UseR = ((CheckBox)sender).Checked; };

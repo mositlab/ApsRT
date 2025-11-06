@@ -22,7 +22,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         public double OperCount; // В зависимости от количества этапа, может влиять
 
-        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount)
+        public int TransferTime;
+
+        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime)
         {
             Rechanges = rechanges;
             DeltaFromStart = deltaFromStart;
@@ -34,6 +36,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             ErrorsCount = errorsCount;
             DeltaFromStartNoOp = deltaFromStartNoOp;
             OperCount = operCount;
+            TransferTime = transferTime;
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
         }
 
@@ -43,6 +46,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             if (ErrorsCount < otherResult.ErrorsCount) return true;
             if (ErrorsCount > otherResult.ErrorsCount) return false;
+
+            if (TransferTime < otherResult.TransferTime) return true;
+            if (TransferTime > otherResult.TransferTime) return false;
 
             if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
 

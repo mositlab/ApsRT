@@ -149,6 +149,9 @@ namespace ApsRT.Core.Settings
         public bool UseMatrixMergeConditions { get; set; }
 
         [JsonProperty]
+        public bool TransferToGamma { get; set; }
+
+        [JsonProperty]
         public bool UsePseudoTara { get; set; }
 
         [JsonProperty]

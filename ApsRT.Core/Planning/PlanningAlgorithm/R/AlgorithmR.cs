@@ -887,7 +887,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 if (possibleParallelOpers.Length > 0)
                 {
-                    (PlanSimulatorBlock block, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
+                    (PlanSimulatorBlock block, double prostoi, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
                     {
                         var deltaBetweenInnerOps = Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds); // Приходится заюзать то, что я описал выше, потому что близость операций можно определить по дельте между ними
                         deltaBetweenInnerOps = Math.Round(deltaBetweenInnerOps); // На будущее - уберу дробную часть
@@ -899,7 +899,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                         var prostoi = dateDeltaNoAbs < 0 ? -dateDeltaNoAbs : 0;
 
-                        return (block, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
+                        return (block, prostoi: prostoi, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
                     })
                     .OrderBy(x => x.crit1)
                     .ThenBy(y => y.crit2)
@@ -930,6 +930,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     }
 
 
+
+
                     var minDeadline = mod.StagesAsNormal.Min(x => x.OrderLink.Deadline);
                     var minDeadline2 = parrBlockVariant.block.Lists.Min(list => list.StagesAsNormal.Min(stage => stage.OrderLink.Deadline));
                     if (minDeadline2 < minDeadline) minDeadline = minDeadline2;
@@ -938,7 +940,40 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     bool IsFromSameOrder = parrBlockVariant.block.Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID)));
 
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/);
+                    int timeTransfer = 0;
+                    PlanSimulatorMod lastModFromPartia = null;
+                    if (mod.PrevMods.Count > 0)
+                    {
+                        lastModFromPartia = mod.PrevMods.MaxBy(mod => mod.DateOfEnd[0]);
+                        Uco lastSubdivision = lastModFromPartia.BlockLink.GetCenterData(0).CenterModelDataLink.Subdivision;
+                        Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[currentCenter].Subdivision;
+                        if (lastSubdivision != currentSubdivion)
+                        {
+                            timeTransfer = basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion);
+                        }
+                    }
+
+                    // Теперь посчитаем переход в другой цех
+                    // Из времени перехода можно отнять простой, но не переналадку, так как переналадка должна начаться в другом цехе.
+                    timeTransfer -= (int)parrBlockVariant.prostoi;
+
+                    if (basisLink.SessionLink.SettingsController.CurrentSettings.TransferToGamma)
+                    {
+                        dateOfEnd = dateOfEnd.Add(TimeSpan.FromSeconds(timeTransfer));
+                        timeTransfer = 0;
+                    }
+
+                    var lastBlock = parrBlockVariant.block.PreviousBlockOnThisRC[0];
+
+                    var lastCenterDate = lastBlock == null ? basisLink.StartOfPlanningDate : lastBlock.Lists[0].DateOfEnd[0];
+
+                    // Из цеха так же надо вычесть разницу между lastCenterTime и lastMod, чтобы убрать лишний временной отрезок
+                    var delta1 = lastModFromPartia == null ? TimeSpan.Zero : (lastCenterDate - lastModFromPartia.DateOfEnd[0]);
+                    if (delta1.Ticks < 0) delta1 = TimeSpan.Zero;
+                    timeTransfer -= (int)delta1.TotalSeconds;
+                    if (timeTransfer < 0) timeTransfer = 0;
+
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/);
 
                     lock (locker)
                     {
@@ -1184,7 +1219,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         IsFromSameOrder,
                         mod.FirstOperJust.Level,
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
-                        errors, mod.Count
+                        errors, mod.Count, localResultData.timeTransferLeft
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 
@@ -1509,11 +1544,11 @@ List<PlanSimulatorBlock> toCheck;
 
         }
 
-        (TimeSpan Rechanges, TimeSpan TotalTime, TimeSpan TotalTimeNoOp) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
+        (TimeSpan Rechanges, TimeSpan TotalTime, TimeSpan TotalTimeNoOp, int timeTransferLeft) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
         {
             errorsCount = 0;
 
-            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
+            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, 0);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
 
             var list = BlocksDependingOnCenter[choosenCenter];
             //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
@@ -1562,8 +1597,19 @@ List<PlanSimulatorBlock> toCheck;
                     errorsCount = 1000000;//(int)((a - b) * 1000f);
                 }
             }
-                
-               
+
+            int timeTransfer = 0;
+            PlanSimulatorMod lastModFromPartia = null;
+            if (mod.PrevMods.Count > 0)
+            {
+                lastModFromPartia = mod.PrevMods.MaxBy(mod => mod.DateOfEnd[0]);
+                Uco lastSubdivision = lastModFromPartia.BlockLink.GetCenterData(0).CenterModelDataLink.Subdivision;
+                Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[choosenCenter].Subdivision;
+                if (lastSubdivision != currentSubdivion)
+                {
+                    timeTransfer = basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion);
+                }
+            }
 
             // Чтобы сделать только переналадки, хватит вот этого критерия:
             //return (float)rechesDur.TotalSeconds;
@@ -1572,15 +1618,32 @@ List<PlanSimulatorBlock> toCheck;
 
             if (prostoiDur.Ticks < 0) prostoiDur = TimeSpan.Zero;
 
-            var time1 = lastCenterDate + prostoiDur + rechesDur;
+            // Теперь посчитаем переход в другой цех
+            // Из времени перехода можно отнять простой, но не переналадку, так как переналадка должна начаться в другом цехе.
+            timeTransfer -= (int)prostoiDur.TotalSeconds;
+
+            // Из цеха так же надо вычесть разницу между lastCenterTime и lastMod, чтобы убрать лишний временной отрезок
+            var delta1 = lastModFromPartia == null ? TimeSpan.Zero : (lastCenterDate - lastModFromPartia.DateOfEnd[0]);
+            if (delta1.Ticks < 0) delta1 = TimeSpan.Zero;
+            timeTransfer -= (int)delta1.TotalSeconds;
+            if (timeTransfer < 0) timeTransfer = 0;
+
+            if (basisLink.SessionLink.SettingsController.CurrentSettings.TransferToGamma)
+            {
+                prostoiDur = prostoiDur.Add(TimeSpan.FromSeconds(timeTransfer));
+                timeTransfer = 0;
+            }
+
+            var PplusR = prostoiDur + rechesDur;
+
+            var time1 = lastCenterDate + PplusR;
 
             var lastDate = time1 + mod.AllTime[choosenCenter];
-
             //var res1 = (float)(time1 - minDate).TotalSeconds;
 
             //var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
 
-            return (rechesDur, lastDate - startDate, time1 - startDate);
+            return (rechesDur, lastDate - startDate, time1 - startDate, timeTransfer);
 
         }
 
