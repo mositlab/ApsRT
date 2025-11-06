@@ -34,6 +34,7 @@ namespace ApsRT.Core.Stages.Hoppers
         {
             var model = new TypicalDurationDataLoaderModel();
             model.LoadFromDataRecord(data, options);
+            //model.Characteristics = Uco.EmptyObject;
             StagesTypicalDurationsMasterData.TryAddTypicalDuration(model);
         }
 

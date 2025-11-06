@@ -401,14 +401,18 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             if (success)
             {
-                Console.WriteLine("R: successfully ending...");
+                Console.WriteLine("R: successfully created plan...");
                 poolCopy.Blocks = LinearPlan;
                 var ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count();
                 Console.WriteLine("R, count f, " + ALL_COUNT);
                 ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count();
                 Console.WriteLine("R, count f, " + ALL_COUNT);
 
-                Step3_PostChecker();
+                //Console.WriteLine("R: durations...");
+                //Step3_DurationsProcessor();
+
+                Console.WriteLine("R: post checker...");
+                Step4_PostChecker();
 
                 ;
             }
@@ -422,7 +426,96 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             Console.WriteLine($"R total time = {end - start}");
         }
 
-        void Step3_PostChecker()
+        void Step3_DurationsProcessor()
+        {
+            PlanSimulatorEngineResult LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, null);
+
+            //for (int blockIndex = LinearPlan.Count - 1; blockIndex >= 0; blockIndex--)
+                for (int blockIndex = 0; blockIndex < LinearPlan.Count; blockIndex++)
+                {
+                if (basisLink.WannaStop) break;
+                var mod = LinearPlan[blockIndex].Lists[0];
+                if (mod.AllTime.Any(x => x.Value != mod.AllTime.First().Value))
+                {
+                    ;
+                }
+                var actualRC = LinearPlan[blockIndex].GetCenterData(0);
+                var currentDuration = LinearPlan[blockIndex].MaxTime(actualRC.Center);
+                var possibleBetterRCs = LinearPlan[blockIndex].PossibleRCsHere.Where(center => currentDuration > LinearPlan[blockIndex].MaxTime(center)).ToArray();
+                // Впилить условие
+                //TaraSearchEngine.GetAllVariantsForThese();
+                //AcceptableFilterAllVariants
+                if (possibleBetterRCs.Length > 0)
+                {
+                    ;
+
+
+
+
+                    var res0 = Parallel.For(0, possibleBetterRCs.Length, rcIndex =>
+                    {
+                        if (basisLink.WannaStop) return;
+
+                        //if (TaraSearchEngine.SumIsPossible())
+                        /*
+                         , new SumIsPossibleOptions(false)
+            {
+                LogSomeErrors = false,
+                PrevsInfo = PrevsInfoForR,
+                RCMustBeThis = new HashSet<Uco>() { currentCenter },
+                TaraMustBeThis = new HashSet<Uco>() { currentTara },
+                ModToTaraInfoLink = basisLink.ModToTaraInfo
+            }
+                         */
+
+                        var rc = possibleBetterRCs[rcIndex];
+                        while (AvailableIndexes.Count == 0)
+                        {
+                            ;
+                        }
+                        int IndexToWorkWith = 0;
+                        while (!AvailableIndexes.TryDequeue(out IndexToWorkWith))
+                        {
+                            ;
+                        }
+                        lock (lockers[IndexToWorkWith])
+                        {
+                            // Выполним условие "НаОдномРЦ"
+
+
+                            PlanSimulatorPool.MoveCentersInAllBlocks(LinearPlan, 0, IndexToWorkWith);
+                            LinearPlan[blockIndex].SetCenter(rc, IndexToWorkWith);
+                            var localResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, IndexToWorkWith, basisLink.StartOfPlanningDate, null);
+                            lock (locker)
+                            {
+                                if (
+                                (localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount) // обязательные условия
+                                &&
+                                (
+                                localResult.GlobalPlanEndDate < LastResult.GlobalPlanEndDate
+                                || (localResult.GlobalPlanEndDate == LastResult.GlobalPlanEndDate && localResult.DaysRuinedValue < LastResult.DaysRuinedValue)
+                                )
+                                )
+                                {
+                                    LinearPlan[blockIndex].SetCenter(rc, 0);
+                                    LastResult = localResult;
+                                    basisLink.UpdateBcsSuccess(localResult, LinearPlan, 0);
+                                }
+                            }
+    
+                        AvailableIndexes.Enqueue(IndexToWorkWith);
+                        }
+                    });
+
+                    while (!res0.IsCompleted) ;
+
+                }
+                basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, LinearPlan.Count - blockIndex);
+            }
+        }
+
+
+        void Step4_PostChecker()
         {
             Console.WriteLine("R, chronology check... ");
             // 1-е условие выполнимости плана. Условие хронологии.
@@ -679,6 +772,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             return FirstErroredBlock == -1;
         }
 
+        
+        
+        
         object[] lockers;
         ConcurrentQueue<int> AvailableIndexes;
         public object locker = new object();
@@ -842,7 +938,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     bool IsFromSameOrder = parrBlockVariant.block.Lists.Any(list => list.StagesAsNormal.Any(stage => orders.Contains(stage.OrderLink.OrderID)));
 
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/);
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/);
 
                     lock (locker)
                     {
@@ -1088,7 +1184,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         IsFromSameOrder,
                         mod.FirstOperJust.Level,
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
-                        errors
+                        errors, mod.Count
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 
@@ -1338,7 +1434,7 @@ List<PlanSimulatorBlock> toCheck;
                     }
                     else
                     {
-                        var LastResult1 = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
+                        LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, LastResult, StartFrom: LinearPlan.Count - 1); // Вызывем симулятор плана
 
 
                         //var reches = LastResult1.RechangesBeforeFirstStages[LinearPlan[^1].Lists[0].FirstOperJust.Index];

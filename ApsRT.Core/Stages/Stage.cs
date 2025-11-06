@@ -388,7 +388,7 @@ namespace ApsRT.Core.Stages
             // Если нет информации там, ищу в базах данных
             if (masterData.AnyDurations && masterData.TryGetTypicalDuration(RC, this, out var timePerEd))
             {
-                var integ = (int)(timePerEd * countToTime);
+                var integ = (int)Math.Round(timePerEd * countToTime);
                 if (integ == 0) integ = 1;
                 return integ;
             }
