@@ -436,7 +436,45 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         // Сначала проверим момент "НеМенятьТару"
                         if (first.op.NoChangeTara)
                         {
+
+                            // Проверим, чтоб только те тары, что есть у детей с признаком "не менять тару"
+                            Uco? alreadyWasThisTara = null;
+
+                            // Во-первых, добавляем ещё детей
                             childs.AddRange(first.op.Nexts.AsValueEnumerable().Where(x => ALL.ContainsKey(x)).Select(x => (op: ALL[x], isFirst: false)).ToArray());
+
+                            // Во вторых, если есть конечная тара, то прочекать, чтоб была в списке приемных
+
+                            if (!childs[i].op.EndTara.EmptyCheck())
+                            {
+                                var thisTaraNeededToBe = childs[i].op.EndTara;
+                                if (alreadyWasThisTara.HasValue && alreadyWasThisTara.Value != thisTaraNeededToBe && options.LogSomeErrors)
+                                {
+                                    // Ошибка
+                                    var dem = searchData.dataErrorMore;
+                                    dem.DataToInsert = childs[i].op.EndTara.Label;
+                                    dataErrors.AddNewPartiaError(childs[i].op.Index, NewDataErrorType.NoNeededNoChangeFinalTaraOnChildMoreThanOne, dem);
+                                }
+                                else
+                                {
+                                    alreadyWasThisTara = thisTaraNeededToBe;
+                                }
+                                searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.AsValueEnumerable().Where(x => x.Tara == thisTaraNeededToBe).ToArray();
+                                if (searchData.PossibleCentersAndTaras.Length == 0)
+                                {
+                                    // Ошибка
+                                    if (options.LogSomeErrors)
+                                    {
+                                        var dem = searchData.dataErrorMore;
+                                        dem.DataToInsert = childs[i].op.EndTara.Label;
+                                        dataErrors.AddNewPartiaError(childs[i].op.Index, NewDataErrorType.NoNeededNoChangeFinalTaraOnChild, dem);
+                                    }
+                                    return false;
+                                }
+
+                            }
+
+
                             if (!first.isFirst) // если это первый раз, то не проходим мимо, а отдающую тару чекаем
                             {
                                 continue;

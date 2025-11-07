@@ -56,6 +56,9 @@
         NoAllNeededOtdTaras, // нет ни одного рц у которого есть все нужные отдающие тары
         NoAllNeededOtdTarasWithCheck, // то же, с доп проверкой
 
+        NoNeededNoChangeFinalTaraOnChildMoreThanOne,
+        NoNeededNoChangeFinalTaraOnChild,
+
         LivenshteinBadOper // Обнаружено объединение, не связанное с объединенными этапами
     }
 

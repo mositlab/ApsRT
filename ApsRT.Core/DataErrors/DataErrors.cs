@@ -215,6 +215,9 @@ namespace ApsRT.Core.DataErrors
 
                             NewDataErrorType.LivenshteinBadOper => "Обнаружено объединение, не связанное с объединенными этапами.",
 
+                            NewDataErrorType.NoNeededNoChangeFinalTaraOnChildMoreThanOne => "На следующих этапах, имеющих признак 'не менять тару', заданы различные конечные тары.",
+                            NewDataErrorType.NoNeededNoChangeFinalTaraOnChild => "На следующем этапе, имеющем признак 'не менять тару', задана конечная тара, которой нет в списке приёмных тар на текущем уровне.",
+
                             _ => "Необработанная ошибка. Обратитесь в ОАУП."
 
                         };
