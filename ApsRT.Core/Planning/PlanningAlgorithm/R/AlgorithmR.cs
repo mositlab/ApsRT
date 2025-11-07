@@ -66,7 +66,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             }
         }
 
-        void AddFixedOrVPZ(PlanSimulatorMod firstMod)
+        void AddFixedOrVPZ(PlanSimulatorMod firstMod, bool asParr)
         {
             if (firstMod.IsFixed)
             {
@@ -78,6 +78,21 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 if (firstMod.IsFactOrVPZ)
                 {
                     VPZCompleted++;
+                }
+            }
+            if (!asParr)
+            {
+                if (firstMod.IsFixed)
+                {
+                    basisLink.FixedBlocks++;
+                    basisLink.VPZBlocks++;
+                }
+                else
+                {
+                    if (firstMod.IsFactOrVPZ)
+                    {
+                        basisLink.VPZBlocks++;
+                    }
                 }
             }
             //if (firstMod.IsFixed)
@@ -120,7 +135,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             OpersCopy.Remove(block);
             var level = block.Lists[0].FirstOperJust.Level;
             GroupedByLevel[level].Remove(block);
-            AddFixedOrVPZ(firstMod);
+            AddFixedOrVPZ(firstMod, false);
         }
 
         void AddBlockParallel(PlanSimulatorBlock block, Uco center, Uco tara, double max, PlanSimulatorBlock mainBlock)
@@ -147,7 +162,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             mainBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
 
-            AddFixedOrVPZ(firstMod);
+            AddFixedOrVPZ(firstMod, true);
 
             AddOneRCData(firstMod, center);
 

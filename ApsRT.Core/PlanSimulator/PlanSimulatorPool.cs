@@ -653,15 +653,15 @@ namespace ApsRT.Core.PlanSimulator
         /// <returns>Минимальный и максимальные индексы пула, куда можно поставить блок (включительно, в рандомайзерах надо будет прибавлять к max единицу).</returns>
         internal (int MIN, int MAX, int Prev, int Next) FindDiapazons(PlanSimulatorBlock opertoIns, int PoolIndex, Uco onRC, int wannaThisPlace)
         {
-            var MIN = opertoIns.Lists[0].StagesAsNormal[0].VPZ || opertoIns.Lists[0].StagesAsNormal[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.GLOBAL_FIXED_MIN : SessionLink.AssignedPlanningAlgorithm.GLOBAL_VPZ_MAX; // минимум - никаких операций нет, поэтому -1. Если будет хоть одна операция, то вставляем строго после нее.
-            var MAX = opertoIns.Lists[0].StagesAsNormal[0].VPZ || opertoIns.Lists[0].StagesAsNormal[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.GLOBAL_VPZ_MAX : Blocks.Count; // максимум - включительно, включая последний же индекс. Insert вставит его ПЕРЕД этим индексом, поэтому всё норм.
+            var MIN = opertoIns.Lists[0].StagesAsNormal[0].Fixed ? 0 : (opertoIns.Lists[0].StagesAsNormal[0].VPZ || opertoIns.Lists[0].StagesAsNormal[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.FixedBlocks : SessionLink.AssignedPlanningAlgorithm.VPZBlocks); // минимум - никаких операций нет, поэтому -1. Если будет хоть одна операция, то вставляем строго после нее.
+            var MAX = opertoIns.Lists[0].StagesAsNormal[0].Fixed ? SessionLink.AssignedPlanningAlgorithm.FixedBlocks : (opertoIns.Lists[0].StagesAsNormal[0].VPZ || opertoIns.Lists[0].StagesAsNormal[0].IsFact ? SessionLink.AssignedPlanningAlgorithm.VPZBlocks : Blocks.Count); // максимум - включительно, включая последний же индекс. Insert вставит его ПЕРЕД этим индексом, поэтому всё норм.
 
             // Определяем границы
             int Prev = opertoIns.PreviousBlockOnThisRC[PoolIndex]?.BlockIndex[PoolIndex] ?? -1;
             int Next = opertoIns.NextBlockOnThisRC[PoolIndex]?.BlockIndex[PoolIndex] ?? -1;
 
-            MIN = (opertoIns.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(mod => mod.BlockLink.BlockIndex[PoolIndex]))) + 1;
-            MAX = (opertoIns.Lists.Min(list => list.NextMods.Count == 0 ? Blocks.Count : list.NextMods.Max(mod => mod.BlockLink.BlockIndex[PoolIndex])));
+            MIN = Math.Max(MIN, (opertoIns.Lists.Max(list => list.PrevMods.Count == 0 ? -1 : list.PrevMods.Max(mod => mod.BlockLink.BlockIndex[PoolIndex]))) + 1);
+            MAX = Math.Min(MAX, (opertoIns.Lists.Min(list => list.NextMods.Count == 0 ? Blocks.Count : list.NextMods.Max(mod => mod.BlockLink.BlockIndex[PoolIndex]))));
 
             return (MIN, MAX, Prev, Next);
         }

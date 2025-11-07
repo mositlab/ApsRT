@@ -87,14 +87,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             if (Rechanges < otherResult.Rechanges) return true;
             if (Rechanges > otherResult.Rechanges) return false;
 
+            if (DeltaFromDeadline < otherResult.DeltaFromDeadline) return true;
+            if (DeltaFromDeadline > otherResult.DeltaFromDeadline) return false;
+
             if (OperCount > otherResult.OperCount) return true;
             if (OperCount < otherResult.OperCount) return false;
 
             if (DeltaFromStart < otherResult.DeltaFromStart) return true;
             if (DeltaFromStart > otherResult.DeltaFromStart) return false;
-
-            if (DeltaFromDeadline < otherResult.DeltaFromDeadline) return true;
-            if (DeltaFromDeadline > otherResult.DeltaFromDeadline) return false;
 
             if (IsFromSameOrder && !otherResult.IsFromSameOrder) return true;
             if (!IsFromSameOrder && otherResult.IsFromSameOrder) return false;

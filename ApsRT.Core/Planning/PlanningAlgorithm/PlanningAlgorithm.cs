@@ -95,6 +95,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
         public int GLOBAL_FIXED_MIN = 0;
         public int GLOBAL_VPZ_MAX = 0;
 
+        public int FixedBlocks = 0;
+        public int VPZBlocks = 0;
+
         public bool FoundSmth = false, FoundGlobal = false;
 
         public bool AlgorithmProcess()

@@ -576,6 +576,7 @@ namespace ApsRT.Core.Session
                 "Стандартный РЦ;" +
                 "Выбранный РЦ;" +
                 "ГруппаНаОдномРЦ;" +
+                "ПодразделениеРЦ;" +
                 "Заказ;" +
                 "Партия ГП;" +
                 "ПартияПФ;" +
@@ -636,7 +637,7 @@ namespace ApsRT.Core.Session
                             $"{rechanges.interval.Duration:G};" +
                             $"{(int)rechanges.interval.Duration.TotalSeconds}" +
                             $";{nextOper.Index};{nextOper.GUID};{nextOper.Registrator}" +
-                            $";;;;;;;{blockRC};;;;;;;;" +
+                            $";;;;;;;{blockRC};;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
 
@@ -694,6 +695,7 @@ namespace ApsRT.Core.Session
                             $"{operLoc.OriginalCenter};" +
                             $"{blockRC};" +
                             $"{(block.PoolLink.ModIDToOnOneRCGroupID.TryGetValue(currMod.ModID, out var group) ? group.ToString() : "-1")};" +
+                            $"{SessionLink.MasterDataLinks.CentersMasterData.CentersData[blockRC].Subdivision};" +
                             $"{ord};" +
                             $"{gp};" +
                             $"{operLoc.GetOrderOrPartiaCode()};" +
