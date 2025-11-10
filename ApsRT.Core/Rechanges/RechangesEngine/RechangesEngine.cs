@@ -90,36 +90,43 @@ namespace ApsRT.Core.Rechanges.RechangesEngine
             if (parameters.CanBeNumber)
             {
                 storage.NumberSubStorage ??= new();
-                UniversalAddToSubStorage<float?, A>(storage.NumberSubStorage, from, float.TryParse(from.Replace('.', ','), out var valueFrom) ? valueFrom : 0, to, float.TryParse(to.Replace('.', ','), out var valueTo) ? valueTo : 0, item);
-            }
 
-            if (parameters.CanBeDiapazon)
-            {
-                storage.DiapazonSubStorage ??= new();
+                bool FromIsNumber = float.TryParse(from.Replace('.', ','), out var valueFromNumber);
+                bool ToIsNumber = float.TryParse(to.Replace('.', ','), out var valueToNumber);
+
+                // Попробуем поработать с диапазонами
                 Vector2? fromV = TryConvert(from);
                 Vector2? toV = TryConvert(to);
-                int? fromIndex = fromV.HasValue ? storage.AddOrGetDiapazonByVector(fromV.Value) : null;
-                int? toIndex = toV.HasValue ? storage.AddOrGetDiapazonByVector(toV.Value) : null;
-                UniversalAddToSubStorage<int?, A>(storage.DiapazonSubStorage, from, fromIndex, to, toIndex, item);
-
-                // На всякий случай ещё с числами поработаем
-                if (parameters.CanBeNumber)
+                if (fromV.HasValue || toV.HasValue) // Хотя бы один является диапазоном
                 {
-                    if (from != NothingLabel && from != AnyElseLabel && float.TryParse(from.Replace('.', ','), out var valueFrom) && toIndex.HasValue)
+                    parameters.CanBeDiapazon = true;
+                    storage.DiapazonSubStorage ??= new();
+                    int? fromIndex = fromV.HasValue ? storage.AddOrGetDiapazonByVector(fromV.Value) : null;
+                    int? toIndex = toV.HasValue ? storage.AddOrGetDiapazonByVector(toV.Value) : null;
+
+                    // Имееть смысл пихать, только если это ОБА диапазоны
+                    if (!FromIsNumber && !ToIsNumber) UniversalAddToSubStorage<int?, A>(storage.DiapazonSubStorage, from, fromIndex, to, toIndex, item);
+
+                    if (from != NothingLabel && from != AnyElseLabel && FromIsNumber && toIndex.HasValue)
                     {
                         storage.FromNumberToDiapazon ??= new();
-                        storage.FromNumberToDiapazon.TryAdd(valueFrom, new());
-                        storage.FromNumberToDiapazon[valueFrom].TryAdd(toIndex.Value, new());
-                        storage.FromNumberToDiapazon[valueFrom][toIndex.Value].Add(item);
+                        storage.FromNumberToDiapazon.TryAdd(valueFromNumber, new());
+                        storage.FromNumberToDiapazon[valueFromNumber].TryAdd(toIndex.Value, new());
+                        storage.FromNumberToDiapazon[valueFromNumber][toIndex.Value].Add(item);
                     }
 
-                    if (to != NothingLabel && to != AnyElseLabel && float.TryParse(to.Replace('.', ','), out var valueTo) && fromIndex.HasValue)
+                    if (to != NothingLabel && to != AnyElseLabel && ToIsNumber && fromIndex.HasValue)
                     {
                         storage.FromDiapazonToNumber ??= new();
                         storage.FromDiapazonToNumber.TryAdd(fromIndex.Value, new());
-                        storage.FromDiapazonToNumber[fromIndex.Value].TryAdd(valueTo, new());
-                        storage.FromDiapazonToNumber[fromIndex.Value][valueTo].Add(item);
+                        storage.FromDiapazonToNumber[fromIndex.Value].TryAdd(valueToNumber, new());
+                        storage.FromDiapazonToNumber[fromIndex.Value][valueToNumber].Add(item);
                     }
+                }
+                else
+                {
+                    // Ни один не является диапазоном, заполняем по старинке
+                    UniversalAddToSubStorage<float?, A>(storage.NumberSubStorage, from, valueFromNumber, to, valueToNumber, item);
                 }
             }
         }

@@ -20,7 +20,7 @@ namespace ApsRT.Core.Rechanges.Hoppers
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
 
 
-        [DataRecordColumn("Наименование")]
+        [DataRecordColumn("Критерий")]
         public string Name { get; set; }
 
         [DataRecordColumn("ЭтоЧисло", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
@@ -41,14 +41,17 @@ namespace ApsRT.Core.Rechanges.Hoppers
         [DataRecordColumn("Сортировать", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool Sort { get; set; }
 
-        [DataRecordColumn("ЭтоСсылка", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
+        [DataRecordColumn("ЭтоМетодAPS", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool IsLink { get; set; }
 
         [DataRecordColumn("Динамичный", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool IsDynamic { get; set; }
 
-        [DataRecordColumn("ИндексМетода")]
-        public int MethodLinkIndex { get; set; }
+        [DataRecordColumn("ИндексМетода", defaultIfFail: true)]
+        public int? MethodLinkIndex { get; set; }
+
+        [DataRecordColumn("ИмяМетодаAPS")]
+        public string MethodLinkName { get; set; }
 
         [DataRecordColumn("ИменаСтолбцовТаблицыОперацийЗначения")]
         public string CalumnValueNames { get; set; }

@@ -23,8 +23,16 @@ namespace ApsRT.Core.Rechanges
 
             if (IsLink)
             {
-                LinkDataObtainer = CustomRechangeCriteriaMethods.MethodsArray[model.MethodLinkIndex];
-                LinkValuesCountObtainer = CustomRechangeCriteriaMethods.MethodsValuesCountArray[model.MethodLinkIndex];
+                var indexByName = CustomRechangeCriteriaMethods.GetMethodIndexByName(model.MethodLinkName);
+
+                int finalIndex = indexByName == -1 ? (model.MethodLinkIndex.HasValue ? model.MethodLinkIndex.Value : -1) : indexByName;
+
+                if (finalIndex != -1)
+                {
+                    LinkDataObtainer = CustomRechangeCriteriaMethods.MethodsArray[finalIndex];
+                    LinkValuesCountObtainer = CustomRechangeCriteriaMethods.MethodsValuesCountArray[finalIndex];
+                }
+
             }
 
             (string, string)[] columnNames = null;
@@ -39,7 +47,14 @@ namespace ApsRT.Core.Rechanges
             }
 
             StagesTableColumnsNames = columnNames;
+
+            CanBeUsed = LinkDataObtainer != null || (StagesTableColumnsNames != null && StagesTableColumnsNames.Length > 0);
         }
+
+        /// <summary>
+        /// Можно ли его вообще использовать
+        /// </summary>
+        public bool CanBeUsed { get; }
 
         /// <summary>
         /// Имя критерия
@@ -57,9 +72,9 @@ namespace ApsRT.Core.Rechanges
         public bool CanBeNumber { get; }
 
         /// <summary>
-        /// Может быть диапазоном? Как например диаметры и сечение
+        /// Может быть диапазоном? Как например диаметры и сечение. Это ЕДИНСТВЕННЫЙ тип, который я могу изменить при загрузке, если столкнусь с диапазонами при чтении НСИ.
         /// </summary>
-        public bool CanBeDiapazon { get; }
+        public bool CanBeDiapazon { get; set; }
 
         /// <summary>
         /// Может быть строкой? Как, к примеру, вид металла или красители

@@ -12,6 +12,21 @@ namespace ApsRT.Core.Rechanges
     public static class CustomRechangeCriteriaMethods
     {
 
+        public static int GetMethodIndexByName(string name)
+        {
+            switch (name)
+            {
+                case nameof(GetOperVid): return 0;
+                case nameof(GetPlacesCount): return 1;
+                case nameof(GetProstoi): return 2;
+                case nameof(GetOtdTara): return 3;
+                case nameof(GetVspomTaraCount): return 4;
+                case nameof(GetNormTaraCount): return 5;
+                case nameof(GetAllOtdTaraCount): return 6;
+                default: return -1;
+            }
+        }
+
         public static
         Func<Stage, RechangesEngineData, Type, int, object>[] MethodsArray = new Func<Stage, RechangesEngineData, Type, int, object>[7]
         {
@@ -22,6 +37,17 @@ namespace ApsRT.Core.Rechanges
             GetVspomTaraCount,
             GetNormTaraCount,
             GetAllOtdTaraCount,
+        };
+
+        public static bool[] ThisMethodIsDynamic = new bool[]
+        {
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
         };
 
         public static
