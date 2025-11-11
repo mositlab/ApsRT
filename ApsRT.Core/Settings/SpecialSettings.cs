@@ -19,7 +19,7 @@ namespace ApsRT.Core.Settings
 
         public string LivensteinCodesCriteriaName { get; set; }
 
-        public bool CalculateSubdivisionsTransfers { get; set; }
+        //public bool CalculateSubdivisionsTransfers { get; set; }
 
     }
 }

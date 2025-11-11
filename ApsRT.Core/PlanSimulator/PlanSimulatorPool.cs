@@ -99,6 +99,7 @@ namespace ApsRT.Core.PlanSimulator
                 return array;
             });
 
+            /*
             FrozenDictionary<Guid, PlanSimulatorLastSubsData[]> LastSubs = null;
             if (SessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
             {
@@ -112,7 +113,7 @@ namespace ApsRT.Core.PlanSimulator
                     return array;
                 });
             }
-
+            */
 
             Blocks = blocks;
 
@@ -169,9 +170,7 @@ namespace ApsRT.Core.PlanSimulator
                             stage.NaladLengthData[i] = new PlanSimulatorNaladLengthData(-1, length);
                         }
                         stage.PartiaRecalcData = PartiasToRecalc[partiaCode];
-                        if (LastSubs != null) stage.LastSubsData = LastSubs[partiaCode];
-                        //stage.PreviousStages = stage.Stage.Prevs.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
-                        //stage.NextStages = stage.Stage.Nexts.AsValueEnumerable().Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x]).ToList();
+                        //if (LastSubs != null) stage.LastSubsData = LastSubs[partiaCode];
                     }
                 }
                 (var center, _, _) = block.GetCenterData(0);

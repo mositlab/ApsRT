@@ -48,7 +48,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <summary>
         /// Сколько было переходов из цеха в цех
         /// </summary>
-        public int SubdivisionsTransfer { get; set; }
+        //public int SubdivisionsTransfer { get; set; }
 
         public int CatchedNaladLengthsErrorsCount { get => (ModellingsWithBrokenFreeNaladLengths?.Count ?? 0) + (StagesWithBrokenFixedNaladLengths?.Count ?? 0); }
 

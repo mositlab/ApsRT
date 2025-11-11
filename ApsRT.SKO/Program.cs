@@ -27,7 +27,7 @@ namespace ApsRT.SKO
             sessionLink.Start();
             sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = true;
             sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = true;
-            sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = true;
+            //sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = true;
             sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "";
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "";
 

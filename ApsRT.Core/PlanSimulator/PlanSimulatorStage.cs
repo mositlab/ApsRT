@@ -10,7 +10,6 @@ namespace ApsRT.Core.PlanSimulator
         public PlanSimulatorNaladLengthData[] NaladLengthData;
         public PlanSimulatorOrderData[] OrderData;
         public PlanSimulatorPartiaRecalcData[] PartiaRecalcData;
-        public PlanSimulatorLastSubsData[] LastSubsData;
 
         public List<PlanSimulatorStage> PreviousStages;
         public List<PlanSimulatorStage> NextStages;

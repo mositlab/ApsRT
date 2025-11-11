@@ -287,6 +287,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     ProcessOrder(PoolIndex, operationB, lastDateFinally, currentFlag, resultToFill);
                 }
 
+                /*
                 // Попробуем подсчитать переход из цеха в цех
                 if (resultToFill.Session.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
                 {
@@ -307,6 +308,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         }
                     }
                 }
+                */
 
                 // Задаём минимальные даты начала детям
                 SetMinDatesToChilds(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);

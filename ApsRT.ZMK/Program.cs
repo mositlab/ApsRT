@@ -28,7 +28,7 @@ namespace ApsRT.ZMK
             sessionLink.Start();
             sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = false;
             sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = false;
-            sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = false;
+            //sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = false;
             sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "Сечение";
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
 
