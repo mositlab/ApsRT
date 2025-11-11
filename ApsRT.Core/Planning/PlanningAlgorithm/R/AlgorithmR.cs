@@ -423,8 +423,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 ALL_COUNT = basisLink.UsedPool.Blocks.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Distinct().Count();
                 Console.WriteLine("R, count f, " + ALL_COUNT);
 
-                //Console.WriteLine("R: durations...");
-                //Step3_DurationsProcessor();
+                Console.WriteLine("R: durations...");
+                Step3_DurationsProcessor();
 
                 Console.WriteLine("R: post checker...");
                 Step4_PostChecker();
@@ -449,11 +449,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 for (int blockIndex = 0; blockIndex < LinearPlan.Count; blockIndex++)
                 {
                 if (basisLink.WannaStop) break;
-                var mod = LinearPlan[blockIndex].Lists[0];
-                if (mod.AllTime.Any(x => x.Value != mod.AllTime.First().Value))
-                {
-                    ;
-                }
+                var block = LinearPlan[blockIndex];
+                var mod = block.Lists[0];
+                //if (mod.AllTime.Any(x => x.Value != mod.AllTime.First().Value))
+                //{
+                //    ;
+                //}
                 var actualRC = LinearPlan[blockIndex].GetCenterData(0);
                 var currentDuration = LinearPlan[blockIndex].MaxTime(actualRC.Center);
                 var possibleBetterRCs = LinearPlan[blockIndex].PossibleRCsHere.Where(center => currentDuration > LinearPlan[blockIndex].MaxTime(center)).ToArray();
@@ -464,26 +465,57 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 {
                     ;
 
-
-
-
                     var res0 = Parallel.For(0, possibleBetterRCs.Length, rcIndex =>
                     {
                         if (basisLink.WannaStop) return;
 
-                        //if (TaraSearchEngine.SumIsPossible())
-                        /*
-                         , new SumIsPossibleOptions(false)
-            {
-                LogSomeErrors = false,
-                PrevsInfo = PrevsInfoForR,
-                RCMustBeThis = new HashSet<Uco>() { currentCenter },
-                TaraMustBeThis = new HashSet<Uco>() { currentTara },
-                ModToTaraInfoLink = basisLink.ModToTaraInfo
-            }
-                         */
-
                         var rc = possibleBetterRCs[rcIndex];
+
+                        Uco choosenTara = Uco.EmptyObject;
+                        double maxNamotka = 0;
+                        if (mod.EasyLifeData == null)
+                        {
+                            if (!TaraSearchEngine.SumIsPossible(mod, out choosenTara, out _, out maxNamotka, out _, out _, out _, new SumIsPossibleOptions(false)
+                            {
+                                LogSomeErrors = false,
+                                PrevsInfo = PrevsInfoForR,
+                                RCMustBeThis = new HashSet<Uco>() { rc },
+                                ModToTaraInfoLink = basisLink.ModToTaraInfo,
+                                NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCs(mod.StagesAsNormal, (index) => mod.BlockLink.PoolLink.StagesLinks.TryGetValue(index, out var s) ? s.ModLink.BlockLink.GetCenterData(0).Center : null),
+                                NaladLength = mod.NaladLengthData[0].Data.NaladLengthHere.Value + mod.NaladLengthData[0].Data.NaladLengthNexts.Value // Текущую налад длину берём
+                            }))
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if (!mod.EasyLifeData.All(easyMod =>
+                            {
+                                var localMod = easyMod.Value.AsMod;
+                                bool result = TaraSearchEngine.SumIsPossible(localMod, out var choosenTaraLoc, out _, out var maxNamotkaLoc, out _, out _, out _, new SumIsPossibleOptions(false)
+                                {
+                                    LogSomeErrors = false,
+                                    PrevsInfo = PrevsInfoForR,
+                                    RCMustBeThis = new HashSet<Uco>() { rc },
+                                    ModToTaraInfoLink = basisLink.ModToTaraInfo,
+                                    NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCs(localMod.AllOpers, (index) => mod.BlockLink.PoolLink.StagesLinks.TryGetValue(index, out var s) ? s.ModLink.BlockLink.GetCenterData(0).Center : null),
+                                    NaladLength = easyMod.Value.NaladLengthData[0].Data.NaladLengthHere.Value + easyMod.Value.NaladLengthData[0].Data.NaladLengthNexts.Value // Текущую налад длину берём
+                                });
+
+                                if (result && maxNamotkaLoc > maxNamotka)
+                                {
+                                    maxNamotka = maxNamotkaLoc;
+                                    choosenTara = choosenTaraLoc;
+                                }
+
+                                return result;
+                            }))
+                            {
+                                return;
+                            }
+                        }
+
                         while (AvailableIndexes.Count == 0)
                         {
                             ;
@@ -497,9 +529,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         {
                             // Выполним условие "НаОдномРЦ"
 
-
                             PlanSimulatorPool.MoveCentersInAllBlocks(LinearPlan, 0, IndexToWorkWith);
                             LinearPlan[blockIndex].SetCenter(rc, IndexToWorkWith);
+                            block.PoolLink.UpdateOpsOnOneRC(block, IndexToWorkWith); // Реализуем ограничение "на одном РЦ"
+
                             var localResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, IndexToWorkWith, basisLink.StartOfPlanningDate, null);
                             lock (locker)
                             {
@@ -513,6 +546,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                 )
                                 {
                                     LinearPlan[blockIndex].SetCenter(rc, 0);
+                                    block.PoolLink.UpdateOpsOnOneRC(block, 0); // Реализуем ограничение "на одном РЦ"
+                                    UpdateTaraOnMod(mod, choosenTara, maxNamotka, true); // Перезаписываем тару
                                     LastResult = localResult;
                                     basisLink.UpdateBcsSuccess(localResult, LinearPlan, 0);
                                 }
@@ -1238,6 +1273,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 
+
+
                     bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
                     lock (locker)
@@ -1247,6 +1284,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             !ThisWillBrokeMyResult
                             )
                         {
+
+
                             searcherClass.minResult = localResult;
                             searcherClass.ChoosenMod = mod;
                             searcherClass.ChoosenCenter = ForceThisTara ? currentCenter : rc;
@@ -1447,6 +1486,12 @@ List<PlanSimulatorBlock> toCheck;
                         Console.WriteLine($"badly set {searcherClass.ChoosenMod} {{{searcherClass.ChoosenMod.ModType}}} as {LinearPlan.Count} on RC {searcherClass.ChoosenCenter} (was {searcherClass.ChoosenMod.FirstOperJust.Center}), tara was {searcherClass.ChoosenMod.FirstOperJust.CurrentTara}, now {searcherClass.ChoosenTara}");
                     }
 
+
+                    //if (searcherClass.ChoosenMod.StagesAsNormal.Any(op => op.GUID.ToString() == "18792b6b-89b6-11f0-be4a-3cecef1c38f6") /*&& LinearPlan.Count >= 100*/)
+                    //{
+                    //    Console.WriteLine($"{LinearPlan.Count}: {searcherClass.minResult.Rechanges} with price {searcherClass.minResult.TotalCost} on {searcherClass.ChoosenCenter.Label}");
+                    //    ;
+                    //}
                     //if (searcherClass.ChoosenMod.BlockLink.PoolLink.RecommendedTara.TryGetValue(searcherClass.ChoosenMod, out var recTara))
                     //{
                     //    if (searcherClass.ChoosenTara != recTara)
@@ -1561,6 +1606,7 @@ List<PlanSimulatorBlock> toCheck;
 
         (TimeSpan Rechanges, TimeSpan TotalTime, TimeSpan TotalTimeNoOp, int timeTransferLeft) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
         {
+
             errorsCount = 0;
 
             if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, 0);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
@@ -1657,6 +1703,7 @@ List<PlanSimulatorBlock> toCheck;
             //var res1 = (float)(time1 - minDate).TotalSeconds;
 
             //var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
+
 
             return (rechesDur, lastDate - startDate, time1 - startDate, timeTransfer);
 

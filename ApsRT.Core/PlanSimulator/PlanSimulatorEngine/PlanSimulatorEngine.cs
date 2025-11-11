@@ -679,6 +679,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                             result.StagesWithBrokenFixedNaladLengths.Add(thatEtap.Index);
                         //else
                         //    result.StagesWithBrokenFixedNaladLengths.Remove(thatEtap.Index);
+                        //if (info.HadBrokenFreeNaladLength)
+                        //    result.ModellingsWithBrokenFreeNaladLengths.Add(thatEtap.Index);
                     }
                     else
                     {
@@ -879,11 +881,11 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             stage.NaladLengthData[PoolIndex].HadBrokenFreeNaladLength = hasError;
             if (hasError)
             {
-                resultToFill.ModellingsWithBrokenFreeNaladLengths.Add(modGuid);
+                //resultToFill.ModellingsWithBrokenFreeNaladLengths.Add(modGuid); ВЕРНУТЬ!!!!!!!!!
             }
             else
             {
-                //resultToFill.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid);
+                //resultToFill.ModellingsWithBrokenFreeNaladLengths.Remove(modGuid); А ВОТ УЖЕ НЕ НАДО
             }
         }
 
