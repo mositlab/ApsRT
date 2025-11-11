@@ -491,7 +491,7 @@ namespace ApsRT.Core.Session
         {
             var outputFile = new StreamWriter(filename, false, Encoding.UTF8);
 
-            outputFile.WriteLine($"GUID;Номенклатура;ЗП;Партия ГП;Спецификация;" +
+            outputFile.WriteLine($"GUID;Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
                     $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
                     $"ДебагНомерМода;Подразделение;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
                     $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки");
@@ -525,7 +525,7 @@ namespace ApsRT.Core.Session
                             {
                                 Guid ord = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Object.Code : Guid.Empty;
                                 var gp = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Version : "";
-                                outputFile.WriteLine($"{operLoc.GUID};{operLoc.Nomenklature.Code};{ord};{gp};{operLoc.Specification.Code};" +
+                                outputFile.WriteLine($"{operLoc.GUID};{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
                                     $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +

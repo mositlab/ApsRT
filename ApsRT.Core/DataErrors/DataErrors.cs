@@ -89,6 +89,10 @@ namespace ApsRT.Core.DataErrors
             bool yesdOP = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TechData != null);
             bool yes6 = NewDataErrors.Any(x => x.Key >= 0);
 
+
+            bool yesCharNom = NewDataErrors.Any(x => x.Key >= 0 /*&& allStages[x.Key]*/);
+            bool yesCharProd = NewDataErrors.Any(x => x.Key >= 0 /*&& allStages[x.Key]*/);
+
             var allStages = session.MasterDataLinks.StagesMasterData.AllStages;
 
             bool yes61 = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].RCRoute.IsEmpty);
@@ -112,7 +116,7 @@ namespace ApsRT.Core.DataErrors
             var str1 = $"{BtoS(yes1)};{BtoS(yes2)};{BtoS(yes3)};{BtoS(yes4)};{BtoS(yes5)};{BtoS(yes51)};{BtoS(yes52)};" +
                 $"{BtoS(yes55)};{BtoS(yes56)};" +
                 $"{BtoS(yes6 || yesCOL)};{BtoS(yesPrevs)};{BtoS(yesNexts)};" +
-                $"{BtoS(yes6)};{BtoS(yes6 || yesCProd)};{BtoS(yes6 || yesCNom)};{BtoS(yes6 || yesCVid)};" +
+                $"{BtoS(yes6)};{BtoS(yes6 || yesCProd)};{BtoS(yes6 || yesCNom)};{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{BtoS(yes6 && yesCharNom)};{BtoS(yes6 && yesCharProd)};" : "")}{BtoS(yes6 || yesCVid)};" +
                 $"{BtoS(yes61 || yesCRC)};{BtoS(yes62 || yesCRCR)};" +
                 $"{BtoS(yes6)};{BtoS(yes6)};{BtoS(yes6 || yes54)};" +
                 $"{BtoS(yes53)};" +
@@ -121,7 +125,7 @@ namespace ApsRT.Core.DataErrors
             var str2 = "ДоступныеРЦТекущегоЭтапа;ПриемнаяТараТекущегоЭтапа;ТребуемаяОтдающаяТара;МаксНамоткиТекущегоЭтапа;ПересечениеМаксНамотокПриемнойТары;РЦСледующегоЭтапа;ТараСледующегоЭтапа;" +
                 "РЦПредыдущегоЭтапа;ТараПредыдущегоЭтапа;" +
                 "Этап;ПредыдущиеЭтапы;СледующиеЭтапы;" +
-                "МетодРасчёта;Продукция;Номенклатура;ВидОперации;" +
+                $"МетодРасчёта;Продукция;Номенклатура;{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ВидОперации;" +
                 "РЦ;ГруппаЗаменяемостиРабочихЦентров;" +
                 "Заказ;ПартияГП;ИдентификаторПартииПФ;" +
                 "НастройкиФормированияПартий;" +
@@ -250,7 +254,9 @@ namespace ApsRT.Core.DataErrors
                             $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
-                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Code : op?.OperationVid.Code)};" +
+                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};" +
+                            $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Code};{op?.ProductionCharacteristics.Code};" : "")}" +
+                            $"{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Code : op?.OperationVid.Code)};" +
                             $"{(error.Value.customRC.HasValue ? error.Value.customRC.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? op.Center.Code : "")))};" +
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Code : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Code)))};" +
                             $"{op?.OrderLink.OrderID.Object.Code};{op?.OrderLink.OrderID.Version};" +
@@ -267,7 +273,9 @@ namespace ApsRT.Core.DataErrors
                             $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
-                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklature.Label)};{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Label : op?.OperationVid.Label)};" +
+                            $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklature.Label)};" +
+                            $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Label};{op?.ProductionCharacteristics.Label};" : "")}" +
+                            $"{(error.Value.customVid.HasValue ? error.Value.customVid.Value.Label : op?.OperationVid.Label)};" +
                             //$"{op?.RCRoute.Label};" +
                             $"{(error.Value.customRC.HasValue ? error.Value.customRC.Value.Label : (op == null ? "" : (op.RCRoute.IsEmpty ? op.Center.Label : "")))};" +
                             $"{(error.Value.customRCroute.HasValue ? error.Value.customRCroute.Value.Label : (op == null ? "" : (op.RCRoute.IsEmpty ? "" : op.RCRoute.Label)))};" +
