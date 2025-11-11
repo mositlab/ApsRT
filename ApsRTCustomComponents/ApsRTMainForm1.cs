@@ -1530,12 +1530,14 @@ namespace ApsRTCustomComponents
                             (operLoc.IsLast ? Color.Yellow : (parallelCount > 1 ? Color.DarkGreen : Colors.MOSITLAB_BLUE)), Colors.MOSITLAB_BLUE_DARK,
                             $"Операция {operLoc.Index} ({operLoc.GUID}) (вид: {operLoc.OperationVid})" +
                             ((operLoc.Center == blockRC) ? "" : $"\r\nСтандартный РЦ: {operLoc.Center}") +
+                            $"\r\nРЦ: {blockRC}" +
                             $"\r\nРанг: {currentRank}" +
                             $"\r\nИндекс блока: {currMod.BlockLink.BlockIndex[PoolIndex]}" +
                             (operLoc.PrevDateTime.HasValue ? $"\r\nПред. время: {operLoc.PrevDateTime.Value} + {(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)} = {operLoc.PrevDateTime.Value.Add(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)}" : "") +
                             $"\r\nGUID партии: {operLoc.GetOrderOrPartiaCode()}" +
                             $"\r\nНоменклатура: {operLoc.Nomenklature}" +
                             //(centerGlobalData.ParallelModelling ? $"\r\n*Сокращённая" : "") +
+                            $"\r\nХарактеристика: {operLoc.Characteristics}, продукции: {operLoc.ProductionCharacteristics}" +
                             $"\r\nПродукция: {operLoc.Production}" +
                             $"\r\nНаладочная длина: {operLoc2.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value}" +
                             $"\r\nРегистратор: {operLoc.Registrator}" +
