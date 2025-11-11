@@ -31,6 +31,8 @@ namespace ApsRT.Core.NaladLengths
 
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
+        [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика")]
+        public Uco Characteristics { get; set; }
 
         [DataRecordColumn("НаладочнаяДлина")]
         public double Length { get; set; }

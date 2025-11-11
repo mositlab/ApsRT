@@ -28,6 +28,8 @@ namespace ApsRT.Core.Partias.Zadels
 
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
+        [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика")]
+        public Uco Characteristics { get; set; }
 
         [DataRecordColumn("НомерПовива", defaultIfFail: true)]
         public int Poviv { get; set; }

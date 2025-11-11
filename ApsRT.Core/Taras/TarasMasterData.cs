@@ -37,29 +37,54 @@ namespace ApsRT.Core.Taras
         internal Dictionary<Uco, int> TarasPossibleCount = new();
 
         internal Dictionary<Uco /*Номенклатура*/,
+                Dictionary<Uco, /*Хар-ка*/
             Dictionary<Uco, // ВидТехнологическойОперации
-            (bool NotCheckPrice, bool NotCheckMax)>> IsklNomen
+            (bool NotCheckPrice, bool NotCheckMax)>>
+                    > IsklNomen
             = new(); // Исключения номенклатуры
 
         internal void AddIsklNomenData(IsklNomenDataLoaderModel model)
         {
             var nomen = model.Nomenklature;
+            var chars = model.Characteristics;
             var vid = model.OperationVid;
             IsklNomen.TryAdd(nomen, new());
-            IsklNomen[nomen].TryAdd(vid, new());
-            IsklNomen[nomen][vid] = (model.NotCheckPrice, model.NotCheckMax);
+            IsklNomen[nomen].TryAdd(chars, new());
+            IsklNomen[nomen][chars].TryAdd(vid, new());
+            IsklNomen[nomen][chars][vid] = (model.NotCheckPrice, model.NotCheckMax);
         }
 
         internal bool NotCheckNamotka(Stages.Stage op)
         {
             if (IsklNomen.TryGetValue(op.Nomenklature, out var lvl1))
             {
-                if (lvl1.TryGetValue(op.OperationVid, out var res)) return res.NotCheckMax;
-                if (lvl1.TryGetValue(Uco.EmptyObject, out var res2)) return res2.NotCheckMax;
+                if (lvl1.TryGetValue(op.Characteristics, out var lvl12))
+                {
+                    if (lvl12.TryGetValue(op.OperationVid, out var res)) return res.NotCheckMax;
+                    if (lvl12.TryGetValue(Uco.EmptyObject, out var res2)) return res2.NotCheckMax;
+                }
+
+                if (lvl1.TryGetValue(Uco.EmptyObject, out var lvl13))
+                {
+                    if (lvl13.TryGetValue(op.OperationVid, out var res)) return res.NotCheckMax;
+                    if (lvl13.TryGetValue(Uco.EmptyObject, out var res2)) return res2.NotCheckMax;
+                }
             }
             if (IsklNomen.TryGetValue(Uco.EmptyObject, out var lvl11))
             {
-                if (lvl11.TryGetValue(op.OperationVid, out var res)) return res.NotCheckMax;
+
+                if (lvl11.TryGetValue(op.Characteristics, out var lvl14))
+                {
+                    if (lvl14.TryGetValue(op.OperationVid, out var res)) return res.NotCheckMax;
+                    if (lvl14.TryGetValue(Uco.EmptyObject, out var res2)) return res2.NotCheckMax;
+                }
+
+                if (lvl11.TryGetValue(Uco.EmptyObject, out var lvl15))
+                {
+                    if (lvl15.TryGetValue(op.OperationVid, out var res)) return res.NotCheckMax;
+                    if (lvl15.TryGetValue(Uco.EmptyObject, out var res2)) return res2.NotCheckMax;
+                }
+
             }
             return false;
         }
@@ -205,10 +230,12 @@ namespace ApsRT.Core.Taras
         // макс намотки
         public Dictionary<Uco, // Продукция
             Dictionary<Uco, // Номенклатура
-                Dictionary<Uco, // ОПЕР
-                    Dictionary<Uco, // ТипТары
-                    List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
-                    >
+                Dictionary<Uco, // Хар-ка
+                    Dictionary<Uco, // ОПЕР
+                        Dictionary<Uco, // ТипТары
+                            List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                            >
+                        >
                     >
                 >
             > TarasMaxCapacities
@@ -218,6 +245,7 @@ namespace ApsRT.Core.Taras
         {
             var production = model.Production;
             var Nomen = model.Nomenklature;
+            var Chars = model.Characteristics;
             var oper_int = model.OperationVid;
             if (!TarasMaxCapacities.ContainsKey(production))
             {
@@ -229,9 +257,14 @@ namespace ApsRT.Core.Taras
                 TarasMaxCapacities[production].Add(Nomen, new(/*new CodedObjectEqualityComparer()*/));
             }
 
-            if (!TarasMaxCapacities[production][Nomen].ContainsKey(oper_int))
+            if (!TarasMaxCapacities[production][Nomen].ContainsKey(Chars))
             {
-                TarasMaxCapacities[production][Nomen].Add(oper_int, new());
+                TarasMaxCapacities[production][Nomen].Add(Chars, new());
+            }
+
+            if (!TarasMaxCapacities[production][Nomen][Chars].ContainsKey(oper_int))
+            {
+                TarasMaxCapacities[production][Nomen][Chars].Add(oper_int, new());
             }
 
             var what = (model.DimensionUnit, model.Amount);
@@ -247,14 +280,14 @@ namespace ApsRT.Core.Taras
 
             void Add2(Uco whichTara, (DimensionUnit, double) val)
             {
-                if (!TarasMaxCapacities[production][Nomen][oper_int].ContainsKey(whichTara))
+                if (!TarasMaxCapacities[production][Nomen][Chars][oper_int].ContainsKey(whichTara))
                 {
-                    TarasMaxCapacities[production][Nomen][oper_int].Add(whichTara, new());
+                    TarasMaxCapacities[production][Nomen][Chars][oper_int].Add(whichTara, new());
                 }
 
-                if (!TarasMaxCapacities[production][Nomen][oper_int][whichTara].Contains(val))
+                if (!TarasMaxCapacities[production][Nomen][Chars][oper_int][whichTara].Contains(val))
                 {
-                    TarasMaxCapacities[production][Nomen][oper_int][whichTara].Add(val);
+                    TarasMaxCapacities[production][Nomen][Chars][oper_int][whichTara].Add(val);
                 }
             }
         }
@@ -283,10 +316,12 @@ namespace ApsRT.Core.Taras
             }
 
             Dictionary<Uco, // Номенклатура
-                Dictionary<Uco, // ОПЕР
-                    Dictionary<Uco, // ТипТары
-                    List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
-                    >
+                Dictionary<Uco, // Харка
+                    Dictionary<Uco, // Опер
+                            Dictionary<Uco, // ТипТары
+                            List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                            >
+                        >
                     >
                 > lvl0;
 
@@ -318,18 +353,46 @@ namespace ApsRT.Core.Taras
                 {
                     if (lvl0.TryGetValue(first.Nomenklature, out var lvl1))
                     {
-                        if (lvl1.TryGetValue(first.OperationVid, out var possible))
+                        if (lvl1.TryGetValue(first.Characteristics, out var lvl2))
                         {
-                            var finalList = returnFunc(possible);
-                            SavedTara.TryAdd(first, finalList);
-                            return finalList;
+                            if (lvl2.TryGetValue(first.OperationVid, out var possible))
+                            {
+                                var finalList = returnFunc(possible);
+                                SavedTara.TryAdd(first, finalList);
+                                return finalList;
+                            }
+                            else
+                            {
+                                // Сразу ошибка
+                                dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVidOper, new DataErrorStruct());
+                                return prodError();
+                            }
                         }
                         else
                         {
-                            // Сразу ошибка
-                            dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVidOper, new DataErrorStruct());
-                            return prodError();
+                            if (lvl1.TryGetValue(Uco.EmptyObject, out var lvl22))
+                            {
+                                if (lvl22.TryGetValue(first.OperationVid, out var possible))
+                                {
+                                    var finalList = returnFunc(possible);
+                                    SavedTara.TryAdd(first, finalList);
+                                    return finalList;
+                                }
+                                else
+                                {
+                                    // Сразу ошибка
+                                    dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVidOper, new DataErrorStruct());
+                                    return prodError();
+                                }
+                            }
+                            else
+                            {
+                                // Сразу ошибка
+                                dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoCharacteristics, new DataErrorStruct());
+                                return prodError();
+                            }
                         }
+
                     }
                     else
                     {
@@ -369,29 +432,56 @@ namespace ApsRT.Core.Taras
 
                 bool b1 = TarasMaxCapacities.TryGetValue(first.Production, out lvl0);
                 bool b2 = false;
-                Dictionary<Uco, // ОПЕР
-                    Dictionary<Uco, // ТипТары
-                    List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
-                    >
+
+                Dictionary<Uco, // Харка
+                    Dictionary<Uco, // ОПЕР
+                        Dictionary<Uco, // ТипТары
+                        List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                        >
+                        >
                     > lvl1 = null;
+
+                    Dictionary<Uco, // ОПЕР
+                        Dictionary<Uco, // ТипТары
+                        List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                        >
+                    > lvl11 = null;
+
                 Dictionary<Uco, // ТипТары
                     List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
                     > possible = null;
-                if (b1) b2 = lvl0.TryGetValue(first.Nomenklature, out lvl1);
-                bool b3 = false;
-                if (b2) b3 = lvl1.TryGetValue(first.OperationVid, out possible);
 
-                if (b1 && b2 && b3)
+                if (b1) b2 = lvl0.TryGetValue(first.Nomenklature, out lvl1);
+
+                bool b22 = false;
+                if (b2)
+                {
+                    b22 = lvl1.TryGetValue(first.Characteristics, out lvl11);
+                    if (!b22) b22 = lvl1.TryGetValue(Uco.EmptyObject, out lvl11);
+                }
+
+                bool b3 = false;
+                if (b22) b3 = lvl11.TryGetValue(first.OperationVid, out possible);
+
+                if (b1 && b2 && b22 && b3)
                 {
                     finalList.AddRange(returnFunc(possible));
                 }
 
-                bool b4 = TarasMaxCapacities.TryGetValue(new(Guid.Empty, ""), out lvl0);
+                bool b4 = TarasMaxCapacities.TryGetValue(Uco.EmptyObject, out lvl0);
                 bool b5 = false;
                 if (b4) b5 = lvl0.TryGetValue(first.Nomenklature, out lvl1);
+
+                bool b55 = false;
+                if (b5)
+                {
+                    b55 = lvl1.TryGetValue(first.Characteristics, out lvl11);
+                    if (!b55) b55 = lvl1.TryGetValue(Uco.EmptyObject, out lvl11);
+                }
+
                 bool b6 = false;
-                if (b5) b6 = lvl1.TryGetValue(first.OperationVid, out possible);
-                if (b4 && b5 && b6)
+                if (b55) b6 = lvl11.TryGetValue(first.OperationVid, out possible);
+                if (b4 && b5 && b55 && b6)
                 {
                     finalList.AddRange(returnFunc(possible));
                 }
@@ -411,6 +501,9 @@ namespace ApsRT.Core.Taras
 
                     if (!b3) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVidOper, new DataErrorStruct());
                     if (!b6) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVidOperEmptyProd, new DataErrorStruct());
+
+                    if (!b22) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoCharacteristics, new DataErrorStruct());
+                    if (!b55) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoCharacteristicsEmptyProd, new DataErrorStruct());
 
                     return prodError();
                 }

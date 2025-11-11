@@ -86,6 +86,9 @@ namespace ApsRT.Core.Stages
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
 
+        [DataRecordCodedObjectColumn("ХарактеристикаПродукции_GUID", "ХарактеристикаПродукции", defaultIfFail: true)]
+        public Uco ProductionCharacteristics { get; set; }
+
         /// <summary>
         /// Продукция
         /// </summary>

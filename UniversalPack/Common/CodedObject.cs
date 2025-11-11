@@ -69,12 +69,13 @@ namespace UniversalPack.Common
         public override bool Equals(object obj)
         {
             //return _code.Equals(obj);
-            return obj is CodedObject<InputDataType, ValueType> codedObject && codedObject._hashCode == _hashCode;
+            return obj is CodedObject<InputDataType, ValueType> codedObject && codedObject.GetHashCode() == GetHashCode();
         }
 
         public override int GetHashCode()
         {
-            //return _code.GetHashCode();
+            return _code.GetHashCode();
+            //UpdateHashCode();
             return _hashCode;
         }
 

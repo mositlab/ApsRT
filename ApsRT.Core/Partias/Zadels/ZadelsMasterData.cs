@@ -29,10 +29,12 @@ namespace ApsRT.Core.Partias.Zadels
             Dictionary<OrderID, // ГПшка
                 Dictionary<int, // конкретный УРОВЕНЬ
                     Dictionary<Uco, // номенклатура
-                        Dictionary<int, // номер повива (0 = -1, т.е. любой)
-                                        //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
+                        Dictionary<Uco, // Хар-ка
+                            Dictionary<int, // номер повива (0 = -1, т.е. любой)
+                                            //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
                                 Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
                                 >
+                            >
                         //>
                         >
                     >
@@ -78,11 +80,18 @@ namespace ApsRT.Core.Partias.Zadels
                         ZadelsData[partiaPF][order][level].Add(nomen, new());
                     }
 
+                    // 4.1 Характеристика
+                    var chars = model.Characteristics;
+                    if (!ZadelsData[partiaPF][order][level][nomen].ContainsKey(chars))
+                    {
+                        ZadelsData[partiaPF][order][level][nomen].Add(chars, new());
+                    }
+
                     // 5. Номер повива
                     int poviv = model.Poviv;
-                    if (!ZadelsData[partiaPF][order][level][nomen].ContainsKey(poviv))
+                    if (!ZadelsData[partiaPF][order][level][nomen][chars].ContainsKey(poviv))
                     {
-                        ZadelsData[partiaPF][order][level][nomen].Add(poviv, new());
+                        ZadelsData[partiaPF][order][level][nomen][chars].Add(poviv, new());
                     }
 
                     // 6. Последнее - сам задел
@@ -109,9 +118,9 @@ namespace ApsRT.Core.Partias.Zadels
                         }
                         zadel.Count = Math.Max(zadel.Count, model.Count); // Обновляем количество.
 
-                        if (!ZadelsData[partiaPF][order][level][nomen][poviv]/*[finalEtap]*/.ContainsKey(zadelGuid)) // Если такого задела нет, то мы его создаём
+                        if (!ZadelsData[partiaPF][order][level][nomen][chars][poviv]/*[finalEtap]*/.ContainsKey(zadelGuid)) // Если такого задела нет, то мы его создаём
                         {
-                            ZadelsData[partiaPF][order][level][nomen][poviv]/*[finalEtap]*/.Add(zadelGuid, zadel);
+                            ZadelsData[partiaPF][order][level][nomen][chars][poviv]/*[finalEtap]*/.Add(zadelGuid, zadel);
                         }
 
                     }
@@ -381,10 +390,12 @@ namespace ApsRT.Core.Partias.Zadels
             Dictionary<OrderID, // ГПшка
                     Dictionary<int, // конкретный УРОВЕНЬ
                         Dictionary<Uco, // номенклатура
-                            Dictionary<int, // номер повива (0 = -1, т.е. любой)
+                            Dictionary<Uco, // хар ка
+                                Dictionary<int, // номер повива (0 = -1, т.е. любой)
                                             //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
                                     Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
                                     >
+                                >
                             //>
                             >
                         >
@@ -397,9 +408,11 @@ namespace ApsRT.Core.Partias.Zadels
             {
                 Dictionary<int, // конкретный УРОВЕНЬ
                     Dictionary<Uco, // номенклатура
-                        Dictionary<int, // номер повива (0 = -1, т.е. любой)
-                                        //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
-                                Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
+                        Dictionary<Uco, // хар ка
+                                Dictionary<int, // номер повива (0 = -1, т.е. любой)
+                                                //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
+                                    Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
+                                    >
                                 >
                         //>
                         >
@@ -413,10 +426,12 @@ namespace ApsRT.Core.Partias.Zadels
                     var levelHere = stage.Level;//partia1[i][0].Opers[0].Level;
 
                     Dictionary<Uco, // номенклатура
-                    Dictionary<int, // номер повива (0 = -1, т.е. любой)
-                                    //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
-                            Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
-                            >
+                    Dictionary<Uco, // хар ка
+                                Dictionary<int, // номер повива (0 = -1, т.е. любой)
+                                                //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
+                                    Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
+                                    >
+                                >
                     //>
                     > zadelsNomensHere = new();
 
@@ -425,26 +440,40 @@ namespace ApsRT.Core.Partias.Zadels
 
                     if (zadelsNomensHere.Count > 0)
                     {
-                        //var opHere = partia1[i][j].Opers[0]; // потому что они тут всё равно всегда одни.
+                        Dictionary<Uco, // хар ка
+                                    Dictionary<int, // номер повива (0 = -1, т.е. любой)
+                                                    //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
+                                        Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
+                                        >
+                        //>
+                        > zadelsCharsHere = new();
 
-                        Dictionary<int, // номер повива (0 = -1, т.е. любой)
-                                        //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
-                        Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
-                        > zadelsPovivsHere = new();
+                        if (zadelsNomensHere.TryGetValue(stage.Characteristics, out var res111111)) zadelsCharsHere = zadelsCharsHere.Union(res111111).ToDictionary();
+                        if (freeZadels && zadelsNomensHere.TryGetValue(Uco.EmptyObject, out var res222222)) zadelsCharsHere = zadelsCharsHere.Union(res222222).ToDictionary();
 
-                        if (zadelsNomensHere.TryGetValue(stage.Nomenklature, out var res1111)) zadelsPovivsHere = zadelsPovivsHere.Union(res1111).ToDictionary();
-                        if (freeZadels && zadelsNomensHere.TryGetValue(Uco.EmptyObject, out var res2222)) zadelsPovivsHere = zadelsPovivsHere.Union(res2222).ToDictionary();
-
-                        if (zadelsPovivsHere.Count > 0)
+                        if (zadelsCharsHere.Count > 0)
                         {
-                            Dictionary<Guid, ConcreteZadel> finalZadelsHere = new();
+                            //var opHere = partia1[i][j].Opers[0]; // потому что они тут всё равно всегда одни.
 
-                            if (zadelsPovivsHere.TryGetValue(stage.Poviv, out var res11111)) finalZadelsHere = finalZadelsHere.Union(res11111).ToDictionary();
-                            if (freeZadels && zadelsPovivsHere.TryGetValue(0, out var res22222)) finalZadelsHere = finalZadelsHere.Union(res22222).ToDictionary();
+                            Dictionary<int, // номер повива (0 = -1, т.е. любой)
+                                            //Dictionary<Guid, // гуид этапа (тут всегда пустой гуид один, если НЕ конкретный этап
+                            Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
+                            > zadelsPovivsHere = new();
 
-                            // Номенклатуру нашли, теперь ищем повивы, и если находим - находим наконец-то заделы.
+                            if (zadelsCharsHere.TryGetValue(stage.Nomenklature, out var res1111)) zadelsPovivsHere = zadelsPovivsHere.Union(res1111).ToDictionary();
+                            if (freeZadels && zadelsCharsHere.TryGetValue(Uco.EmptyObject, out var res2222)) zadelsPovivsHere = zadelsPovivsHere.Union(res2222).ToDictionary();
 
-                            return finalZadelsHere.Where(x => x.Value.WhereCanUsed.ContainsKey(stage.GUID) || (freeZadels && x.Value.WhereCanUsed.ContainsKey(Guid.Empty))).ToDictionary();
+                            if (zadelsPovivsHere.Count > 0)
+                            {
+                                Dictionary<Guid, ConcreteZadel> finalZadelsHere = new();
+
+                                if (zadelsPovivsHere.TryGetValue(stage.Poviv, out var res11111)) finalZadelsHere = finalZadelsHere.Union(res11111).ToDictionary();
+                                if (freeZadels && zadelsPovivsHere.TryGetValue(0, out var res22222)) finalZadelsHere = finalZadelsHere.Union(res22222).ToDictionary();
+
+                                // Номенклатуру нашли, теперь ищем повивы, и если находим - находим наконец-то заделы.
+
+                                return finalZadelsHere.Where(x => x.Value.WhereCanUsed.ContainsKey(stage.GUID) || (freeZadels && x.Value.WhereCanUsed.ContainsKey(Guid.Empty))).ToDictionary();
+                            }
                         }
                     }
                 }

@@ -4,10 +4,12 @@
     {
         NoProduction,
         NoNomenklature,
+        NoCharacteristics,
         NoVidOper,
 
         NoNomenklatureEmptyProd,
         NoVidOperEmptyProd,
+        NoCharacteristicsEmptyProd,
 
         NoGP, // гп не задана
 

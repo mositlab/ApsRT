@@ -30,8 +30,10 @@ namespace ApsRT.Core.NaladLengths
         internal Dictionary<Uco, // рц
             Dictionary<Uco, // тех операция
                 Dictionary<Uco, // номенклатура
-                    Dictionary<RequiredNaladCondition, // В зависимости от запуска
-                        Dictionary<Vector2, NaladLengthValue> // и ещё по сечению смотрим
+                    Dictionary<Uco, // хар-ка
+                        Dictionary<RequiredNaladCondition, // В зависимости от запуска
+                            Dictionary<Vector2, NaladLengthValue> // и ещё по сечению смотрим
+                            >
                         >
                     >
                 >
@@ -71,6 +73,13 @@ namespace ApsRT.Core.NaladLengths
                 AllNaladLengths[rc][oper].Add(nomen, new());
             }
 
+            // 4. Характеристика
+            var chars = model.Characteristics;
+            if (!AllNaladLengths[rc][oper][nomen].ContainsKey(chars))
+            {
+                AllNaladLengths[rc][oper][nomen].Add(chars, new());
+            }
+
             var length0 = (float)model.Length;
             var edIzm = model.DimensionUnitClassificator;
             NaladLengthValue length = new NaladLengthValue(length0, edIzm);
@@ -91,14 +100,14 @@ namespace ApsRT.Core.NaladLengths
 
             void add(RequiredNaladCondition cond)
             {
-                if (!AllNaladLengths[rc][oper][nomen].ContainsKey(cond))
+                if (!AllNaladLengths[rc][oper][nomen][chars].ContainsKey(cond))
                 {
-                    AllNaladLengths[rc][oper][nomen].Add(cond, new());
+                    AllNaladLengths[rc][oper][nomen][chars].Add(cond, new());
                 }
 
-                if (!AllNaladLengths[rc][oper][nomen][cond].ContainsKey(sech))
+                if (!AllNaladLengths[rc][oper][nomen][chars][cond].ContainsKey(sech))
                 {
-                    AllNaladLengths[rc][oper][nomen][cond].Add(sech, length);
+                    AllNaladLengths[rc][oper][nomen][chars][cond].Add(sech, length);
                 }
             }
         }
@@ -159,8 +168,16 @@ namespace ApsRT.Core.NaladLengths
                 &&
                 lvl0.TryGetValue(op.OperationVid, out var lvl1))
             {
-                if (lvl1.TryGetValue(op.Nomenklature, out var conds)) return tryIt(conds); // С заполненной номенклатурой
-                if (lvl1.TryGetValue(Uco.EmptyObject, out var conds2)) return tryIt(conds2); // Попробуем по пустой номенклатуре
+                if (lvl1.TryGetValue(op.Nomenklature, out var conds))
+                {
+                    if (conds.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // С заполненной номенклатурой
+                    if (conds.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // С заполненной номенклатурой
+                }
+                if (lvl1.TryGetValue(Uco.EmptyObject, out var conds2))
+                {
+                    if (conds2.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // Попробуем по пустой номенклатуре
+                    if (conds2.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // Попробуем по пустой номенклатуре
+                }
             }
             //    &&
             //    (lvl1.TryGetValue(op.Nomenklatura, out var conds) ^ lvl1.TryGetValue(emptyNomen, out conds)) // одно из этих вещей должно быть равно

@@ -2083,7 +2083,7 @@ namespace ApsRTCustomComponents
         private void button4_Click(object sender, EventArgs e)
         {
             var writer = new StreamWriter("МаксимальныеНамоткиНаТару.txt", false);
-            writer.WriteLine("Продукция\tПродукция_GUID\tНоменклатура\tНоменклатура_GUID\tВидОперации\tВидОперации_GUID\tТипТары\tТипТары_GUID\tЕдиницаХраненияОстатков\tВеличинаНамотки");
+            writer.WriteLine("Продукция\tПродукция_GUID\tНоменклатура\tНоменклатура_GUID\tХарактеристика\tХарактеристика_GUID\tВидОперации\tВидОперации_GUID\tТипТары\tТипТары_GUID\tЕдиницаХраненияОстатков\tВеличинаНамотки");
             foreach (var level1 in sessionLink.MasterDataLinks.TarasMasterData.TarasMaxCapacities)
             {
                 var production = level1.Key;
@@ -2092,17 +2092,22 @@ namespace ApsRTCustomComponents
                     var nomenklature = level2.Key;
                     foreach (var level3 in level2.Value)
                     {
-                        var vid = level3.Key;
+                        var chars = level3.Key;
                         foreach (var level4 in level3.Value)
                         {
-                            var tara = level4.Key;
-                            foreach (var data in level4.Value)
+                            var vid = level4.Key;
+                            foreach (var level5 in level4.Value)
                             {
-                                var unit = data.Format;
-                                var value = data.Value;
-                                writer.WriteLine($"{production.Label}\t{production.Code}\t{nomenklature.Label}\t{nomenklature.Code}\t{vid.Label}\t{vid.Code}\t{tara.Label}\t{tara.Code}\t{unit.DimensionUnitToString(false)}\t{value}");
+                                var tara = level5.Key;
+                                foreach (var data in level5.Value)
+                                {
+                                    var unit = data.Format;
+                                    var value = data.Value;
+                                    writer.WriteLine($"{production.Label}\t{production.Code}\t{nomenklature.Label}\t{nomenklature.Code}\t{chars.Label}\t{chars.Code}\t{vid.Label}\t{vid.Code}\t{tara.Label}\t{tara.Code}\t{unit.DimensionUnitToString(false)}\t{value}");
+                                }
                             }
                         }
+
                     }
                 }
             }
