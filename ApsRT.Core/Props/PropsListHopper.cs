@@ -29,9 +29,12 @@ namespace ApsRT.Core.Props
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
         {
             PropsMasterData = session.MasterDataLinks.PropsMasterData;
-            PropsMasterData.PropNumberToIndex.Clear();
-            PropsMasterData.PropGuidToIndex.Clear();
-            PropsMasterData.PropStringToIndex.Clear();
+            PropsMasterData.MatsPropNumberToIndex.Clear();
+            PropsMasterData.MatsPropGuidToIndex.Clear();
+            PropsMasterData.MatsPropStringToIndex.Clear();
+            PropsMasterData.OpersPropNumberToIndex.Clear();
+            PropsMasterData.OpersPropGuidToIndex.Clear();
+            PropsMasterData.OpersPropStringToIndex.Clear();
         }
 
         void IHopperInterface.BeforeLoading(string filename, DataLoaderOptions options)

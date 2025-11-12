@@ -1,4 +1,5 @@
-﻿using ApsRT.Core.Rechanges.Hoppers;
+﻿using ApsRT.Core.Props;
+using ApsRT.Core.Rechanges.Hoppers;
 using ApsRT.Core.Rechanges.RechangesEngine;
 using ApsRT.Core.Stages;
 
@@ -9,7 +10,7 @@ namespace ApsRT.Core.Rechanges
     /// </summary>
     public class RechangeUniversalCriteria
     {
-        public RechangeUniversalCriteria(RechangesCriteriaDataLoaderModel model)
+        public RechangeUniversalCriteria(RechangesCriteriaDataLoaderModel model, PropsMasterData propsMasterData)
         {
             Name = model.Name;
             CanBeNumber = model.CanBeNumber;
@@ -20,6 +21,7 @@ namespace ApsRT.Core.Rechanges
             Sort = model.Sort;
             IsLink = model.IsLink;
             IsDynamic = model.IsDynamic;
+            AdditionalPropLink = null;
 
             if (IsLink)
             {
@@ -31,17 +33,23 @@ namespace ApsRT.Core.Rechanges
                 {
                     LinkDataObtainer = CustomRechangeCriteriaMethods.MethodsArray[finalIndex];
                     LinkValuesCountObtainer = CustomRechangeCriteriaMethods.MethodsValuesCountArray[finalIndex];
+
+                    var LinkWithTableType = CustomRechangeCriteriaMethods.MethodsTableTypesArray[finalIndex];
+                    if (propsMasterData.GenerateLinks(model.ColumnValueNames, LinkWithTableType, out var res))
+                    {
+                        AdditionalPropLink = res;
+                    }
                 }
 
             }
 
             (string, string)[] columnNames = null;
-            var columnValue = model.CalumnValueNames;
+            var columnValue = model.ColumnValueNames;
             //ИменаСтолбцовТаблицыОперацийМетки
             if (!string.IsNullOrEmpty(columnValue))
             {
                 string[] values = columnValue.Split(',');
-                var label = model.CalumnLabelNames;
+                var label = model.ColumnLabelNames;
                 string[] labels = string.IsNullOrEmpty(label) ? null : label.Split(',');
                 columnNames = values.Select((x, index) => (x.Trim(), labels?[index].Trim())).ToArray();
             }
@@ -106,9 +114,11 @@ namespace ApsRT.Core.Rechanges
         /// <summary>
         /// Непосредственно сама ссылка, позволяющая получить данные
         /// </summary>
-        public Func<Stage, RechangesEngineData, Type, int, object> LinkDataObtainer;
+        public Func<Stage, RechangesEngineData, Type, int, PropsLinkerClass, object> LinkDataObtainer;
 
         public Func<Stage, int> LinkValuesCountObtainer;
+
+        public PropsLinkerClass AdditionalPropLink;
 
         /// <summary>
         /// У него постоянно меняются значения? В таком случае наличие этого критерия заставить АПС хранить данные не в статичном, а в динамичном кэше, а так же постоянно сравнивать диаметры

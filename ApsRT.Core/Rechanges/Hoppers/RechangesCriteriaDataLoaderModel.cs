@@ -54,10 +54,10 @@ namespace ApsRT.Core.Rechanges.Hoppers
         public string MethodLinkName { get; set; }
 
         [DataRecordColumn("ИменаСтолбцовТаблицыОперацийЗначения")]
-        public string CalumnValueNames { get; set; }
+        public string ColumnValueNames { get; set; }
 
         [DataRecordColumn("ИменаСтолбцовТаблицыОперацийМетки")]
-        public string CalumnLabelNames { get; set; }
+        public string ColumnLabelNames { get; set; }
 
     }
 }

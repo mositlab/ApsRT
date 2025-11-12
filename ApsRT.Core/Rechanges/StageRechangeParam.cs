@@ -123,8 +123,11 @@ namespace ApsRT.Core.Rechanges
 
         private T GetValue<T>(int valueIndex, RechangesEngineData engineData, T[] array)
         {
+            if (CriteriaProperties.LinkDataObtainer != null) return (T)CriteriaProperties.LinkDataObtainer?.Invoke(StageLink, engineData, typeof(T), valueIndex, CriteriaProperties.AdditionalPropLink);
+
             if (array != null) return (valueIndex >= array.Length ? default(T) : array[valueIndex]);
-            return (T)CriteriaProperties.LinkDataObtainer?.Invoke(StageLink, engineData, typeof(T), valueIndex);
+
+            return default(T);
         }
 
         public override string ToString()

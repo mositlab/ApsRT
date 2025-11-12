@@ -199,7 +199,7 @@ namespace ApsRT.Core.Stages
 
         #region Реквизиты
         public float?[] NumberProps { get; set; }
-        public Guid?[] GuidProps { get; set; }
+        public Guid?[][] GuidProps { get; set; }
         public string[] StringProps { get; set; }
         #endregion
 

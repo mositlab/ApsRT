@@ -45,7 +45,7 @@ namespace ApsRT.Core.Partias.MergeConditions
         {
             var model = new MergeConditionsListDataLoaderModel();
             model.LoadFromDataRecord(data, options);
-            if (PropsMasterData.GenerateLinks(model.PropName, out var linker))
+            if (PropsMasterData.GenerateLinks(model.PropName, 0, out var linker))
             {
                 MergeConditionsMasterData.MergeConditionsGlobalList.Add(model.MergeConditionParamName, linker);
             }

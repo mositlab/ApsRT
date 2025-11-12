@@ -14,6 +14,15 @@ namespace ApsRT.Core.Materials
         //public string WorkType; // ВидВоспроизводства
         public bool IsBuying;
 
+
+        #region Реквизиты
+        public float?[] NumberProps { get; set; }
+        public Guid?[][] GuidProps { get; set; }
+        public string[] StringProps { get; set; }
+        #endregion
+
+
+
         public LeftoverUco AsLeftoverData() => (Nomenklature, Characteristics);
 
         public override string ToString()

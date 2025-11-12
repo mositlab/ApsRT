@@ -15,26 +15,37 @@ namespace ApsRT.Core.Props
 
         Session.Session session { get; init; }
 
+        public Dictionary<string, int> OpersPropNumberToIndex = new();
+        public Dictionary<string, int> OpersPropGuidToIndex = new();
+        public Dictionary<string, int> OpersPropStringToIndex = new();
 
-        public Dictionary<string, int> PropStringToIndex = new();
+        public Dictionary<string, int> MatsPropNumberToIndex = new();
+        public Dictionary<string, int> MatsPropGuidToIndex = new();
+        public Dictionary<string, int> MatsPropStringToIndex = new();
 
-        public Dictionary<string, int> PropNumberToIndex = new();
-
-        public Dictionary<string, int> PropGuidToIndex = new();
-
-        public bool GenerateLinks(string propName, out PropsLinkerClass linker)
+        public bool GenerateLinks(string propName, int tableType, out PropsLinkerClass linker)
         {
             if (string.IsNullOrEmpty(propName))
             {
-                linker = new PropsLinkerClass(propName, -1, -1, -1);
+                linker = new PropsLinkerClass(propName, -1, -1, -1, -1);
                 return false;
             }
 
-            var valI = PropNumberToIndex.TryGetValue(propName, out var i) ? i : -1;
-            var valG = PropGuidToIndex.TryGetValue(propName, out var g) ? g : -1;
-            var valS = PropStringToIndex.TryGetValue(propName, out var s) ? s : -1;
+            int valI, valG, valS;
+            if (tableType == 1)
+            {
+                valI = MatsPropNumberToIndex.TryGetValue(propName, out var i) ? i : -1;
+                valG = MatsPropGuidToIndex.TryGetValue(propName, out var g) ? g : -1;
+                valS = MatsPropStringToIndex.TryGetValue(propName, out var s) ? s : -1;
+            }
+            else
+            {
+                valI = OpersPropNumberToIndex.TryGetValue(propName, out var i) ? i : -1;
+                valG = OpersPropGuidToIndex.TryGetValue(propName, out var g) ? g : -1;
+                valS = OpersPropStringToIndex.TryGetValue(propName, out var s) ? s : -1;
+            }
 
-            linker = new PropsLinkerClass(propName, valI, valG, valS);
+            linker = new PropsLinkerClass(propName, tableType, valI, valG, valS);
             return valI != -1 || valG != -1 || valS != -1;
         }
 
@@ -47,6 +58,7 @@ namespace ApsRT.Core.Props
         {
             string key = model.PropName;
             byte itsType = model.PropType;
+            int tableType = model.TableType;
             switch (itsType)
             {
                 case 255:
@@ -55,9 +67,9 @@ namespace ApsRT.Core.Props
                         session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.EmptyPropType, key);
                         break;
                     }
-                case 0: WorkWith(PropNumberToIndex, key); break;
-                case 1: WorkWith(PropGuidToIndex, key); break;
-                case 2: WorkWith(PropStringToIndex, key); break;
+                case 0: WorkWith(tableType == 1 ? MatsPropNumberToIndex : OpersPropNumberToIndex, key); break;
+                case 1: WorkWith(tableType == 1 ? MatsPropGuidToIndex : OpersPropGuidToIndex, key); break;
+                case 2: WorkWith(tableType == 1 ? MatsPropStringToIndex : OpersPropStringToIndex, key); break;
                 case 3:
                     {
                         Console.WriteLine($"{key} - unknown type!");

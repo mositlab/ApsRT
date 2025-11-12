@@ -377,7 +377,7 @@ namespace ApsRT.Core.Partias.MergeConditions
 
                         (prop.NumberIndex > -1 && op1.NumberProps[prop.NumberIndex] != op2.NumberProps[prop.NumberIndex])
                         ||
-                        (prop.GuidIndex > -1 && op1.GuidProps[prop.GuidIndex] != op2.GuidProps[prop.GuidIndex])
+                        (prop.GuidIndex > -1 && op1.GuidProps[prop.GuidIndex][0] != op2.GuidProps[prop.GuidIndex][0])
                         ||
                         (prop.StringIndex > -1 && op1.StringProps[prop.StringIndex] != op2.StringProps[prop.StringIndex])
 

@@ -1,6 +1,8 @@
 ﻿using ApsRT.Core.Hoppers;
 using ApsRT.Core.Leftovers;
 using ApsRT.Core.Materials;
+using ApsRT.Core.Props;
+using ApsRT.Core.Stages;
 using ApsRT.Core.Stages.Hoppers;
 using ApsRT.Core.Stages.MasterData;
 using System;
@@ -9,6 +11,7 @@ using UniversalPack;
 using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using UniversalPack.Extensions;
 
 namespace ApsRT.Core.Materials
 {
@@ -18,10 +21,12 @@ namespace ApsRT.Core.Materials
     {
 
         StagesMasterData StagesMasterData;
+        PropsMasterData PropsMasterData;
 
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
         {
             StagesMasterData = session.MasterDataLinks.StagesMasterData;
+            PropsMasterData = session.MasterDataLinks.PropsMasterData;
         }
 
         void IHopperInterface.BeforeLoading(string filename, DataLoaderOptions options)
@@ -52,7 +57,24 @@ namespace ApsRT.Core.Materials
                 }
 
                 // Добавляем инфы
-                mat.UsedMaterials.Add(new StageOriginalMaterial(model));
+                var matElement = new StageOriginalMaterial(model);
+
+                #region Реквизиты, или ПРОПСЫ
+                matElement.NumberProps = new float?[PropsMasterData.MatsPropNumberToIndex.Count];
+                foreach (var prop in PropsMasterData.MatsPropNumberToIndex) matElement.NumberProps[prop.Value] = data[prop.Key].ConvertToFloatByAnyCost();
+
+                matElement.GuidProps = new Guid?[PropsMasterData.MatsPropGuidToIndex.Count][];
+                foreach (var prop in PropsMasterData.MatsPropGuidToIndex)
+                {
+                    var str = data[prop.Key] == null ? "" : data[prop.Key].ToString();
+                    matElement.GuidProps[prop.Value] = string.IsNullOrEmpty(str) ? new Guid?[] {null} : str.Split(',').Select(x => (Guid?)x.ProcessGuid(options.GuidArrrangeType, true)).ToArray();
+                }
+
+                matElement.StringProps = new string[PropsMasterData.MatsPropStringToIndex.Count];
+                foreach (var prop in PropsMasterData.MatsPropStringToIndex) matElement.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
+                #endregion
+
+                mat.UsedMaterials.Add(matElement);
             }
         }
 

@@ -25,5 +25,8 @@ namespace ApsRT.Core.Props
         [DataRecordColumn("Тип", DataRecordColumnAttribute.CustomConversionModes.StringToTypeIndex)]
         public byte PropType { get; set; }
 
+        [DataRecordColumn("ТипТаблицы", defaultIfFail: true)]
+        public int TableType { get; set; }
+
     }
 }

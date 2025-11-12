@@ -140,9 +140,9 @@ namespace ApsRTCustomComponents
                                 $"\r\nУровень: {x.Level}" +
                                 $"\r\nЛивенштейна: {livCodeFinal}" +
                                 $"\r\nНомер повива: {x.Poviv}" +
-                                "\r\n" + string.Join("\r\n", SessionLink.MasterDataLinks.PropsMasterData.PropNumberToIndex.Select(z => $"{z.Key}: {x.NumberProps[z.Value]}")) +
-                                "\r\n" + string.Join("\r\n", SessionLink.MasterDataLinks.PropsMasterData.PropGuidToIndex.Select(z => $"{z.Key}: {x.GuidProps[z.Value]}")) +
-                                "\r\n" + string.Join("\r\n", SessionLink.MasterDataLinks.PropsMasterData.PropStringToIndex.Select(z => $"{z.Key}: {x.StringProps[z.Value]}")) +
+                                "\r\n" + string.Join("\r\n", SessionLink.MasterDataLinks.PropsMasterData.OpersPropNumberToIndex.Select(z => $"{z.Key}: {x.NumberProps[z.Value]}")) +
+                                "\r\n" + string.Join("\r\n", SessionLink.MasterDataLinks.PropsMasterData.OpersPropGuidToIndex.Select(z => $"{z.Key}: {x.GuidProps[z.Value]}")) +
+                                "\r\n" + string.Join("\r\n", SessionLink.MasterDataLinks.PropsMasterData.OpersPropStringToIndex.Select(z => $"{z.Key}: {x.StringProps[z.Value]}")) +
                                 $"\r\nПодразделение: {x.Subdivision}" +
                                 $"\r\nКоличество мест: {x.PlacesCount}" +
                                 //$"\r\nКгКм: {x.KgKm}" +

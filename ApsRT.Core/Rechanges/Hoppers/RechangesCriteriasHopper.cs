@@ -18,6 +18,7 @@ namespace ApsRT.Core.Rechanges.Hoppers
     internal class RechangesCriteriasHopper : IHopperInterface
     {
         RechangesMasterData RechangesMasterData;
+        Session.Session session;
 
         public void ActionFile(string filename)
         {
@@ -33,6 +34,7 @@ namespace ApsRT.Core.Rechanges.Hoppers
 
         public void BeforeAllLoading(Session.Session session, string[] filenames)
         {
+            this.session = session;
             RechangesMasterData = session.MasterDataLinks.RechangesMasterData;
             list = new();
         }
@@ -46,7 +48,7 @@ namespace ApsRT.Core.Rechanges.Hoppers
         {
             var model = new RechangesCriteriaDataLoaderModel();
             model.LoadFromDataRecord(data, options);
-            var criteria = new RechangeUniversalCriteria(model);
+            var criteria = new RechangeUniversalCriteria(model, session.MasterDataLinks.PropsMasterData);
             if (criteria.CanBeUsed) list.Add(criteria);
         }
     }

@@ -48,7 +48,7 @@ namespace ApsRT.Core.Planning.ParallelPlanning
                 if (UsedProp.GuidIndex > -1)
                 {
                     // Это гуид?
-                    var data = stage.GuidProps[UsedProp.GuidIndex];
+                    var data = stage.GuidProps[UsedProp.GuidIndex][0];
                     return data == ValueGuid;
                 }
                 else

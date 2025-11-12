@@ -251,14 +251,20 @@ namespace ApsRT.Core.Stages.MasterData
 
             #region Реквизиты, или ПРОПСЫ
 
-            stage.NumberProps = new float?[PropsMasterData.PropNumberToIndex.Count];
-            foreach (var prop in PropsMasterData.PropNumberToIndex) stage.NumberProps[prop.Value] = data[prop.Key].ConvertToFloatByAnyCost();
+            stage.NumberProps = new float?[PropsMasterData.OpersPropNumberToIndex.Count];
+            foreach (var prop in PropsMasterData.OpersPropNumberToIndex) stage.NumberProps[prop.Value] = data[prop.Key].ConvertToFloatByAnyCost();
 
-            stage.GuidProps = new Guid?[PropsMasterData.PropGuidToIndex.Count];
-            foreach (var prop in PropsMasterData.PropGuidToIndex) stage.GuidProps[prop.Value] = data[prop.Key].ProcessGuid(options.GuidArrrangeType, true);
+            stage.GuidProps = new Guid?[PropsMasterData.OpersPropGuidToIndex.Count][];
+            foreach (var prop in PropsMasterData.OpersPropGuidToIndex)
+            {
+                //stage.GuidProps[prop.Value] = data[prop.Key].ProcessGuid(options.GuidArrrangeType, true);
 
-            stage.StringProps = new string[PropsMasterData.PropStringToIndex.Count];
-            foreach (var prop in PropsMasterData.PropStringToIndex) stage.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
+                var str = data[prop.Key] == null ? "" : data[prop.Key].ToString();
+                stage.GuidProps[prop.Value] = string.IsNullOrEmpty(str) ? new Guid?[] { null } : str.Split(',').Select(x => (Guid?)x.ProcessGuid(options.GuidArrrangeType, true)).ToArray();
+            }
+
+            stage.StringProps = new string[PropsMasterData.OpersPropStringToIndex.Count];
+            foreach (var prop in PropsMasterData.OpersPropStringToIndex) stage.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
             #endregion
 
             if (SessionLink.SettingsController.CurrentSettings.Demos_NoOneRC)

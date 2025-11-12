@@ -12,9 +12,10 @@ namespace ApsRT.Core.Props
     /// </summary>
     public class PropsLinkerClass
     {
-        public PropsLinkerClass(string propLabel, int numberIndex, int guidIndex, int stringIndex)
+        public PropsLinkerClass(string propLabel, int table, int numberIndex, int guidIndex, int stringIndex)
         {
             NumberIndex = numberIndex;
+            TableType = table;
             GuidIndex = guidIndex;
             StringIndex = stringIndex;
             PropLabel = propLabel;
@@ -26,6 +27,8 @@ namespace ApsRT.Core.Props
         }
 
         internal string PropLabel { get; }
+
+        internal int TableType { get; }
 
         internal int NumberIndex { get; } = -1;
         internal int GuidIndex { get; } = -1;
