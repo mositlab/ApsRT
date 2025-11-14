@@ -5,6 +5,7 @@ using ApsRT.Core.Planning.PlanningAlgorithm;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Google.OrTools.ConstraintSolver;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -429,33 +430,6 @@ namespace ApsRT.Core.PlanSimulator
 
 
 
-            //HashSet<PlanSimulatorBlock> collected = new();
-            //List<PlanSimulatorBlock> collectedList = new();
-            //Queue<PlanSimulatorBlock> queue = new();
-            //queue.Enqueue(target);
-
-            //while (queue.Count > 0)
-            //{
-            //    var current = queue.Dequeue();
-            //    if (collected.Add(current))
-            //    {
-            //        collectedList.Add(current);
-            //        var depends = current.Lists
-            //            .SelectMany(mod => BACK ? mod.PrevMods : mod.NextMods)
-            //            .Select(mod => mod.BlockLink)
-            //            .Distinct();
-            //        foreach (var dep in depends)
-            //        {
-            //            queue.Enqueue(dep);
-            //        }
-            //        if (BACK && current.PreviousBlockOnThisRC[PoolIndex] != null) queue.Enqueue(current.PreviousBlockOnThisRC[PoolIndex]);
-            //        if (!BACK && current.NextBlockOnThisRC[PoolIndex] != null) queue.Enqueue(current.NextBlockOnThisRC[PoolIndex]);
-            //    }
-            //}
-
-            //var movingSequence = Blocks.Where(b => collected.Contains(b)).OrderByDescending(b => collectedList.IndexOf(b)).ToList();
-            //Blocks.RemoveAll(b => collected.Contains(b));
-            //Blocks.InsertRange(BACK ? 0 : Blocks.Count, movingSequence);
         }
 
         public static int InsertBlockSafe(List<PlanSimulatorBlock> Blocks, PlanSimulatorBlock block, int IndexToInsert, int PoolIndex, int indexToGetInfo)
@@ -618,6 +592,147 @@ namespace ApsRT.Core.PlanSimulator
             //return new(opersCopy);
         }
 
+
+        public static int MoveLeft(List<PlanSimulatorBlock> Blocks, PlanSimulatorBlock block, int wasHere, int Where, bool wasInPool, int ReadPoolIndex, PlanSimulatorBlock Awas, PlanSimulatorBlock Bwas, out HashSet<PlanSimulatorBlock> movedElements)
+        {
+            int movesCount = 1;
+            HashSet<PlanSimulatorBlock> movedElements1 = new();
+            var center00 = block.GetCenterData(ReadPoolIndex).Center;
+            foreach (var listHere in block.Lists)
+            {
+                var partia = listHere.FirstOperJust.GetOrderOrPartiaCode();
+                var foundPrev = Blocks.FindLastIndex(wasHere, x => x.Lists.Any(list => 
+                    list.FirstOperJust.GetOrderOrPartiaCode() == partia
+                    && list.FirstOperJust.Level < listHere.FirstOperJust.Level)
+                    && x.GetCenterData(ReadPoolIndex).Center == center00);
+                if (foundPrev >= Where)
+                {
+                    movesCount += MoveLeft(Blocks, Blocks[foundPrev], foundPrev, Where - 1, true, ReadPoolIndex, Awas, Bwas, out movedElements1);
+                }
+            }
+
+            if (wasInPool) Blocks.RemoveAt(wasHere);
+
+            HashSet<PlanSimulatorBlock> collected = new();
+            List<PlanSimulatorBlock> collectedList = new();
+            List<PlanSimulatorBlock> queue = new();
+            var dependsBegin = block.Lists
+                .SelectMany(mod => mod.PrevMods)
+                .OrderByDescending(mod => mod.BlockLink.BlockIndex[ReadPoolIndex])
+                .Select(mod => mod.BlockLink)
+                .Distinct();
+            foreach (var dep in dependsBegin) queue.Insert(0, dep);
+            var foundPrevThis = Where == 0 ? -1 : Blocks.FindLastIndex(Where - 1, x => x.GetCenterData(ReadPoolIndex).Center == center00);
+            if (foundPrevThis != -1) queue.Insert(0, Blocks[foundPrevThis]);
+
+            while (queue.Count > 0)
+            {
+                var current = queue[0];
+                var center = current.GetCenterData(ReadPoolIndex).Center;
+                queue.RemoveAt(0);
+                if (collected.Add(current))
+                {
+                    collectedList.Add(current);
+                    var depends = current.Lists
+                        .SelectMany(mod => mod.PrevMods)
+                        .OrderByDescending(mod => mod.BlockLink.BlockIndex[ReadPoolIndex])
+                        .Select(mod => mod.BlockLink)
+                        .Distinct();
+                    foreach (var dep in depends) queue.Insert(0, dep);
+                    var myIndex = Blocks.IndexOf(current);
+                    if (myIndex == -1)
+                    {
+                        ;
+                    }
+                    var foundPrevThis2 = myIndex <= 0 ? -1 : Blocks.FindLastIndex(myIndex - 1, x => x.GetCenterData(ReadPoolIndex).Center == center);
+                    if (foundPrevThis2 != -1) queue.Insert(0, Blocks[foundPrevThis2]);
+                }
+            }
+
+            var movingSequence = Blocks.Where(b => collected.Contains(b))/*.OrderByDescending(b => collectedList.IndexOf(b))*/.ToList();
+            Blocks.RemoveAll(b => collected.Contains(b));
+
+            var BIndex = movingSequence.IndexOf(Bwas);
+            if (BIndex != -1)
+            {
+                collected = new();
+                collectedList = new();
+                queue = new();
+                queue.Insert(0, movingSequence[BIndex]);
+                while (queue.Count > 0)
+                {
+                    var current = queue[0];
+                    var center = current.GetCenterData(ReadPoolIndex).Center;
+                    queue.RemoveAt(0);
+                    if (collected.Add(current))
+                    {
+                        collectedList.Add(current);
+                        var depends = current.Lists
+                            .SelectMany(mod => mod.NextMods)
+                            .OrderByDescending(mod => mod.BlockLink.BlockIndex[ReadPoolIndex])
+                            .Select(mod => mod.BlockLink)
+                            .Where(block => movingSequence.Contains(block))
+                            .Distinct();
+                        foreach (var dep in depends) queue.Add(dep);
+                        var myIndex = movingSequence.IndexOf(current);
+                        if (myIndex == -1)
+                        {
+                            ;
+                        }
+                        var foundPrevThis2 = myIndex <= 0 ? -1 : movingSequence.FindIndex(myIndex + 1, x => x.GetCenterData(ReadPoolIndex).Center == center);
+                        if (foundPrevThis2 != -1) queue.Add(movingSequence[foundPrevThis2]);
+                    }
+                }
+
+                var movingSequence2 = movingSequence.Where(b => collected.Contains(b))/*.OrderByDescending(b => collectedList.IndexOf(b))*/.ToList();
+                movingSequence.RemoveAll(b => collected.Contains(b));
+
+                if (block.Lists.Any(listHere =>
+                {
+                    var partia = listHere.FirstOperJust.GetOrderOrPartiaCode();
+                    return movingSequence2.Any(blockHere => blockHere.Lists.Any(list => list.FirstOperJust.GetOrderOrPartiaCode() == partia
+                            && list.FirstOperJust.Level < listHere.FirstOperJust.Level));
+                }))
+                {
+                    Blocks.Insert(0, block);
+                    Blocks.InsertRange(0, movingSequence2);
+                    Blocks.InsertRange(0, movingSequence);
+                }
+                else
+                {
+                    Blocks.InsertRange(0, movingSequence2);
+                    Blocks.Insert(0, block);
+                    Blocks.InsertRange(0, movingSequence);
+                }
+                    /*
+                    foreach (var listHere in block.Lists)
+                    {
+                        var partia = 
+                        var foundPrev = Blocks.FindLastIndex(wasHere, x => x.Lists.Any(list =>
+                            )
+                            && x.GetCenterData(ReadPoolIndex).Center == center00);
+                        if (foundPrev >= Where)
+                        {
+                            movesCount += MoveLeft(Blocks, Blocks[foundPrev], foundPrev, Where - 1, true, ReadPoolIndex, Awas, Bwas, out movedElements1);
+                        }
+                    }
+                    */
+
+            }
+            else
+            {
+                Blocks.Insert(0, block);
+                Blocks.InsertRange(0, movingSequence);
+            }
+
+
+
+
+
+            movedElements = collected.Union(movedElements1).ToHashSet();
+
+            return movesCount;
+        }
 
         internal int Find(int Index, int Start, bool Back)
         {

@@ -55,6 +55,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             OpersCopy = basisLink.UsedPool.CopyBlocksDeep(basisLink, INDEX, true);
 
             Console.WriteLine("T, beg, " + OpersCopy.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
+            Console.WriteLine($"T: begin, blocks count = {OpersCopy.Count}");
 
             //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
@@ -106,6 +107,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             while (true)
             {
+                //Console.WriteLine($"T: blocks count = {OpersCopy.Count}");
+
                 if (basisLink.WannaStop)
                 {
                     break;
@@ -302,8 +305,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             ;
                         }
 
+                        var Awas = first.A;
+                        var Bwas = first.B;
 
-                        swallowCopy.Insert(pointToInsert, D);
+                        HashSet<PlanSimulatorBlock> movedElements1 = new();
+                        int moves = 0;
+                        if (pointToInsert < MIN)
+                        {
+                            moves= PlanSimulatorPool.MoveLeft(swallowCopy, D, blockIndex, pointToInsert, false, 1, Awas, Bwas, out movedElements1);
+                        }
+                        else
+                        {
+                            swallowCopy.Insert(pointToInsert, D);
+                        }
 
                         var chron = basisLink.CheckChronology(swallowCopy, out _, out _);
                         if (!chron)
@@ -314,52 +328,61 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                         var localResult = PlanSimulatorEngine.CalculatePlan(swallowCopy, 1, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate));
 
-                        var Awas = first.A;
-                        var Bwas = first.B;
 
                         var newCtoE = E == null ? (null, null, -1) : localResult.RechangesBeforeFirstStages[E.Lists[0].FirstOperJust.Index];
                         var newAtoD = localResult.RechangesBeforeFirstStages[D.Lists[0].FirstOperJust.Index];
                         var newDtoB = localResult.RechangesBeforeFirstStages[Bwas.Lists[0].FirstOperJust.Index];
 
+                        int errorsRateHere = 0;
+
+                        //Console.Write(moves + ": ");
+                        //if (movedElements1.Contains(D)) Console.Write("D");
+                        //if (Awas != null && movedElements1.Contains(Awas)) Console.Write("Awas");
+                        //if (movedElements1.Contains(Bwas)) Console.Write("Bwas");
+                        //if (movedElements1.Contains(E)) Console.Write("E");
+                        //if (movedElements1.Contains(C)) Console.Write("C");
+
                         if (D.PreviousBlockOnThisRC[1] != Awas)
                         {
-                            ;
+                            errorsRateHere += 1;
                         }
 
                         if (Bwas.PreviousBlockOnThisRC[0] != Awas)
                         {
-                            ;
+                            errorsRateHere += 10;
                         }
 
                         if (Awas != null && Awas.NextBlockOnThisRC[0] != Bwas)
                         {
-                            ;
+                            errorsRateHere += 100;
                         }
 
                         if (Awas != null && Awas.NextBlockOnThisRC[1] != D)
                         {
-                            ;
+                            errorsRateHere += 1000;
                         }
 
                         if (D.NextBlockOnThisRC[1] != Bwas)
                         {
-                            ;
+                            errorsRateHere += 10000;
                         }
 
                         if (D.NextBlockOnThisRC[0] != E)
                         {
-                            ;
+                            errorsRateHere += 100000;
                         }
 
                         if (C.NextBlockOnThisRC[1] != E)
                         {
-                            ;
+                            errorsRateHere += 1000000;
                         }
 
                         if (C.NextBlockOnThisRC[0] != D)
                         {
-                            ;
+                            errorsRateHere += 10000000;
                         }
+
+                        //Console.WriteLine($"{pointToInsert < MIN}: {errorsRateHere}");
 
                         var difference = localResult.RechangesBeforeFirstStages.Where(x =>
                         {
