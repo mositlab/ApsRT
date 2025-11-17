@@ -35,7 +35,7 @@ namespace ApsRT.Core.RottingTime
         {
             var model = new RottingTimeDataLoaderModel();
             model.LoadFromDataRecord(data, options);
-            RottingTimeMasterData.TryAddTypicalDuration(model);
+            RottingTimeMasterData.TryAddRottingTime(model);
         }
 
         void IHopperInterface.ActionFile(string filename)

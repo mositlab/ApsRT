@@ -130,6 +130,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     })
                     .ThenByDescending(x =>
                     {
+                        var delta = poolCopy.StagesLinks[x.Key].ModLink.RottingTimeInDays[INDEX]; // По гниению давай
+                        if (delta <= 0) delta = 0;
+                        return delta;
+                    })
+                    .ThenByDescending(x =>
+                    {
                         return x.Value.RechangeItself.Duration;
                     })
                     .ToArray();
@@ -264,7 +270,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                         return (Block: block, HisValue: delta, AtoBdata: AtoBdata, DtoBdata: DtoBdata, AtoDdata: AtoDdata, A: A, B: B);
                     })
-                    .OrderByDescending(x =>
+                    .OrderBy(x =>
+                    {
+                        // Давай сначала по гниению
+                        var worstDelta = x.Block.Lists.Max(x => x.RottingTimeInDays[INDEX]);
+                        if (worstDelta <= 0) worstDelta = 0;
+                        return worstDelta == 0 ? -1 : x.Block.BlockIndex[INDEX]; // Сначала давай по гниению - чем левее, тем лучше
+                    })
+                    .ThenByDescending(x =>
                         {
                             TransitionsCost.TryAdd(D, new());
                             TransitionsCost[D].TryAdd(x.Block, new TCell(1));
@@ -407,7 +420,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         var intervalsWas = difference.Sum(x => x.Was.Interval.Duration.TotalSeconds);
 
                         var link = TransitionsCost[D][first.Block];
-                        if (localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches && localResult.ProductionSeconds <= worstPossiblePlanLength && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount)
+                        if (
+                            (
+                            (localResult.TaraCriticalUsage < LastResult.TaraCriticalUsage) // Сначала прочекаем гниль
+                            || // Если не удалось, посмотрим хотя бы на переналадки
+                            (localResult.TaraCriticalUsage == LastResult.TaraCriticalUsage || localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches)
+                            )
+                            && localResult.ProductionSeconds <= worstPossiblePlanLength
+                            && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount)
                         {
                             ;
                             //LastResult = localResult;

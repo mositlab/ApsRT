@@ -52,6 +52,8 @@ namespace ApsRT.Core.PlanSimulator
 
         public FrozenDictionary<Guid, PlanSimulatorPartiaRecalcData[]> PartiasToRecalc;
 
+        //public FrozenDictionary<Guid, PlanSimulatorPartiaRottingData[]> PartiasRottingData;
+
         public PlanSimulatorPool(Session.Session session, List<PlanSimulatorBlock> blocks, DateTime dateOfStart, int PoolSize)
         {
             this.PoolSize = PoolSize;
@@ -100,6 +102,7 @@ namespace ApsRT.Core.PlanSimulator
                 return array;
             });
 
+
             /*
             FrozenDictionary<Guid, PlanSimulatorLastSubsData[]> LastSubs = null;
             if (SessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
@@ -127,6 +130,9 @@ namespace ApsRT.Core.PlanSimulator
                 for (int m = 0; m < block.Lists.Count; m++)
                 {
                     var mod = block.Lists[m];
+
+                    var partiaCode = mod.FirstOperJust.GetOrderOrPartiaCode();
+
                     mod.BlockLink = block;
                     mod.NaladLengthData = new PlanSimulatorNaladLengthData[PoolSize];
                     for (int i = 0; i < PoolSize; i++)
@@ -158,12 +164,21 @@ namespace ApsRT.Core.PlanSimulator
                     //mod.PrevMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Prevs).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
                     //mod.NextMods = mod.StagesAsNormal.AsValueEnumerable().SelectMany(x => x.Nexts).Where(x => StagesLinks.ContainsKey(x)).Select(x => StagesLinks[x].ModLink).Distinct().ToList();
 
+
+                    // Гниение тары
+                    mod.PartiaRottingData = new PlanSimulatorPartiaRottingData[PoolSize];
+                    for (int i = 0; i < PoolSize; i++)
+                    {
+                        mod.PartiaRottingData[i] = new PlanSimulatorPartiaRottingData(null, -1);
+                    }
+
+                    mod.RottingTimeInDays = new double[PoolSize];
+
                     for (int s = 0; s < mod.Stages.Count; s++)
                     {
                         var stage = mod.Stages[s];
                         stage.ModLink = mod;
                         stage.OrderData = OrdersData[stage.Stage.OrderLink.OrderID];
-                        var partiaCode = stage.Stage.GetOrderOrPartiaCode();
                         stage.NaladLengthData = new PlanSimulatorNaladLengthData[PoolSize];
                         for (int i = 0; i < PoolSize; i++)
                         {

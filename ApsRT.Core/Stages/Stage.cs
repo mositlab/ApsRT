@@ -524,6 +524,22 @@ namespace ApsRT.Core.Stages
         public Dictionary<Uco, int> ParallelPlanningIDs;
         #endregion
 
+        #region Гниение тары
+        public DateTime? GhostPrevsWorstDate = null;
+        public (Uco Nomen, Uco Chara) GhostData;
+        public RottingTime.RottingTimeStruct GhostRottingTimeInfo { get; private set; }
+
+        public RottingTime.RottingTimeStruct RottingTimeInfo { get; private set; }
+
+        public void PrepareRottingTime()
+        {
+            RottingTimeInfo = SessionLink.MasterDataLinks.RottingTimeMasterData.GetRottingTime(Nomenklature, Characteristics);
+
+            if (GhostPrevsWorstDate.HasValue) GhostRottingTimeInfo = SessionLink.MasterDataLinks.RottingTimeMasterData.GetRottingTime(GhostData.Nomen, GhostData.Chara);
+        }
+
+        #endregion
+
         #region Заделы
         public int ZadelsInherited { get; set; }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ApsRT.Core.RottingTime
 {
-    internal readonly struct RottingTimeStruct
+    public class RottingTimeStruct
     {
         public RottingTimeStruct(double acceptableTime, double maxTime)
         {

@@ -311,7 +311,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 */
 
                 // Задаём минимальные даты начала детям
-                SetMinDatesToChilds(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
+                SetMinDatesToChildsAndRotting(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
+
+                ProcessRottingData(PoolIndex, currentBlock, blockIndex, ChoosenModellings, currentFlag, resultToFill);
 
                 // По итогу:
                 centGlobalStruct.LastMod = currentMod;
@@ -464,7 +466,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <param name="ChoosenModellings">Выбранные моделирования из блока</param>
         /// <param name="LastDate">Собственно дата назначения</param>
         /// <param name="currentFlag">Текущий "флаг расчёта"</param>
-        static void SetMinDatesToChilds(int PoolIndex, PlanSimulatorBlock block, int blockIndex, List<int> ChoosenModellings, DateTime LastDate, int currentFlag)
+        static void SetMinDatesToChildsAndRotting(int PoolIndex, PlanSimulatorBlock block, int blockIndex, List<int> ChoosenModellings, DateTime LastDate, int currentFlag)
         {
             for (int i = 0; i < ChoosenModellings.Count; i++) // Проходим по всем вставшим моделированиям
             {
@@ -485,7 +487,67 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         hh.LastID = mod.FirstOperJust.Index;
                         //opers.DatesData[next] = hh;
                     }
+
+                    // Назначаем детям инфу о себе
+                    var rottingData = mod.PartiaRottingData[PoolIndex];
+                    if (rottingData.Flag != currentFlag || rottingData.WorstMod == null || rottingData.WorstMod.DateOfEnd[PoolIndex] > LastDate)
+                    {
+                        rottingData.Flag = currentFlag;
+                        rottingData.WorstMod = mod;
+                    }
                 }
+            }
+        }
+
+
+        static void ProcessRottingData(int PoolIndex, PlanSimulatorBlock block, int blockIndex, List<int> ChoosenModellings, int currentFlag, PlanSimulatorEngineResult resultToWrite)
+        {
+            for (int i = 0; i < ChoosenModellings.Count; i++) // Проходим по всем вставшим моделированиям
+            {
+                var mod = block.Lists[ChoosenModellings[i]]; // Берём моделирование
+
+                // Получим информацию о худшем моде из существующих
+                var rottingData = mod.PartiaRottingData[PoolIndex];
+
+                // Возьмем данные с обоих
+                DateTime? worstFromGhosts = mod.WorstGhostPrevsDate;
+                DateTime? worstFromPool = rottingData.WorstMod?.DateOfEnd[PoolIndex] ?? null;
+
+
+                if (!worstFromGhosts.HasValue && !worstFromPool.HasValue)
+                {
+                    mod.RottingTimeInDays[PoolIndex] = 0;
+                    continue;
+                }
+
+                double acceptableTime = 0;
+                double timeDelta = 0;
+                DateTime timeOfStart = mod.DateOfStart[PoolIndex];
+
+                if (worstFromGhosts.HasValue && !worstFromPool.HasValue)
+                {
+                    acceptableTime = mod.FirstOperJust.GhostRottingTimeInfo.AcceptableTime;
+                    timeDelta = (timeOfStart - worstFromGhosts.Value).TotalDays;
+                }
+
+                if (!worstFromGhosts.HasValue && worstFromPool.HasValue)
+                {
+                    acceptableTime = mod.FirstOperJust.RottingTimeInfo.AcceptableTime;
+                    timeDelta = (timeOfStart - worstFromPool.Value).TotalDays;
+                }
+
+                if (worstFromGhosts.HasValue && worstFromPool.HasValue)
+                {
+                    bool ghostIsBetter = worstFromGhosts.Value < worstFromPool.Value;
+                    acceptableTime = ghostIsBetter ? mod.FirstOperJust.GhostRottingTimeInfo.AcceptableTime : mod.FirstOperJust.RottingTimeInfo.AcceptableTime;
+                    timeDelta = (timeOfStart - (ghostIsBetter ? worstFromGhosts.Value : worstFromPool.Value)).TotalDays;
+                }
+
+                // >0 - гниение, <=0 - запас
+                var delta = timeDelta - acceptableTime;
+                mod.RottingTimeInDays[PoolIndex] = delta;
+                
+                if (delta > 0) resultToWrite.TaraCriticalUsage += delta;
             }
         }
 

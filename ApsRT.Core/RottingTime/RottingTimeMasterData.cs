@@ -14,7 +14,7 @@ namespace ApsRT.Core.RottingTime
 
         public void ClearAll() => TimeInDays = null;
 
-        internal RottingTimeStruct GetSubdivisionTransferTime(Uco Nomenklature, Uco Characteristics)
+        public RottingTimeStruct GetRottingTime(Uco Nomenklature, Uco Characteristics)
         {
             if (TimeInDays == null) return RottingTimeStruct.MaxValue;
             if (TimeInDays.TryGetValue(Nomenklature, out var lvl1))
@@ -25,12 +25,12 @@ namespace ApsRT.Core.RottingTime
             return RottingTimeStruct.MaxValue;
         }
 
-        public bool TryAddTypicalDuration(RottingTimeDataLoaderModel model)
+        public bool TryAddRottingTime(RottingTimeDataLoaderModel model)
         {
-            return TryAddTypicalDuration(model.Nomenklature, model.Characteristics, model.AcceptableTime, model.MaxTime);
+            return TryAddRottingTime(model.Nomenklature, model.Characteristics, model.AcceptableTime, model.MaxTime);
         }
 
-        public bool TryAddTypicalDuration(Uco Nomenklature, Uco Characteristics, double AcceptableTime, double MaxTime)
+        public bool TryAddRottingTime(Uco Nomenklature, Uco Characteristics, double AcceptableTime, double MaxTime)
         {
             if (TimeInDays == null) TimeInDays = new();
             TimeInDays.TryAdd(Nomenklature, new());

@@ -279,6 +279,7 @@ namespace ApsRT.Core.Session
             {
                 op.Value.CacheNaladLengths(); // Наладочные длины
                 op.Value.PrepareDurations(); // Длительности
+                op.Value.PrepareRottingTime(); // Гниение
                 op.Value.BakeAllIndexDiapazons(null); // Диапазоны для переналадок
             }
         }

@@ -52,5 +52,11 @@ namespace ApsRT.Core.Stages.Hoppers
 
         [DataRecordColumn("ДатаЗавершения", defaultIfFail: true)]
         public DateTime? WhenWasReady { get; set; }
+
+        [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура", defaultIfFail: true)]
+        public Uco GhostNomenklature { get; set; }
+
+        [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика", defaultIfFail: true)]
+        public Uco GhostCharacteristics { get; set; }
     }
 }

@@ -31,6 +31,10 @@ namespace ApsRT.Core.PlanSimulator
         //public PlanSimulatorLastSubsData[] LastSubsData; // Инфа по подразделениям имеет смысл в моделировании.
         public PlanSimulatorNaladLengthData[] NaladLengthData; // ТОЛЬКО для моделирований простых, для общих этапов там свои
         public PlanSimulatorDatesData[] MinDatesData;
+
+        public PlanSimulatorPartiaRottingData[] PartiaRottingData;
+        public double[] RottingTimeInDays; // >0 - гниение, <=0 - запас
+
         public DateTime[] DateOfStart;
         public DateTime[] DateOfEnd;
         public int[] Ranks;
@@ -45,6 +49,8 @@ namespace ApsRT.Core.PlanSimulator
 
         public Stage FirstOperJust;
         public PlanSimulatorStage FirstOper;
+
+        public DateTime? WorstGhostPrevsDate = null;
 
         public bool ParallelRC { get; }
 
@@ -171,7 +177,12 @@ namespace ApsRT.Core.PlanSimulator
                     //    }
             }
 
-
+            // Установим дату для призраков
+            var filter1 = StagesAsNormal.Where(x => x.GhostPrevsWorstDate.HasValue);
+            if (filter1.Count() > 0)
+            {
+                WorstGhostPrevsDate = filter1.Min(x => x.GhostPrevsWorstDate.Value);
+            }
 
             //void classic()
             //{

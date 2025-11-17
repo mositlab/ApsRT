@@ -187,10 +187,18 @@ namespace ApsRT.Core.Stages.MasterData
                 {
                     if (GUIDToIndex.TryGetValue(guidNext, out var nID) && AllStages.ContainsKey(nID))
                     {
+                        var stageLink = AllStages[nID];
+
                         if (model.VspomTara)
-                            AllStages[nID].GhostVspomPrevsPlacesCount += places;
+                            stageLink.GhostVspomPrevsPlacesCount += places;
                         else
-                            AllStages[nID].GhostNormPrevsPlacesCount += places;
+                            stageLink.GhostNormPrevsPlacesCount += places;
+
+                        if (model.WhenWasReady.HasValue && (!stageLink.GhostPrevsWorstDate.HasValue || stageLink.GhostPrevsWorstDate.Value > model.WhenWasReady.Value))
+                        {
+                            stageLink.GhostPrevsWorstDate = model.WhenWasReady; // Установим дату для призрака
+                            stageLink.GhostData = (model.GhostNomenklature, model.GhostCharacteristics);
+                        }
                     }
                 }
             }
