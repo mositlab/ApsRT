@@ -1,16 +1,17 @@
-﻿using UniversalPack.Extensions;
+﻿using ApsRT.Core.Centers.Hoppers;
+using ApsRT.Core.Hoppers;
+using ApsRT.Core.Rechanges;
+using ApsRT.Core.Rechanges.Hoppers;
+using ApsRT.Core.Rechanges.MasterData;
+using ApsRT.Core.Session;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Data;
 using System.Numerics;
-using System;
-using ApsRT.Core.Hoppers;
-using ApsRT.Core.Session;
-using UniversalPack.Common.DataLoader;
-using ApsRT.Core.Rechanges.Hoppers;
 using UniversalPack.Common;
+using UniversalPack.Common.DataLoader;
+using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
-using ApsRT.Core.Rechanges.MasterData;
-using ApsRT.Core.Rechanges;
-using ApsRT.Core.Centers.Hoppers;
 
 namespace InfimumMES.Rechanges.Hoppers
 {
@@ -48,6 +49,16 @@ namespace InfimumMES.Rechanges.Hoppers
         {
             var model = new RechangeDataLoaderModel();
             model.LoadFromDataRecord(data, options);
+
+
+
+            if ((string.IsNullOrEmpty(model.From) && !model.FromGuid.HasValue)
+                || (string.IsNullOrEmpty(model.To) && !model.ToGuid.HasValue))
+            {
+                RechangesMasterData.SessionLink.AssignedLogger.LogQueue.Enqueue($"ЗАГРУЗКА (переналадки): {model.From} и {model.To} на строке {rowIndex}.\r\n");
+                Console.WriteLine($"ЗАГРУЗКА (переналадки): {model.From} и {model.To} на строке {rowIndex}.\r\n");
+                return;
+            }
 
             // Добавляем данные по переналадке в список условий
             RechangesMasterData.AddRechangeData(model);
