@@ -30,6 +30,7 @@ namespace ApsRT.SKO
             //sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = true;
             sessionLink.SettingsController.SpecialSettings.NaladLengthsCriteriaName = "";
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "";
+            sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction = Core.Settings.SpecialSettings.PartiaMergingRestrictionType.Level2_Multiplies2;
 
 
             ApsRTCustomComponents.ApsRTMainForm1 form = null;

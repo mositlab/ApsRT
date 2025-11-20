@@ -41,7 +41,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
 
         public int MaxThereCountForLongestOpers = -1;
 
-        public (List<Stages.Stage> Modelling, int LevelIndex) GetLongestOpers()
+        public (List<Stages.Stage> Modelling, int LevelIndex) GetLongestOpersForPostCheck()
         {
             List<Stages.Stage> best = null;
             int time = -1;
@@ -51,14 +51,36 @@ namespace ApsRT.Core.Partias.PartiasClasses
                 for (int j = 0; j < OpersHere[i].Count; j++)
                 {
                     var y = OpersHere[i][j];
-                    if (y.Opers[0].UsesVspomTara || y.ZadelCode != 0 || y.Opers[0].IsVspom || y.Opers[0].IsLast) continue;
-                    var maxT = y.Opers.Max(x => x.LongestDuration);
-                    if (maxT > time)
+
+                    switch (y.Opers[0].SessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction)
                     {
-                        best = y.Opers;
-                        time = maxT;
-                        besti = i;
+                        case Settings.SpecialSettings.PartiaMergingRestrictionType.Level2_Multiplies2:
+                            {
+                                // А как мне НЕСКОЛЬКО этапов найти то? - а в пост-чекинге там функция ищет все этапы на этом уровне с этой номенклатурой, так что всё путём.
+                                if (y.Opers[0].Level != 2) continue;
+
+                                besti = i;
+                                best = y.Opers;
+
+                                break;
+                            }
+                        default:
+                            {
+
+                                if (y.Opers[0].UsesVspomTara || y.ZadelCode != 0 || y.Opers[0].IsVspom || y.Opers[0].IsLast) continue;
+
+                                var maxT = y.Opers.Max(x => x.LongestDuration);
+                                if (maxT > time)
+                                {
+                                    best = y.Opers;
+                                    time = maxT;
+                                    besti = i;
+                                }
+
+                                break;
+                            }
                     }
+
                 }
             }
             return (best == null ? null : new(best), besti);

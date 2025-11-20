@@ -21,5 +21,13 @@ namespace ApsRT.Core.Settings
 
         //public bool CalculateSubdivisionsTransfers { get; set; }
 
+        public enum PartiaMergingRestrictionType
+        {
+            LongestOpers_LessThan3,
+            Level2_Multiplies2
+        }
+
+        public PartiaMergingRestrictionType UsedPartiaMergingRestriction { get; set; }
+
     }
 }

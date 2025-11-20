@@ -640,8 +640,33 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             return 0;//(byte)(enough ? (ThatWasVspom ? 1 : 2) : 0);
         }
 
+        static float FindFilledK(PartiaConnectorEngineData data,
+            (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1,
+            (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, int maxArgument, PartiasConnectorEngineResult resultToFill)
+        {
+            if (wannaMergeOps1.Modelling != null)
+            {
+                var sessionLink = wannaMergeOps1.Modelling[0].SessionLink;
+                var setting = sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction;
+                switch (setting)
+                {
+                    case Settings.SpecialSettings.PartiaMergingRestrictionType.Level2_Multiplies2:
+                        {
+                            return FindFilledKWithFunc(data, wannaMergeOps1, wannaMergeOps2, x => x % 2 == 0, resultToFill);
+                        }
+                    default:
+                        {
+                            return FindFilledKWithFunc(data, wannaMergeOps1, wannaMergeOps2, x => x <= maxArgument, resultToFill);
+                        }
+                }
+            }
+            else
+            {
+                return resultToFill.mergedNorm;
+            }
+        }
 
-        static float FindFilledK(PartiaConnectorEngineData data, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, int MaxPossibleTheirCount, PartiasConnectorEngineResult resultToFill)
+        static float FindFilledKWithFunc(PartiaConnectorEngineData data, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, Func<int, bool> UsedRestriction, PartiasConnectorEngineResult resultToFill)
         {
             (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
@@ -693,7 +718,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                             if (resultToFill.LongestModsMaxCount == int.MaxValue || resultToFill.LongestModsMaxCount < cnt) resultToFill.LongestModsMaxCount = cnt;
 
-                            if (cnt <= MaxPossibleTheirCount && PrevsGood)
+                            if (UsedRestriction(cnt)/*cnt <= MaxPossibleTheirCount*/ && PrevsGood)
                             {
                                 if (sdvigs.All(x => x.Opers[0].NoChangeTara)) continue; // Если у него признак не менять тару, то дальше считать коэффициент бессмысленно
                                 var newK = sdvigs.Sum(x =>
@@ -947,8 +972,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             }
 
             // Сначала находим время
-            var wannaMergeOps1 = firstPartia.GetLongestOpers();
-            var wannaMergeOps2 = secondPartia.GetLongestOpers();
+            var wannaMergeOps1 = firstPartia.GetLongestOpersForPostCheck();
+            var wannaMergeOps2 = secondPartia.GetLongestOpersForPostCheck();
 
 
             if (firstPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps1.Modelling != null)
