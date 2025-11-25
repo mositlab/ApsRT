@@ -15,7 +15,7 @@ namespace ApsRT.Core.Settings
 
         public bool OptimizeSubdivisionsInPartias { get; set; }
 
-        public string NaladLengthsCriteriaName { get; set; }
+        //public string NaladLengthsCriteriaName { get; set; }
 
         public string LivensteinCodesCriteriaName { get; set; }
 

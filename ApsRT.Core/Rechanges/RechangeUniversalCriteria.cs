@@ -21,6 +21,7 @@ namespace ApsRT.Core.Rechanges
             Sort = model.Sort;
             IsLink = model.IsLink;
             IsDynamic = model.IsDynamic;
+            UsedInNaladLengths = model.UsedInNaladLengths;
             AdditionalPropLink = null;
 
             if (IsLink)
@@ -124,6 +125,11 @@ namespace ApsRT.Core.Rechanges
         /// У него постоянно меняются значения? В таком случае наличие этого критерия заставить АПС хранить данные не в статичном, а в динамичном кэше, а так же постоянно сравнивать диаметры
         /// </summary>
         public bool IsDynamic { get; }
+
+        /// <summary>
+        ///Используется в наладочных длинах?
+        /// </summary>
+        public bool UsedInNaladLengths { get; }
     }
 
 }

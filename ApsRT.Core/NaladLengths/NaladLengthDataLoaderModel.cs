@@ -40,11 +40,11 @@ namespace ApsRT.Core.NaladLengths
         [DataRecordCodedObjectColumn("ЕдиницаИзмеренияКлассификатор_GUID", "ЕдиницаИзмеренияКлассификатор", isDimensionUnit: true)]
         public UcoDU DimensionUnitClassificator { get; set; }
 
-        [DataRecordColumn("СечениеОт", defaultIfFail: true)]
-        public double ParameterFrom { get; set; }
+        //[DataRecordColumn("СечениеОт", defaultIfFail: true)]
+        public (double ParameterFrom, double ParameterTo)[] Params;
 
-        [DataRecordColumn("СечениеДо", defaultIfFail: true)]
-        public double ParameterTo { get; set; }
+        //[DataRecordColumn("СечениеДо", defaultIfFail: true)]
+        //public  { get; set; }
 
         [DataRecordColumn("ПерваяТараЗапуска", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool IsFirst { get; set; }

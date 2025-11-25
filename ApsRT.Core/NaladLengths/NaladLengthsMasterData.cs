@@ -32,16 +32,21 @@ namespace ApsRT.Core.NaladLengths
                 Dictionary<Uco, // номенклатура
                     Dictionary<Uco, // хар-ка
                         Dictionary<RequiredNaladCondition, // В зависимости от запуска
-                            Dictionary<Vector2, NaladLengthValue> // и ещё по сечению смотрим
+                            NaladLengthDataNode // сборник с данными
                             >
                         >
                     >
                 >
             > AllNaladLengths = new();
 
-        public void ClearAll()
+        public void PrepareForLoading()
         {
             AllNaladLengths.Clear();
+            criteriaIndexes = SessionLink.MasterDataLinks.RechangesMasterData.ExistingCriterias
+                .Select((x, index) => (val: x, index: index))
+                .Where(x => x.val.UsedInNaladLengths)
+                .Select(x => x.index)
+                .ToList();
         }
 
         public void AddNaladLengthData(NaladLengthDataLoaderModel model)
@@ -84,10 +89,6 @@ namespace ApsRT.Core.NaladLengths
             var edIzm = model.DimensionUnitClassificator;
             NaladLengthValue length = new NaladLengthValue(length0, edIzm);
 
-            var from = (float)model.ParameterFrom;
-            var to = (float)model.ParameterTo;
-            Vector2 sech = new Vector2(from, to);
-
             if (model.IsFirst)
             {
                 add(RequiredNaladCondition.FirstLaunch);
@@ -100,25 +101,34 @@ namespace ApsRT.Core.NaladLengths
 
             void add(RequiredNaladCondition cond)
             {
-                if (!AllNaladLengths[rc][oper][nomen][chars].ContainsKey(cond))
+                if (!AllNaladLengths[rc][oper][nomen][chars].ContainsKey(cond)) AllNaladLengths[rc][oper][nomen][chars].Add(cond, new());
+
+                var currentNode = AllNaladLengths[rc][oper][nomen][chars][cond];
+
+                for (int i = 0; i < model.Params.Length; i++)
                 {
-                    AllNaladLengths[rc][oper][nomen][chars].Add(cond, new());
+                    var currParams = model.Params[i];
+                    Vector2 vector = new Vector2((float)currParams.ParameterFrom, (float)currParams.ParameterTo);
+                    if (currentNode.NextLevel == null) currentNode.NextLevel = new Dictionary<Vector2, NaladLengthDataNode>();
+                    if (currentNode.NextLevel.TryGetValue(vector, out var nextNode))
+                    {
+                        currentNode = nextNode; // Если эта штука есть, то возвращаем её
+                    }
+                    else
+                    {
+                        var newT = new NaladLengthDataNode();
+                        currentNode.NextLevel.Add(vector, newT);
+                        currentNode = newT; // Переходим на следующий уровень
+                    }
                 }
 
-                if (!AllNaladLengths[rc][oper][nomen][chars][cond].ContainsKey(sech))
-                {
-                    AllNaladLengths[rc][oper][nomen][chars][cond].Add(sech, length);
-                }
+                currentNode.Value = length;
+
             }
         }
 
 
-        int criteriaIndex = -1;
-
-        public void SetNeededParamName(string rawCriteriaName)
-        {
-            criteriaIndex = SessionLink.MasterDataLinks.RechangesMasterData.GetCriteriaIndexByName(rawCriteriaName);
-        }
+        public List<int> criteriaIndexes = new ();
 
         internal NaladLengthValue GetMinimumNaladLengthFromMasterData(Stage op)
         {
@@ -147,19 +157,39 @@ namespace ApsRT.Core.NaladLengths
             var emptyNomen = Uco.EmptyObject;
 
             NaladLengthValue tryIt(Dictionary<RequiredNaladCondition, // В зависимости от запуска
-                        Dictionary<Vector2, NaladLengthValue> // и ещё по сечению смотрим
+                        NaladLengthDataNode // сборник с данными
                         > conds)
             {
-                if (conds.TryGetValue(whichCondition, out var sechs))
+                if (conds.TryGetValue(whichCondition, out var firstNode))
                 {
-                    var myParam = criteriaIndex == -1 ? 0 : (op.RechangeParameters[criteriaIndex].GetFloat(0) ?? 0); // получаем сечение (или любое другое что нам надо)
-                    foreach (var sech in sechs)
+                    for (int i = 0; i < criteriaIndexes.Count; i++)
                     {
-                        if (myParam >= sech.Key.X && myParam <= sech.Key.Y)
+                        int criteriaIndex = criteriaIndexes[i];
+
+                        var value =
+                            op.SessionLink.MasterDataLinks.RechangesMasterData.ExistingCriterias[criteriaIndex].CanBeNumber
+                            ? (op.RechangeParameters[criteriaIndex].GetFloat(0) ?? 0)
+                            : (float.TryParse(op.RechangeParameters[criteriaIndex].GetString(0), out var parsed) ? parsed : 0);
+
+                        bool found = false;
+                        foreach (var sech in firstNode.NextLevel)
                         {
-                            return sech.Value;
+                            if (value >= sech.Key.X && value <= sech.Key.Y)
+                            {
+                                firstNode = sech.Value; // Перезаписываем значение
+                                found = true;
+                                break;
+                            }
                         }
+                        if (!found)
+                        {
+                            return new(0, new(Guid.Empty, DimensionUnit.m)); // Если тут ничего нет, то просто выходим с пустым.
+                        }
+
                     }
+
+                    return firstNode.Value.HasValue ? firstNode.Value.Value : new(0, new(Guid.Empty, DimensionUnit.m));
+
                 }
                 return new(0, new(Guid.Empty, DimensionUnit.m));
             }

@@ -47,6 +47,9 @@ namespace ApsRT.Core.Rechanges.Hoppers
         [DataRecordColumn("Динамичный", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool IsDynamic { get; set; }
 
+        [DataRecordColumn("ИспользуетсяВНаладочныхДлинах", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
+        public bool UsedInNaladLengths { get; set; }
+
         [DataRecordColumn("ИндексМетода", defaultIfFail: true)]
         public int? MethodLinkIndex { get; set; }
 

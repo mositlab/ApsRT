@@ -266,7 +266,6 @@ namespace ApsRT.Core.Session
 
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
-            MasterDataLinks.NaladLengthsMasterData.SetNeededParamName(SettingsController.SpecialSettings.NaladLengthsCriteriaName);
 
             if (DataErrors.TryOutputDataErrors())
             {
