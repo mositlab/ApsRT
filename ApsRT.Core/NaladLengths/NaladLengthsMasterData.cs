@@ -194,19 +194,36 @@ namespace ApsRT.Core.NaladLengths
                 return new(0, new(Guid.Empty, DimensionUnit.m));
             }
 
-            if (AllNaladLengths.TryGetValue(chosenRC, out var lvl0)
-                &&
-                lvl0.TryGetValue(op.OperationVid, out var lvl1))
+            if (AllNaladLengths.TryGetValue(chosenRC, out var lvl0))
             {
-                if (lvl1.TryGetValue(op.Nomenklature, out var conds))
+                if (lvl0.TryGetValue(op.OperationVid, out var lvl1))
                 {
-                    if (conds.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // С заполненной номенклатурой
-                    if (conds.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // С заполненной номенклатурой
+                    if (lvl1.TryGetValue(op.Nomenklature, out var conds))
+                    {
+                        if (conds.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // С заполненной номенклатурой
+                        if (conds.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // С заполненной номенклатурой
+                    }
+                    if (lvl1.TryGetValue(Uco.EmptyObject, out var conds2))
+                    {
+                        if (conds2.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // Попробуем по пустой номенклатуре
+                        if (conds2.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // Попробуем по пустой номенклатуре
+                    }
                 }
-                if (lvl1.TryGetValue(Uco.EmptyObject, out var conds2))
+                else
                 {
-                    if (conds2.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // Попробуем по пустой номенклатуре
-                    if (conds2.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // Попробуем по пустой номенклатуре
+                    if (lvl0.TryGetValue(Uco.EmptyObject, out var lvl11))
+                    {
+                        if (lvl11.TryGetValue(op.Nomenklature, out var conds))
+                        {
+                            if (conds.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // С заполненной номенклатурой
+                            if (conds.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // С заполненной номенклатурой
+                        }
+                        if (lvl11.TryGetValue(Uco.EmptyObject, out var conds2))
+                        {
+                            if (conds2.TryGetValue(op.Characteristics, out var condsF)) return tryIt(condsF); // Попробуем по пустой номенклатуре
+                            if (conds2.TryGetValue(Uco.EmptyObject, out var condsF2)) return tryIt(condsF2); // Попробуем по пустой номенклатуре
+                        }
+                    }
                 }
             }
             //    &&

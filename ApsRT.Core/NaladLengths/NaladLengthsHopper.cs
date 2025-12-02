@@ -56,8 +56,8 @@ namespace ApsRT.Core.NaladLengths
                 var critIndex = NaladLengthsMasterData.criteriaIndexes[i];
                 var criteriaName = NaladLengthsMasterData.SessionLink.MasterDataLinks.RechangesMasterData.ExistingCriterias[critIndex].Name;
 
-                var from = data[criteriaName + "От"].ConvertToFloatByAnyCost() ?? 0;
-                var to = data[criteriaName + "До"].ConvertToFloatByAnyCost() ?? 0;
+                var from = data[criteriaName + "От"].ConvertToOrDefault<string>().RemoveWhitespaces().ConvertToFloatByAnyCost() ?? 0;
+                var to = data[criteriaName + "До"].ConvertToOrDefault<string>().RemoveWhitespaces().ConvertToFloatByAnyCost() ?? 0;
                 array[i] = (from, to);
 
             }
