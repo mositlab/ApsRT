@@ -925,7 +925,7 @@ namespace UniversalPack.Extensions
                 }
                 if (rawValue is string str)
                 {
-                    return str.ConvertToOrDefault(0.0f);
+                    return string.IsNullOrEmpty(str) ? null : str.ConvertToOrDefault(0.0f);
                 }
                 return null;
             }

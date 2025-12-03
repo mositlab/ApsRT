@@ -416,11 +416,6 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     }
                 }
 
-                if (guidToSet.ToString() == "ff760144-9d5b-11f0-be4a-3cecef1c38f6")
-                {
-                    ;
-                }
-
                 var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110), Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {

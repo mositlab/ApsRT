@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ApsRT.SKO": {
-      "commandName": "Project",
-      "commandLineArgs": "settings:sko.txt"
+      "commandName": "Project"
     }
   }
 }
