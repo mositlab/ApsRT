@@ -57,8 +57,16 @@ namespace ApsRT.Core.Rechanges
 
             StagesTableColumnsNames = columnNames;
 
-            CanBeUsed = LinkDataObtainer != null || (StagesTableColumnsNames != null && StagesTableColumnsNames.Length > 0);
+            CanBeUsed = 
+                IsLink ? (LinkDataObtainer != null)
+                : (StagesTableColumnsNames != null && StagesTableColumnsNames.Length > 0);
         }
+
+        /// <summary>
+        /// Индекс критерия
+        /// </summary>
+        public int CriteriaIndex { get; set; }
+
 
         /// <summary>
         /// Можно ли его вообще использовать
@@ -115,7 +123,7 @@ namespace ApsRT.Core.Rechanges
         /// <summary>
         /// Непосредственно сама ссылка, позволяющая получить данные
         /// </summary>
-        public Func<Stage, RechangesEngineData, Type, int, PropsLinkerClass, object> LinkDataObtainer;
+        public Func<int, Stage, RechangesEngineData, Type, int, PropsLinkerClass, object> LinkDataObtainer;
 
         public Func<Stage, int> LinkValuesCountObtainer;
 

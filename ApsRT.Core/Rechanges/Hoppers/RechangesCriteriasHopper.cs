@@ -49,7 +49,11 @@ namespace ApsRT.Core.Rechanges.Hoppers
             var model = new RechangesCriteriaDataLoaderModel();
             model.LoadFromDataRecord(data, options);
             var criteria = new RechangeUniversalCriteria(model, session.MasterDataLinks.PropsMasterData);
-            if (criteria.CanBeUsed) list.Add(criteria);
+            if (criteria.CanBeUsed)
+            {
+                criteria.CriteriaIndex = list.Count;
+                list.Add(criteria);
+            }
         }
     }
 }

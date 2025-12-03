@@ -29,7 +29,7 @@ namespace ApsRT.Core.Rechanges
         }
 
         public static
-        Func<Stage, RechangesEngineData, Type, int, PropsLinkerClass, object>[] MethodsArray = new Func<Stage, RechangesEngineData, Type, int, PropsLinkerClass, object>[7]
+        Func<int, Stage, RechangesEngineData, Type, int, PropsLinkerClass, object>[] MethodsArray = new Func<int, Stage, RechangesEngineData, Type, int, PropsLinkerClass, object>[7]
         {
             GetOperVid,
             GetPlacesCount,
@@ -75,7 +75,7 @@ namespace ApsRT.Core.Rechanges
             0
         };
 
-        private static object GetNormTaraCount(Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
+        private static object GetNormTaraCount(int criteriaIndex, Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
         {
             var ALL = operation.SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             if (type == typeof(Guid?)) return null;
@@ -91,7 +91,7 @@ namespace ApsRT.Core.Rechanges
             return sum;
         }
 
-        private static object GetAllOtdTaraCount(Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
+        private static object GetAllOtdTaraCount(int criteriaIndex, Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
         {
             var ALL = operation.SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             if (type == typeof(Guid?)) return null;
@@ -109,7 +109,7 @@ namespace ApsRT.Core.Rechanges
             return sum;
         }
 
-        private static object GetVspomTaraCount(Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
+        private static object GetVspomTaraCount(int criteriaIndex, Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
         {
             var ALL = operation.SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             if (type == typeof(Guid?)) return null;
@@ -125,7 +125,7 @@ namespace ApsRT.Core.Rechanges
             return sum;
         }
 
-        private static object GetOtdTara(Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
+        private static object GetOtdTara(int criteriaIndex, Stage operation, RechangesEngineData data, Type type, int arg4, PropsLinkerClass propLink)
         {
             var ALL = operation.SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             if (type == typeof(float?)) return null;
@@ -152,7 +152,7 @@ namespace ApsRT.Core.Rechanges
          */
 
         // Получит вид операции
-        static object GetOperVid(Stage link, RechangesEngineData engineData, Type type, int valueIndex, PropsLinkerClass propLink)
+        static object GetOperVid(int criteriaIndex, Stage link, RechangesEngineData engineData, Type type, int valueIndex, PropsLinkerClass propLink)
         {
             if (type == typeof(float?)) return null;
             if (type == typeof(string)) return link.OperationVid.Label;
@@ -160,7 +160,7 @@ namespace ApsRT.Core.Rechanges
         }
 
         // Получит количество мест
-        static object GetPlacesCount(Stage which, RechangesEngineData engineData, Type type, int valueIndex, PropsLinkerClass propLink)
+        static object GetPlacesCount(int criteriaIndex, Stage which, RechangesEngineData engineData, Type type, int valueIndex, PropsLinkerClass propLink)
         {
             if (type == typeof(Guid?)) return null;
             if (type == typeof(string)) return which.PlacesCount.ToString();
@@ -168,7 +168,7 @@ namespace ApsRT.Core.Rechanges
         }
 
         // Получит часы простоя
-        static object GetProstoi(Stage which, RechangesEngineData engineData, Type type, int valueIndex, PropsLinkerClass propLink)
+        static object GetProstoi(int criteriaIndex, Stage which, RechangesEngineData engineData, Type type, int valueIndex, PropsLinkerClass propLink)
         {
             if (type == typeof(Guid?)) return null;
             if (engineData == null)
