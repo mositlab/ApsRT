@@ -215,12 +215,12 @@ namespace ApsRT.Core.Session
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
             StreamWriter swBig = string.IsNullOrEmpty(filenameBig) ? null : new StreamWriter(filenameBig, false, Encoding.UTF8);
 
-            sw.WriteLine($"GUID;" +
+            sw.WriteLine($"GUID;ВерсияЭтапа;" +
                 $"МатериалНоменклатура_GUID;МатериалХарактеристика_GUID;" +
                 $"Количество;" +
                 $"ОригМатериалНоменклатура_GUID;ОригМатериалХарактеристика_GUID;" +
                 $"ОригКоличество;ДатаПланирования");
-            swBig?.WriteLine($"GUID;" +
+            swBig?.WriteLine($"GUID;ВерсияЭтапа;" +
                 $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
                 $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
                 $"Количество;" +
@@ -248,7 +248,7 @@ namespace ApsRT.Core.Session
                     var modCount = SessionLink.MasterDataLinks.LeftoversMasterData.GetMatSumFromMod(smallMod, origMat.AsLeftoverData());
 
                     sw.WriteLine($"" +
-                        $"{oper.GUID};" +
+                        $"{oper.ID.Object.Code};{oper.ID.Version};" +
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Characteristics.Code};" +
@@ -261,7 +261,7 @@ namespace ApsRT.Core.Session
                         $"{date}");
 
                     swBig?.WriteLine($"" +
-                        $"{oper.GUID};" +
+                        $"{oper.ID.Object.Code};{oper.ID.Version};" +
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Nomenklature.Label};" +
@@ -312,11 +312,11 @@ namespace ApsRT.Core.Session
                     var allNexts = r2.StagesAsNormal.SelectMany(x => x.Nexts).Where(x => ALL.ContainsKey(x)).Select(next1 =>
                     {
                         var next = ALL[next1];
-                        return next.IsCustomModelling ? next.CustomModelling : (next.MesModelling.Code == Guid.Empty ? next.GUID : next.MesModelling.Code);
+                        return next.IsCustomModelling ? next.CustomModelling : (next.MesModelling.Code == Guid.Empty ? next.ID.Object.Code : next.MesModelling.Code);
                     }).Distinct().ToArray();
                     foreach (var nexti in allNexts)
                     {
-                        sw.WriteLine($"{D};{(first.IsCustomModelling ? first.CustomModelling : (first.MesModelling.Code == Guid.Empty ? first.GUID : first.MesModelling.Code))};" +
+                        sw.WriteLine($"{D};{(first.IsCustomModelling ? first.CustomModelling : (first.MesModelling.Code == Guid.Empty ? first.ID.Object.Code : first.MesModelling.Code))};" +
                             //$"{(string.Join(",", r2.Select(x => x.ID)))};" +
                             //$"{(string.Join(",", r2.Select(x => x.GUID)))};" +
                             $"{nexti}");
@@ -400,8 +400,8 @@ namespace ApsRT.Core.Session
             }
 
 
-            sw.WriteLine("N;GUID;Место;Длина;СледующаяДлина;ПерваяВЗапуске");
-            fullOutput?.WriteLine("N;Регистратор;GUID;Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
+            sw.WriteLine("N;GUID;ВерсияЭтапа;Место;Длина;СледующаяДлина;ПерваяВЗапуске");
+            fullOutput?.WriteLine("N;Регистратор;GUID;ВерсияЭтапа;Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
 
             var D = 1;
             foreach (var block in blocks)
@@ -434,9 +434,9 @@ namespace ApsRT.Core.Session
                         {
 
                             if (!OP1.NeededNaladLength.HasValue)
-                                sw.WriteLine($"{D};{OP1.GUID};{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+                                sw.WriteLine($"{D};{OP1.ID.Object.Code};{OP1.ID.Version};{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
 
-                            fullOutput?.WriteLine($"{D};\"{OP1.Registrator}\";{OP1.GUID};\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
+                            fullOutput?.WriteLine($"{D};\"{OP1.ID.Object.Label}\";{OP1.ID.Object.Code};{OP1.ID.Version};\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
                                 $"{OP1.Level};{ToCsvString(OP1.Nomenklature)};{ToCsvString(OP1.OperationVid)};{ToCsvString(OP1.Production)};{center};" +
                                 $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
                                 $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
@@ -474,7 +474,7 @@ namespace ApsRT.Core.Session
                             _ => "Неизвестная ошибка"
                         };
                         var ops = length.Value.ops;
-                        errorsOutput.WriteLine($"{element.Key};{(string.Join(",", ops.AllOpers.Select(x => x.Registrator)))};{ops.Sum};{length.Key};{ops.FirstOperLink.CurrentTara.Label};{ops.FirstOperLink.CurrentTaraMaxCapacity};{length.Value.tara};{length.Value.max};{message}");
+                        errorsOutput.WriteLine($"{element.Key};{(string.Join(",", ops.AllOpers.Select(x => x.ID.Object.Label)))};{ops.Sum};{length.Key};{ops.FirstOperLink.CurrentTara.Label};{ops.FirstOperLink.CurrentTaraMaxCapacity};{length.Value.tara};{length.Value.max};{message}");
                     }
                 }
                 errorsOutput.Close();
@@ -491,7 +491,7 @@ namespace ApsRT.Core.Session
         {
             var outputFile = new StreamWriter(filename, false, Encoding.UTF8);
 
-            outputFile.WriteLine($"GUID;Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
+            outputFile.WriteLine($"GUID;ВерсияЭтапа;Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
                     $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
                     $"ДебагНомерМода;Подразделение;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
                     $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки");
@@ -525,7 +525,7 @@ namespace ApsRT.Core.Session
                             {
                                 Guid ord = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Object.Code : Guid.Empty;
                                 var gp = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Version : "";
-                                outputFile.WriteLine($"{operLoc.GUID};{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
+                                outputFile.WriteLine($"{operLoc.ID.Object.Code};{operLoc.ID.Version};{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
                                     $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +
@@ -567,6 +567,7 @@ namespace ApsRT.Core.Session
                 "ДлительностьСек;" +
                 "ID;" +
                 "GUID;" +
+                "ВерсияЭтапа;" +
                 "Регистратор;" +
                 "Ранг;" +
                 "Моделирование;" +
@@ -622,7 +623,7 @@ namespace ApsRT.Core.Session
                             $"{(start + prostoi.interval.Duration):G};" +
                             $"{prostoi.interval.Duration:G};" +
                             $"{(int)prostoi.interval.Duration.TotalSeconds}" +
-                            $";;;;;;;;;;" +
+                            $";;;;;;;;;;;" +
                             $"{blockRC}";
                         rangesManual.WriteLine(finastr);
                         fileN++;
@@ -636,7 +637,7 @@ namespace ApsRT.Core.Session
                             $"{(start.Add(rechanges.interval.Duration)):G};" +
                             $"{rechanges.interval.Duration:G};" +
                             $"{(int)rechanges.interval.Duration.TotalSeconds}" +
-                            $";{nextOper.Index};{nextOper.GUID};{nextOper.Registrator}" +
+                            $";{nextOper.Index};{nextOper.ID.Object.Code};{nextOper.ID.Version};{nextOper.ID.Object.Label}" +
                             $";;;;;;;{blockRC};;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
@@ -685,8 +686,9 @@ namespace ApsRT.Core.Session
                             $"{duration:G};" +
                             $"{(int)duration.TotalSeconds};" +
                             $"{operLoc.Index};" +
-                            $"{operLoc.GUID};" +
-                            $"{operLoc.Registrator};" +
+                            $"{operLoc.ID.Object.Code};" +
+                            $"{operLoc.ID.Version};" +
+                            $"{operLoc.ID.Object.Label};" +
                             $"{currentRank};" +
                             $"[{operLoc.MesModelling}];" +
                             $"[{operLoc.CustomModelling}];" +
@@ -732,7 +734,7 @@ namespace ApsRT.Core.Session
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("N;ID;GUID;Time;ИдентификаторПереналадки;Start;End");
+            sw.WriteLine("N;ID;GUID;ВерсияЭтапа;Time;ИдентификаторПереналадки;Start;End");
             var D = 0;
             foreach (var r in RechangesBeforeFirstStages)
             {
@@ -758,7 +760,7 @@ namespace ApsRT.Core.Session
                         //        ) secondsNow += (int)interval.Time.TotalSeconds;
                         //}
 
-                        sw.WriteLine($"{D};{ALL[r.Key].Index};{ALL[r.Key].GUID};{secondsNow};{rech.Value.Name.Code};{start:G};{start.AddSeconds(secondsNow):G}");// {RECHANGES_TIMES[ALL[r.Item1].Center][rech.]}//r.Item2};{rechs}");
+                        sw.WriteLine($"{D};{ALL[r.Key].Index};{ALL[r.Key].ID.Object.Code};{ALL[r.Key].ID.Version};{secondsNow};{rech.Value.Name.Code};{start:G};{start.AddSeconds(secondsNow):G}");// {RECHANGES_TIMES[ALL[r.Item1].Center][rech.]}//r.Item2};{rechs}");
                         start = start.AddSeconds(secondsNow);
                     }
                 //sw.WriteLine($"{D};{ALL[r.Item1].ID};{r.Item2};{rechs}");
@@ -778,7 +780,7 @@ namespace ApsRT.Core.Session
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;GUIDОбъединения;GUIDОбщегоЭтапа");
+            sw.WriteLine("Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;ВерсияЭтапа;GUIDОбъединения;GUIDОбщегоЭтапа");
             //var D = 0;
 
             var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData);
@@ -794,7 +796,7 @@ namespace ApsRT.Core.Session
                     $"{element.CountExists};" + // вернем на место
                     $"{element.DateWhenNeeded};" +
                     $"{(element.NextArrivalDate?.ToString() ?? "")};" +
-                    $"{element.StageGuid};" +
+                    $"{element.StageGuid.Object.Code};{element.StageGuid.Version}" +
                     $"{element.ModellingGuid};" +
                     $"{element.EasyLifeGuid}"
                     );
@@ -820,7 +822,7 @@ namespace ApsRT.Core.Session
         {
             var sw = new StreamWriter(Filename, false, Encoding.UTF8);
             //GUID (исходного этапа имеется в виду) и ИдентификаторОбщегоЭтапа
-            sw.WriteLine("ИдентификаторЗадела;GUID;НомерМоделирования;ИдентификаторОбщегоЭтапа;КоличествоИспользовано;Причина");
+            sw.WriteLine("ИдентификаторЗадела;GUID;ВерсияЭтапа;НомерМоделирования;ИдентификаторОбщегоЭтапа;КоличествоИспользовано;Причина");
             foreach (var zadel in SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary)
             {
                 if (zadel.Value.WhereIsUsed.Count > 0)
@@ -829,7 +831,7 @@ namespace ApsRT.Core.Session
                     {
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
                         var modGuid = opLink.CurrentModelling;//IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
-                        sw.WriteLine($"{zadel.Key};{opLink.GUID};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
+                        sw.WriteLine($"{zadel.Key};{opLink.ID.Object.Code};{opLink.ID.Version};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
                     }
                 }
                 else

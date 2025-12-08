@@ -55,7 +55,7 @@ namespace UniversalPack.Common
             return _isEmpty;
         }
 
-        public readonly bool IsEmpty => _isEmpty;
+        public readonly bool IsEmpty => EqualityComparer<InputDataType>.Default.Equals(_code, default);
 
         public static bool operator ==(CodedObject<InputDataType, ValueType> a, CodedObject<InputDataType, ValueType> b) => a._hashCode == b._hashCode;
 

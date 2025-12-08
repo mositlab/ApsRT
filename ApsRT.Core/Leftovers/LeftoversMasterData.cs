@@ -722,7 +722,7 @@ namespace ApsRT.Core.Leftovers
                                         point.Date,
                                         nextPrihod ?? DateTime.MinValue,
                                         //nextPrihodSub,
-                                        oper.GUID,
+                                        oper.ID,
                                         oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
                                         oper.GetEasyFlagToOutput()
                                         );

@@ -5,6 +5,7 @@ using UniversalPack;
 using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 
 namespace ApsRT.Core.Materials
 {
@@ -26,8 +27,10 @@ namespace ApsRT.Core.Materials
         /// <summary>
         /// Идентификатор операции
         /// </summary>
-        [DataRecordColumn("ИдентификаторОперации")]
-        public Guid StageGuid { get; set; }
+        //[DataRecordColumn("ИдентификаторОперации")]
+        //public Guid StageGuid { get; set; }
+        [DataRecordCodedObjectVersionedColumn("ИдентификаторОперации", "Регистратор", "ВерсияЭтапа", versionIsInt: true)]
+        public StageGUID StageGuid { get; set; }
 
         /// <summary>
         /// Код спецификации

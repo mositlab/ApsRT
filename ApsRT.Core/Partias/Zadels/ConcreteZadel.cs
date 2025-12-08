@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 
 namespace ApsRT.Core.Partias.Zadels
 {
@@ -33,6 +34,6 @@ namespace ApsRT.Core.Partias.Zadels
         /// <summary>
         /// Список операций, которые в заделе есть. И сколько они будут жрать.
         /// </summary>
-        internal Dictionary<Guid, double> WhereCanUsed = new();
+        internal Dictionary<StageGUID, double> WhereCanUsed = new();
     }
 }

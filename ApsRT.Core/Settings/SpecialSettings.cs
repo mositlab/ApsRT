@@ -21,6 +21,8 @@ namespace ApsRT.Core.Settings
 
         //public bool CalculateSubdivisionsTransfers { get; set; }
 
+        public bool UseOnlyWeightMethodWhenSearchWindings { get; set; }
+
         public enum PartiaMergingRestrictionType
         {
             LongestOpers_LessThan3,

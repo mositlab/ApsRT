@@ -25,7 +25,7 @@ namespace ApsRT.Core.DataErrors
         internal double NaladLength;
         internal string PartiaSettings; // список настроек партий
         internal Guid? PartiaGuid;
-        internal List<Guid> customEtapsGuids;
+        internal List<(Guid Code, int Version)> customEtapsGuids;
         internal Uco? customRC, customRCroute;
         internal Uco? customNomen, customProd, customVid;
         internal List<Uco> RCsOnThisEtap; // Набор РЦ на текущей операции

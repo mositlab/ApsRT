@@ -894,7 +894,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                             // Нельзя. Записываем
                                             var dem = searchData.dataErrorMore;
                                             dem.PartiaGuid = chosenPartiaGuid;
-                                            dem.customEtapsGuids = l.Select(x => x.GUID).ToList();
+                                            dem.customEtapsGuids = l.Select(x => (x.ID.Object.Code, x.ID.Version)).ToList();
                                             if (l[0].RCRoute.IsEmpty)
                                             {
                                                 dem.customRCroute = null;

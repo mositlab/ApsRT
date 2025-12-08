@@ -58,7 +58,8 @@ namespace ApsRT.Core.Partias.Zadels
                 // 2. Превращаем в ГП
                 var finalEtap = model.StageGuid;
                 var OperationsDataSet = SessionLink.MasterDataLinks.StagesMasterData;
-                if (OperationsDataSet.GUIDToIndex.TryGetValue(finalEtap, out var id) && OperationsDataSet.AllStages.TryGetValue(id, out var op))
+                var id = OperationsDataSet.TryGetStageIndexByGuid(finalEtap.Object.Code, finalEtap.Version);
+                if (id != -1 && OperationsDataSet.AllStages.TryGetValue(id, out var op))
                 {
                     var order = op.OrderLink.OrderID;
                     if (!ZadelsData[partiaPF].ContainsKey(order))
@@ -165,7 +166,9 @@ namespace ApsRT.Core.Partias.Zadels
 
                                 if (zadel.ZadelStatus == ZadelStatus.SussesfullyUsed) continue; // Игнорим, он же использован уже.
                                 // Чекаем, сколько у нас тут осталось
-                                if (zadel.WhereCanUsed.TryGetValue(opHere.GUID, out var countToSet))//) // сюда можно сунуть толерантность ещё. 18.06: внезапно выяснилось, что есть право выдать задел, который совершенно не подходит по количеству - и мол может встать, под ответственность юзера.
+                                double countToSet = 0;
+                                if (zadel.WhereCanUsed.TryGetValue(opHere.ID, out countToSet)
+                                    || zadel.WhereCanUsed.TryGetValue(new UniversalPack.Common.CodedObjectVersioned<Guid, string, int>(opHere.ID.Object, 0), out countToSet))//) // сюда можно сунуть толерантность ещё. 18.06: внезапно выяснилось, что есть право выдать задел, который совершенно не подходит по количеству - и мол может встать, под ответственность юзера.
                                                   // 19.06: если задела вообще не осталось, то операции назначить его не получится.
                                 {
                                     if (partia1[i][j].ZadelsGUIDs.Count == opHere.PlacesCount)
@@ -472,7 +475,9 @@ namespace ApsRT.Core.Partias.Zadels
 
                                 // Номенклатуру нашли, теперь ищем повивы, и если находим - находим наконец-то заделы.
 
-                                return finalZadelsHere.Where(x => x.Value.WhereCanUsed.ContainsKey(stage.GUID) || (freeZadels && x.Value.WhereCanUsed.ContainsKey(Guid.Empty))).ToDictionary();
+                                return finalZadelsHere.Where(x => x.Value.WhereCanUsed.ContainsKey(stage.ID)
+                                || x.Value.WhereCanUsed.ContainsKey(new UniversalPack.Common.CodedObjectVersioned<Guid, string, int>(stage.ID.Object, 0)) // Поищу по 0 версии
+                                || (freeZadels && x.Value.WhereCanUsed.ContainsKey(UniversalPack.Common.CodedObjectVersioned<Guid, string, int>.EmptyObject))).ToDictionary();
                             }
                         }
                     }

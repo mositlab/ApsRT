@@ -12,6 +12,7 @@ using ApsRT.Core.Rechanges;
 using ApsRT.Core.Rechanges.MasterData;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
+using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 using UniversalPack.Common.DataLoader;
 using UniversalPack.Attributes;
 using UniversalPack;
@@ -55,7 +56,7 @@ namespace ApsRT.Core.Stages
 
         public override string ToString()
         {
-            return $"Оп. {(GetEasyFlagToOutput() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{GUID}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
+            return $"Оп. {(GetEasyFlagToOutput() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{ID.Object.Code}, {ID.Version}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
         }
 
         /// <summary>
@@ -67,8 +68,11 @@ namespace ApsRT.Core.Stages
         /// Уникальный идентификатор этапа.
         /// </summary>
 
-        [DataRecordColumn("ИдентификаторОперации")]
-        public Guid GUID { get; set; }
+        //[DataRecordColumn("ИдентификаторОперации")]
+        //public Guid GUID { get; set; }
+
+        [DataRecordCodedObjectVersionedColumn("ИдентификаторОперации", "Регистратор", "ВерсияЭтапа", versionIsInt: true)]
+        public StageGUID ID { get; set; }
 
         #endregion
 
@@ -268,8 +272,8 @@ namespace ApsRT.Core.Stages
         /// </summary>
         public StageMaterialsInfo StageMaterialsInfo { get; set; }
 
-        [DataRecordColumn("Регистратор")]
-        public string Registrator { get; set; }
+        //[DataRecordColumn("Регистратор")]
+        //public string Registrator { get; set; }
 
         //
         [DataRecordCodedObjectColumn("ЕдиницаИзмеренияКлассификатор_GUID", "ЕдиницаИзмеренияКлассификатор", isDimensionUnit: true)]

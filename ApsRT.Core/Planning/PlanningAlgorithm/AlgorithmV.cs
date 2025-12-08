@@ -659,7 +659,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             }
 
-            pool.AddInfoTaraTimeLine(firstMod, actualRC, cent2.LastStartDate, $"{first.GUID} с {actualRC.Label}"); // добавляем инфу про тары, юзая последнюю дату начала рц
+            pool.AddInfoTaraTimeLine(firstMod, actualRC, cent2.LastStartDate, $"{first.ID.Object.Code} с {actualRC.Label}"); // добавляем инфу про тары, юзая последнюю дату начала рц
 
             var last = cent2.LastStartDate.AddSeconds(first.GetDuration(actualRC)/*firstMod.AllTime[op00.ActualRC]*/); // это - дата окончания блока
             cent2.LastDate = !AsParallel || last > cent2.LastDate ? last : cent2.LastDate; // последняя дата начала становится максимальной из бывших там (либо если последовательно, либо если дата дольше последнего)
@@ -990,7 +990,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 if (OpersHave % 1000 == 0)
                 {
-                    ordersWriterConc.Add($"{OpersHave};{(a == null ? "" : a.StagesAsNormal[0].GUID)};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{secondsAsString};{timeWhenEnds};{delta}");
+                    ordersWriterConc.Add($"{OpersHave};{(a == null ? "" : a.StagesAsNormal[0].ID.Object.Code)};{lastDate};{b.StagesAsNormal[0].ID.Object.Code};{minDeadline};{seconds};{secondsAsString};{timeWhenEnds};{delta}");
                 }
             }
 

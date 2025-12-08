@@ -41,7 +41,8 @@ namespace ApsRT.Core.Materials
             model.LoadFromDataRecord(data, options);
 
             //ИдентификаторОперации Номенклатура    Характеристика  Количество  ЕдиницаИзмерения    ВидВоспроизводства  Спецификация
-            if (StagesMasterData.GUIDToIndex.TryGetValue(model.StageGuid, out var id))
+            var id = StagesMasterData.TryGetStageIndexByGuid(model.StageGuid.Object.Code, model.StageGuid.Version);
+            if (id != -1)
             {
                 var op = StagesMasterData.AllStages[id];
                 StageMaterialsInfo mat;

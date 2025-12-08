@@ -202,6 +202,8 @@ namespace ApsRT.Core.Partias.PartiasClasses
 
                 }
 
+                if (Index == -1) break; // Хз как такое возможно, но выходим
+
                 // А теперь поищем минимальный РЦ, у самого жорного сдвига здесь.
                 PartiaModelling bestSol = null;
                 foreach (var solution in PossibleDatas[Index])

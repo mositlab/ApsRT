@@ -319,7 +319,7 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// </remarks>
         bool CheckByCondition(Stage op1, Stage op2, MergeConditionsUniversalModel condition, out string reason, out string smallreason, bool forObshEtaps = false)
         {
-            var reasonBuilder = new StringBuilder($"для вида тех. операции {condition.OperationType} задан набор условий у {op1.GUID} и {op2.GUID}");
+            var reasonBuilder = new StringBuilder($"для вида тех. операции {condition.OperationType} задан набор условий у {op1.ID.Object.Code} и {op2.ID.Object.Code}");
 
             // проверка группы заменяемости
             if (condition.CheckWorkCenterRoute || forObshEtaps)

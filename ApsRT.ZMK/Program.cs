@@ -31,6 +31,7 @@ namespace ApsRT.ZMK
             //sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = false;
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "Напряжение";
             sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction = Core.Settings.SpecialSettings.PartiaMergingRestrictionType.LongestOpers_LessThan3;
+            sessionLink.SettingsController.SpecialSettings.UseOnlyWeightMethodWhenSearchWindings = false;
 
 
             ApsRTCustomComponents.ApsRTMainForm1 form = null;

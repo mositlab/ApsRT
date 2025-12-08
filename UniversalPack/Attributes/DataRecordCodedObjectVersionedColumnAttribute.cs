@@ -32,6 +32,8 @@ namespace UniversalPack.Attributes
         /// </summary>
         public bool DefaultIfNull { get; }
 
+        public bool VersionIsInteger { get; }
+
         /// <summary>
         /// <inheritdoc cref="DataRecordCodedObjectVersionedColumnAttribute"/>
         /// </summary>
@@ -42,12 +44,13 @@ namespace UniversalPack.Attributes
         /// <remarks>
         /// <inheritdoc cref="DataRecordCodedObjectVersionedColumnAttribute"/>
         /// </remarks>
-        public DataRecordCodedObjectVersionedColumnAttribute(string guidName, string valueName, string versionName = null, bool defaultIfFail = false)
+        public DataRecordCodedObjectVersionedColumnAttribute(string guidName, string valueName, string versionName = null, bool defaultIfFail = false, bool versionIsInt = false)
         {
             GuidName = guidName;
             ValueName = valueName;
             VersionName = versionName;
             DefaultIfNull = defaultIfFail;
+            VersionIsInteger = versionIsInt;
         }
 
         public override string ToString()

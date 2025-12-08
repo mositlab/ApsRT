@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
+using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 
 namespace ApsRT.Core.Leftovers
 {
     public class LeftoverLackData
     {
-        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, DateTime dateWhenNeeded, DateTime? nextArrivalDate, Guid stageGuid, Guid modellingGuid, Guid easyLifeGuid)
+        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid)
         {
             LeftoverData = leftoverData;
             PartiaPF = partiaPF;
@@ -30,7 +31,7 @@ namespace ApsRT.Core.Leftovers
         public double CountExists { get; set; }
         public DateTime DateWhenNeeded { get; set; }
         public DateTime? NextArrivalDate { get; set; }
-        public Guid StageGuid { get; set; }
+        public StageGUID StageGuid { get; set; }
         public Guid ModellingGuid { get; set; }
         public Guid EasyLifeGuid { get; set; }
     }

@@ -310,10 +310,10 @@ namespace ApsRT.Core.Taras
 
             var dataErrors = SessionLink.DataErrors;
 
-            if (SavedTara.TryGetValue(first, out var resu))
-            {
-                return resu;
-            }
+            //if (SavedTara.TryGetValue(first, out var resu))
+            //{
+            //    return resu;
+            //}
 
             Dictionary<Uco, // Номенклатура
                 Dictionary<Uco, // Харка
@@ -347,7 +347,7 @@ namespace ApsRT.Core.Taras
             }
 
             // Через пару месяцев от этой хуйни откажемся.
-            if (first.UsedCalcMethod == DimensionUnit.m)
+            if (first.UsedCalcMethod == DimensionUnit.m && !SessionLink.SettingsController.SpecialSettings.UseOnlyWeightMethodWhenSearchWindings)
             {
                 if (TarasMaxCapacities.TryGetValue(first.Production, out lvl0))
                 {
@@ -430,7 +430,10 @@ namespace ApsRT.Core.Taras
                 // Иначе - по весу. Сначала ищем по продукции
                 List<(Uco Tara, DimensionUnit Format, double Namot)> finalList = new();
 
-                bool b1 = TarasMaxCapacities.TryGetValue(first.Production, out lvl0);
+                bool b1_1 = TarasMaxCapacities.TryGetValue(first.Production, out var lvl0_0);
+                bool b1_2 = TarasMaxCapacities.TryGetValue(Uco.EmptyObject, out var lvl0_1);
+                bool b1 = b1_1 || b1_2;
+                lvl0 = b1_1 && b1_2 ? lvl0_0.Union(lvl0_1).ToDictionary(x => x.Key, x => x.Value) : (b1_1 ? lvl0_0 : (b1_2 ? lvl0_1 : null));
                 bool b2 = false;
 
                 Dictionary<Uco, // Харка
@@ -461,7 +464,11 @@ namespace ApsRT.Core.Taras
                 }
 
                 bool b3 = false;
-                if (b22) b3 = lvl11.TryGetValue(first.OperationVid, out possible);
+                if (b22)
+                {
+                    b3 = lvl11.TryGetValue(first.OperationVid, out possible);
+                    if (!b3) b3 = lvl11.TryGetValue(Uco.EmptyObject, out possible);
+                }
 
                 if (b1 && b2 && b22 && b3)
                 {

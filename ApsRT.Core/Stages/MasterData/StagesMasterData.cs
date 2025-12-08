@@ -45,19 +45,31 @@ namespace ApsRT.Core.Stages.MasterData
 
         public Dictionary<int, Stage> AllStages { get; private set; } = new();
 
-        public Dictionary<Guid, int> GUIDToIndex { get; private set; } = new();
+        Dictionary<Guid, Dictionary<int, int>> GuidsAndVersions = new();
+        int TotalGuidsCount = 0;
+
+        public int TryGetStageIndexByGuid(Guid guid, int version)
+        {
+            return GuidsAndVersions.TryGetValue(guid, out var res) && res.TryGetValue(version, out int index) ? index : -1;
+        }
+
+        public Dictionary<int, int> TryGetStageIndexexByGuid(Guid guid)
+        {
+            return GuidsAndVersions.TryGetValue(guid, out var res) ? res : null;
+        }
+
 
         public void ClearAll()
         {
             AllStages.Clear();
-            GUIDToIndex.Clear();
+            GuidsAndVersions.Clear();
             MesModellingsInfo.Clear();
             ApsModellingsInfo.Clear();
             //MIN_DATE_TIME_AFTER_FIX = DateTime.MaxValue;
             FIXED_START_TIME = null;
             PrevTimeDelta = null;
             //MinAcceptableDate = DateTime.Now;
-
+            TotalGuidsCount = 0;
             SavedOpersLivenCode.Clear();
         }
 
@@ -169,37 +181,71 @@ namespace ApsRT.Core.Stages.MasterData
                 bool nextYes = model.NextIsInPlan;
                 int places = model.PlacesCount;
 
-                if (GUIDToIndex.TryGetValue(guid, out var PrevID) &&
-                    GUIDToIndex.TryGetValue(guidNext, out var ID) &&
-                    AllStages.ContainsKey(PrevID) &&
-                    AllStages.ContainsKey(ID))
+                var prevs = TryGetStageIndexexByGuid(guid);
+                if (prevs != null)
                 {
-                    AllStages[ID].Prevs.Add(PrevID);
+                    foreach (var PrevIDpair in prevs)
+                    {
+                        var PrevID = PrevIDpair.Value;
+                        if (AllStages.ContainsKey(PrevID))
+                        {
+                            var nexts = TryGetStageIndexexByGuid(guidNext);
+                            if (nexts != null)
+                            {
+                                foreach (var IDpair in nexts)
+                                {
+                                    var ID = IDpair.Value;
+                                    if (AllStages.ContainsKey(ID))
+                                    {
+                                        AllStages[ID].Prevs.Add(PrevID);
 
-                    // Если этот предок не вспомогательный, то прибавляем счетчик норм детей
-                    if (!AllStages[PrevID].IsVspom) AllStages[ID].PrevsNormCount++;
+                                        // Если этот предок не вспомогательный, то прибавляем счетчик норм детей
+                                        if (!AllStages[PrevID].IsVspom) AllStages[ID].PrevsNormCount++;
 
-                    AllStages[PrevID].Nexts.Add(ID);
+                                        AllStages[PrevID].Nexts.Add(ID);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+
+                //if (GUIDToIndex.TryGetValue(guid, out var PrevID) &&
+                //    GUIDToIndex.TryGetValue(guidNext, out var ID) &&
+                //    AllStages.ContainsKey(PrevID) &&
+                //    AllStages.ContainsKey(ID))
+                //{
+                //}
 
 
                 if (!thisYes && nextYes)
                 {
-                    if (GUIDToIndex.TryGetValue(guidNext, out var nID) && AllStages.ContainsKey(nID))
+                    var list = TryGetStageIndexexByGuid(guidNext);
+                    if (list != null)
                     {
-                        var stageLink = AllStages[nID];
-
-                        if (model.VspomTara)
-                            stageLink.GhostVspomPrevsPlacesCount += places;
-                        else
-                            stageLink.GhostNormPrevsPlacesCount += places;
-
-                        if (model.WhenWasReady.HasValue && (!stageLink.GhostPrevsWorstDate.HasValue || stageLink.GhostPrevsWorstDate.Value > model.WhenWasReady.Value))
+                        foreach (var el in list)
                         {
-                            stageLink.GhostPrevsWorstDate = model.WhenWasReady; // Установим дату для призрака
-                            stageLink.GhostData = (model.GhostNomenklature, model.GhostCharacteristics);
+                            var nID = el.Value;
+                            if (AllStages.TryGetValue(nID, out var stageLink))
+                            {
+
+                                if (model.VspomTara)
+                                    stageLink.GhostVspomPrevsPlacesCount += places;
+                                else
+                                    stageLink.GhostNormPrevsPlacesCount += places;
+
+                                if (model.WhenWasReady.HasValue && (!stageLink.GhostPrevsWorstDate.HasValue || stageLink.GhostPrevsWorstDate.Value > model.WhenWasReady.Value))
+                                {
+                                    stageLink.GhostPrevsWorstDate = model.WhenWasReady; // Установим дату для призрака
+                                    stageLink.GhostData = (model.GhostNomenklature, model.GhostCharacteristics);
+                                }
+                            }
+
                         }
                     }
+                    //if (GUIDToIndex.TryGetValue(guidNext, out var nID) && )
+                    //{
+                    //}
                 }
             }
         }
@@ -243,16 +289,21 @@ namespace ApsRT.Core.Stages.MasterData
         {
             var masterDatas = SessionLink.MasterDataLinks;
             var PropsMasterData = masterDatas.PropsMasterData;
+
             #region Проверка на дубликат
-            if (GUIDToIndex.ContainsKey(stage.GUID))
+            var allVersions = TryGetStageIndexexByGuid(stage.ID.Object.Code);
+            if (allVersions != null && allVersions.TryGetValue(stage.ID.Version, out int existingIndex))
             {
-                SessionLink.AssignedLogger.LogQueue.Enqueue($"{stage.GUID} уже есть в списке этапов!");
+                SessionLink.AssignedLogger.LogQueue.Enqueue($"{stage.ID.Object.Code} ({stage.ID.Version}) уже есть в списке этапов и имеет индекс {existingIndex}!\r\n");
                 return;
             }
             #endregion
 
-            stage.Index = GUIDToIndex.Count;
-            GUIDToIndex.Add(stage.GUID, stage.Index);
+            stage.Index = TotalGuidsCount;
+
+            GuidsAndVersions.TryAdd(stage.ID.Object.Code, new());
+            GuidsAndVersions[stage.ID.Object.Code].TryAdd(stage.ID.Version, stage.Index);
+            TotalGuidsCount++;
             AllStages.Add(stage.Index, stage);
             stage.Prevs = new();
             stage.Nexts = new();

@@ -124,7 +124,7 @@ namespace ApsRT.Core.DataErrors
                 $"ДА;{BtoS(yesdOP)}";
             var str2 = "ДоступныеРЦТекущегоЭтапа;ПриемнаяТараТекущегоЭтапа;ТребуемаяОтдающаяТара;МаксНамоткиТекущегоЭтапа;ПересечениеМаксНамотокПриемнойТары;РЦСледующегоЭтапа;ТараСледующегоЭтапа;" +
                 "РЦПредыдущегоЭтапа;ТараПредыдущегоЭтапа;" +
-                "Этап;ПредыдущиеЭтапы;СледующиеЭтапы;" +
+                "Этап;ВерсияЭтапа;ПредыдущиеЭтапы;ВерсииПредыдущихЭтапов;СледующиеЭтапы;ВерсииСледующихЭтапов;" +
                 $"МетодРасчёта;Продукция;Номенклатура;{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ВидОперации;" +
                 "РЦ;ГруппаЗаменяемостиРабочихЦентров;" +
                 "Заказ;ПартияГП;ИдентификаторПартииПФ;" +
@@ -241,7 +241,9 @@ namespace ApsRT.Core.DataErrors
                         string list53 = ""; if (error.Value.RCsOnPrevEtap != null) list53 = string.Join(", ", error.Value.RCsOnPrevEtap.Select(X => X.Label));
                         string list54 = ""; if (error.Value.TarasOnPrevEtap != null) list54 = string.Join(", ", error.Value.TarasOnPrevEtap.Select(X => X.Label));
 
-                        string listCOL = ""; if (error.Value.customEtapsGuids != null) listCOL = string.Join(", ", error.Value.customEtapsGuids);
+                        string listCOLGuids = ""; if (error.Value.customEtapsGuids != null) listCOLGuids = string.Join(", ", error.Value.customEtapsGuids.Select(x => x.Code));
+                        string listCOLGuidsVersions = ""; if (error.Value.customEtapsGuids != null) listCOLGuids = string.Join(", ", error.Value.customEtapsGuids.Select(x => x.Version));
+
 
                         var op = element.Key < 0 ? null : allStages[element.Key];
 
@@ -250,9 +252,12 @@ namespace ApsRT.Core.DataErrors
                         swNew.WriteLine(
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
-                            $"{(string.IsNullOrEmpty(listCOL) ? op?.GUID : listCOL)};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
+                            $"{(string.IsNullOrEmpty(listCOLGuids) ? op?.ID.Object.Code : listCOLGuids)};" +
+                            $"{(string.IsNullOrEmpty(listCOLGuidsVersions) ? op?.ID.Version : listCOLGuidsVersions)};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Object.Code)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Version)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Object.Code)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Version)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};" +
                             $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Code};{op?.ProductionCharacteristics.Code};" : "")}" +
@@ -269,9 +274,11 @@ namespace ApsRT.Core.DataErrors
                         swNewBig?.WriteLine(
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
-                            $"{(string.IsNullOrEmpty(listCOL) ? (op?.Registrator + " " + op?.GUID) : listCOL)};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
+                            $"{(string.IsNullOrEmpty(listCOLGuids) ? (op?.ID.Object.Label + " " + op?.ID.Object.Code) : listCOLGuids)};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Object.Code)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Version)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Object.Code)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Version)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklature.Label)};" +
                             $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Label};{op?.ProductionCharacteristics.Label};" : "")}" +

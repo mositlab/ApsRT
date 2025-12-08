@@ -164,7 +164,15 @@ namespace UniversalPack.Common.DataLoader
             var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
             var versionValue = record[attribute.VersionName].ConvertToOrDefault(string.Empty);
 
-            return new CodedObjectVersioned<Guid, string, string>(new CodedObject<Guid, string>(guidValue, nameValue), versionValue);
+            if (attribute.VersionIsInteger)
+            {
+                int versionValueInt = string.IsNullOrEmpty(versionValue) ? 0 : (int.TryParse(versionValue, out var res) ? res : 0);
+                return new CodedObjectVersioned<Guid, string, int>(new CodedObject<Guid, string>(guidValue, nameValue), versionValueInt);
+            }
+            else
+            {
+                return new CodedObjectVersioned<Guid, string, string>(new CodedObject<Guid, string>(guidValue, nameValue), versionValue);
+            }
         }
         /// <summary>
         /// Определить конвертер для поля

@@ -2,6 +2,7 @@
 using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 
 namespace ApsRT.Core.Partias.Zadels
 {
@@ -20,8 +21,9 @@ namespace ApsRT.Core.Partias.Zadels
         [DataRecordColumn("ИдентификаторПартииПФ")]
         public Guid? PartiaPF { get; set; }
 
-        [DataRecordColumn("ИдентификаторЭтапа")]
-        public Guid StageGuid { get; set; }
+        //[DataRecordColumn("ИдентификаторЭтапа")]
+        [DataRecordCodedObjectVersionedColumn("ИдентификаторЭтапа", "Регистратор", "ВерсияЭтапа", versionIsInt: true)]
+        public StageGUID StageGuid { get; set; }
 
         [DataRecordColumn("Уровень")]
         public int Level { get; set; }

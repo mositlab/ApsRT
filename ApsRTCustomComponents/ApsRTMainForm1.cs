@@ -1488,7 +1488,7 @@ namespace ApsRTCustomComponents
                             var bar = new GanttChart.Bar(start, start.Add(rechanges.interval.Duration),
                     Colors.MOSITLAB_RED, Colors.MOSITLAB_RED_DARK,
                                 $"Переналадка: {(results != null ? string.Join(", ", results.Select(x => x.Value.Name + " (" + x.Value.Duration + " с.)")) : "")}" +
-                                $"\r\nИндекс (ИД): {op1.Index} ({op1.GUID}) => {op2.Index} ({op2.GUID})" +
+                                $"\r\nИндекс (ИД): {op1.Index} ({op1.ID.Object.Code}) => {op2.Index} ({op2.ID.Object.Code})" +
                                 reches, GlobalToLocalCenterRows[blockRC],
                                 0, 1,
                                 -1, 0);
@@ -1528,7 +1528,7 @@ namespace ApsRTCustomComponents
                             // Вывод на диаграмму Ганта
                             var bar = new GanttChart.Bar(start, start + duration,
                             (operLoc.IsLast ? Color.Yellow : (parallelCount > 1 ? Color.DarkGreen : Colors.MOSITLAB_BLUE)), Colors.MOSITLAB_BLUE_DARK,
-                            $"Операция {operLoc.Index} ({operLoc.GUID}) (вид: {operLoc.OperationVid})" +
+                            $"Операция {operLoc.Index} ({operLoc.ID.Object.Code}) (вид: {operLoc.OperationVid})" +
                             ((operLoc.Center == blockRC) ? "" : $"\r\nСтандартный РЦ: {operLoc.Center}") +
                             $"\r\nРЦ: {blockRC}" +
                             $"\r\nРанг: {currentRank}" +
@@ -1540,7 +1540,7 @@ namespace ApsRTCustomComponents
                             $"\r\nХарактеристика: {operLoc.Characteristics}, продукции: {operLoc.ProductionCharacteristics}" +
                             $"\r\nПродукция: {operLoc.Production}" +
                             $"\r\nНаладочная длина: {operLoc2.NaladLengthData[PoolIndex].Data.NaladLengthHere.Value}" +
-                            $"\r\nРегистратор: {operLoc.Registrator}" +
+                            $"\r\nРегистратор: {operLoc.ID.Object.Label}" +
                             $"\r\nКоличество: {operLoc.Count}" +
                             $"\r\nПовив: {operLoc.Poviv}" +
                             "\r\n" +
@@ -1563,8 +1563,8 @@ namespace ApsRTCustomComponents
                             (operLoc.StartTimeFact.HasValue ? $"\r\nДата начала (ФАКТ.): {operLoc.StartTimeFact.Value}" : "") +
                             (operLoc.Fixed ? $"\r\nЗАФИКСИРОВАНА" : "") +
                             (operLoc.VPZ ? $"\r\nВПЗ" : "") +
-                            (operLoc.Prevs.Count == 0 ? "" : $"\r\nЗависима от: {string.Join(", ", operLoc.Prevs.Select(x => $"{ALL[x].Index} / {ALL[x].GUID}"))}") +
-                            (operLoc.Nexts.Count == 0 ? "" : $"\r\nВлияет на: {string.Join(", ", operLoc.Nexts.Select(x => $"{ALL[x].Index} / {ALL[x].GUID}"))}"),
+                            (operLoc.Prevs.Count == 0 ? "" : $"\r\nЗависима от: {string.Join(", ", operLoc.Prevs.Select(x => $"{ALL[x].Index} / {ALL[x].ID.Object.Code}"))}") +
+                            (operLoc.Nexts.Count == 0 ? "" : $"\r\nВлияет на: {string.Join(", ", operLoc.Nexts.Select(x => $"{ALL[x].Index} / {ALL[x].ID.Object.Code}"))}"),
                             GlobalToLocalCenterRows[blockRC],
                             parallelCount > 1 ? (1f / parallelCount) * mod : 0,
                             parallelCount > 1 ? (1f / parallelCount) : 1, // TODO
