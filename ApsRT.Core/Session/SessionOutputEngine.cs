@@ -248,7 +248,7 @@ namespace ApsRT.Core.Session
                     var modCount = SessionLink.MasterDataLinks.LeftoversMasterData.GetMatSumFromMod(smallMod, origMat.AsLeftoverData());
 
                     sw.WriteLine($"" +
-                        $"{oper.ID.Object.Code};{oper.ID.Version};" +
+                        $"{oper.GUID};{oper.StageVersion};" +
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Characteristics.Code};" +
@@ -261,7 +261,7 @@ namespace ApsRT.Core.Session
                         $"{date}");
 
                     swBig?.WriteLine($"" +
-                        $"{oper.ID.Object.Code};{oper.ID.Version};" +
+                        $"{oper.GUID};{oper.StageVersion};" +
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Nomenklature.Label};" +
@@ -312,11 +312,11 @@ namespace ApsRT.Core.Session
                     var allNexts = r2.StagesAsNormal.SelectMany(x => x.Nexts).Where(x => ALL.ContainsKey(x)).Select(next1 =>
                     {
                         var next = ALL[next1];
-                        return next.IsCustomModelling ? next.CustomModelling : (next.MesModelling.Code == Guid.Empty ? next.ID.Object.Code : next.MesModelling.Code);
+                        return next.IsCustomModelling ? next.CustomModelling : (next.MesModelling.Code == Guid.Empty ? next.GUID : next.MesModelling.Code);
                     }).Distinct().ToArray();
                     foreach (var nexti in allNexts)
                     {
-                        sw.WriteLine($"{D};{(first.IsCustomModelling ? first.CustomModelling : (first.MesModelling.Code == Guid.Empty ? first.ID.Object.Code : first.MesModelling.Code))};" +
+                        sw.WriteLine($"{D};{(first.IsCustomModelling ? first.CustomModelling : (first.MesModelling.Code == Guid.Empty ? first.GUID : first.MesModelling.Code))};" +
                             //$"{(string.Join(",", r2.Select(x => x.ID)))};" +
                             //$"{(string.Join(",", r2.Select(x => x.GUID)))};" +
                             $"{nexti}");
@@ -434,9 +434,9 @@ namespace ApsRT.Core.Session
                         {
 
                             if (!OP1.NeededNaladLength.HasValue)
-                                sw.WriteLine($"{D};{OP1.ID.Object.Code};{OP1.ID.Version};{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+                                sw.WriteLine($"{D};{OP1.GUID};{OP1.StageVersion};{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
 
-                            fullOutput?.WriteLine($"{D};\"{OP1.ID.Object.Label}\";{OP1.ID.Object.Code};{OP1.ID.Version};\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
+                            fullOutput?.WriteLine($"{D};\"{OP1.Registrator}\";{OP1.GUID};{OP1.StageVersion};\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
                                 $"{OP1.Level};{ToCsvString(OP1.Nomenklature)};{ToCsvString(OP1.OperationVid)};{ToCsvString(OP1.Production)};{center};" +
                                 $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
                                 $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
@@ -474,7 +474,7 @@ namespace ApsRT.Core.Session
                             _ => "Неизвестная ошибка"
                         };
                         var ops = length.Value.ops;
-                        errorsOutput.WriteLine($"{element.Key};{(string.Join(",", ops.AllOpers.Select(x => x.ID.Object.Label)))};{ops.Sum};{length.Key};{ops.FirstOperLink.CurrentTara.Label};{ops.FirstOperLink.CurrentTaraMaxCapacity};{length.Value.tara};{length.Value.max};{message}");
+                        errorsOutput.WriteLine($"{element.Key};{(string.Join(",", ops.AllOpers.Select(x => x.Registrator)))};{ops.Sum};{length.Key};{ops.FirstOperLink.CurrentTara.Label};{ops.FirstOperLink.CurrentTaraMaxCapacity};{length.Value.tara};{length.Value.max};{message}");
                     }
                 }
                 errorsOutput.Close();
@@ -525,7 +525,7 @@ namespace ApsRT.Core.Session
                             {
                                 Guid ord = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Object.Code : Guid.Empty;
                                 var gp = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Version : "";
-                                outputFile.WriteLine($"{operLoc.ID.Object.Code};{operLoc.ID.Version};{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
+                                outputFile.WriteLine($"{operLoc.GUID};{operLoc.StageVersion};{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
                                     $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +
@@ -637,7 +637,7 @@ namespace ApsRT.Core.Session
                             $"{(start.Add(rechanges.interval.Duration)):G};" +
                             $"{rechanges.interval.Duration:G};" +
                             $"{(int)rechanges.interval.Duration.TotalSeconds}" +
-                            $";{nextOper.Index};{nextOper.ID.Object.Code};{nextOper.ID.Version};{nextOper.ID.Object.Label}" +
+                            $";{nextOper.Index};{nextOper.GUID};{nextOper.StageVersion};{nextOper.Registrator}" +
                             $";;;;;;;{blockRC};;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
@@ -686,9 +686,9 @@ namespace ApsRT.Core.Session
                             $"{duration:G};" +
                             $"{(int)duration.TotalSeconds};" +
                             $"{operLoc.Index};" +
-                            $"{operLoc.ID.Object.Code};" +
-                            $"{operLoc.ID.Version};" +
-                            $"{operLoc.ID.Object.Label};" +
+                            $"{operLoc.GUID};" +
+                            $"{operLoc.StageVersion};" +
+                            $"{operLoc.Registrator};" +
                             $"{currentRank};" +
                             $"[{operLoc.MesModelling}];" +
                             $"[{operLoc.CustomModelling}];" +
@@ -760,7 +760,7 @@ namespace ApsRT.Core.Session
                         //        ) secondsNow += (int)interval.Time.TotalSeconds;
                         //}
 
-                        sw.WriteLine($"{D};{ALL[r.Key].Index};{ALL[r.Key].ID.Object.Code};{ALL[r.Key].ID.Version};{secondsNow};{rech.Value.Name.Code};{start:G};{start.AddSeconds(secondsNow):G}");// {RECHANGES_TIMES[ALL[r.Item1].Center][rech.]}//r.Item2};{rechs}");
+                        sw.WriteLine($"{D};{ALL[r.Key].Index};{ALL[r.Key].GUID};{ALL[r.Key].StageVersion};{secondsNow};{rech.Value.Name.Code};{start:G};{start.AddSeconds(secondsNow):G}");// {RECHANGES_TIMES[ALL[r.Item1].Center][rech.]}//r.Item2};{rechs}");
                         start = start.AddSeconds(secondsNow);
                     }
                 //sw.WriteLine($"{D};{ALL[r.Item1].ID};{r.Item2};{rechs}");
@@ -831,7 +831,7 @@ namespace ApsRT.Core.Session
                     {
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
                         var modGuid = opLink.CurrentModelling;//IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
-                        sw.WriteLine($"{zadel.Key};{opLink.ID.Object.Code};{opLink.ID.Version};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
+                        sw.WriteLine($"{zadel.Key};{opLink.GUID};{opLink.StageVersion};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
                     }
                 }
                 else

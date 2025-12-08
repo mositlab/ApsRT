@@ -210,6 +210,13 @@ namespace ApsRT.Core.Partias.MergeConditions
                 return false;
             }
 
+            if (op1.CanBePassed != op2.CanBePassed)
+            {
+                reason = $"у {op1.Index} и {op2.Index} не равны признаки возможности пропустить выполнение";
+                smallreason = "не равны пропустить выполнение";
+                return false;
+            }
+
             if (op1.IsFictive != op2.IsFictive)
             {
                 reason = $"у {op1.Index} и {op2.Index} не равны фиктивности";
@@ -319,7 +326,7 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// </remarks>
         bool CheckByCondition(Stage op1, Stage op2, MergeConditionsUniversalModel condition, out string reason, out string smallreason, bool forObshEtaps = false)
         {
-            var reasonBuilder = new StringBuilder($"для вида тех. операции {condition.OperationType} задан набор условий у {op1.ID.Object.Code} и {op2.ID.Object.Code}");
+            var reasonBuilder = new StringBuilder($"для вида тех. операции {condition.OperationType} задан набор условий у {op1.GUID} и {op2.GUID}");
 
             // проверка группы заменяемости
             if (condition.CheckWorkCenterRoute || forObshEtaps)

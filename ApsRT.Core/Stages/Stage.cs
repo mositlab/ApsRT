@@ -56,7 +56,7 @@ namespace ApsRT.Core.Stages
 
         public override string ToString()
         {
-            return $"Оп. {(GetEasyFlagToOutput() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{ID.Object.Code}, {ID.Version}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
+            return $"Оп. {(GetEasyFlagToOutput() != Guid.Empty ? "E" : (IsCustomModelling ? "C" : ""))}{(Fixed ? "F" : "")}{(VPZ ? "V" : "")}:{Index} [{ID.Object.Code}, {StageVersion}]" + (StartTimeFact.HasValue ? $" - {StartTimeFact}" : "");
         }
 
         /// <summary>
@@ -73,6 +73,12 @@ namespace ApsRT.Core.Stages
 
         [DataRecordCodedObjectVersionedColumn("ИдентификаторОперации", "Регистратор", "ВерсияЭтапа", versionIsInt: true)]
         public StageGUID ID { get; set; }
+
+        public Guid GUID => ID.Object.Code;
+
+        public string Registrator => ID.Object.Label;
+
+        public int StageVersion => ID.Version;
 
         #endregion
 
@@ -153,6 +159,9 @@ namespace ApsRT.Core.Stages
 
         [DataRecordColumn("НаОдномРЦ", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool OnOneRC { get; set; }
+
+        [DataRecordColumn("ВозможноПропуститьВыполнение", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool CanBePassed { get; set; }
         #endregion
 
         #region Рабочие центры

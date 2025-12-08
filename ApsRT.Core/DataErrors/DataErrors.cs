@@ -252,12 +252,12 @@ namespace ApsRT.Core.DataErrors
                         swNew.WriteLine(
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
-                            $"{(string.IsNullOrEmpty(listCOLGuids) ? op?.ID.Object.Code : listCOLGuids)};" +
-                            $"{(string.IsNullOrEmpty(listCOLGuidsVersions) ? op?.ID.Version : listCOLGuidsVersions)};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Object.Code)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Version)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Object.Code)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Version)))};" +
+                            $"{(string.IsNullOrEmpty(listCOLGuids) ? op?.GUID : listCOLGuids)};" +
+                            $"{(string.IsNullOrEmpty(listCOLGuidsVersions) ? op?.StageVersion : listCOLGuidsVersions)};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].StageVersion)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].StageVersion)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};" +
                             $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Code};{op?.ProductionCharacteristics.Code};" : "")}" +
@@ -274,11 +274,11 @@ namespace ApsRT.Core.DataErrors
                         swNewBig?.WriteLine(
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
-                            $"{(string.IsNullOrEmpty(listCOLGuids) ? (op?.ID.Object.Label + " " + op?.ID.Object.Code) : listCOLGuids)};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Object.Code)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].ID.Version)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Object.Code)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].ID.Version)))};" +
+                            $"{(string.IsNullOrEmpty(listCOLGuids) ? (op?.Registrator + " " + op?.GUID) : listCOLGuids)};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].StageVersion)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
+                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].StageVersion)))};" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklature.Label)};" +
                             $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Label};{op?.ProductionCharacteristics.Label};" : "")}" +

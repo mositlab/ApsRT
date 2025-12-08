@@ -291,18 +291,18 @@ namespace ApsRT.Core.Stages.MasterData
             var PropsMasterData = masterDatas.PropsMasterData;
 
             #region Проверка на дубликат
-            var allVersions = TryGetStageIndexexByGuid(stage.ID.Object.Code);
-            if (allVersions != null && allVersions.TryGetValue(stage.ID.Version, out int existingIndex))
+            var allVersions = TryGetStageIndexexByGuid(stage.GUID);
+            if (allVersions != null && allVersions.TryGetValue(stage.StageVersion, out int existingIndex))
             {
-                SessionLink.AssignedLogger.LogQueue.Enqueue($"{stage.ID.Object.Code} ({stage.ID.Version}) уже есть в списке этапов и имеет индекс {existingIndex}!\r\n");
+                SessionLink.AssignedLogger.LogQueue.Enqueue($"{stage.GUID} ({stage.StageVersion}) уже есть в списке этапов и имеет индекс {existingIndex}!\r\n");
                 return;
             }
             #endregion
 
             stage.Index = TotalGuidsCount;
 
-            GuidsAndVersions.TryAdd(stage.ID.Object.Code, new());
-            GuidsAndVersions[stage.ID.Object.Code].TryAdd(stage.ID.Version, stage.Index);
+            GuidsAndVersions.TryAdd(stage.GUID, new());
+            GuidsAndVersions[stage.GUID].TryAdd(stage.StageVersion, stage.Index);
             TotalGuidsCount++;
             AllStages.Add(stage.Index, stage);
             stage.Prevs = new();
