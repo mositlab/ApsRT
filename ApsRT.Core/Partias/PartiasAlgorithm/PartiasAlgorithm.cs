@@ -883,7 +883,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                             naladLength = currentF + (float)nextF;
                                         }
                                         //e }))
-                                        if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out _, out _, out _, out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false, NaladLength = naladLength, RecommendedTara = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(s.Opers[0].Index, out var tara1) ? tara1 : (RestrictionsVia74110.TryGetValue(s2.Opers[0].Index, out var tara2) ? tara2 : null)), }))
+                                        if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(new PartiaModellingSmall(l), out _, out var searchData, new SumIsPossibleOptions(false) { LogSomeErrors = false, NaladLength = naladLength, RecommendedTara = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(s.Opers[0].Index, out var tara1) ? tara1 : (RestrictionsVia74110.TryGetValue(s2.Opers[0].Index, out var tara2) ? tara2 : null)), }))
                                         {
                                             // Можно? ну тогда я не знаю...
                                             //var dem = searchData.dataErrorMore;
@@ -1131,6 +1131,10 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                 op1.EasyFlag = IDtoGroup != null ? (IDtoGroup.TryGetValue(op1.Index, out var guid) ? guid : null) : null;
                                 //op1.EasyFlagIsFromMes = false;
                                 op1.CustomPartiaGuid = chosenPartiaGuid;
+
+                                // Устанавливаем кол-во мест
+                                if (lvl2.PlacesCountMultiplierToRewrite.HasValue)
+                                    op1.SetPlacesCount(op1.OriginalPlacesCount * lvl2.PlacesCountMultiplierToRewrite.Value);
                             }
 
                             // Записываем инфу об ошибках тары, если они есть

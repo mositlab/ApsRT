@@ -679,7 +679,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                 //SaveAvailableResults = true,
                                 NaladLength = list.NaladLengthData[bestIndex].Data.NaladLengthHere.Value, // Ну а какую ещё? Это не та по идее, она с текущего РЦ, и след длины могут отличаться, но других данных нет
                             };
-                            if (!TaraSearchEngine.SumIsPossible(list, out _, out _, out _, out _, out _, out var searchData, options))
+                            if (!TaraSearchEngine.SumIsPossible(list, out _, out var searchData, options))
                             {
                                 IgnoredGlobalFixedNaladLengthsErrors.Add(index);
                             }
@@ -778,12 +778,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             };
 
             if (
-                TaraSearchEngine.SumIsPossible(sdvig, out var possibleTara, out _, out _, out _, out _, out var searchData, options)
+                TaraSearchEngine.SumIsPossible(sdvig, out var result, out var searchData, options)
                 && TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere.ToList(), prevs, options.TaraMustBeThis?.ToList(), out _, out var allRCs, out _, false)
                 )
             {
                 bool allowedToMoveOn = true;
-                if (possibleTara != sdvig.FirstOperJust.CurrentTara)
+                if (result.TaraName != sdvig.FirstOperJust.CurrentTara)
                 {
                     if (block.Lists.Count > 1)
                     {
@@ -794,7 +794,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     {
                         foreach (var stage in sdvig.StagesAsNormal)
                         {
-                            stage.CurrentTara = possibleTara;
+                            stage.CurrentTara = result.TaraName;
                         }
                     }
                 }
@@ -865,6 +865,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                         var blocksCopyLocal = PlanSimulatorPool.CopyBlocksSwallow(opersBlocksCopy);
 
                                         PlanSimulatorPool.MoveCentersInAllBlocks(blocksCopyLocal, bestIndex, IndexToWorkWith);
+                                        PlanSimulatorPool.MovePassedInfoInAllBlocks(blocksCopyLocal, bestIndex, IndexToWorkWith);
 
                                         var blockIndex = elements.Length == 0 ? MIN : (index < elements.Length) ? (elements[index].BlockIndex[bestIndex]) : (elements[index - 1].BlockIndex[bestIndex] + 1);
 

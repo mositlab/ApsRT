@@ -53,13 +53,14 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         }
 
 
-        public static void updateDataBcsSuccess(PartiaModelling here1, Uco gotTara, Uco gotRc, double gotMax, DimensionUnit use_format, PartiasConnectorEngineResult resultToFill)
+        public static void updateDataBcsSuccess(PartiaModelling here1, Uco gotTara, Uco gotRc, double gotMax, DimensionUnit use_format, int? placesCount, PartiasConnectorEngineResult resultToFill)
         {
             here1.Tara = gotTara;
             here1.RC = gotRc;
             here1.RCIsChecked = true;
             here1.Max = gotMax;
             here1.Format = use_format;
+            here1.PlacesCountMultiplierToRewrite = placesCount.HasValue && placesCount.Value > 1 ? placesCount.Value : null;
             SaveTaraInfo(here1, gotTara, resultToFill.IDToTara);
 
             //if (gotTara.IsEmpty) return; // Дальше не идём, чтобы не засорять словарь мешающей инфой.
@@ -382,6 +383,16 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         // Проверяем, чтобы это не была она сама
                         if (here1 != x)
                         {
+                            // Если я могу менять места (у обоих этот признак на этот момент гарантированно одинаковый),
+                            // то надо, чтобы было не больше 2 этапов,
+                            // и чтоб сами этапы ещё ни в чем таком не участвовали (коэффициент = 1 или не задан).
+                            if (here1.Opers[0].CanChangePlacesCount) 
+                            {
+                                if (here1.Opers.Count + x.Opers.Count > 2) return false;
+                                if (here1.PlacesCountMultiplierToRewrite.HasValue && here1.PlacesCountMultiplierToRewrite.Value > 1) return false;
+                                if (x.PlacesCountMultiplierToRewrite.HasValue && x.PlacesCountMultiplierToRewrite.Value > 1) return false;
+                            }
+
                             if (withHerself)
                             {
                                 // он не должен быть закрытым уже + последователи должны быть разными (изначально делалось, чтобы они, предшествуя скрутке, не полезли друг на друга, при этом с разными скрутками можно)
@@ -500,6 +511,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     Uco gotTara = new(Guid.Empty, "");
                     Uco gotRc = here1.Opers[0].PossibleCenters?[0] ?? here1.Opers[0].OriginalCenter;//new(Guid.Empty, "");
                     var gotMax = here1.Max;
+                    int? gotPlacesMult = null;
                     var use_format = DimensionUnit.Unknown;
 
                     bool isZadel = here1.ZadelCode != 0;
@@ -539,10 +551,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             //var nextF = next1 + next2;
                             naladLength = currentF + (float)nextF;
                         }
-
+                        TaraSearchEngineResult got = null;
                         sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })
                             &&
-                            Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out gotTara, out gotRc, out gotMax, out use_format, out _, new SumIsPossibleOptions(withLog)
+                            Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out got, new SumIsPossibleOptions(withLog)
                             {
                                 PrevsInfo = resultToFill.IDToTara,
 
@@ -562,6 +574,14 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                 NaladLength = naladLength
                             });
+                        if (sum && got != null)
+                        {
+                            gotTara = got.TaraName;
+                            gotMax = got.Max;
+                            gotRc = got.FinalRC;
+                            use_format = got.used_format;
+                            gotPlacesMult = got.CurrentPlacesCountK;
+                        }
                         //sum = Merger.SumIsPossible(here01, out gotTara, out gotRc, out gotMax, out use_format, out _, withUI, CheckChildren, IDToTara);
                     }
 
@@ -583,7 +603,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                         if (sum || isZadel)
                         {
-                            updateDataBcsSuccess(here1, gotTara, gotRc, gotMax, use_format, resultToFill);
+                            updateDataBcsSuccess(here1, gotTara, gotRc, gotMax, use_format, gotPlacesMult, resultToFill);
                         }
 
                         // Следующий код срабатывает, даже если мы ща объединили вспомогательные. Пока что вспомогательные описаны слабо.
@@ -783,7 +803,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             {
                                 // Ищем по старинке
 
-                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var newTara, out var newRC, out var newMax, out var newUnit, out _, out _, new SumIsPossibleOptions(withLog)
+                                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvig, out var res, out _, new SumIsPossibleOptions(withLog)
                                 {
                                     LogSomeErrors = withHerself,
                                     PrevsInfo = resultToFill.IDToTara,
@@ -791,7 +811,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                     //RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null
                                 })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
-                                    updateDataBcsSuccess(sdvig, newTara, newRC, newMax, newUnit, resultToFill);
+                                    updateDataBcsSuccess(sdvig, res.TaraName, res.FinalRC, res.Max, res.used_format, res.CurrentPlacesCountK, resultToFill);
                                     //sdvig.RC = RC;
                                     // Запоминаем условие для одного РЦ
                                     //if (sdvig.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, newRC);
@@ -869,7 +889,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 List<Uco> allowedRCs = group.First().AllOpers[0].PossibleCenters ?? new List<Uco>() { group.First().AllOpers[0].OriginalCenter };
                 allowedRCs = allowedRCs.Where(rc =>
                     group.All(
-                        mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false)
+                        mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, new SumIsPossibleOptions(false)
                         {
                             LogSomeErrors = false, // ошибки не фиксируем
                             RCMustBeThis = new(1) { rc } // РЦ должен быть именно такой

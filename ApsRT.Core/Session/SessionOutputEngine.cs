@@ -157,6 +157,8 @@ namespace ApsRT.Core.Session
 
                 OutputMods(outputPath + (asOld ? ModsFileNameOld : ModsFileName), blocksToCopy);
 
+                OutputPlacesCount(outputPath + (asOld ? PlacesCountFileNameOld : PlacesCountFileName), blocksToCopy);
+
                 // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
                 OutputLeftovers(outputPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (outputPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
 
@@ -335,6 +337,40 @@ namespace ApsRT.Core.Session
             sw.Close();
         }
 
+
+        public string PlacesCountFileName { get; set; } = "placesCount.csv";
+        public string PlacesCountFileNameOld { get; set; } = "placesCount_old.csv";
+
+        public void OutputPlacesCount(string filename, List<PlanSimulatorBlock> blocks)
+        {
+            // Ранги моделирований для алены и алексея
+            if (File.Exists(filename))
+            {
+                File.Delete(filename);
+            }
+
+            var sw = new StreamWriter(filename, false, Encoding.UTF8);
+            sw.WriteLine("N;GUID;ВерсияЭтапа;КоличествоТары;КоличествоНаТаре");
+            var D = 0;
+
+            var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
+            //int D2 = 0;
+            foreach (var r in blocks)
+            {
+                foreach (var mod in r.Lists)
+                {
+                    foreach (var oper in mod.StagesAsNormal)
+                    {
+                        if (oper.PlacesCount != oper.OriginalPlacesCount)
+                        {
+                            sw.WriteLine($"{D};{oper.GUID};{oper.StageVersion};{oper.PlacesCount};{oper.Count}");
+                            D++;
+                        }
+                    }
+                }
+            }
+            sw.Close();
+        }
 
         public string OrdersFileName { get; set; } = "orders.csv";
         public string OrdersFileNameOld { get; set; } = "orders_old.csv";

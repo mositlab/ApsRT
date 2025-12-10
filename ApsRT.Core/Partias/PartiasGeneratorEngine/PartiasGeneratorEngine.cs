@@ -28,7 +28,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 var listhere = new List<PartiaModelling>();
                 foreach (var list1 in list0)
                 {
-                    var listhere2 = new PartiaModelling(new List<Stages.Stage>(), list1.Tara, list1.Max, list1.Format, list1.RC, list1.ZadelCode,
+                    var listhere2 = new PartiaModelling(new List<Stages.Stage>(), list1.Tara, list1.Max, list1.Format, list1.RC, list1.PlacesCountMultiplierToRewrite, list1.ZadelCode,
                         list1.ZadelsGUIDs != null ? new(list1.ZadelsGUIDs) : null);
                     listhere2.RCIsChecked = false;// list1.RCIsChecked;
                     foreach (var list2 in list1.Opers)
@@ -49,7 +49,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 // Это не моделирование, а элементарные операции
                 foreach (var op in group)
                 {
-                    yield return new PartiaModelling(new List<Stage>() { op }, Uco.EmptyObject, 0, DimensionUnit.Unknown, Uco.EmptyObject, 0, null);
+                    yield return new PartiaModelling(new List<Stage>() { op }, Uco.EmptyObject, 0, DimensionUnit.Unknown, Uco.EmptyObject, null, 0, null);
                 }
 
             }
@@ -57,7 +57,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             {
                 // Это моделирование. Создаём из него список
                 yield return //checkThisList(group.ToList());
-                    new PartiaModelling(group.ToList(), Uco.EmptyObject, 0, DimensionUnit.Unknown, Uco.EmptyObject, 0, null);
+                    new PartiaModelling(group.ToList(), Uco.EmptyObject, 0, DimensionUnit.Unknown, Uco.EmptyObject, null, 0, null);
             }
         }
 
@@ -189,8 +189,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     {
                         List<(bool Can, Uco Tara, PartiaModelling sdvig)> analysis = prevsSdvigs.Select(sdvigToCheck =>
                         {
-                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out _, out _, out _, out _, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
-                            return (can, tara, sdvigToCheck);
+                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var res, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
+                            return (can, res.TaraName, sdvigToCheck);
                         }).ToList();
 
                         if (analysis.All(x => x.Can))
@@ -256,7 +256,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 //OriginallyTaraWasThis.Add(x.ID, (tarao, 0));
 
 
-                var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, 0,
+                var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, null, 0,
                     new());
                 addInfoLocal(opers, tarao, 0, sdvig, false, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
@@ -279,7 +279,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             //var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
 
 
-            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var tara, out var rc, out var max, out var form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
+            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
                 //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
             }))
             {
@@ -287,16 +287,16 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
                 //prevs.Add(x.ID, tara);
                 //OriginallyTaraWasThis.Add(x.ID, (tara, max));
-                var sdvig = new PartiaModelling(opers, tara, max, form, rc, 0,
+                var sdvig = new PartiaModelling(opers, RES.TaraName, RES.Max, RES.used_format, RES.FinalRC, null, 0,
                     new());
                 if (trr.HasValue) sdvig.RCIsChecked = true; // блокируем возможность что-то поставить
-                addInfoLocal(opers, tara, max, sdvig, true, engineData);
+                addInfoLocal(opers, RES.TaraName, RES.Max, sdvig, true, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
                 return sdvig;
             }
             else
             {
-                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out tara, out rc, out max, out form, out _, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
+                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
                     //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                 }))
                 {
@@ -304,9 +304,9 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
                     //prevs.Add(x.ID, tara);
                     //OriginallyTaraWasThis.Add(x.ID, (tara, max));
-                    var sdvig = new PartiaModelling(opers, tara, max, form, rc, 0,
+                    var sdvig = new PartiaModelling(opers, RES2.TaraName, RES2.Max, RES2.used_format, RES2.FinalRC, null, 0,
                         new());
-                    addInfoLocal(opers, tara, max, sdvig, true, engineData);
+                    addInfoLocal(opers, RES2.TaraName, RES2.Max, sdvig, true, engineData);
                     //OpersToSdvigs.Add(x.ID, sdvig);
                     return sdvig;
                 }
@@ -323,7 +323,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     {
                         //prevs.Add(x.ID, taraHere); // Новая строчка. Из-за нее следует пройтись по всему алгоритму.
                         //OriginallyTaraWasThis.Add(x.ID, (taraHere, 0));
-                        var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.OriginalCenter, 0,
+                        var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.OriginalCenter, null, 0,
                             new());
                         addInfoLocal(opers, taraHere, 0, sdvig, true, engineData);
                         //OpersToSdvigs.Add(x.ID, sdvig);
@@ -335,7 +335,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // Если ничего не нашёл, то делаем пустоту
             var tarae = Uco.EmptyObject;
             //OriginallyTaraWasThis.Add(x.ID, (tarae, 0));
-            var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, 0,
+            var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, null, 0,
                 new());
             addInfoLocal(opers, tarae, 0, sdvig2, false, engineData);
             //OpersToSdvigs.Add(x.ID, sdvig2);

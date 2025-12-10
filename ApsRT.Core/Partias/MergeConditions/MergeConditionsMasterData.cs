@@ -203,6 +203,13 @@ namespace ApsRT.Core.Partias.MergeConditions
                 return false;
             }
 
+            if (op1.CanChangePlacesCount != op2.CanChangePlacesCount)
+            {
+                reason = $"у {op1.Index} и {op2.Index} не равны возможности крат увел";
+                smallreason = "не равны возможности крат увел";
+                return false;
+            }
+
             if (op1.IsVspom != op2.IsVspom)
             {
                 reason = $"у {op1.Index} и {op2.Index} не равны признаки вспом";

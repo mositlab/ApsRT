@@ -737,9 +737,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
             return true;
         }
-
+        
         public static bool FilterAllVariants(IAbleForTaraCalcInterface someOpers, TemporaryTaraSearchData searchData,
-            out Uco TaraName, out Uco FinalRC, out double Max, out DimensionUnit used_format, out bool notChangeTara,
+            out TaraSearchEngineResult result,
             SumIsPossibleOptions options)
         {
 
@@ -748,12 +748,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var dataErrors = SessionLink.DataErrors;
             bool LogErrorsBySettings = SessionLink.SettingsController.CurrentSettings.LogErrors;
 
-            TaraName = Uco.EmptyObject;
-            FinalRC = Uco.EmptyObject;
-            used_format = DimensionUnit.Unknown;
-            Max = options.SearchForMaxTara ? -1 : double.MaxValue;
-            notChangeTara = false;
-            var sum = someOpers.Sum + options.NaladLength;
+            result = new TaraSearchEngineResult();
+            result.TaraName = Uco.EmptyObject;
+            result.FinalRC = Uco.EmptyObject;
+            result.used_format = DimensionUnit.Unknown;
+            result.Max = options.SearchForMaxTara ? -1 : double.MaxValue;
+            result.notChangeTara = false;
             var errorMessage = searchData.errorMessage;
             var opersFormat = searchData.opersFormat;
 
@@ -763,20 +763,20 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             if (someOpers.FirstOperLink.NoCheckNamotka || someOpers.FirstOperLink.IsVspom)
             {
                 searchData.errorMessage?.Append($"{someOpers.FirstOperLink}: не проверяет намотку. Сразу проверяю.\r\n");
-                Max = 0;
-                used_format = DimensionUnit.Unknown;
+                result.Max = 0;
+                result.used_format = DimensionUnit.Unknown;
                 if (options.RCMustBeThis == null || options.RCMustBeThis.Count == 0)
                 {
                     var center = searchData.PossibleCentersAndTaras[0];
-                    TaraName = center.Tara;
-                    FinalRC = center.RC;
+                    result.TaraName = center.Tara;
+                    result.FinalRC = center.RC;
                 }
                 else
                 {
                     var center = searchData.PossibleCentersAndTaras.Where(pair => options.RCMustBeThis.Contains(pair.RC)).FirstOrDefault();
                     if (center.RC.EmptyCheck()) return false;
-                    TaraName = center.Tara;
-                    FinalRC = center.RC;
+                    result.TaraName = center.Tara;
+                    result.FinalRC = center.RC;
                 }
                 return true;
             }
@@ -793,7 +793,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         continue; // Если "НеМенятьТару" нету, то пропускаем
                     }
 
-                    notChangeTara = true;
+                    result.notChangeTara = true;
 
                     if (op.Prevs.Count > 0)
                     {
@@ -831,8 +831,6 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var doNotCheckWindings = someOpers.FirstOperLink.DoNotCheckWindings;// SessionLink.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(someOpers.FirstOperLink.OperationVid.Code, someOpers.FirstOperLink.Subdivision.Code);// || TaraDataSet.NotCheckNamotka(someOpers.FirstOperLink);
 
             //bool recommendedRCSet = false;
-            int NoChangeTaraNonErrorsCount = 0;
-            int OrigTaraNonErrorsCount = 0;
 
             var origTara = someOpers.FirstOperLink.EndTara;
 
@@ -841,113 +839,151 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.OrderByDescending(x => CentersDataSet.CentersData[x.RC].Subdivision == options.RecommendedSubdivision.Value ? 1 : 0).ToArray();
             }
 
-
-            for (int h = 0; h < searchData.PossibleCentersAndTaras.Length; h++)
+            int currentPlacesCountK = 1;
+            var sum = (someOpers.Sum / currentPlacesCountK) + options.NaladLength;
+            int NoChangeTaraNonErrorsCount = 0;
+            int OrigTaraNonErrorsCount = 0;
+            while (currentPlacesCountK < 10) // Попытаемся изменить количество мест, и уменьшить количество
             {
-                if (options.SaveAvailableResults) searchData.AvailableResults[h] = -1;
-
-                var center = searchData.PossibleCentersAndTaras[h];
-
-                if (!NotChangeTaraMustBeThis.IsEmpty && center.Tara != NotChangeTaraMustBeThis)
+                sum = (someOpers.Sum / currentPlacesCountK) + options.NaladLength;
+                NoChangeTaraNonErrorsCount = 0;
+                OrigTaraNonErrorsCount = 0;
+                for (int h = 0; h < searchData.PossibleCentersAndTaras.Length; h++)
                 {
-                    continue; // на случай "не менять тару"
-                }
-                NoChangeTaraNonErrorsCount++; // Если алгоритм хоть раз зашёл сюда, значит дело не в том, что нет ни единого барабана нормального
+                    if (options.SaveAvailableResults) searchData.AvailableResults[h] = -1; // Пока недоступно.
 
-                if (!origTara.IsEmpty && center.Tara != origTara)
-                {
-                    continue; // две проверки конечной тары
-                }
-                OrigTaraNonErrorsCount++;
+                    var center = searchData.PossibleCentersAndTaras[h];
 
-
-                if (options.RCMustBeThis != null && !options.RCMustBeThis.Contains(center.RC)/*  != options.RCMustBeThis.Value*/)
-                {
-                    continue; // две проверки, если надо
-                }
-
-                if (options.TaraMustBeThis != null && !options.TaraMustBeThis.Contains(center.Tara))
-                {
-                    continue;
-                }
-
-
-                // Тара в списке тех, кого выбирать нельзя?
-                if (options.ExceptTheseTaras != null && options.ExceptTheseTaras.Contains(center.Tara))
-                {
-                    continue;
-                }
-
-                if (options.RecommendedSubdivision.HasValue // Есть ограничение?
-                    && !FinalRC.IsEmpty // Я уже назначил РЦ?
-                    && CentersDataSet.CentersData[FinalRC].Subdivision == options.RecommendedSubdivision.Value // Этот рц из нужного мне подразделения?
-                    && CentersDataSet.CentersData[center.RC].Subdivision != options.RecommendedSubdivision.Value) // Текущий РЦ уже из другого подразделения?
-                {
-                    break; // Значит искать больше смысла нет, я нашел что-то из рекомендуемого цеха.
-                }
-
-                if (notChangeTara || doNotCheckWindings || searchData.BARABANAS == null || !origTara.IsEmpty) // Не менять тару? Не проверять макс намотки?
-                {
-                    if (!FinalRC.IsEmpty
-                        && someOpers.FirstOperLink.RecommendedRC.HasValue
-                        && someOpers.FirstOperLink.RecommendedRC.Value == FinalRC) continue;
-                    TaraName = center.Tara;
-                    Max = 0;
-                    FinalRC = center.RC;
-                    used_format = DimensionUnit.Unknown;
-                    if (options.SaveAvailableResults) searchData.AvailableResults[h] = 0;
-                }
-                else
-                {
-                    for (int hh = 0; hh < searchData.BARABANAS.Length; hh++)
+                    if (!NotChangeTaraMustBeThis.IsEmpty && center.Tara != NotChangeTaraMustBeThis)
                     {
-                        var namot = searchData.BARABANAS[hh];
-                        if (center.Tara != namot.Tara) // Тара не совпадает тарой на центре?
+                        continue; // на случай "не менять тару"
+                    }
+                    NoChangeTaraNonErrorsCount++; // Если алгоритм хоть раз зашёл сюда, значит дело не в том, что нет ни единого барабана нормального
+
+                    if (!origTara.IsEmpty && center.Tara != origTara)
+                    {
+                        continue; // две проверки конечной тары
+                    }
+                    OrigTaraNonErrorsCount++;
+
+
+                    if (options.RCMustBeThis != null && !options.RCMustBeThis.Contains(center.RC)/*  != options.RCMustBeThis.Value*/)
+                    {
+                        continue; // две проверки, если надо
+                    }
+
+                    if (options.TaraMustBeThis != null && !options.TaraMustBeThis.Contains(center.Tara))
+                    {
+                        continue;
+                    }
+
+
+                    // Тара в списке тех, кого выбирать нельзя?
+                    if (options.ExceptTheseTaras != null && options.ExceptTheseTaras.Contains(center.Tara))
+                    {
+                        continue;
+                    }
+
+                    if (options.RecommendedSubdivision.HasValue // Есть ограничение?
+                        && !result.FinalRC.IsEmpty // Я уже назначил РЦ?
+                        && CentersDataSet.CentersData[result.FinalRC].Subdivision == options.RecommendedSubdivision.Value // Этот рц из нужного мне подразделения?
+                        && CentersDataSet.CentersData[center.RC].Subdivision != options.RecommendedSubdivision.Value) // Текущий РЦ уже из другого подразделения?
+                    {
+                        break; // Значит искать больше смысла нет, я нашел что-то из рекомендуемого цеха.
+                    }
+
+                    if (result.notChangeTara || doNotCheckWindings || searchData.BARABANAS == null || !origTara.IsEmpty) // Не менять тару? Не проверять макс намотки?
+                    {
+                        if (!result.FinalRC.IsEmpty
+                            && someOpers.FirstOperLink.RecommendedRC.HasValue
+                            && someOpers.FirstOperLink.RecommendedRC.Value == result.FinalRC) continue;
+                        result.TaraName = center.Tara;
+                        result.Max = 0;
+                        result.FinalRC = center.RC;
+                        result.used_format = DimensionUnit.Unknown;
+                        if (options.SaveAvailableResults) searchData.AvailableResults[h] = 0;
+                    }
+                    else
+                    {
+                        for (int hh = 0; hh < searchData.BARABANAS.Length; hh++)
                         {
-                            continue; // Отбраковываем
-                        }
-
-                        bool technicallyPossible = (namot.Namot >= sum
-                            || someOpers.ZadelCode != 0); // Не меньше суммы должна быть намотка, ну либо это что с ЗАДЕЛАМИ, поэтому тут проверять на макс намотку не следует (Алёна, 17.06);
-
-                        if (options.SaveAvailableResults) searchData.AvailableResults[h] = namot.Namot;
-
-                        if (technicallyPossible
-
-                            &&
-                            (
-                                (!options.SearchForMaxTara && namot.Namot < Max) // Должен быть меньше уже предложенного
-                                || (options.SearchForMaxTara && namot.Namot > Max)
-                                || (options.RecommendedTara.HasValue && /*!TaraName.IsEmpty &&*/ options.RecommendedTara.Value == namot.Tara)
-                            )
-                            )
-                        {
-                            if (!TaraName.IsEmpty
-                                && options.RecommendedTara.HasValue
-                                && options.RecommendedTara.Value == TaraName)
+                            var namot = searchData.BARABANAS[hh];
+                            if (center.Tara != namot.Tara) // Тара не совпадает тарой на центре?
                             {
-                                continue;
+                                continue; // Отбраковываем
                             }
 
-                            if (!FinalRC.IsEmpty
-                                && someOpers.FirstOperLink.RecommendedRC.HasValue
-                                && someOpers.FirstOperLink.RecommendedRC.Value == FinalRC)
-                            {
-                                continue;
-                            }
+                            bool technicallyPossible = (namot.Namot >= sum
+                                || someOpers.ZadelCode != 0); // Не меньше суммы должна быть намотка, ну либо это что с ЗАДЕЛАМИ, поэтому тут проверять на макс намотку не следует (Алёна, 17.06);
 
-                            TaraName = center.Tara;
-                            Max = namot.Namot;
-                            FinalRC = center.RC;
-                            used_format = namot.Format;
+                            if (options.SaveAvailableResults && technicallyPossible) searchData.AvailableResults[h] = namot.Namot;
+
+                            if (technicallyPossible
+
+                                &&
+                                (
+                                    (!options.SearchForMaxTara && namot.Namot < result.Max) // Должен быть меньше уже предложенного
+                                    || (options.SearchForMaxTara && namot.Namot > result.Max)
+                                    || (options.RecommendedTara.HasValue && /*!TaraName.IsEmpty &&*/ options.RecommendedTara.Value == namot.Tara)
+                                )
+                                )
+                            {
+                                if (!result.TaraName.IsEmpty
+                                    && options.RecommendedTara.HasValue
+                                    && options.RecommendedTara.Value == result.TaraName)
+                                {
+                                    continue;
+                                }
+
+                                if (!result.FinalRC.IsEmpty
+                                    && someOpers.FirstOperLink.RecommendedRC.HasValue
+                                    && someOpers.FirstOperLink.RecommendedRC.Value == result.FinalRC)
+                                {
+                                    continue;
+                                }
+
+                                result.TaraName = center.Tara;
+                                result.Max = namot.Namot;
+                                result.FinalRC = center.RC;
+                                result.used_format = namot.Format;
+                            }
                         }
                     }
                 }
+
+                if (result.FinalRC.IsEmpty)
+                {
+                    // не найден, потому что ни одна не подошла из-за "не менять тару"
+                    if (NoChangeTaraNonErrorsCount == 0)
+                        break;
+
+                    // не найден РЦ с подходящей приемной тарой
+                    if (OrigTaraNonErrorsCount == 0)
+                        break;
+
+                    if (someOpers.FirstOperLink.MesModelling.Code != Guid.Empty) // Заблоченные моды я тоже не имею права ставить
+                        break;
+
+                    if (someOpers.AllOpers.Count > 2) // Больше двух тоже нельзя, иначе я на бесконечное количество итераций зависну
+                        break;
+
+                    if (!someOpers.FirstOperLink.CanChangePlacesCount) // Я не могу менять кол-во мест? - выходим
+                        break;
+
+                    currentPlacesCountK++;
+                }
+                else
+                {
+                    // Нашёл, выходим
+                    break;
+                }
             }
 
-            if (!FinalRC.IsEmpty)
+            if (currentPlacesCountK > 1) result.CurrentPlacesCountK = currentPlacesCountK;
+
+            if (!result.FinalRC.IsEmpty)
             {
-                errorMessage?.Append($"Сумма: {sum} {opersFormat.DimensionUnitToString()}, выбрал {TaraName} ({Max} {used_format}), {FinalRC}.\r\n\r\n");
+                errorMessage?.Append($"Сумма: {sum} {currentPlacesCountK} {opersFormat.DimensionUnitToString()}, выбрал {result.TaraName} ({result.Max} {result.used_format}), {result.FinalRC}.\r\n\r\n");
                 if (options.WithLog)
                 {
                     SessionLink.AssignedLogger.PartiasLogQueue.Enqueue(errorMessage.ToString());
@@ -955,7 +991,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
                 return true;
             }
-            errorMessage?.Append($"Сумма: {sum} {opersFormat.DimensionUnitToString()}, подходящая тара не найдена.\r\n\r\n");
+            errorMessage?.Append($"Сумма: {sum} {currentPlacesCountK} {opersFormat.DimensionUnitToString()}, подходящая тара не найдена.\r\n\r\n");
             if (options.WithLog)
             {
                 SessionLink.AssignedLogger.PartiasLogQueue.Enqueue(errorMessage.ToString());
@@ -1001,20 +1037,17 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
         }
 
         public static bool SumIsPossible(IAbleForTaraCalcInterface allOpers,//, float addNaladLength,// object allOpersObject,
-            out Uco TaraName, out Uco FinalRC, out double Max, out DimensionUnit used_format, out bool notChangeTara, //bool withUI/*, bool CheckChildren*/,
+            //out Uco TaraName, out Uco FinalRC, out double Max, out DimensionUnit used_format, out bool notChangeTara, //bool withUI/*, bool CheckChildren*/,
+            out TaraSearchEngineResult result,
             out TemporaryTaraSearchData searchData,
             SumIsPossibleOptions options
             )
         {
-            TaraName = new(Guid.Empty, "");
-            FinalRC = new(Guid.Empty, "");
-            used_format = DimensionUnit.Unknown;
-            Max = 0;
-            notChangeTara = false;
+            result = new TaraSearchEngineResult();
             return
                 GetAllVariantsForThese(allOpers, out searchData, options)
             &&
-                FilterAllVariants(allOpers, searchData, out TaraName, out FinalRC, out Max, out used_format, out notChangeTara, options);
+                FilterAllVariants(allOpers, searchData, out result, options);
 
             //return
             //    Merger.GetAllVariantsForThese(allOpers, withUI/*, CheckChildren*/, out searchData, PrevsInfo, NextRCsMustBeThese)

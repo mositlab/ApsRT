@@ -93,6 +93,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         if (i == basisLink.UsedPool.BestPoolIndex) return;
                         var opersCopyL = PlanSimulatorPool.CopyBlocksSwallow(basisLink.UsedPool.Blocks);//.OrderBy(x => x.BlockIndex[index]).ToList();
                         PlanSimulatorPool.MoveCentersInAllBlocks(opersCopyL, basisLink.UsedPool.BestPoolIndex, i);
+                        PlanSimulatorPool.MovePassedInfoInAllBlocks(opersCopyL, basisLink.UsedPool.BestPoolIndex, i);
                         opersCopy[i] = opersCopyL;
                     });
                     while (!resu.IsCompleted)
@@ -160,7 +161,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 SaveAvailableResults = true
             };
             if (
-                TaraSearchEngine.SumIsPossible(sdvig, out _, out _, out _, out _, out _, out var searchData, options)
+                TaraSearchEngine.SumIsPossible(sdvig, out _, out var searchData, options)
                 && TaraSearchEngine.FindSomeCentersBecauseOfPrevs(sdvig, PossibleRCsHere.ToList(), prevs, options.TaraMustBeThis.ToList(), out _, out var allRCs, out _, false)
                 )
             {

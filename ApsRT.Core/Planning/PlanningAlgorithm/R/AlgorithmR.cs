@@ -302,7 +302,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     {
                         Uco currentCenter = data.PossibleCentersAndTaras[j].RC;
                         Uco currentTara = data.PossibleCentersAndTaras[j].Tara;
-                        if (TaraSearchEngine.FilterAllVariants(mod, data, out var tara, out var rc, out var MaxNamot, out _, out _, new SumIsPossibleOptions(false)
+                        if (TaraSearchEngine.FilterAllVariants(mod, data, out var res, new SumIsPossibleOptions(false)
                         {
                             LogSomeErrors = false,
                             PrevsInfo = PrevsInfoForR,
@@ -311,7 +311,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             ModToTaraInfoLink = basisLink.ModToTaraInfo
                         }))
                         {
-                            firstResults.Add(new RFirstStageResult(mod.BlockLink, rc, tara, MaxNamot, false, 0));
+                            firstResults.Add(new RFirstStageResult(mod.BlockLink, res.FinalRC, res.TaraName, res.Max, false, 0));
                             anythingWas = true;
                         }
                     }
@@ -475,7 +475,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         double maxNamotka = 0;
                         if (mod.EasyLifeData == null)
                         {
-                            if (!TaraSearchEngine.SumIsPossible(mod, out choosenTara, out _, out maxNamotka, out _, out _, out _, new SumIsPossibleOptions(false)
+                            if (!TaraSearchEngine.SumIsPossible(mod, out _, out _, new SumIsPossibleOptions(false)
                             {
                                 LogSomeErrors = false,
                                 PrevsInfo = PrevsInfoForR,
@@ -493,7 +493,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             if (!mod.EasyLifeData.All(easyMod =>
                             {
                                 var localMod = easyMod.Value.AsMod;
-                                bool result = TaraSearchEngine.SumIsPossible(localMod, out var choosenTaraLoc, out _, out var maxNamotkaLoc, out _, out _, out _, new SumIsPossibleOptions(false)
+                                bool result = TaraSearchEngine.SumIsPossible(localMod, out var res, out _, new SumIsPossibleOptions(false)
                                 {
                                     LogSomeErrors = false,
                                     PrevsInfo = PrevsInfoForR,
@@ -503,10 +503,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                     NaladLength = easyMod.Value.NaladLengthData[0].Data.NaladLengthHere.Value + easyMod.Value.NaladLengthData[0].Data.NaladLengthNexts.Value // Текущую налад длину берём
                                 });
 
-                                if (result && maxNamotkaLoc > maxNamotka)
+                                if (result && res.Max > maxNamotka)
                                 {
-                                    maxNamotka = maxNamotkaLoc;
-                                    choosenTara = choosenTaraLoc;
+                                    maxNamotka = res.Max;
+                                    choosenTara = res.TaraName;
                                 }
 
                                 return result;
@@ -530,6 +530,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             // Выполним условие "НаОдномРЦ"
 
                             PlanSimulatorPool.MoveCentersInAllBlocks(LinearPlan, 0, IndexToWorkWith);
+                            PlanSimulatorPool.MovePassedInfoInAllBlocks(LinearPlan, 0, IndexToWorkWith);
                             LinearPlan[blockIndex].SetCenter(rc, IndexToWorkWith);
                             block.PoolLink.UpdateOpsOnOneRC(block, IndexToWorkWith); // Реализуем ограничение "на одном РЦ"
 
@@ -720,7 +721,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         {
                             List<(bool Can, Uco RC, Uco Tara, double Max, PlanSimulatorMod sdvig)> analysis = prevsIds.Select(sdvigToCheck =>
                             {
-                                bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var tara, out var rcOut, out var max, out _, out _, out _, new SumIsPossibleOptions(false)
+                                bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var res, out _, new SumIsPossibleOptions(false)
                                 { 
                                     PrevsInfo = PrevsInfoForR,
                                     LogSomeErrors = false, 
@@ -728,10 +729,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                     SearchForMaxTara = true,
                                     NextRCsMustBeThese = new() { rc } 
                                 });
-                                return (can, rcOut, tara, max, sdvigToCheck);
+                                return (can, res.FinalRC, res.TaraName, res.Max, sdvigToCheck);
                             }).ToList();
 
-                            if (analysis.All(x => x.Can) && TaraSearchEngine.SumIsPossible(mod, out var TaraLoc, out var RCLoc, out var MALocX, out _, out _, out _, new SumIsPossibleOptions(false)
+                            if (analysis.All(x => x.Can) && TaraSearchEngine.SumIsPossible(mod, out var res, out _, new SumIsPossibleOptions(false)
                             {
                                 PrevsInfo = PrevsInfoForR,
                                 LogSomeErrors = false,
@@ -739,8 +740,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             }))
                             {
                                 Console.WriteLine("fixed!");
-                                mod.BlockLink.SetCenter(RCLoc, 0); // Обновим этому сдвигу РЦ и прочее
-                                UpdateTaraOnMod(mod, TaraLoc, MALocX, true);
+                                mod.BlockLink.SetCenter(res.FinalRC, 0); // Обновим этому сдвигу РЦ и прочее
+                                UpdateTaraOnMod(mod, res.TaraName, res.Max, true);
                                 foreach (var an in analysis)
                                 {
                                     if (!an.sdvig.FirstOperJust.NoChangeTara && !an.sdvig.FirstOperJust.NoCheckNamotka
@@ -754,7 +755,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                             var modToReset = nextMods.Dequeue();
                                             if (modToReset.FirstOperJust.NoChangeTara && modToReset != mod)
                                             {
-                                                if (TaraSearchEngine.SumIsPossible(modToReset, out var Tara, out var RC, out var MAX, out _, out _, out _, new SumIsPossibleOptions(false)
+                                                if (TaraSearchEngine.SumIsPossible(modToReset, out var res2, out _, new SumIsPossibleOptions(false)
                                                 {
                                                     PrevsInfo = PrevsInfoForR,
                                                     LogSomeErrors = false,
@@ -763,8 +764,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                                     NextRCsMustBeThese = new() { rc }
                                                 }))
                                                 {
-                                                    modToReset.BlockLink.SetCenter(RC, 0);
-                                                    UpdateTaraOnMod(modToReset, Tara, MAX, true);
+                                                    modToReset.BlockLink.SetCenter(res2.FinalRC, 0);
+                                                    UpdateTaraOnMod(modToReset, res2.TaraName, res2.Max, true);
                                                     foreach (var next in modToReset.NextMods) nextMods.Enqueue(next);
                                                 }
                                                 else
@@ -1200,7 +1201,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             tara = Uco.EmptyObject;
             rc = Uco.EmptyObject;
             MaxNamot = 0;
-            return TaraSearchEngine.FilterAllVariants(mod, data, out tara, out rc, out MaxNamot, out _, out _, new SumIsPossibleOptions(false)
+            var b = TaraSearchEngine.FilterAllVariants(mod, data, out var res, new SumIsPossibleOptions(false)
             {
                 LogSomeErrors = false,
                 PrevsInfo = PrevsInfoForR,
@@ -1208,6 +1209,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 TaraMustBeThis = new HashSet<Uco>() { currentTara },
                 ModToTaraInfoLink = basisLink.ModToTaraInfo
             });
+            if (b && res != null)
+            {
+                tara = res.TaraName;
+                rc = res.FinalRC;
+                MaxNamot = res.Max;
+            }
+            return b;
         }
         
         

@@ -108,7 +108,7 @@ namespace ApsRTCustomComponents
                         //.Select(x => $"{x.ID} ({(groups == null ? "" : (groups.TryGetValue(x.ID, out var val) ? val : 0))}): {Operations.OperationsIntToStr[x.Oper]} | {x.SpecificationCode}")).ToString();
 
 
-                        var sum = TaraSearchEngine.SumIsPossible(partiaClass1.OpersHere[i][j], out var tara, out var rchere, out var maxhere, out var format, out _, out _, new SumIsPossibleOptions(false));
+                        var sum = TaraSearchEngine.SumIsPossible(partiaClass1.OpersHere[i][j], out var res, out _, new SumIsPossibleOptions(false));
 
                         var opers = partiaClass1.OpersHere[i][j].Opers;
                         var justSum = /*opers[0].Modelling != Guid.Empty ? opers.GroupBy(x => x.Modelling).Sum(x => x.First().Count) : */opers.Sum(x => x.Count);
@@ -122,7 +122,7 @@ namespace ApsRTCustomComponents
                         $"\r\nНаладочные длины: {curr} {next}"
                         + $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
                         //+ $"\r\nКгКм сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count * x.KgKm / 1000.0)}"
-                        + $"\r\nНезависимо, Сумма возможна: {sum} ('{tara}', {maxhere} {format.DimensionUnitToString()} на РЦ {(rchere.IsEmpty ? "---" : rchere.ToString())})\r\n\r\n"
+                        + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n\r\n"
                             + $"код задела: {partiaClass1.OpersHere[i][j].ZadelCode}, заделы: {(string.Join(", ", partiaClass1.OpersHere[i][j].ZadelsGUIDs))}\r\n\r\n"
                             + string.Join("\r\n\r\n", partiaClass1.OpersHere[i][j].Opers.Select(x =>
                             {

@@ -230,7 +230,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
                 else
                 {
                     ignoredSdvigs.Clear(); // Стираем всё, ведь я нашёл результат
-                    PartiasConnectorEngine.PartiasConnectorEngine.updateDataBcsSuccess(sdvigs[Index], bestSol.Tara, bestSol.RC, bestSol.Max, bestSol.Format, previousData); // Записываем новый РЦ
+                    PartiasConnectorEngine.PartiasConnectorEngine.updateDataBcsSuccess(sdvigs[Index], bestSol.Tara, bestSol.RC, bestSol.Max, bestSol.Format, bestSol.PlacesCountMultiplierToRewrite, previousData); // Записываем новый РЦ
                 }
 
                 if (Index == -1) break; // Хз как такое возможно, но выходим
@@ -258,7 +258,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
                         var centers = currentSdvig.Opers[0].PossibleCenters ?? new List<Uco>() { currentSdvig.Opers[0].OriginalCenter };
                         results[i] = centers.Select(center =>
                         {
-                            var b = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(currentSdvig, out var tara, out var rc, out var max, out var format, out _, out _, new SumIsPossibleOptions(false)
+                            var b = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(currentSdvig, out var res, out _, new SumIsPossibleOptions(false)
                             {
                                 PrevsInfo = previousData.IDToTara,
                                 NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCs(currentSdvig.Opers, (index) => dics.TryGetValue(index, out var s) ? s.RC : null),
@@ -270,7 +270,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
                             });
                             if (b)
                             {
-                                return new PartiaModelling(null, tara, max, format, rc, 0, null);
+                                return new PartiaModelling(null, res.TaraName, res.Max, res.used_format, res.FinalRC, null, 0, null);
                             }
                             else
                             {

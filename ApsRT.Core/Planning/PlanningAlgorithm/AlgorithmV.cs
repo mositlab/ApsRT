@@ -344,7 +344,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                     if (groupID1 != -1 && OneRCGroupsForV.TryGetValue(groupID1, out var oneGroupRC) && tara.RC != oneGroupRC)
                                         continue; // Если я уже ставил РЦ в эту группу, то другие нельзя
 
-                                    var Can2 = TaraSearchEngine.FilterAllVariants(OpersCopy[j].Lists[0], data, out _, out _, out var GOTmax, out _, out _,
+                                    var Can2 = TaraSearchEngine.FilterAllVariants(OpersCopy[j].Lists[0], data, out var resHere,
                                         new SumIsPossibleOptions(false)
                                         {
                                             PrevsInfo = PrevsInfoForV,// ПРЕД.
@@ -356,7 +356,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                     AnyCan |= Can2;
                                     if (Can2)
                                     {
-                                        b1 |= localFChecking(lastBlock, Par, tara.RC, (tara.Tara, GOTmax)); // Фигачим с выбором тары
+                                        b1 |= localFChecking(lastBlock, Par, tara.RC, (tara.Tara, resHere.Max)); // Фигачим с выбором тары
                                                                                                             //if (OpersCopy[j].Lists[0].FirstOper.RecommendedRC.HasValue && OpersCopy[j].Lists[0].FirstOper.RecommendedRC.Value == tara.RC) break; // Если уже есть выбранный РЦ, то забиваем болт на все остальные
                                     }
                                 }

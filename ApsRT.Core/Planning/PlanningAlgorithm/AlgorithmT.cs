@@ -155,6 +155,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 PlanSimulatorPool.MoveCentersInAllBlocks(OpersCopy, INDEX, 1);
                 PlanSimulatorPool.MoveBlockIndexesInAllBlocks(OpersCopy, INDEX, 1);
+                PlanSimulatorPool.MovePassedInfoInAllBlocks(OpersCopy, INDEX, 1);
 
                 //OpersCopy = PlanSimulatorPool.Refragmentate(OpersCopy, 0, 1);
 

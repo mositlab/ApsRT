@@ -1600,6 +1600,7 @@ namespace ApsRTCustomComponents
             diagram.assignedDataPack = pool.Blocks.SelectMany(x => x.Lists.SelectMany(z => z.StagesAsNormal.Select(y => (y.Index, y.Prevs, y.Nexts, x.GetCenterData(PoolIndex).Center, y.PossibleCenters)))).ToDictionary(x => x.Index, x => (x.Prevs, x.Nexts, x.Center, x.PossibleCenters));
             diagram.SavedOpersLink = PlanSimulatorPool.CopyBlocksSwallow(pool.Blocks);
             PlanSimulatorPool.MoveCentersInAllBlocks(diagram.SavedOpersLink, PoolIndex, PoolIndexToSave);
+            PlanSimulatorPool.MovePassedInfoInAllBlocks(diagram.SavedOpersLink, PoolIndex, PoolIndexToSave);
             diagram.PoolIndex = PoolIndexToSave;
             diagram.SetRowTitles(textRows);
             diagram.FindAllPrevsHere(-1, false); // все нахрен стираем
@@ -2072,6 +2073,7 @@ namespace ApsRTCustomComponents
                 dt1 = DateTime.Now;
                 var blocksCopyLocal = PlanSimulatorPool.CopyBlocksSwallow(sessionLink.AssignedPlanningAlgorithm.UsedPool.Blocks);
                 PlanSimulatorPool.MoveCentersInAllBlocks(blocksCopyLocal, 0, 0);
+                PlanSimulatorPool.MovePassedInfoInAllBlocks(blocksCopyLocal, 0, 0);
                 var dt2 = DateTime.Now;
                 Console.WriteLine($"copy time: {dt2 - dt1}");
 

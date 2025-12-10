@@ -153,6 +153,8 @@ namespace ApsRT.Core.PlanSimulator
                         modLinks.TryAdd(mod.FirstOperJust.CurrentModelling/*IsCustomModelling ? mod.FirstOperJust.CustomModelling : mod.FirstOperJust.MesModelling.Code*/, mod);
                     }
 
+                    mod.WasPassed = new bool[PoolSize];
+
                     mod.MinDatesData = new PlanSimulatorDatesData[PoolSize];
                     for (int i = 0; i < PoolSize; i++)
                     {
@@ -256,7 +258,7 @@ namespace ApsRT.Core.PlanSimulator
 
                 var rcsCopy = rcs.Where(rc => 
                 
-                modList.All(mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, out _, out _, out _, out _,
+                modList.All(mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _,
                     new SumIsPossibleOptions(false)
                     {
                         LogSomeErrors = false, // ошибки не фиксируем
@@ -523,6 +525,20 @@ namespace ApsRT.Core.PlanSimulator
             {
                 Blocks[i].MoveCenterData(from, to);
                 //Blocks[i].CenterDataLocalCopy[to] = Blocks[i].CenterDataLocalCopy[from];
+            });
+            while (!res0.IsCompleted)
+            {
+                ;
+            }
+        }
+        public static void MovePassedInfoInAllBlocks(List<PlanSimulatorBlock> Blocks, int from, int to)
+        {
+            var res0 = Parallel.For(0, Blocks.Count, i =>
+            {
+                for (int j = 0; j < Blocks[i].Lists.Count; j++)
+                {
+                    Blocks[i].Lists[j].WasPassed[to] = Blocks[i].Lists[j].WasPassed[from];
+                }
             });
             while (!res0.IsCompleted)
             {

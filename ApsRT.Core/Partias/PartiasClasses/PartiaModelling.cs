@@ -17,12 +17,15 @@ namespace ApsRT.Core.Partias.PartiasClasses
         public Uco RC;
         public bool RCIsChecked = false; // TODO: тестовая хрень, которая из-за ошибок в НСИ себя проявляет
 
-        public PartiaModelling(List<Stages.Stage> opers, Uco tara, double max, DimensionUnit format, Uco rC, int zadelCode, List<Guid> zadelGuids) : base(opers, zadelCode, zadelGuids)
+        public int? PlacesCountMultiplierToRewrite;
+
+        public PartiaModelling(List<Stages.Stage> opers, Uco tara, double max, DimensionUnit format, Uco rC, int? placesCountMultiplierToRewrite, int zadelCode, List<Guid> zadelGuids) : base(opers, zadelCode, zadelGuids)
         {
             Tara = tara;
             Max = max;
             Format = format;
             RC = rC;
+            PlacesCountMultiplierToRewrite = placesCountMultiplierToRewrite;
         }
 
         public override string ToString() => String.Format("#{0:X} {1} {2}", GetHashCode(), ZadelCode, RCIsChecked ? "T" : "U");
