@@ -494,7 +494,7 @@ namespace ApsRT.Core.Session
             outputFile.WriteLine($"GUID;ВерсияЭтапа;Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
                     $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
                     $"ДебагНомерМода;Подразделение;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
-                    $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки");
+                    $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки;БылПропущен");
 
             bool IsSilent = SessionLink.SessionOptions.IsSilent;
             bool LaunchPlan = SessionLink.SessionOptions.LaunchPlan;
@@ -511,7 +511,7 @@ namespace ApsRT.Core.Session
                 foreach (var group in sortedGroups) // Пробежимся по каждой группе
                 {
                     var start = group.Key;
-                    var maxTimeWithFixes = group.Max(x => dataForHelp.FirstStagesFullDurations[x.FirstOperJust.Index].Duration);
+                    var maxTimeWithFixes = group.Max(x => /*x.WasPassed[PoolIndex] ? TimeSpan.Zero :*/ dataForHelp.FirstStagesFullDurations[x.FirstOperJust.Index].Duration);
                     foreach (var mod in group)
                     {
 
@@ -536,7 +536,8 @@ namespace ApsRT.Core.Session
                                     (!IsSilent || LaunchPlan ? $"{start + maxTimeWithFixes:G}" : "") +//$"{(centStruct.LastDate + offset + secs:G)}" +
                                     $";{maxTimeWithFixes.TotalHours}" +
                                     $";{operLoc.EdIzm.DimensionUnitToString()};{operLoc.GetEasyFlagToOutput()}" +
-                                    $";{(partiasAlgorithm != null && partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}");
+                                    $";{(partiasAlgorithm != null && partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}" +
+                                    $";{(mod.WasPassed[PoolIndex] ? "Да" : "Нет")}");
                             }
                         }
                     }

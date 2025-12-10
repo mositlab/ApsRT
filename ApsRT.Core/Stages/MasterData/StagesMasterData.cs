@@ -359,14 +359,7 @@ namespace ApsRT.Core.Stages.MasterData
                 stage.SetStaticDuration(stage.DurationNorm, stage.Count);
             }
 
-            if (stage.PovivsMerged)
-            {
-                stage.Count /= stage.PlacesCount;
-            }
-            else
-            {
-                stage.PlacesCount = 1;
-            }
+            stage.SetPlacesCount(stage.OriginalPlacesCount);
 
             // Посмотрим на наладочную длину
             if (SessionLink.SettingsController.CurrentSettings.Demos_AllNaladLengthsAreClear)

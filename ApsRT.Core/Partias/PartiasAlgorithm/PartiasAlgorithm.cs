@@ -195,6 +195,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 op.EasyFlag = op.EasyFlagOriginal;
                 op.CustomPartiaGuid = null;
                 op.ZadelsInherited = 0; // Инфу по заделам убираем
+                op.SetPlacesCount(op.OriginalPlacesCount);
             }
 
             SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Clear();

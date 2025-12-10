@@ -204,6 +204,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     var index = ChoosenModellings[i];
                     var list = currentBlock.Lists[index];
                     var durationHere = list.AllTime[ChoosenCenter];
+                    if (list.WasPassed[PoolIndex]) durationHere = TimeSpan.Zero; // Если был пропущен, то 0.
                     if (durationHere > LongestMod) LongestMod = durationHere;
                 }
 

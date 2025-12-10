@@ -35,6 +35,8 @@ namespace ApsRT.Core.PlanSimulator
         public PlanSimulatorPartiaRottingData[] PartiaRottingData;
         public double[] RottingTimeInDays; // >0 - гниение, <=0 - запас
 
+        public bool[] WasPassed;
+
         public DateTime[] DateOfStart;
         public DateTime[] DateOfEnd;
         public int[] Ranks;

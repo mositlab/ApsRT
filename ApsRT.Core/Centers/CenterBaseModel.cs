@@ -31,7 +31,10 @@ namespace ApsRT.Core.Centers
         public bool AbleToVspom { get; set; } // умеет ли обрабатывать вспомогательные
 
         [DataRecordColumn("НеМенятьТару", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
-        internal bool NotChangeTara { get; set; }
+        public bool NotChangeTara { get; set; }
+
+        [DataRecordColumn("МаксимальноеКоличествоОтдающейТары")]
+        public int MaxOtdTara { get; set; }
 
 
         internal bool IsWithRechanges;

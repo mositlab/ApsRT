@@ -305,9 +305,53 @@ namespace ApsRT.Core.Stages
         public bool PovivsMerged { get; set; }
 
         //
-        [DataRecordColumn("КоличествоМест")]
+        //[DataRecordColumn("КоличествоМест")]
         public int PlacesCount { get; set; }
 
+        //
+        [DataRecordColumn("КоличествоМест")]
+        public int OriginalPlacesCount { get; set; }
+
+        [DataRecordColumn("РазрешеноКратноеУвеличение", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
+        public bool CanChangePlacesCount { get; set; }
+
+        #endregion
+
+        #region Количество этапа и ед. изм.
+
+        [DataRecordColumn("Количество")]
+        public double CountMES { get; set; }
+
+        //[DataRecordColumn("КоличествоИсходногоЭтапа")]
+        public double Count { get; set; }
+
+        [DataRecordColumn("КоличествоИсходногоЭтапа")]
+        public double OriginalCount { get; set; }
+
+
+        public void SetPlacesCount(int placesCount)
+        {
+            Count = OriginalCount;
+            if (PovivsMerged)
+            {
+                PlacesCount = placesCount;
+                Count /= PlacesCount;
+            }
+            else
+            {
+                PlacesCount = 1;
+            }
+
+        }
+
+        [DataRecordColumn("ЕдиницаИзмерения")]
+        public DimensionUnit EdIzm { get; set; }
+
+        [DataRecordColumn("МетодРасчетаНамоток")]
+        public DimensionUnit UsedCalcMethod { get; set; }
+
+        [DataRecordColumn("ВесКгКм", defaultIfFail: true)]
+        public float? KgKm { get; set; }
         #endregion
 
         #region Информация из предыдущего плана
@@ -340,24 +384,6 @@ namespace ApsRT.Core.Stages
             }
         }
 
-        #endregion
-
-        #region Количество этапа и ед. изм.
-
-        [DataRecordColumn("Количество")]
-        public double CountMES { get; set; }
-
-        [DataRecordColumn("КоличествоИсходногоЭтапа")]
-        public double Count { get; set; }
-
-        [DataRecordColumn("ЕдиницаИзмерения")]
-        public DimensionUnit EdIzm { get; set; }
-
-        [DataRecordColumn("МетодРасчетаНамоток")]
-        public DimensionUnit UsedCalcMethod { get; set; }
-
-        [DataRecordColumn("ВесКгКм", defaultIfFail: true)]
-        public float? KgKm { get; set; }
         #endregion
 
         #region Длительность
