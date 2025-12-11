@@ -217,12 +217,12 @@ namespace ApsRT.Core.Session
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
             StreamWriter swBig = string.IsNullOrEmpty(filenameBig) ? null : new StreamWriter(filenameBig, false, Encoding.UTF8);
 
-            sw.WriteLine($"GUID;ВерсияЭтапа;" +
+            sw.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}" +
                 $"МатериалНоменклатура_GUID;МатериалХарактеристика_GUID;" +
                 $"Количество;" +
                 $"ОригМатериалНоменклатура_GUID;ОригМатериалХарактеристика_GUID;" +
                 $"ОригКоличество;ДатаПланирования");
-            swBig?.WriteLine($"GUID;ВерсияЭтапа;" +
+            swBig?.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}" +
                 $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
                 $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
                 $"Количество;" +
@@ -250,7 +250,8 @@ namespace ApsRT.Core.Session
                     var modCount = SessionLink.MasterDataLinks.LeftoversMasterData.GetMatSumFromMod(smallMod, origMat.AsLeftoverData());
 
                     sw.WriteLine($"" +
-                        $"{oper.GUID};{oper.StageVersion};" +
+                        $"{oper.GUID};" +
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{oper.StageVersion};" : "")}" +
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Characteristics.Code};" +
@@ -263,7 +264,8 @@ namespace ApsRT.Core.Session
                         $"{date}");
 
                     swBig?.WriteLine($"" +
-                        $"{oper.GUID};{oper.StageVersion};" +
+                        $"{oper.GUID};" +
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{oper.StageVersion};" : "")}" +
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Nomenklature.Label};" +
@@ -350,7 +352,7 @@ namespace ApsRT.Core.Session
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("N;GUID;ВерсияЭтапа;КоличествоТары;КоличествоНаТаре");
+            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}КоличествоТары;КоличествоНаТаре");
             var D = 0;
 
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
@@ -363,7 +365,9 @@ namespace ApsRT.Core.Session
                     {
                         if (oper.PlacesCount != oper.OriginalPlacesCount)
                         {
-                            sw.WriteLine($"{D};{oper.GUID};{oper.StageVersion};{oper.PlacesCount};{oper.Count}");
+                            sw.WriteLine($"{D};{oper.GUID};" +
+                                $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{oper.StageVersion};" : "")}" +
+                                $"{oper.PlacesCount};{oper.Count}");
                             D++;
                         }
                     }
@@ -436,8 +440,8 @@ namespace ApsRT.Core.Session
             }
 
 
-            sw.WriteLine("N;GUID;ВерсияЭтапа;Место;Длина;СледующаяДлина;ПерваяВЗапуске");
-            fullOutput?.WriteLine("N;Регистратор;GUID;ВерсияЭтапа;Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
+            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске");
+            fullOutput?.WriteLine($"N;Регистратор;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
 
             var D = 1;
             foreach (var block in blocks)
@@ -470,9 +474,16 @@ namespace ApsRT.Core.Session
                         {
 
                             if (!OP1.NeededNaladLength.HasValue)
-                                sw.WriteLine($"{D};{OP1.GUID};{OP1.StageVersion};{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+                                sw.WriteLine($"{D};{OP1.GUID};" +
+                                    //$"{OP1.StageVersion};" +
 
-                            fullOutput?.WriteLine($"{D};\"{OP1.Registrator}\";{OP1.GUID};{OP1.StageVersion};\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
+                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+
+                            fullOutput?.WriteLine($"{D};\"{OP1.Registrator}\";{OP1.GUID};" +
+                               // $"{OP1.StageVersion};" +
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
+                                $"\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
                                 $"{OP1.Level};{ToCsvString(OP1.Nomenklature)};{ToCsvString(OP1.OperationVid)};{ToCsvString(OP1.Production)};{center};" +
                                 $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
                                 $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
@@ -527,7 +538,7 @@ namespace ApsRT.Core.Session
         {
             var outputFile = new StreamWriter(filename, false, Encoding.UTF8);
 
-            outputFile.WriteLine($"GUID;ВерсияЭтапа;Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
+            outputFile.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
                     $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
                     $"ДебагНомерМода;Подразделение;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
                     $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки;БылПропущен");
@@ -561,7 +572,9 @@ namespace ApsRT.Core.Session
                             {
                                 Guid ord = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Object.Code : Guid.Empty;
                                 var gp = operLoc.OrderLink.OrderID.Object.Label.Length > 0 ? operLoc.OrderLink.OrderID.Version : "";
-                                outputFile.WriteLine($"{operLoc.GUID};{operLoc.StageVersion};{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
+                                outputFile.WriteLine($"{operLoc.GUID};" +
+                                    $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{operLoc.StageVersion};" : "")}" +
+                                    $"{operLoc.Nomenklature.Code};{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{operLoc.Characteristics.Code};{operLoc.ProductionCharacteristics.Code};" : "")}{ord};{gp};{operLoc.Specification.Code};" +
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
                                     $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +
@@ -604,7 +617,7 @@ namespace ApsRT.Core.Session
                 "ДлительностьСек;" +
                 "ID;" +
                 "GUID;" +
-                "ВерсияЭтапа;" +
+                $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}" +
                 "Регистратор;" +
                 "Ранг;" +
                 "Моделирование;" +
@@ -660,7 +673,9 @@ namespace ApsRT.Core.Session
                             $"{(start + prostoi.interval.Duration):G};" +
                             $"{prostoi.interval.Duration:G};" +
                             $"{(int)prostoi.interval.Duration.TotalSeconds}" +
-                            $";;;;;;;;;;;" +
+                            $";;;;;;;;;;" +
+
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $";" : "")}" +
                             $"{blockRC}";
                         rangesManual.WriteLine(finastr);
                         fileN++;
@@ -674,7 +689,11 @@ namespace ApsRT.Core.Session
                             $"{(start.Add(rechanges.interval.Duration)):G};" +
                             $"{rechanges.interval.Duration:G};" +
                             $"{(int)rechanges.interval.Duration.TotalSeconds}" +
-                            $";{nextOper.Index};{nextOper.GUID};{nextOper.StageVersion};{nextOper.Registrator}" +
+                            $";{nextOper.Index};{nextOper.GUID};" +
+                            //$"{nextOper.StageVersion};" +
+
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{nextOper.StageVersion};" : "")}" +
+                            $"{nextOper.Registrator}" +
                             $";;;;;;;{blockRC};;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
@@ -724,7 +743,9 @@ namespace ApsRT.Core.Session
                             $"{(int)duration.TotalSeconds};" +
                             $"{operLoc.Index};" +
                             $"{operLoc.GUID};" +
-                            $"{operLoc.StageVersion};" +
+                           // $"{operLoc.StageVersion};" +
+
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{operLoc.StageVersion};" : "")}" +
                             $"{operLoc.Registrator};" +
                             $"{currentRank};" +
                             $"[{operLoc.MesModelling}];" +
@@ -771,7 +792,7 @@ namespace ApsRT.Core.Session
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("N;ID;GUID;ВерсияЭтапа;Time;ИдентификаторПереналадки;Start;End");
+            sw.WriteLine($"N;ID;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Time;ИдентификаторПереналадки;Start;End");
             var D = 0;
             foreach (var r in RechangesBeforeFirstStages)
             {
@@ -797,7 +818,9 @@ namespace ApsRT.Core.Session
                         //        ) secondsNow += (int)interval.Time.TotalSeconds;
                         //}
 
-                        sw.WriteLine($"{D};{ALL[r.Key].Index};{ALL[r.Key].GUID};{ALL[r.Key].StageVersion};{secondsNow};{rech.Value.Name.Code};{start:G};{start.AddSeconds(secondsNow):G}");// {RECHANGES_TIMES[ALL[r.Item1].Center][rech.]}//r.Item2};{rechs}");
+                        sw.WriteLine($"{D};{ALL[r.Key].Index};{ALL[r.Key].GUID};" +
+                            $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{ALL[r.Key].StageVersion};" : "")}" +
+                            $"{secondsNow};{rech.Value.Name.Code};{start:G};{start.AddSeconds(secondsNow):G}");// {RECHANGES_TIMES[ALL[r.Item1].Center][rech.]}//r.Item2};{rechs}");
                         start = start.AddSeconds(secondsNow);
                     }
                 //sw.WriteLine($"{D};{ALL[r.Item1].ID};{r.Item2};{rechs}");
@@ -817,7 +840,7 @@ namespace ApsRT.Core.Session
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine("Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;ВерсияЭтапа;GUIDОбъединения;GUIDОбщегоЭтапа");
+            sw.WriteLine($"Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;GUIDОбщегоЭтапа");
             //var D = 0;
 
             var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData);
@@ -833,7 +856,8 @@ namespace ApsRT.Core.Session
                     $"{element.CountExists};" + // вернем на место
                     $"{element.DateWhenNeeded};" +
                     $"{(element.NextArrivalDate?.ToString() ?? "")};" +
-                    $"{element.StageGuid.Object.Code};{element.StageGuid.Version}" +
+                    $"{element.StageGuid.Object.Code};" +
+                    $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{element.StageGuid.Version};" : "")}" +
                     $"{element.ModellingGuid};" +
                     $"{element.EasyLifeGuid}"
                     );
@@ -859,7 +883,7 @@ namespace ApsRT.Core.Session
         {
             var sw = new StreamWriter(Filename, false, Encoding.UTF8);
             //GUID (исходного этапа имеется в виду) и ИдентификаторОбщегоЭтапа
-            sw.WriteLine("ИдентификаторЗадела;GUID;ВерсияЭтапа;НомерМоделирования;ИдентификаторОбщегоЭтапа;КоличествоИспользовано;Причина");
+            sw.WriteLine($"ИдентификаторЗадела;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}НомерМоделирования;ИдентификаторОбщегоЭтапа;КоличествоИспользовано;Причина");
             foreach (var zadel in SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary)
             {
                 if (zadel.Value.WhereIsUsed.Count > 0)
@@ -868,7 +892,9 @@ namespace ApsRT.Core.Session
                     {
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
                         var modGuid = opLink.CurrentModelling;//IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
-                        sw.WriteLine($"{zadel.Key};{opLink.GUID};{opLink.StageVersion};{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
+                        sw.WriteLine($"{zadel.Key};{opLink.GUID};" +
+                            $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{opLink.StageVersion};" : "")}" +
+                            $"{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
                     }
                 }
                 else

@@ -115,7 +115,12 @@ namespace ApsRT.Core.DataErrors
 
             var str1 = $"{BtoS(yes1)};{BtoS(yes2)};{BtoS(yes3)};{BtoS(yes4)};{BtoS(yes5)};{BtoS(yes51)};{BtoS(yes52)};" +
                 $"{BtoS(yes55)};{BtoS(yes56)};" +
-                $"{BtoS(yes6 || yesCOL)};{BtoS(yesPrevs)};{BtoS(yesNexts)};" +
+                $"{BtoS(yes6 || yesCOL)};" +
+                $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{BtoS(yes6 || yesCOL)};" : "")}" +
+                $"{BtoS(yesPrevs)};" +
+                $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{BtoS(yesPrevs)};" : "")}" +
+                $"{BtoS(yesNexts)};" +
+                $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{BtoS(yesNexts)};" : "")}" +
                 $"{BtoS(yes6)};{BtoS(yes6 || yesCProd)};{BtoS(yes6 || yesCNom)};{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{BtoS(yes6 && yesCharNom)};{BtoS(yes6 && yesCharProd)};" : "")}{BtoS(yes6 || yesCVid)};" +
                 $"{BtoS(yes61 || yesCRC)};{BtoS(yes62 || yesCRCR)};" +
                 $"{BtoS(yes6)};{BtoS(yes6)};{BtoS(yes6 || yes54)};" +
@@ -124,7 +129,7 @@ namespace ApsRT.Core.DataErrors
                 $"ДА;{BtoS(yesdOP)}";
             var str2 = "ДоступныеРЦТекущегоЭтапа;ПриемнаяТараТекущегоЭтапа;ТребуемаяОтдающаяТара;МаксНамоткиТекущегоЭтапа;ПересечениеМаксНамотокПриемнойТары;РЦСледующегоЭтапа;ТараСледующегоЭтапа;" +
                 "РЦПредыдущегоЭтапа;ТараПредыдущегоЭтапа;" +
-                "Этап;ВерсияЭтапа;ПредыдущиеЭтапы;ВерсииПредыдущихЭтапов;СледующиеЭтапы;ВерсииСледующихЭтапов;" +
+                $"Этап;{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}ПредыдущиеЭтапы;{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсииПредыдущихЭтапов;" : "")}СледующиеЭтапы;{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсииСледующихЭтапов;" : "")}" +
                 $"МетодРасчёта;Продукция;Номенклатура;{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ВидОперации;" +
                 "РЦ;ГруппаЗаменяемостиРабочихЦентров;" +
                 "Заказ;ПартияГП;ИдентификаторПартииПФ;" +
@@ -249,15 +254,19 @@ namespace ApsRT.Core.DataErrors
 
                         Guid? partiaGuid = op == null ? error.Value.PartiaGuid : (op.CustomPartiaGuid ?? (op.OrderLink.OrderID.Object.Label.Length > 0 ? (op.OrderLink.PartiaPF ?? Guid.Empty) : Guid.Empty));
 
+                        var b1 = $"{(string.IsNullOrEmpty(listCOLGuidsVersions) ? op?.StageVersion : listCOLGuidsVersions)};";
+                        var b2 = $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].StageVersion)))};";
+                        var b3 = $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].StageVersion)))};";
+
                         swNew.WriteLine(
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
                             $"{(string.IsNullOrEmpty(listCOLGuids) ? op?.GUID : listCOLGuids)};" +
-                            $"{(string.IsNullOrEmpty(listCOLGuidsVersions) ? op?.StageVersion : listCOLGuidsVersions)};" +
+                        $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? b1 : "")}" +
                             $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].StageVersion)))};" +
+                        $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? b2 : "")}" +
                             $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].StageVersion)))};" +
+                        $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? b3 : "")}" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Code : op?.Production.Code)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Code : op?.Nomenklature.Code)};" +
                             $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Code};{op?.ProductionCharacteristics.Code};" : "")}" +
@@ -275,10 +284,11 @@ namespace ApsRT.Core.DataErrors
                             $"{list1};{list2};{list3};{list4};{list5};{list51};{list52};" +
                             $"{list53};{list54};" +
                             $"{(string.IsNullOrEmpty(listCOLGuids) ? (op?.Registrator + " " + op?.GUID) : listCOLGuids)};" +
+                        $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? b1 : "")}" +
                             $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Prevs.Select(x => allStages[x].StageVersion)))};" +
+                        $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? b2 : "")}" +
                             $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].GUID)))};" +
-                            $"{(op == null ? "" : string.Join(", ", op?.Nexts.Select(x => allStages[x].StageVersion)))};" +
+                        $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? b3 : "")}" +
                             $"{(op == null ? "" : (op.UsedCalcMethod == DimensionUnit.m ? "По метражу" : "По весу"))};" +
                             $"{(error.Value.customProd.HasValue ? error.Value.customProd.Value.Label : op?.Production.Label)};{(error.Value.customNomen.HasValue ? error.Value.customNomen.Value.Label : op?.Nomenklature.Label)};" +
                             $"{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{op?.Characteristics.Label};{op?.ProductionCharacteristics.Label};" : "")}" +
