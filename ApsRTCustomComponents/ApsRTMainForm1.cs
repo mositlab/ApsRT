@@ -2087,7 +2087,7 @@ namespace ApsRTCustomComponents
         private void button4_Click(object sender, EventArgs e)
         {
             var writer = new StreamWriter("МаксимальныеНамоткиНаТару.txt", false);
-            writer.WriteLine("Продукция\tПродукция_GUID\tНоменклатура\tНоменклатура_GUID\tХарактеристика\tХарактеристика_GUID\tВидОперации\tВидОперации_GUID\tТипТары\tТипТары_GUID\tЕдиницаХраненияОстатков\tВеличинаНамотки");
+            writer.WriteLine("Продукция\tПродукция_GUID\tНоменклатура\tНоменклатура_GUID\tХарактеристикаНоменклатуры\tХарактеристикаНоменклатуры_GUID\tВидОперации\tВидОперации_GUID\tТипТары\tТипТары_GUID\tЕдиницаХраненияОстатков\tВеличинаНамотки");
             foreach (var level1 in sessionLink.MasterDataLinks.TarasMasterData.TarasMaxCapacities)
             {
                 var production = level1.Key;

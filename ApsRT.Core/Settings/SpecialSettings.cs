@@ -23,6 +23,8 @@ namespace ApsRT.Core.Settings
 
         public bool UseOnlyWeightMethodWhenSearchWindings { get; set; }
 
+        public bool UseLegacySettingsWhenNotFound { get; set; }
+
         public enum PartiaMergingRestrictionType
         {
             LongestOpers_LessThan3,

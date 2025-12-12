@@ -214,7 +214,7 @@ namespace ApsRT.Core.DataErrors
 
                             NewDataErrorType.WasNotAbleToMerge => "На 1м уровне не выполняются настройки формирования партий.",
 
-                            NewDataErrorType.WasNotAbleToMergeNoSettings => "На 1м уровне отсутсвуют настройки формирования партий, внут. проверки: кол-во мест, повивы, подразд., номенкл., операции (НЕ виды), напряжения, материалы, пересечение по РЦ, проверка на ТПЖ.",
+                            NewDataErrorType.WasNotAbleToMergeNoSettings => "На 1м уровне отсутствуют настройки формирования партий.",
 
                             NewDataErrorType.WasNotAbleToMergeMax => "На 1м уровне не удалось объединить этапы по максимальной намотке. Обратитесь к ПДО.",
 

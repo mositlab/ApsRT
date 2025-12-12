@@ -93,7 +93,7 @@ namespace ApsRT.Core.Partias.MergeConditions
                         default:
                             {
                                 Console.WriteLine($"unknown '{model.Param}'");
-                                session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.UnknownPartiaParam, model.Param);
+                                //session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.UnknownPartiaParam, model.Param);
                                 break;
                             }
                     }

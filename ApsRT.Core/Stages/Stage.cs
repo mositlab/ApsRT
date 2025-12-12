@@ -162,6 +162,9 @@ namespace ApsRT.Core.Stages
 
         [DataRecordColumn("ВозможноПропуститьВыполнение", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool CanBePassed { get; set; }
+
+        [DataRecordColumn("ЭтоСтадияГП", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool ItsGPStage { get; set; }
         #endregion
 
         #region Рабочие центры

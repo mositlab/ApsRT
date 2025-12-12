@@ -407,7 +407,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
             if (ops.Count > 0)
             {
-                if (ops.All(x => x.EndTara.IsEmpty))
+                if (ops.All(x => x.EndTara.IsEmpty) && (ops.Any(x => x.ItsGPStage)))
                 {
                     dataErrors.AddNewPartiaError(ops[0].Index, NewDataErrorType.NoOrigTara, new DataErrorStruct());
                     if (LogErrors)

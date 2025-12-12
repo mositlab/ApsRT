@@ -39,6 +39,12 @@ namespace ApsRT.Core.Taras
         {
             var model = new MaxCapacityDataLoaderModel();
             model.LoadFromDataRecord(data, options);
+            //for (int i = 0; i < data.FieldCount; i++)
+            //{
+            //    Console.Write(data[i] + ";");
+            //}
+            //Console.WriteLine();
+            //Console.WriteLine(data["ЕдиницаХраненияОстатков"] + "--->" + model.DimensionUnit);
             TarasMasterData.AddMaxCapacityData(model);
         }
     }

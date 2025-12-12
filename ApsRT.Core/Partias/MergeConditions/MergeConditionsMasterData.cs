@@ -15,6 +15,15 @@ namespace ApsRT.Core.Partias.MergeConditions
     /// </summary>
     public class MergeConditionsMasterData
     {
+
+        public Session.Session SessionLink { get; }
+
+        public MergeConditionsMasterData(Session.Session session)
+        {
+            SessionLink = session;
+        }
+
+
         /// <summary>
         /// Набор данных условий объединения
         /// </summary>
@@ -281,7 +290,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             }
             else
             {
-                if (op1.IsVspom || true)
+                if (op1.IsVspom || SessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound)
                 {
                     // иначе проверяем старым способом
                     result = LegacyOperationEquality(op1, op2, out reason, out smallreason, forObshEtaps);

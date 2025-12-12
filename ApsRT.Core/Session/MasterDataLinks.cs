@@ -36,6 +36,7 @@ namespace ApsRT.Core.Session
             NaladLengthsMasterData = new NaladLengthsMasterData(SessionLink);
             LeftoversMasterData = new LeftoversMasterData(SessionLink);
             PropsMasterData = new PropsMasterData(SessionLink);
+            MergeConditionsMasterData = new MergeConditionsMasterData(SessionLink);
         }
 
         public NaladLengthsMasterData NaladLengthsMasterData { get; set; }
@@ -50,7 +51,7 @@ namespace ApsRT.Core.Session
 
         public LeftoversMasterData LeftoversMasterData { get; set; }
 
-        public MergeConditionsMasterData MergeConditionsMasterData { get; set; } = new();
+        public MergeConditionsMasterData MergeConditionsMasterData { get; set; }
 
         public CentersMasterData CentersMasterData { get; set; }
         public ParallelPlanningMasterData ParallelPlanningMasterData { get; set; }

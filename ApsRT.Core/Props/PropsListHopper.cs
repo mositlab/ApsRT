@@ -10,7 +10,7 @@ using UniversalPack.Common.DataLoader;
 
 namespace ApsRT.Core.Props
 {
-    [Hopper(Label = "Список реквизитов", IsDirectory = false, IsMultiple = true, UsesGuid = false, MustBeFilledWithData = true)]
+    [Hopper(Label = "Список реквизитов", IsDirectory = false, IsMultiple = true, UsesGuid = false, MustBeFilledWithData = true, SessionPathAvailable = true)]
     internal class PropsListHopper : IHopperInterface
     {
 

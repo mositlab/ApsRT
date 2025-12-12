@@ -31,6 +31,7 @@ namespace ApsRT.SKO
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "";
             sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction = Core.Settings.SpecialSettings.PartiaMergingRestrictionType.Level2_Multiplies2;
             sessionLink.SettingsController.SpecialSettings.UseOnlyWeightMethodWhenSearchWindings = true;
+            sessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound = false;
 
 
             ApsRTCustomComponents.ApsRTMainForm1 form = null;

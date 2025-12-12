@@ -52,7 +52,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             else
             {
                 Console.WriteLine($"can't generate prop link for '{model.PropName}'");
-                session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.CantLinkProp, model.MergeConditionParamName);
+                //session.DataErrors.AddNewPartiaError(DataErrors.NewDataErrorType.CantLinkProp, model.MergeConditionParamName);
             }
         }
     }
