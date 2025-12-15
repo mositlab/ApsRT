@@ -265,6 +265,7 @@ namespace ApsRT.Core.Session
         {
 
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
+            MasterDataLinks.StagesMasterData.EnsureVersionedStagesDependencies();
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
 
             if (DataErrors.TryOutputDataErrors())

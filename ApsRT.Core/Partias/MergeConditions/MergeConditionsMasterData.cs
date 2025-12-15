@@ -1,12 +1,15 @@
-﻿using Azure;
+﻿using ApsRT.Core.DataErrors;
 using ApsRT.Core.Props;
 using ApsRT.Core.Stages;
+using Azure;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UniversalPack.Extensions;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ZLinq;
-using System.Collections.Frozen;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Partias.MergeConditions
 {
@@ -300,6 +303,10 @@ namespace ApsRT.Core.Partias.MergeConditions
                 else
                 {
                     reason = smallreason = $"Для вида тех. операции {op1.OperationVid} не задан набор условий.";
+
+                    var dem = new DataErrorStruct();
+                    SessionLink.DataErrors.AddNewPartiaError(op1.Index, NewDataErrorType.WasNotAbleToMergeNoSettings, dem);
+
                     hasSettings = false;
                     return false;
                 }

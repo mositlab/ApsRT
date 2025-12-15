@@ -285,6 +285,23 @@ namespace ApsRT.Core.Stages.MasterData
             }
         }
 
+        public void EnsureVersionedStagesDependencies()
+        {
+            foreach (var stage in GuidsAndVersions)
+            {
+                var versions = stage.Value;
+                if (versions.Count == 1) continue;
+                var array = versions.OrderBy(x => x.Key).ToArray();
+                for (int i = 0; i < array.Length - 1; i++)
+                {
+                    var curr = AllStages[array[i].Value];
+                    var next = AllStages[array[i].Value];
+                    if (!curr.Nexts.Contains(next.Index)) curr.Nexts.Add(next.Index);
+                    if (!next.Prevs.Contains(curr.Index)) curr.Prevs.Add(curr.Index);
+                }
+            }
+        }
+
         public void AddNewStage(Stage stage, OrderBaseModel orderModel, IDataReader data, DataLoaderOptions options)
         {
             var masterDatas = SessionLink.MasterDataLinks;

@@ -49,6 +49,7 @@
         NoPriemOrigTara, // тут не найдена приемная отдающая тара
         NoOtdOrigTara, // нет РЦ с нужной отдающей тарой
         NoPriemOrigTaraOnNextEtap, // на след этапе не найдена приемная отдающая тара
+        NoAnyRCWithTara, // нет ни одного РЦ с любой приемной тарой
 
         WasNotAbleToMerge, // не смог соединить на 1 уровне
         WasNotAbleToMergeNoSettings, // то же, но без настроек

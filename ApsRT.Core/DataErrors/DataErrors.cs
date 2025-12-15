@@ -212,9 +212,11 @@ namespace ApsRT.Core.DataErrors
                             NewDataErrorType.NoPriemOrigTaraOnNextEtap => "На следующей стадии для барабана ГП '{0}' не найден РЦ с данной применяемой приёмной тарой.",
                             //NewDataErrorType.NoOtdOrigTara => "Для барабана ГП '{0}' не найден РЦ с данной применяемой отдающей тарой.",
 
+                            NewDataErrorType.NoAnyRCWithTara => "У этапа нет ни одного РЦ с заданной приёмной тарой.",
+
                             NewDataErrorType.WasNotAbleToMerge => "На 1м уровне не выполняются настройки формирования партий.",
 
-                            NewDataErrorType.WasNotAbleToMergeNoSettings => "На 1м уровне отсутствуют настройки формирования партий.",
+                            NewDataErrorType.WasNotAbleToMergeNoSettings => "Для данного вида операции отсутствуют настройки формирования партий.",
 
                             NewDataErrorType.WasNotAbleToMergeMax => "На 1м уровне не удалось объединить этапы по максимальной намотке. Обратитесь к ПДО.",
 

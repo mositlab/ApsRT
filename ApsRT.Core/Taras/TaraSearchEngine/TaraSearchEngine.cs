@@ -279,6 +279,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         ModToTaraInfoLink?.TryAdd(allOpers.ModId, null);
                     }
 
+                    if (options.LogSomeErrors)
+                    {
+                        var dem = searchData.dataErrorMore;
+                        dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index, NewDataErrorType.NoAnyRCWithTara, dem); // нет ни одной тары блин
+                    }
+
                     //if (first.PossibleCenters == null)
                     //{
                     //    if (!TaraDataSet.FromAndToTara.ContainsKey(first.Center))
