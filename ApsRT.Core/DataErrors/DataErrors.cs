@@ -247,7 +247,7 @@ namespace ApsRT.Core.DataErrors
                         string list54 = ""; if (error.Value.TarasOnPrevEtap != null) list54 = string.Join(", ", error.Value.TarasOnPrevEtap.Select(X => X.Label));
 
                         string listCOLGuids = ""; if (error.Value.customEtapsGuids != null) listCOLGuids = string.Join(", ", error.Value.customEtapsGuids.Select(x => x.Code));
-                        string listCOLGuidsVersions = ""; if (error.Value.customEtapsGuids != null) listCOLGuids = string.Join(", ", error.Value.customEtapsGuids.Select(x => x.Version));
+                        string listCOLGuidsVersions = ""; if (error.Value.customEtapsGuids != null) listCOLGuidsVersions = string.Join(", ", error.Value.customEtapsGuids.Select(x => x.Version));
 
 
                         var op = element.Key < 0 ? null : allStages[element.Key];
