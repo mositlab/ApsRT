@@ -91,7 +91,7 @@ namespace ApsRT.Core.Taras
 
         internal Dictionary<Uco /*РЦ*/,
             Dictionary<Uco, // вид операции
-            (Dictionary<bool, List<Uco>> Otd, Dictionary<bool, List<Uco>> Priem)>> FromAndToTaraOnLoading
+            (Dictionary<bool, List<Uco>> Otd, Dictionary<bool, List<Uco>> Priem)>> FromAndToTara
             = new(/*new UcoEqualityComparer()*/); // Для каждого РЦ - списки принимающей и отдающей
 
         internal void UsedTaraPostProcess(bool AddPseudoTara)
@@ -238,7 +238,7 @@ namespace ApsRT.Core.Taras
                         >
                     >
                 >
-            > TarasMaxCapacitiesOnLoading
+            > TarasMaxCapacities
         { get; private set; } = new(/*new CodedObjectEqualityComparer()*/);
 
         public void AddMaxCapacityData(MaxCapacityDataLoaderModel model)
@@ -298,24 +298,6 @@ namespace ApsRT.Core.Taras
             IDAlreadyHasNamots.Clear();
             SavedTara.Clear();
         }
-
-        public void TaraPostProcessing()
-        {
-
-        }
-
-
-        Dictionary<Uco, int> ExistingTara = new();
-
-        bool TryAddExistingTara(Uco tara) => ExistingTara.TryAdd(tara, ExistingTara.Count);
-
-        void ClearExistingTara() => ExistingTara.Clear();
-
-        bool TryGetExistingTaraIndex(Uco tara, out int index) => ExistingTara.TryGetValue(tara, out index);
-
-
-
-
 
         ConcurrentBag<int> IDAlreadyHasNamots = new();
         ConcurrentDictionary<Stages.Stage, List<(Uco Tara, DimensionUnit Format, double Namot)>> SavedTara = new();
