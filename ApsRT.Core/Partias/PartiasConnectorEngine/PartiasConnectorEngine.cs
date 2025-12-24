@@ -760,9 +760,13 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                 // Первый варик
                                 //filledK = 0.001f;
 
-                                // Текущий варик
+                                // Текущий варик для ЗМК
                                 filledK = 0;
-                                resultToFill.mergedNorm = 0;
+                                //resultToFill.mergedNorm = 0; // раскомментить
+
+                                // Текущий варик для СКО
+                                filledK = 0.001f;
+                                //resultToFill.mergedNorm = 0;
                                 break;
                             }
                         }
@@ -1064,7 +1068,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 }
             }
 
-            if (firstLevelBad) finalResult.mergedNorm = 0;
+            if (firstLevelBad)
+                finalResult.mergedNorm = 0;
 
             // Теперь - группируем, чтобы для каждого повива/задела было лишь по одному запуску
             //if (What.OpersHere[0].Count > 0) merged = 0; // очевидно что он не схлопнулся до конца, и это плохо

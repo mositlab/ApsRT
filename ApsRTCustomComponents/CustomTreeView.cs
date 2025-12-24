@@ -131,6 +131,7 @@ namespace ApsRTCustomComponents
                                 $"\r\n{x.OrderLink.OrderID}" +// [Отражение факта: {Orders.GlobalOrders[x.OrderN].IsFact}, Ручной: {Orders.GlobalOrders[x.OrderN].Ruchnoe}, ВПЗ: {Orders.GlobalOrders[x.OrderN].VPZ}, Фикс.: {Orders.GlobalOrders[x.OrderN].Fixed}]" +
                                 $"\r\nПродукция: {x.Production}" +
                                 $"\r\nНоменклатура: {x.Nomenklature}" +
+                                $"\r\nХарактеристика: {x.Characteristics}" +
                                 $"\r\nТех операция вид: {x.OperationVid}" +
                                 $"\r\nОриг. моделирование: {x.MesModelling}" +
                                 $"\r\nКгКм: {x.KgKm}" +

@@ -576,9 +576,29 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         if (rcs1.Count() > 0)
                         {
 
-                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis = options.PrevsInfo == null ? null : first.op.Prevs.AsValueEnumerable().Where(x => !ALL[x].IsVspom && !ALL[x].NoCheckNamotka && options.PrevsInfo.ContainsKey(x) && allOpers.AllOpers.All(op => op.Index != x)).Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara)).ToHashSet();
+                            HashSet<(Uco Tara, bool WasVspom)> localTaraHereMustBeThis =
+                                options.PrevsInfo == null ? null :
+                                
+                                first.op.Prevs
+                                .AsValueEnumerable()
+                                .Where(x =>
+                                    !ALL[x].IsVspom
+                                    && !ALL[x].NoCheckNamotka
+                                    && options.PrevsInfo.ContainsKey(x)
+                                    && allOpers.AllOpers.All(op => op.Index != x)) // Нужно чекать только те, которых нет среди рассматриваемых сейчас этапчиков, ибо это бессмысленно, я для них тару и ищу
+                                .Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara))
+                                .ToHashSet();
 
-                            var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z => TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom).otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has) && has.Contains(z.Tara)));
+                            var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z =>
+                            {
+                                var alltarasHere = TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom);
+                                if (alltarasHere.otd.TryGetValue(FirVsp ? false : z.WasVspom, out var has))
+                                {
+                                    return has.Contains(z.Tara);
+                                }
+                                return false;
+                            }
+                            ));
 
                             if (res01.Count() > 0)
                             {

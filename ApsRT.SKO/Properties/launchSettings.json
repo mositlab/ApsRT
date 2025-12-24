@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ApsRT.SKO": {
-      "commandName": "Project",
-      "commandLineArgs": "guid:d9bd2de8-fa33-4123-ab76-6d5a0c509ce1"
+      "commandName": "Project"
     }
   }
 }
