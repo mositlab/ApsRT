@@ -45,6 +45,9 @@ namespace ApsRT.Core.Stages.MasterData
 
         public Dictionary<int, Stage> AllStages { get; private set; } = new();
 
+
+        Dictionary<Guid, Dictionary<int, int>> GuidsAndVersionsVolokons = new();
+
         Dictionary<Guid, Dictionary<int, int>> GuidsAndVersions = new();
         int TotalGuidsCount = 0;
 
@@ -62,6 +65,7 @@ namespace ApsRT.Core.Stages.MasterData
         public void ClearAll()
         {
             AllStages.Clear();
+            GuidsAndVersionsVolokons.Clear();
             GuidsAndVersions.Clear();
             MesModellingsInfo.Clear();
             ApsModellingsInfo.Clear();
@@ -150,6 +154,10 @@ namespace ApsRT.Core.Stages.MasterData
                         stage.Center = LIST[0];
                         stage.OriginalCenter = LIST[0];
                     }
+                }
+                else
+                {
+                    session.AssignedLogger.LogQueue.Enqueue($"ЗАГРУЗКА (операции): Маршрут {stage.RCRoute} не существует.\r\n");
                 }
             }
             #endregion
@@ -306,6 +314,20 @@ namespace ApsRT.Core.Stages.MasterData
         {
             var masterDatas = SessionLink.MasterDataLinks;
             var PropsMasterData = masterDatas.PropsMasterData;
+
+            #region Версии этапов для волокна
+            if (stage.IsVolokno)
+            {
+                GuidsAndVersions.TryAdd(stage.GUID, new());
+                GuidsAndVersions[stage.GUID].TryAdd(stage.StageVersion, 0);
+                int i = GuidsAndVersions[stage.GUID][stage.StageVersion];
+                var id = stage.ID;
+                id.Version += 1000000 * (i + 1);
+                stage.ID = id;
+                i++;
+                GuidsAndVersions[stage.GUID][stage.StageVersion] = i;
+            }
+            #endregion
 
             #region Проверка на дубликат
             var allVersions = TryGetStageIndexexByGuid(stage.GUID);

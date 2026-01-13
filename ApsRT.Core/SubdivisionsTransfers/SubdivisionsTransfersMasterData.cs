@@ -14,6 +14,8 @@ namespace ApsRT.Core.SubdivisionsTransfers
 
         public void ClearAll() => TimeInSeconds = null;
 
+        public bool HasAnyData => TimeInSeconds != null;
+
         internal int GetSubdivisionTransferTime(Uco From, Uco To)
         {
             if (TimeInSeconds == null) return 0;

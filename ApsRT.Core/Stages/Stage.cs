@@ -165,6 +165,9 @@ namespace ApsRT.Core.Stages
 
         [DataRecordColumn("ЭтоСтадияГП", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool ItsGPStage { get; set; }
+
+        [DataRecordColumn("ЭтоВолокно", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool IsVolokno { get; set; }
         #endregion
 
         #region Рабочие центры

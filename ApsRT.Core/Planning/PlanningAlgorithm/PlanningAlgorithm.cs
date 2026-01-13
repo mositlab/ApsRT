@@ -228,7 +228,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             List<Stage> stages = SessionLink.MasterDataLinks.StagesMasterData.AllStages.Select(x => x.Value).ToList();
 
             // Фильтр этапчиков
-            stages = stages.Where(x => x != null && !x.ClosedByZadels).ToList();
+            stages = stages.Where(x => x != null && !x.ClosedByZadels && !x.IsVolokno).ToList();
 
             if (stages.Count == 0)
             {

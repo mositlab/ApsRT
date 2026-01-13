@@ -13,6 +13,7 @@ namespace ApsRT.Core.PlanSimulator
     {
         internal Uco LastSubdivision;
         internal int Flag;
+        internal PlanSimulatorMod LastMod;
 
         public PlanSimulatorLastSubsData(Uco sub, int flag)
         {

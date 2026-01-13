@@ -103,21 +103,19 @@ namespace ApsRT.Core.PlanSimulator
             });
 
 
-            /*
+
             FrozenDictionary<Guid, PlanSimulatorLastSubsData[]> LastSubs = null;
-            if (SessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
+
+            LastSubs = partiasCodes.ToFrozenDictionary(x => x, x =>
             {
-                LastSubs = partiasCodes.ToFrozenDictionary(x => x, x =>
+                var array = new PlanSimulatorLastSubsData[PoolSize];
+                for (int i = 0; i < array.Length; i++)
                 {
-                    var array = new PlanSimulatorLastSubsData[PoolSize];
-                    for (int i = 0; i < array.Length; i++)
-                    {
-                        array[i] = new PlanSimulatorLastSubsData(Uco.EmptyObject, -1);
-                    }
-                    return array;
-                });
-            }
-            */
+                    array[i] = new PlanSimulatorLastSubsData(Uco.EmptyObject, -1);
+                }
+                return array;
+            });
+
 
             Blocks = blocks;
 
@@ -176,6 +174,8 @@ namespace ApsRT.Core.PlanSimulator
 
                     mod.RottingTimeInDays = new double[PoolSize];
 
+                    mod.LastSubsData = LastSubs[partiaCode];
+
                     for (int s = 0; s < mod.Stages.Count; s++)
                     {
                         var stage = mod.Stages[s];
@@ -188,7 +188,6 @@ namespace ApsRT.Core.PlanSimulator
                             stage.NaladLengthData[i] = new PlanSimulatorNaladLengthData(-1, length);
                         }
                         stage.PartiaRecalcData = PartiasToRecalc[partiaCode];
-                        //if (LastSubs != null) stage.LastSubsData = LastSubs[partiaCode];
                     }
                 }
                 (var center, _, _) = block.GetCenterData(0);

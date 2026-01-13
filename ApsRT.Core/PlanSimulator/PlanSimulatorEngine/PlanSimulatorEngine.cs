@@ -288,28 +288,26 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     ProcessOrder(PoolIndex, operationB, lastDateFinally, currentFlag, resultToFill);
                 }
 
-                /*
                 // Попробуем подсчитать переход из цеха в цех
-                if (resultToFill.Session.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers)
+                var ordPfClass = currentMod.LastSubsData[PoolIndex];
+                if (ordPfClass.Flag != currentFlag)
                 {
-                    var ordPfClass = operationB.LastSubsData[PoolIndex];
-                    if (ordPfClass.Flag != currentFlag)
+                    // Просто задаем РЦ
+                    ordPfClass.Flag = currentFlag;
+                    ordPfClass.LastSubdivision = centerGlobalData.Subdivision;
+                    ordPfClass.LastMod = currentMod;
+                }
+                else
+                {
+                    // Проверяем, совпало ли подразделение
+                    if (ordPfClass.LastSubdivision != centerGlobalData.Subdivision)
                     {
-                        // Просто задаем РЦ
-                        ordPfClass.Flag = currentFlag;
                         ordPfClass.LastSubdivision = centerGlobalData.Subdivision;
-                    }
-                    else
-                    {
-                        // Проверяем, совпало ли подразделение
-                        if (ordPfClass.LastSubdivision != centerGlobalData.Subdivision)
-                        {
-                            ordPfClass.LastSubdivision = centerGlobalData.Subdivision;
-                            resultToFill.SubdivisionsTransfer++;
-                        }
+                        ordPfClass.LastMod = currentMod;
+                        resultToFill.SubdivisionsTransfer++;
                     }
                 }
-                */
+                
 
                 // Задаём минимальные даты начала детям
                 SetMinDatesToChildsAndRotting(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
@@ -475,14 +473,27 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
                 for (int j = 0; j < mod.NextMods.Count; j++) // Смотрим на детей-модов
                 {
-                    var hh = mod.NextMods[j].MinDatesData[PoolIndex];
-                    if (hh.Flag != currentFlag || hh.MinValue < LastDate)
+                    var nextModHere = mod.NextMods[j];
+                    var hh = nextModHere.MinDatesData[PoolIndex];
+                    var LastDateHere = LastDate;
+
+                    // Подразделения
+                    var subdivsMasterData = nextModHere.FirstOperJust.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData;
+                    if (subdivsMasterData.HasAnyData)
+                    {
+                        var subDiv1 = block.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
+                        var subDiv2 = nextModHere.BlockLink.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
+                        var transferTime = subdivsMasterData.GetSubdivisionTransferTime(subDiv1, subDiv2);
+                        LastDateHere = LastDateHere.AddSeconds(transferTime);
+                    }
+
+                    if (hh.Flag != currentFlag || hh.MinValue < LastDateHere)
                     {
                         //if (hh.Flag == currentFlag)
                         //{
                         //    tempData.TaraRedutantUsage += (LastDate - hh.MinValue).TotalDays / thisMod.FirstOper.Level;
                         //}
-                        hh.MinValue = LastDate;
+                        hh.MinValue = LastDateHere;
                         hh.Flag = currentFlag;
                         hh.LastBlockIndex = blockIndex;
                         hh.LastID = mod.FirstOperJust.Index;
@@ -563,14 +574,37 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         {
             var neededDate = modelling.FirstOperJust.Fixed ? modelling.FirstOperJust.StartTimeFact.Value : minDate;
 
-            var kortez = modelling.MinDatesData[PoolIndex];//pool.DatesData[modelling.ModID];
-            if (kortez.Flag == neededFlag/* || !LinearRC*/)
+            var timeBcsOfTransfers = neededDate;
+            var subsMasterData = modelling.FirstOperJust.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData;
+            if (subsMasterData.HasAnyData)
             {
-                if (kortez.MinValue > neededDate)
+                var subsData = modelling.LastSubsData[PoolIndex];
+                if (subsData.Flag == neededFlag && subsData.LastMod != null && subsData.LastMod != modelling)
                 {
-                    return new PlanSimulatorDatesData(kortez);
+                    var nextSub = modelling.BlockLink.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
+                    if (nextSub != subsData.LastSubdivision)
+                    {
+                        var transferTime = subsMasterData.GetSubdivisionTransferTime(subsData.LastSubdivision, nextSub);
+                        timeBcsOfTransfers = subsData.LastMod.DateOfEnd[PoolIndex].AddSeconds(transferTime); // Прибавляем к предыдущему моду из этой партии время перехода
+                    }
                 }
             }
+
+            var timeBcsOfPrevs = modelling.MinDatesData[PoolIndex];//pool.DatesData[modelling.ModID];
+
+            if (timeBcsOfPrevs.Flag == neededFlag // Если это время актуально и 
+                && timeBcsOfPrevs.MinValue > neededDate
+                && timeBcsOfPrevs.MinValue > timeBcsOfTransfers)
+            {
+                return new PlanSimulatorDatesData(timeBcsOfPrevs);
+            }
+
+            if (timeBcsOfTransfers > neededDate
+                && (timeBcsOfPrevs.Flag != neededFlag || timeBcsOfTransfers > timeBcsOfPrevs.MinValue))
+            {
+                return new PlanSimulatorDatesData(timeBcsOfTransfers, neededFlag, -1, -1);
+            }
+
             return new PlanSimulatorDatesData(neededDate, neededFlag, -1, -1);
 
         }
@@ -818,6 +852,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             var thatEtap = stage.Stage;//ALL[etapID];
 
             if (thatEtap.ClosedByZadels) return; // Заглушка для закрытых заделом этапов
+            if (thatEtap.IsVolokno) return; // Заглушка для волокон
 
             // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
             var stageNaladInfo = stage.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];

@@ -50,7 +50,7 @@ namespace ApsRT.Core.Leftovers
         [DataRecordCodedObjectColumn("Спецификация_GUID", "Спецификация")]
         public Uco Specification { get; set; }
 
-        [DataRecordCodedObjectVersionedColumn("Заказ_GUID", "Заказ")]
+        [DataRecordCodedObjectVersionedColumn("Заказ_GUID", "Заказ", "ПартияГП")]
         public OrderID Order { get; set; }
 
         [DataRecordColumn("ГруппаЗаменяемостиМатериалов_GUID")]

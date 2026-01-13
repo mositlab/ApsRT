@@ -129,7 +129,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             engineData.Color = col;
 
 
-            var Level = 1;
+            var Level = 0; // Раньше стояло 1, из-за волокна теперь 0
             var max = ops.Max(x => x.Level);
 
 

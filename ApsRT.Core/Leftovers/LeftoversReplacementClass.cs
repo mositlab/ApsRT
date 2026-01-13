@@ -18,8 +18,11 @@ namespace ApsRT.Core.Leftovers
 
         public void PostProcess()
         {
-            List = List.OrderBy(x => x.Original)
-                .ThenBy(x => x.Analogue)
+            List = List
+                .OrderBy(x => x.Original.Nomenklature.Code)
+                .ThenBy(x => x.Original.Characteristics.Code)
+                .ThenBy(x => x.Analogue.Nomenklature.Code)
+                .ThenBy(x => x.Analogue.Characteristics.Code)
                 .ThenBy(x => x.OriginalCount)
                 .ThenBy(x => x.AnalogueCount)
                 .ToList();
