@@ -256,7 +256,7 @@ namespace ApsRT.Core.Leftovers
                 sdvig.FirstOperLink.StageMaterialsInfo.UsedMaterials.Select(
                     (mat, index) =>
 
-                    (stageLink: sdvig.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (int)(GetMatSumFromMod(sdvig, mat.AsMaterialUcoData()) * 1000.0))
+                    (stageLink: sdvig.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)(GetMatSumFromMod(sdvig, mat.AsMaterialUcoData()) * 1000.0))
                 )
             )
                 .Where(
@@ -299,7 +299,7 @@ namespace ApsRT.Core.Leftovers
             var allBins = CurrentLeftoversCount.SelectMany(x =>
 
             x.Value.Select(sub =>
-            (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (int)(sub.Value.Count * 1000.0), BinEdIzm: sub.Value.DimensionUnit)
+            (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (long)(sub.Value.Count * 1000.0), BinEdIzm: sub.Value.DimensionUnit)
 
             )
 
@@ -321,7 +321,7 @@ namespace ApsRT.Core.Leftovers
             }
 
             // Создаём таблицу для данных
-            int[,] IBtable = new int[allItems.Count, allBins.Count];
+            long[,] IBtable = new long[allItems.Count, allBins.Count];
             // Заполняем ее данными по весу
             for (int i = 0; i < allItems.Count; i++)
             {
@@ -337,7 +337,7 @@ namespace ApsRT.Core.Leftovers
                         if (AllPossibleAnaloguesForMats[i].TryGetValue(binMatData, out var analogueW)) // НО! Если у мата есть аналог, как раз такой остаток, то поместить МОЖНО!
                         {
                             // Причем не с абы каким весом, а с новым
-                            IBtable[i, b] = (int)analogueW;
+                            IBtable[i, b] = (long)analogueW;
                         }
                     }
                 }
@@ -470,7 +470,7 @@ namespace ApsRT.Core.Leftovers
             for (int b = 0; b < allBins.Count; b++)
             {
                 List<ILiteral> items = new List<ILiteral>();
-                List<int> Weights = new();
+                List<long> Weights = new();
                 for (int i = 0; i < allItems.Count; i++)
                 {
                     if (IBtable[i, b] != 0)
@@ -500,7 +500,7 @@ namespace ApsRT.Core.Leftovers
             var dt0 = DateTime.Now;
             CpSolver solverNew = new CpSolver();
             CpSolverStatus status = CpSolverStatus.Unknown;
-            CustomCpSolverSolutionCallback cb = new CustomCpSolverSolutionCallback(50);
+            CustomCpSolverSolutionCallback cb = new CustomCpSolverSolutionCallback(500);
             solverNew.StringParameters = "max_time_in_seconds:20.0";// enumerate_all_solutions:true; - было в документации, но и без нее всё работает
             status = solverNew.Solve(model, cb);
             var dt1 = DateTime.Now;
@@ -772,9 +772,11 @@ namespace ApsRT.Core.Leftovers
                             else
                                 whatWillDecrease = (leftoversList[i].LeftoverData, leftoversList[i].CalculatedCount);
 
-                            if (howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var howMuchNow))
-                            {
+                            var filteredHowMuchAtStart = howMuchAtStart.Where(x => x.Key.Nomenklature == whatWillDecrease.Material.Nomenklature && x.Key.Characteristics == whatWillDecrease.Material.Characteristics && (matsClass.UsedLeftovers[i] == null ? true : (x.Key.Seria == whatWillDecrease.Material.Seria)));
 
+                            if (filteredHowMuchAtStart.Count() > 0/*howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var howMuchNow)*/)
+                            {
+                                var howMuchNow = filteredHowMuchAtStart.First().Value;
                                 var pair = howMuchNow/*.Where(x => x.Value >= valueToMinus)*/.OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
                                 var howMuchNowCount = pair.Value.Count;
                                 howMuchNowCount -= whatWillDecrease.Count;
@@ -804,8 +806,8 @@ namespace ApsRT.Core.Leftovers
                                         nextPrihod ?? DateTime.MinValue,
                                         //nextPrihodSub,
                                         oper.ID,
-                                        oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
-                                        oper.GetEasyFlagToOutput()
+                                        oper.CurrentModelling,
+                                        oper.GetEasyFlagToOutput(), true
                                         );
 
                                     result.Add(lack);
@@ -814,23 +816,26 @@ namespace ApsRT.Core.Leftovers
                                 else
                                 {
 
-                                    //var lack = new LeftoverLackData(
-                                    //    whatWillDecrease.Material,
-                                    //    oper.GetPartiaCode() ?? Guid.Empty,
-                                    //    whatWillDecrease.Count,
-                                    //    howMuchNowCount + whatWillDecrease.Count,
-                                    //    pair.Key,
-                                    //    point.Date,
-                                    //    null,
-                                    //    null,
-                                    //    oper.GUID,
-                                    //    oper.IsCustomModelling ? oper.CustomModelling : oper.MesModelling.Code,
-                                    //    oper.GetEasyFlagToOutput()
-                                    //    );
+                                    var lack = new LeftoverLackData(
+                                        whatWillDecrease.Material,
+                                        oper.GetPartiaCode() ?? Guid.Empty,
+                                        whatWillDecrease.Count,
+                                        howMuchNowCount + whatWillDecrease.Count,
+                                        pair.Value.DimensionUnit,
+                                        //pair.Key,
+                                        point.Date,
+                                        null,
+                                        //null,
+                                        oper.ID,
+                                        oper.CurrentModelling,
+                                        oper.GetEasyFlagToOutput(), false
+                                        );
 
-                                    //result.Add(lack);
-
-                                    howMuchAtStart[whatWillDecrease.Material][pair.Key] = (howMuchNowCount, pair.Value.DimensionUnit); // Подсчитанное количество вбиваем, если оно все ещё больше 0.
+                                    result.Add(lack);
+                                    
+                                    //howMuchAtStart.TryAdd(whatWillDecrease.Material, new());
+                                    var keyHere = filteredHowMuchAtStart.First().Key;
+                                    howMuchAtStart[keyHere][pair.Key] = (howMuchNowCount, pair.Value.DimensionUnit); // Подсчитанное количество вбиваем, если оно все ещё больше 0.
                                 }
 
                             }

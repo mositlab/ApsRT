@@ -13,8 +13,9 @@ namespace ApsRT.Core.Leftovers
 {
     public class LeftoverLackData
     {
-        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, UcoDU edIzm, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid)
+        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, UcoDU edIzm, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid, bool itsError)
         {
+            ItsError = itsError;
             LeftoverData = leftoverData;
             PartiaPF = partiaPF;
             CountNeeded = countNeeded;
@@ -26,6 +27,8 @@ namespace ApsRT.Core.Leftovers
             EasyLifeGuid = easyLifeGuid;
             EdIzm = edIzm;
         }
+
+        public bool ItsError { get; }
 
         public LeftoverUco LeftoverData { get; set; }
         public Guid PartiaPF { get; set; }
