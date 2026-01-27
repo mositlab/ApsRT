@@ -5,14 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
+using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics, UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string> Seria);
 using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
+using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 
 namespace ApsRT.Core.Leftovers
 {
     public class LeftoverLackData
     {
-        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid)
+        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, UcoDU edIzm, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid)
         {
             LeftoverData = leftoverData;
             PartiaPF = partiaPF;
@@ -23,12 +24,14 @@ namespace ApsRT.Core.Leftovers
             StageGuid = stageGuid;
             ModellingGuid = modellingGuid;
             EasyLifeGuid = easyLifeGuid;
+            EdIzm = edIzm;
         }
 
         public LeftoverUco LeftoverData { get; set; }
         public Guid PartiaPF { get; set; }
         public double CountNeeded { get; set; }
         public double CountExists { get; set; }
+        public UcoDU EdIzm { get; set; }
         public DateTime DateWhenNeeded { get; set; }
         public DateTime? NextArrivalDate { get; set; }
         public StageGUID StageGuid { get; set; }

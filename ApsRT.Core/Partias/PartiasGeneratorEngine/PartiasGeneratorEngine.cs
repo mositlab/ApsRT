@@ -181,7 +181,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     }
                 }
                 var prevsSdvigs = prevsIds.Select(x => dicSdvigs[x.Index]).ToList();
-                if (prevsSdvigs.Count > 1)
+                var filteredSdvigs = prevsSdvigs.DistinctBy(x => x.Opers[0].OperationVid);
+                if (filteredSdvigs.Count() > 1)
                 {
                     // Больше 1. Изучаем все РЦ, куда можно поставить.
                     var possibleRCs = sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].OriginalCenter };

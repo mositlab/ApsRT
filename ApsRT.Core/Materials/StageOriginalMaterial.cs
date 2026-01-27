@@ -1,6 +1,7 @@
 ﻿using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
-using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
+using MaterialUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
+using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics, UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string> Seria);
 
 namespace ApsRT.Core.Materials
 {
@@ -23,7 +24,9 @@ namespace ApsRT.Core.Materials
 
 
 
-        public LeftoverUco AsLeftoverData() => (Nomenklature, Characteristics);
+        public MaterialUco AsMaterialUcoData() => (Nomenklature, Characteristics);
+
+        public LeftoverUco AsLeftoverUcoData() => (Nomenklature, Characteristics, UniversalPack.Common.CodedObjectVersioned<Guid, string, string>.EmptyObject);
 
         public override string ToString()
         {

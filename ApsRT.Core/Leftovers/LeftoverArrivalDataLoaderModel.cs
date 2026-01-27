@@ -1,6 +1,7 @@
 ﻿using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 
 namespace ApsRT.Core.Leftovers
 {
@@ -41,6 +42,9 @@ namespace ApsRT.Core.Leftovers
 
         [DataRecordColumn("КоличествоПоступления", defaultIfFail: true)]
         public double CountArrival { get; set; }
+
+        [DataRecordCodedObjectColumn("ЕдиницаИзмерения_GUID", "ЕдиницаИзмерения", isDimensionUnit: true)]
+        public UcoDU EdIzm { get; set; }
 
     }
 }

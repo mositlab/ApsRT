@@ -62,7 +62,14 @@ namespace ApsRT.Core.Partias.MergeConditions
         public bool DoNotCheckWindingsSafe(Guid operVid, Guid sub)
         {
             if (DoNotCheckWindingsByOperationTypeGuidWithSub != null
-                && DoNotCheckWindingsByOperationTypeGuidWithSub.Contains((operVid, sub)))
+                && 
+                
+                    (
+                        DoNotCheckWindingsByOperationTypeGuidWithSub.Contains((operVid, sub))
+                        //||
+                        //DoNotCheckWindingsByOperationTypeGuidWithSub.Contains((operVid, Guid.Empty))
+                    )
+                )
                 return true;
 
             if (DoNotCheckWindingsByOperationTypeGuid == null)
@@ -293,12 +300,15 @@ namespace ApsRT.Core.Partias.MergeConditions
             }
             else
             {
-                if (op1.IsVspom || SessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound)
+                if (/*op1.IsVspom ||  */ // Вспомогательную закомментил раньше, а потом МАРИНА И АЛЕНА ПОПРОСИЛИ ЗАКОММЕНТИТЬ ВСЁ
+                    /*SessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound*/
+                    false)
                 {
                     // иначе проверяем старым способом
-                    result = LegacyOperationEquality(op1, op2, out reason, out smallreason, forObshEtaps);
-                    hasSettings = true;
-                    if (!result) return false;
+
+                    //result = LegacyOperationEquality(op1, op2, out reason, out smallreason, forObshEtaps);
+                    //hasSettings = true;
+                    //if (!result) return false;
                 }
                 else
                 {
@@ -436,73 +446,73 @@ namespace ApsRT.Core.Partias.MergeConditions
         /// <param name="op2">Операция</param>
         /// <param name="reason">Причина необъединения</param>
         /// <returns></returns>
-        bool LegacyOperationEquality(Stage op1, Stage op2, out string reason, out string smallreason, bool forObshEtaps = false)
-        {
-            if (op1.PlacesCount != op2.PlacesCount)
-            {
-                reason = $"разные кол-во мест у ОЭ - {op1.PlacesCount} и {op2.PlacesCount}";
-                smallreason = "$разные кол-во мест у ОЭ";
-                return false;
-            }
+        //bool LegacyOperationEquality(Stage op1, Stage op2, out string reason, out string smallreason, bool forObshEtaps = false)
+        //{
+        //    if (op1.PlacesCount != op2.PlacesCount)
+        //    {
+        //        reason = $"разные кол-во мест у ОЭ - {op1.PlacesCount} и {op2.PlacesCount}";
+        //        smallreason = "$разные кол-во мест у ОЭ";
+        //        return false;
+        //    }
 
-            if (op1.Poviv != op2.Poviv)
-            {
-                reason = $"разные повив - {op1.Poviv} и {op2.Poviv}";
-                smallreason = "$разные повивы";
-                return false;
-            }
-            if (op1.Subdivision != op2.Subdivision)
-            {
-                reason = $"разные подразд - {op1.Subdivision} и {op2.Subdivision}";
-                smallreason = "$разные подразделения";
-                return false;
-            }
-            if (op1.Nomenklature != op2.Nomenklature)
-            {
-                reason = $"разные номен/стад - {op1.Nomenklature} и {op2.Nomenklature}";
-                smallreason = "$разные номенклатуры";
+        //    if (op1.Poviv != op2.Poviv)
+        //    {
+        //        reason = $"разные повив - {op1.Poviv} и {op2.Poviv}";
+        //        smallreason = "$разные повивы";
+        //        return false;
+        //    }
+        //    if (op1.Subdivision != op2.Subdivision)
+        //    {
+        //        reason = $"разные подразд - {op1.Subdivision} и {op2.Subdivision}";
+        //        smallreason = "$разные подразделения";
+        //        return false;
+        //    }
+        //    if (op1.Nomenklature != op2.Nomenklature)
+        //    {
+        //        reason = $"разные номен/стад - {op1.Nomenklature} и {op2.Nomenklature}";
+        //        smallreason = "$разные номенклатуры";
 
-                return false;
-            }
-            if (forObshEtaps)
-            {
-                var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
-                var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
+        //        return false;
+        //    }
+        //    if (forObshEtaps)
+        //    {
+        //        var op1Centers = op1.PossibleCenters ?? new List<Uco> { op1.OriginalCenter };
+        //        var op2Centers = op2.PossibleCenters ?? new List<Uco> { op2.OriginalCenter };
 
-                if (!op1Centers.Intersect(op2Centers).Any())
-                {
-                    smallreason = reason = "нет пересечения по РЦ";
+        //        if (!op1Centers.Intersect(op2Centers).Any())
+        //        {
+        //            smallreason = reason = "нет пересечения по РЦ";
 
-                    return false;
-                }
-            }
+        //            return false;
+        //        }
+        //    }
 
 
-            if (op1.StageMaterialsInfo == null)
-            {
-                reason = $"у {op1.Index} пуст мат";
-                smallreason = "$пустой материал";
-                return false;
-            }
-            if (op2.StageMaterialsInfo == null)
-            {
-                reason = $"у {op2.Index} пуст мат";
-                smallreason = "$пустой материал";
-                return false;
-            }
+        //    if (op1.StageMaterialsInfo == null)
+        //    {
+        //        reason = $"у {op1.Index} пуст мат";
+        //        smallreason = "$пустой материал";
+        //        return false;
+        //    }
+        //    if (op2.StageMaterialsInfo == null)
+        //    {
+        //        reason = $"у {op2.Index} пуст мат";
+        //        smallreason = "$пустой материал";
+        //        return false;
+        //    }
 
-            // сравнение материалов
-            if (!op1.StageMaterialsInfo.IsEqualTo(op2.StageMaterialsInfo))
-            {
-                reason = $"разные материалы - {op1.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")} и {op2.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")}";
-                smallreason = "разные материалы";
-                return false;
-            }
+        //    // сравнение материалов
+        //    if (!op1.StageMaterialsInfo.IsEqualTo(op2.StageMaterialsInfo))
+        //    {
+        //        reason = $"разные материалы - {op1.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")} и {op2.StageMaterialsInfo.UsedMaterials.Select(x => $"'{x.Nomenklature}' (хар. {x.Characteristics})").Join("; ")}";
+        //        smallreason = "разные материалы";
+        //        return false;
+        //    }
 
-            smallreason = reason = string.Empty;
+        //    smallreason = reason = string.Empty;
 
-            return true;
-        }
+        //    return true;
+        //}
         #endregion
     }
 }

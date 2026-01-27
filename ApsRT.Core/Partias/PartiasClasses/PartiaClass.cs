@@ -237,7 +237,12 @@ namespace ApsRT.Core.Partias.PartiasClasses
             }
         }
 
-        public void SubdivisiosOptimizer(PartiasConnectorEngineResult previousData)
+        public void TaraDecreaser74_110(Dictionary<int, Uco> recommendedTara)
+        {
+
+        }
+
+        public void SubdivisionsOptimizer(PartiasConnectorEngineResult previousData)
         {
             var dics = SeeSdvigsAsDic();
             for (var CurrentLevel = 0; CurrentLevel < OpersHere.Count; CurrentLevel++)

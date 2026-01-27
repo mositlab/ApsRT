@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using UniversalPack.Extensions;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using MaterialUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Partias.PartiasConnectorEngine;
 using System.Drawing;
@@ -218,17 +219,18 @@ namespace ApsRT.Core.Session
             StreamWriter swBig = string.IsNullOrEmpty(filenameBig) ? null : new StreamWriter(filenameBig, false, Encoding.UTF8);
 
             sw.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}" +
-                $"МатериалНоменклатура_GUID;МатериалХарактеристика_GUID;" +
-                $"Количество;" +
+                $"МатериалНоменклатура_GUID;МатериалХарактеристика_GUID;Серия_GUID;ШтрихкодСерии;" +
+                $"Количество;ЕдиницаИзмерения;" +
                 $"ОригМатериалНоменклатура_GUID;ОригМатериалХарактеристика_GUID;" +
-                $"ОригКоличество;ДатаПланирования");
+                $"ОригКоличество;ДатаПланирования;РЦ;ПодразделениеРЦ");
             swBig?.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}" +
                 $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
                 $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
-                $"Количество;" +
+                $"Серия;Серия_GUID;ШтрихкодСерии;" +
+                $"Количество;ЕдиницаИзмерения;" +
                 $"ОригМатериалНоменклатура_GUID;ОригМатериалНоменклатура;" +
                 $"ОригМатериалХарактеристика_GUID;ОригМатериалХарактеристика;" +
-                $"ОригКоличество;ДатаПланирования");
+                $"ОригКоличество;ДатаПланирования;РЦ;ПодразделениеРЦ");
 
 
             foreach (var operPair in SessionLink.MasterDataLinks.StagesMasterData.AllStages)
@@ -237,7 +239,10 @@ namespace ApsRT.Core.Session
                 if (oper.StageMaterialsInfo.UsedMaterials == null) continue;
                 if (!startDates.TryGetValue(oper.Index, out var date)) continue;
 
-                IEnumerable<Stages.Stage> mod = oper.IsCustomModelling ? SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo[oper.CustomModelling].RelatedOpers.Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x]) : (oper.MesModelling.IsEmpty ? (new Stages.Stage[] {oper }) : SessionLink.MasterDataLinks.StagesMasterData.MesModellingsInfo[oper.MesModelling.Code].RelatedOpers.Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x]));
+
+                var center = oper.SessionLink.AssignedPlanningAlgorithm.UsedPool.StagesLinks[oper.Index].ModLink.BlockLink.GetCenterData(oper.SessionLink.AssignedPlanningAlgorithm.UsedPool.BestPoolIndex).Center;
+
+                    IEnumerable <Stages.Stage> mod = oper.IsCustomModelling ? SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo[oper.CustomModelling].RelatedOpers.Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x]) : (oper.MesModelling.IsEmpty ? (new Stages.Stage[] {oper }) : SessionLink.MasterDataLinks.StagesMasterData.MesModellingsInfo[oper.MesModelling.Code].RelatedOpers.Select(x => SessionLink.MasterDataLinks.StagesMasterData.AllStages[x]));
 
                 var smallMod = new PartiaModellingSmall(mod.ToList());
 
@@ -247,7 +252,9 @@ namespace ApsRT.Core.Session
                     var origMat = oper.StageMaterialsInfo.UsedMaterials[i];
                     if (element == null) continue;
 
-                    var modCount = SessionLink.MasterDataLinks.LeftoversMasterData.GetMatSumFromMod(smallMod, origMat.AsLeftoverData());
+                    var modCount = SessionLink.MasterDataLinks.LeftoversMasterData.GetMatSumFromMod(smallMod, origMat.AsMaterialUcoData());
+
+                    var usedRcSubdivision = oper.SessionLink.MasterDataLinks.CentersMasterData.CentersData[center].Subdivision;
 
                     sw.WriteLine($"" +
                         $"{oper.GUID};" +
@@ -255,13 +262,18 @@ namespace ApsRT.Core.Session
 
                         $"{element.LeftoverData.Nomenklature.Code};" +
                         $"{element.LeftoverData.Characteristics.Code};" +
+                        $"{element.LeftoverData.Seria.Object.Code};" +
+                        $"{element.LeftoverData.Seria.Version};" +
                         $"{element.CalculatedCount};" +
+                        $"{element.EdIzm.Code};" +
 
                         $"{origMat.Nomenklature.Code};" +
                         $"{origMat.Characteristics.Code};" +
                         $"{modCount};" +
 
-                        $"{date}");
+                        $"{date};" +
+
+                        $"{center.Code};{usedRcSubdivision.Code}");
 
                     swBig?.WriteLine($"" +
                         $"{oper.GUID};" +
@@ -271,7 +283,11 @@ namespace ApsRT.Core.Session
                         $"{element.LeftoverData.Nomenklature.Label};" +
                         $"{element.LeftoverData.Characteristics.Code};" +
                         $"{element.LeftoverData.Characteristics.Label};" +
+                        $"{element.LeftoverData.Seria.Object.Code};" +
+                        $"{element.LeftoverData.Seria.Object.Label};" +
+                        $"{element.LeftoverData.Seria.Version};" +
                         $"{element.CalculatedCount};" +
+                        $"{element.EdIzm};" +
 
                         $"{origMat.Nomenklature.Code};" +
                         $"{origMat.Nomenklature.Label};" +
@@ -279,7 +295,9 @@ namespace ApsRT.Core.Session
                         $"{origMat.Characteristics.Label};" +
                         $"{modCount};" +
 
-                        $"{date}");
+                        $"{date};" +
+
+                        $"{center};{usedRcSubdivision}");
                 }
             }
 
@@ -578,13 +596,13 @@ namespace ApsRT.Core.Session
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
                                     $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +
-                                    $";{operLoc.Subdivision.Code};{operLoc.CurrentTara.Code};{operLoc.CurrentTaraMaxCapacity};{blockRC.Code};" +//{operFirst.CurrentTara.Code};{operFirst.MaxNamotka};{operFirst.Center.Code};" +
+                                    $";{operLoc.SessionLink.MasterDataLinks.CentersMasterData.CentersData[blockRC].Subdivision.Code};{operLoc.CurrentTara.Code};{operLoc.CurrentTaraMaxCapacity};{blockRC.Code};" +//{operFirst.CurrentTara.Code};{operFirst.MaxNamotka};{operFirst.Center.Code};" +
                                     $"{(operLoc.RCRoute.Code/*operLoc.RCRoute.IsEmpty ? "" : operLoc.RCRoute.Code*/)};" +
                                     (!IsSilent || LaunchPlan ? $"{start:G}" : "") + // 04.06.2024: требование одну дату для всех исходных этапчиков выводить, которые объеиднились в один мод или общий этап.
                                     $";" +
                                     (!IsSilent || LaunchPlan ? $"{start + maxTimeWithFixes:G}" : "") +//$"{(centStruct.LastDate + offset + secs:G)}" +
                                     $";{maxTimeWithFixes.TotalHours}" +
-                                    $";{operLoc.EdIzm.DimensionUnitToString()};{operLoc.GetEasyFlagToOutput()}" +
+                                    $";{operLoc.EdIzmClassificator.Code};{operLoc.GetEasyFlagToOutput()}" +
                                     $";{(partiasAlgorithm != null && partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}" +
                                     $";{(mod.WasPassed[PoolIndex] ? "Да" : "Нет")}");
                             }
@@ -840,7 +858,7 @@ namespace ApsRT.Core.Session
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine($"Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ДатаПотребности;ДатаПоступления;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;GUIDОбщегоЭтапа");
+            sw.WriteLine($"Номенклатура_GUID;Характеристика_GUID;ИдентификаторПартииПФ;КоличествоПотребность;КоличествоДоступно;ЕдиницаИзмерения;ДатаПотребности;ДатаПоступления;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;GUIDОбщегоЭтапа");
             //var D = 0;
 
             var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData);
@@ -854,6 +872,7 @@ namespace ApsRT.Core.Session
                     $"{element.PartiaPF};" +
                     $"{element.CountNeeded};" +
                     $"{element.CountExists};" + // вернем на место
+                    $"{element.EdIzm.Code};" +
                     $"{element.DateWhenNeeded};" +
                     $"{(element.NextArrivalDate?.ToString() ?? "")};" +
                     $"{element.StageGuid.Object.Code};" +

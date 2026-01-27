@@ -307,8 +307,8 @@ namespace ApsRT.Core.Stages
         public DateTime? StartTimeFact { get; set; }
 
         //
-        [DataRecordColumn("ПовивыОбъединены", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
-        public bool PovivsMerged { get; set; }
+        //[DataRecordColumn("ПовивыОбъединены", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
+        //public bool PovivsMerged { get; set; }
 
         //
         //[DataRecordColumn("КоличествоМест")]
@@ -338,7 +338,7 @@ namespace ApsRT.Core.Stages
         public void SetPlacesCount(int placesCount)
         {
             Count = OriginalCount;
-            if (PovivsMerged)
+            if (true/*PovivsMerged*/)
             {
                 PlacesCount = placesCount;
                 Count /= PlacesCount;

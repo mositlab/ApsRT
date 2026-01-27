@@ -11,7 +11,7 @@ namespace ApsRT.Core.Partias.MergeConditions
     /// </summary>
     public class MergeConditionsUniversalModel
     {
-        public MergeConditionsUniversalModel(Uco Subdivision, Uco OperationType)
+        public MergeConditionsUniversalModel(Uco OperationType, Uco Subdivision)
         {
             this.Subdivision = Subdivision;
             this.OperationType = OperationType;

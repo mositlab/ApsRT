@@ -120,7 +120,7 @@ namespace ApsRTCustomComponents
         /// <param name="fileName"></param>
         private void LoadConfigurationFile(string fileName)
         {
-            if (_validPathRegex.IsMatch(fileName))
+            if (_validPathRegex.IsMatch(fileName) || File.Exists(fileName))
             {
                 fileName = Path.GetFullPath(fileName);
                 TextBoxFile.Text = fileName;

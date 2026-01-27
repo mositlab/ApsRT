@@ -217,12 +217,16 @@ namespace ApsRT.Core.Taras
 
                 if (priem)
                 {
-                    if (!FromAndToTara[center_int][vid].Priem.ContainsKey(isVspom))
-                    {
-                        FromAndToTara[center_int][vid].Priem.Add(isVspom, new());
-                    }
-
+                    FromAndToTara[center_int][vid].Priem.TryAdd(isVspom, new());
                     FromAndToTara[center_int][vid].Priem[isVspom].Add(model.TaraType);
+
+                    // Заказчику насрать, есть ли признак "вспомогательная" у приемной тары при ее выборк.
+                    if (isVspom)
+                    {
+                        // Скопируем в основную
+                        FromAndToTara[center_int][vid].Priem.TryAdd(false, new());
+                        FromAndToTara[center_int][vid].Priem[false].Add(model.TaraType);
+                    }
                 }
             }
         }

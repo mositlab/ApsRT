@@ -865,7 +865,10 @@ namespace ApsRTCustomComponents
                 }
                 AsPrevs = assignedDataPack[SelectedOperID].prevs.ToHashSet();
                 AsNexts = assignedDataPack[SelectedOperID].nexts.ToHashSet();
-                cents = AsPrevs.Union(AsNexts).Select(x => assignedDataPack[x].cent).Union(cents).ToHashSet();
+                cents = AsPrevs.Union(AsNexts)
+                    .Where(x => assignedDataPack.ContainsKey(x))
+                    .Select(x => assignedDataPack[x].cent)
+                    .Union(cents).ToHashSet();
                 //cents.Add(assignedDataPack[SelectedOperID].cent);
                 //HashSet<int> prevs = new();
                 //HashSet<int> nexts = new();

@@ -160,7 +160,7 @@ namespace UniversalPack.Common.DataLoader
         /// <returns></returns>
         private static object ConvertCodedObjectVersioned(IDataRecord record, DataLoaderOptions options, DataRecordCodedObjectVersionedColumnAttribute attribute)
         {
-            var guidValue = (Guid)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull);
+            var guidValue = (Guid?)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull) ?? Guid.Empty;
             var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
             var versionValue = record[attribute.VersionName].ConvertToOrDefault(string.Empty);
 

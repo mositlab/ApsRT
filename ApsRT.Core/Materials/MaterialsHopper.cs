@@ -5,13 +5,14 @@ using ApsRT.Core.Props;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Stages.Hoppers;
 using ApsRT.Core.Stages.MasterData;
+using Microsoft.Extensions.Options;
 using System;
 using System.Data;
 using UniversalPack;
 using UniversalPack.Attributes;
 using UniversalPack.Common.DataLoader;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using UniversalPack.Extensions;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Materials
 {
@@ -34,48 +35,61 @@ namespace ApsRT.Core.Materials
 
         }
 
+        void processMaterial(int id, IDataReader data, DataLoaderOptions options, MaterialDataLoaderModel model)
+        {
+            var op = StagesMasterData.AllStages[id];
+            StageMaterialsInfo mat;
+
+            if (op.StageMaterialsInfo == null)
+            {
+                mat = new StageMaterialsInfo(op);
+                op.StageMaterialsInfo = mat;
+            }
+            else
+            {
+                mat = op.StageMaterialsInfo;
+            }
+
+            // Добавляем инфы
+            var matElement = new StageOriginalMaterial(model);
+
+            #region Реквизиты, или ПРОПСЫ
+            matElement.NumberProps = new float?[PropsMasterData.MatsPropNumberToIndex.Count];
+            foreach (var prop in PropsMasterData.MatsPropNumberToIndex) matElement.NumberProps[prop.Value] = data[prop.Key].ConvertToFloatByAnyCost();
+
+            matElement.GuidProps = new Guid?[PropsMasterData.MatsPropGuidToIndex.Count][];
+            foreach (var prop in PropsMasterData.MatsPropGuidToIndex)
+            {
+                var str = data[prop.Key] == null ? "" : data[prop.Key].ToString();
+                matElement.GuidProps[prop.Value] = string.IsNullOrEmpty(str) ? new Guid?[] { null } : str.Split(',').Select(x => (Guid?)x.ProcessGuid(options.GuidArrrangeType, true)).ToArray();
+            }
+
+            matElement.StringProps = new string[PropsMasterData.MatsPropStringToIndex.Count];
+            foreach (var prop in PropsMasterData.MatsPropStringToIndex) matElement.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
+            #endregion
+
+            mat.UsedMaterials.Add(matElement);
+        }
+
         void IHopperInterface.OnLoading(int RowIndex, IDataReader data, DataLoaderOptions options)
         {
             var model = new MaterialDataLoaderModel();
 
             model.LoadFromDataRecord(data, options);
 
-            //ИдентификаторОперации Номенклатура    Характеристика  Количество  ЕдиницаИзмерения    ВидВоспроизводства  Спецификация
-            var id = StagesMasterData.TryGetStageIndexByGuid(model.StageGuid.Object.Code, model.StageGuid.Version);
-            if (id != -1)
+            if (model.StageGuid.Version == 0)
             {
-                var op = StagesMasterData.AllStages[id];
-                StageMaterialsInfo mat;
-
-                if (op.StageMaterialsInfo == null)
+                var ids = StagesMasterData.TryGetStageIndexexByGuid(model.StageGuid.Object.Code);
+                if (ids != null)
+                    foreach (var pair in ids) processMaterial(pair.Value, data, options, model);
+            }
+            else
+            {//ИдентификаторОперации Номенклатура    Характеристика  Количество  ЕдиницаИзмерения    ВидВоспроизводства  Спецификация
+                var id = StagesMasterData.TryGetStageIndexByGuid(model.StageGuid.Object.Code, model.StageGuid.Version);
+                if (id != -1)
                 {
-                    mat = new StageMaterialsInfo(op);
-                    op.StageMaterialsInfo = mat;
+                    processMaterial(id, data, options, model);
                 }
-                else
-                {
-                    mat = op.StageMaterialsInfo;
-                }
-
-                // Добавляем инфы
-                var matElement = new StageOriginalMaterial(model);
-
-                #region Реквизиты, или ПРОПСЫ
-                matElement.NumberProps = new float?[PropsMasterData.MatsPropNumberToIndex.Count];
-                foreach (var prop in PropsMasterData.MatsPropNumberToIndex) matElement.NumberProps[prop.Value] = data[prop.Key].ConvertToFloatByAnyCost();
-
-                matElement.GuidProps = new Guid?[PropsMasterData.MatsPropGuidToIndex.Count][];
-                foreach (var prop in PropsMasterData.MatsPropGuidToIndex)
-                {
-                    var str = data[prop.Key] == null ? "" : data[prop.Key].ToString();
-                    matElement.GuidProps[prop.Value] = string.IsNullOrEmpty(str) ? new Guid?[] {null} : str.Split(',').Select(x => (Guid?)x.ProcessGuid(options.GuidArrrangeType, true)).ToArray();
-                }
-
-                matElement.StringProps = new string[PropsMasterData.MatsPropStringToIndex.Count];
-                foreach (var prop in PropsMasterData.MatsPropStringToIndex) matElement.StringProps[prop.Value] = data[prop.Key].ConvertToOrDefault(string.Empty);
-                #endregion
-
-                mat.UsedMaterials.Add(matElement);
             }
         }
 

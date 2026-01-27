@@ -303,9 +303,9 @@ namespace ApsRT.Core.Stages.MasterData
                 for (int i = 0; i < array.Length - 1; i++)
                 {
                     var curr = AllStages[array[i].Value];
-                    var next = AllStages[array[i].Value];
+                    var next = AllStages[array[i + 1].Value];
                     if (!curr.Nexts.Contains(next.Index)) curr.Nexts.Add(next.Index);
-                    if (!next.Prevs.Contains(curr.Index)) curr.Prevs.Add(curr.Index);
+                    if (!next.Prevs.Contains(curr.Index)) next.Prevs.Add(curr.Index);
                 }
             }
         }
@@ -315,17 +315,24 @@ namespace ApsRT.Core.Stages.MasterData
             var masterDatas = SessionLink.MasterDataLinks;
             var PropsMasterData = masterDatas.PropsMasterData;
 
+            if (stage.StageVersion <= 0)
+            {
+                var id = stage.ID;
+                id.Version = 1;
+                stage.ID = id;
+            }
+
             #region Версии этапов для волокна
             if (stage.IsVolokno)
             {
                 GuidsAndVersions.TryAdd(stage.GUID, new());
                 GuidsAndVersions[stage.GUID].TryAdd(stage.StageVersion, 0);
                 int i = GuidsAndVersions[stage.GUID][stage.StageVersion];
+                GuidsAndVersions[stage.GUID][stage.StageVersion]++;
                 var id = stage.ID;
                 id.Version += 1000000 * (i + 1);
                 stage.ID = id;
-                i++;
-                GuidsAndVersions[stage.GUID][stage.StageVersion] = i;
+                //i++;
             }
             #endregion
 
@@ -496,9 +503,9 @@ namespace ApsRT.Core.Stages.MasterData
                 currCode += (char)locConv[s];//Merger.SYMBOLS[locConv[s]];
                 if (SavedOpersLivenCode.ContainsKey(oper.Index))
                 {
-                    SessionLink.DataErrors.AddNewPartiaError(
-                        oper.Index
-                        , NewDataErrorType.LivenshteinBadOper, new DataErrorStruct());
+                    //SessionLink.DataErrors.AddNewPartiaError(
+                    //    oper.Index
+                    //    , NewDataErrorType.LivenshteinBadOper, new DataErrorStruct());
                 }
                 else
                 {

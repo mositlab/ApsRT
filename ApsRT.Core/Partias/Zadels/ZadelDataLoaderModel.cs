@@ -18,7 +18,7 @@ namespace ApsRT.Core.Partias.Zadels
         protected override IEnumerable<FieldConverterInfo> FieldConverters => _fieldConverters;
 
 
-        [DataRecordColumn("ИдентификаторПартииПФ")]
+        [DataRecordColumn("ИдентификаторПартииПФ", defaultIfFail: true)]
         public Guid? PartiaPF { get; set; }
 
         //[DataRecordColumn("ИдентификаторЭтапа")]
