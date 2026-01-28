@@ -6,10 +6,12 @@
         NoNomenklature,
         NoCharacteristics,
         NoVidOper,
+        NoVersion,
 
         NoNomenklatureEmptyProd,
         NoVidOperEmptyProd,
         NoCharacteristicsEmptyProd,
+        NoVersionEmptyProd,
 
         NoGP, // гп не задана
 

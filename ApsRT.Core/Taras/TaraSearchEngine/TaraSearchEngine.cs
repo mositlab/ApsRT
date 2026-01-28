@@ -923,6 +923,15 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         if (!result.FinalRC.IsEmpty
                             && someOpers.FirstOperLink.RecommendedRC.HasValue
                             && someOpers.FirstOperLink.RecommendedRC.Value == result.FinalRC) continue;
+
+                        if (!result.TaraName.IsEmpty
+                            && options.RecommendedTara.HasValue
+                            && options.RecommendedTara.Value == result.TaraName)
+                        {
+                            continue;
+                        }
+
+
                         result.TaraName = center.Tara;
                         result.Max = 0;
                         result.FinalRC = center.RC;

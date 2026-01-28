@@ -957,7 +957,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             {
                 var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(el, el, WithLog, true, NaladLengthsData, RestrictionsVia74110));
                 if (SessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias) el.SubdivisionsOptimizer(r);
-                el.TaraDecreaser74_110(RestrictionsVia74110); // Попытаемся уменьшить тару где это возможно
+                el.TaraDecreaser74_110(); // Попытаемся уменьшить тару где это возможно
                 Interlocked.Increment(ref COUNTER);
                 AlgorithmCallback?.Invoke(CurrentStage, COUNTER);
             });

@@ -1,9 +1,10 @@
-﻿using Azure;
+﻿using ApsRT.Core.DataErrors;
+using ApsRT.Core.Session;
+using Azure;
+using Google.Protobuf.Compiler;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
-using ApsRT.Core.DataErrors;
-using ApsRT.Core.Session;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
+using UniversalPack.Extensions;
 using static Azure.Core.HttpHeader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
@@ -231,19 +233,22 @@ namespace ApsRT.Core.Taras
             }
         }
 
+
         // макс намотки
         public Dictionary<Uco, // Продукция
             Dictionary<Uco, // Номенклатура
                 Dictionary<Uco, // Хар-ка
                     Dictionary<Uco, // ОПЕР
-                        Dictionary<Uco, // ТипТары
-                            List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                        Dictionary<int, // ВЕРСИЯ ЭТАПА
+                            Dictionary<Uco, // ТипТары
+                                List<(DimensionUnit Format, double Value)>
                             >
                         >
                     >
                 >
-            > TarasMaxCapacities
-        { get; private set; } = new(/*new CodedObjectEqualityComparer()*/);
+            >
+        > TarasMaxCapacities
+        { get; private set; } = new();
 
         public void AddMaxCapacityData(MaxCapacityDataLoaderModel model)
         {
@@ -251,6 +256,9 @@ namespace ApsRT.Core.Taras
             var Nomen = model.Nomenklature;
             var Chars = model.Characteristics;
             var oper_int = model.OperationVid;
+            var version = model.StageVersion;
+            if (version <= 0) version = 1;
+
             if (!TarasMaxCapacities.ContainsKey(production))
             {
                 TarasMaxCapacities.Add(production, new(/*new CodedObjectEqualityComparer()*/));
@@ -271,6 +279,12 @@ namespace ApsRT.Core.Taras
                 TarasMaxCapacities[production][Nomen][Chars].Add(oper_int, new());
             }
 
+            if (!TarasMaxCapacities[production][Nomen][Chars][oper_int].ContainsKey(version))
+            {
+                TarasMaxCapacities[production][Nomen][Chars][oper_int].Add(version, new());
+            }
+
+
             var what = (model.DimensionUnit, model.Amount);
 
             Add2(model.TaraType, what);
@@ -284,14 +298,16 @@ namespace ApsRT.Core.Taras
 
             void Add2(Uco whichTara, (DimensionUnit, double) val)
             {
-                if (!TarasMaxCapacities[production][Nomen][Chars][oper_int].ContainsKey(whichTara))
+                var lvl = TarasMaxCapacities[production][Nomen][Chars][oper_int][version];
+
+                if (!lvl.ContainsKey(whichTara))
                 {
-                    TarasMaxCapacities[production][Nomen][Chars][oper_int].Add(whichTara, new());
+                    lvl.Add(whichTara, new());
                 }
 
-                if (!TarasMaxCapacities[production][Nomen][Chars][oper_int][whichTara].Contains(val))
+                if (!lvl[whichTara].Contains(val))
                 {
-                    TarasMaxCapacities[production][Nomen][Chars][oper_int][whichTara].Add(val);
+                    lvl[whichTara].Add(val);
                 }
             }
         }
@@ -307,6 +323,8 @@ namespace ApsRT.Core.Taras
         ConcurrentDictionary<Stages.Stage, List<(Uco Tara, DimensionUnit Format, double Namot)>> SavedTara = new();
         internal List<(Uco Tara, DimensionUnit Format, double Namot)> GetOperTara(Stages.Stage first, bool withUI)
         {
+            int version = first.StageVersion;
+
             var SessionLink = first.SessionLink;
 
             bool usePseudoTara = SessionLink.SettingsController.CurrentSettings.UsePseudoTara;
@@ -319,15 +337,18 @@ namespace ApsRT.Core.Taras
                 return resu;
             }
 
-            Dictionary<Uco, // Номенклатура
-                Dictionary<Uco, // Харка
-                    Dictionary<Uco, // Опер
-                            Dictionary<Uco, // ТипТары
-                            List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+            Dictionary<Uco,
+                Dictionary<Uco,
+                    Dictionary<Uco,
+                        Dictionary<int,
+                            Dictionary<Uco,
+                                List<(DimensionUnit Format, double Value)>
                             >
                         >
                     >
-                > lvl0;
+                >
+            > lvl0;
+
 
             List<(Uco Tara, DimensionUnit Format, double Namot)> prodError()
             {
@@ -359,11 +380,30 @@ namespace ApsRT.Core.Taras
                     {
                         if (lvl1.TryGetValue(first.Characteristics, out var lvl2))
                         {
-                            if (lvl2.TryGetValue(first.OperationVid, out var possible))
+                            if (lvl2.TryGetValue(first.OperationVid, out var byVersion))
                             {
-                                var finalList = returnFunc(possible);
-                                SavedTara.TryAdd(first, finalList);
-                                return finalList;
+                                if (byVersion.TryGetValue(version, out var possible))
+                                {
+                                    var finalList = returnFunc(possible);
+                                    SavedTara.TryAdd(first, finalList);
+                                    return finalList;
+                                }
+                                else
+                                {
+                                    // На случай если функционала ВООБЩЕ НЕТ
+                                    if (false/*byVersion.TryGetValue(0, out var possible2)*/)
+                                    {
+                                        //var finalList = returnFunc(possible2);
+                                        //SavedTara.TryAdd(first, finalList);
+                                        //return finalList;
+                                    }
+                                    else
+                                    {
+                                        // Сразу ошибка
+                                        dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
+                                        return prodError();
+                                    }
+                                }
                             }
                             else
                             {
@@ -376,11 +416,30 @@ namespace ApsRT.Core.Taras
                         {
                             if (lvl1.TryGetValue(Uco.EmptyObject, out var lvl22))
                             {
-                                if (lvl22.TryGetValue(first.OperationVid, out var possible))
+                                if (lvl22.TryGetValue(first.OperationVid, out var byVersion))
                                 {
-                                    var finalList = returnFunc(possible);
-                                    SavedTara.TryAdd(first, finalList);
-                                    return finalList;
+                                    if (byVersion.TryGetValue(version, out var possible))
+                                    {
+                                        var finalList = returnFunc(possible);
+                                        SavedTara.TryAdd(first, finalList);
+                                        return finalList;
+                                    }
+                                    else
+                                    {
+                                        // На случай если функционала ВООБЩЕ НЕТ
+                                        if (false/*byVersion.TryGetValue(0, out var possible2)*/)
+                                        {
+                                            //var finalList = returnFunc(possible2);
+                                            //SavedTara.TryAdd(first, finalList);
+                                            //return finalList;
+                                        }
+                                        else
+                                        {
+                                            // Сразу ошибка
+                                            dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
+                                            return prodError();
+                                        }
+                                    }
                                 }
                                 else
                                 {
@@ -440,19 +499,30 @@ namespace ApsRT.Core.Taras
                 //lvl0 = b1_1 && b1_2 ? lvl0_0.Union(lvl0_1).ToDictionary(x => x.Key, x => x.Value) : (b1_1 ? lvl0_0 : (b1_2 ? lvl0_1 : null));
                 bool b2 = false;
 
-                Dictionary<Uco, // Харка
-                    Dictionary<Uco, // ОПЕР
-                        Dictionary<Uco, // ТипТары
-                        List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                Dictionary<Uco,
+                    Dictionary<Uco,
+                        Dictionary<int,
+                            Dictionary<Uco,
+                                List<(DimensionUnit Format, double Value)>
+                            >
                         >
-                        >
-                    > lvl1 = null;
+                    >
+                > lvl1 = null;
 
-                    Dictionary<Uco, // ОПЕР
-                        Dictionary<Uco, // ТипТары
-                        List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+
+                Dictionary<Uco,
+                    Dictionary<int,
+                        Dictionary<Uco,
+                            List<(DimensionUnit Format, double Value)>
                         >
-                    > lvl11 = null;
+                    >
+                > lvl11 = null;
+
+                Dictionary<int,
+                    Dictionary<Uco,
+                        List<(DimensionUnit Format, double Value)>
+                    >
+                > byVersion = null;
 
                 Dictionary<Uco, // ТипТары
                     List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
@@ -470,11 +540,18 @@ namespace ApsRT.Core.Taras
                 bool b3 = false;
                 if (b22)
                 {
-                    b3 = lvl11.TryGetValue(first.OperationVid, out possible);
-                    if (!b3) b3 = lvl11.TryGetValue(Uco.EmptyObject, out possible);
+                    b3 = lvl11.TryGetValue(first.OperationVid, out byVersion);
+                    if (!b3) b3 = lvl11.TryGetValue(Uco.EmptyObject, out byVersion);
                 }
 
-                if (b1 && b2 && b22 && b3)
+                bool b33 = false;
+                if (b3)
+                {
+                    b33 = byVersion.TryGetValue(version, out possible);
+                    //if (!b33) b33 = byVersion.TryGetValue(0, out possible);
+                }
+
+                if (b1 && b2 && b22 && b3 && b33)
                 {
                     finalList.AddRange(returnFunc(possible));
                 }
@@ -490,21 +567,29 @@ namespace ApsRT.Core.Taras
                     if (!b55) b55 = lvl1.TryGetValue(Uco.EmptyObject, out lvl11);
                 }
 
+
                 bool b6 = false;
                 if (b55)
                 {
-                    b6 = lvl11.TryGetValue(first.OperationVid, out possible);
-                    if (!b6) b6 = lvl11.TryGetValue(Uco.EmptyObject, out possible);
+                    b6 = lvl11.TryGetValue(first.OperationVid, out byVersion);
+                    if (!b6) b6 = lvl11.TryGetValue(Uco.EmptyObject, out byVersion);
                 }
-                if (b4 && b5 && b55 && b6)
+
+
+                bool b66 = false;
+                if (b6)
+                {
+                    b66 = byVersion.TryGetValue(version, out possible);
+                    //if (!b66) b66 = byVersion.TryGetValue(0, out possible);
+                }
+
+                if (b4 && b5 && b55 && b6 && b66)
                 {
                     finalList.AddRange(returnFunc(possible));
                 }
                 finalList = finalList.Distinct().ToList();
                 if (finalList.Count == 0)
                 {
-
-
                     // Выводим ошибки
                     if (!b1 && !b4)
                     {
@@ -519,6 +604,9 @@ namespace ApsRT.Core.Taras
 
                     if (!b22) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoCharacteristics, new DataErrorStruct());
                     if (!b55) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoCharacteristicsEmptyProd, new DataErrorStruct());
+
+                    if (!b33) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
+                    if (!b66) dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersionEmptyProd, new DataErrorStruct());
 
                     return prodError();
                 }

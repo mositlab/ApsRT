@@ -38,6 +38,9 @@ namespace ApsRT.Core.Taras
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]
         public Uco TaraType { get; set; }
 
+        [DataRecordColumn("НомерОперации")]
+        public int StageVersion { get; set; }
+
         [DataRecordColumn("ЕдиницаХраненияОстатков", defaultIfFail: true)]
         public DimensionUnit DimensionUnit { get; set; }
 

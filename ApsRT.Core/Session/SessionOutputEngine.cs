@@ -884,7 +884,9 @@ namespace ApsRT.Core.Session
             {
                 var opIndex = stagesMasterData.TryGetStageIndexByGuid(element.StageGuid.Object.Code, element.StageGuid.Version);
 
-                //var opsCount = ;
+                var opLink = stagesMasterData.AllStages[opIndex];
+
+                var opsCount = opLink.IsCustomModelling ? stagesMasterData.ApsModellingsInfo[opLink.CustomModelling].RelatedOpers.Count : (opLink.MesModelling.IsEmpty ? 1 : stagesMasterData.MesModellingsInfo[opLink.MesModelling.Code].RelatedOpers.Count);
 
                 sw.WriteLine(
                     //$"{D};" +
@@ -899,7 +901,7 @@ namespace ApsRT.Core.Session
 
                     $"{element.PartiaPF};" +
                     $"{element.CountNeeded};" +
-                    $"{stagesMasterData.AllStages[opIndex].Count};" +
+                    $"{opLink.Count};" +
                     $"{element.CountExists};" + // вернем на место
                     $"{element.EdIzm.Code};" +
                     $"{element.DateWhenNeeded};" +
@@ -907,6 +909,7 @@ namespace ApsRT.Core.Session
                     $"{element.StageGuid.Object.Code};" +
                     $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{element.StageGuid.Version};" : "")}" +
                     $"{element.ModellingGuid};" +
+                    $"{opsCount};" +
                     $"{element.EasyLifeGuid};" +
                     $"{(element.ItsError ? "Да" : "Нет")}"
                     );

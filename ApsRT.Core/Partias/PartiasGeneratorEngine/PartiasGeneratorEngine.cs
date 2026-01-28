@@ -119,7 +119,6 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             //var engineData = new PartiasGeneratorEngineData();
             //engineData.Session = ops[0].SessionLink;
             //engineData.Stages = ops;
-            var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
 
             var DoneIDS = engineData.DoneIDS;
             //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
@@ -159,6 +158,31 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
 
             // Проверочки 74-110
+            Checks74_110(partia1, RestrictionsVia74110, true);
+
+            // Постобработка
+
+
+            //var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
+            //finalResult.ForOneRCGroups = ForOneRCGroups;
+            //PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
+
+            for (int i = 0; i < partia1.Count; i++)
+            {
+                for (int j = 0; j < partia1[i].Count; j++)
+                {
+                    partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog/*, finalResult*/);
+                }
+            }
+
+
+
+            return partia1;
+        }
+
+        public static void Checks74_110(List<List<PartiaModelling>> partia1, Dictionary<int, Uco> RestrictionsVia74110, bool searchForMax)
+        {
+            var ALL = partia1[0][0].Opers[0].SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             var dicSdvigs = PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsDic(partia1);
             var sdvigs = partia1.SelectMany(x => x).ToList();
             foreach (var sdvig in sdvigs)
@@ -190,7 +214,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     {
                         List<(bool Can, Uco Tara, PartiaModelling sdvig)> analysis = prevsSdvigs.Select(sdvigToCheck =>
                         {
-                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var res, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = true, NextRCsMustBeThese = new() { rc } });
+                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var res, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = searchForMax, NextRCsMustBeThese = new() { rc } });
                             return (can, res.TaraName, sdvigToCheck);
                         }).ToList();
 
@@ -207,35 +231,15 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     }
                 }
             }
-
-
-            // Постобработка
-
-
-            //var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
-            //finalResult.ForOneRCGroups = ForOneRCGroups;
-            //PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
-
-            for (int i = 0; i < partia1.Count; i++)
-            {
-                for (int j = 0; j < partia1[i].Count; j++)
-                {
-                    partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog/*, finalResult*/);
-                }
-            }
-
-
-
-            return partia1;
         }
 
 
-        static PartiaModelling checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog/*, PartiasConnectorEngineResult finalResult*/)
+        public static PartiaModelling checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog/*, PartiasConnectorEngineResult finalResult*/)
         {
             var DoneIDS = engineData.DoneIDS;
-            var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
+            //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
             var RestrictionsVia74110 = engineData.RestrictionsVia74110;
-            var OpersToSdvigs = engineData.OpersToSdvigs;
+            //var OpersToSdvigs = engineData.OpersToSdvigs;
             var prevs = engineData.prevs;
             var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
             var col = engineData.Color;
@@ -345,13 +349,13 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
         static void addInfoLocal(List<Stage> opers, Uco tara, double max, PartiaModelling sdvig, bool toPrevs, PartiasGeneratorEngineData engineData)
         {
-            var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
-            var OpersToSdvigs = engineData.OpersToSdvigs;
+            //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
+            //var OpersToSdvigs = engineData.OpersToSdvigs;
             var prevs = engineData.prevs;
             foreach (var x in opers)
             {
-                OriginallyTaraWasThis.Add(x.Index, (tara, max));
-                OpersToSdvigs.Add(x.Index, sdvig);
+                //OriginallyTaraWasThis.Add(x.Index, (tara, max));
+                //OpersToSdvigs.Add(x.Index, sdvig);
                 if (toPrevs) prevs.Add(x.Index, tara);
             }
         }

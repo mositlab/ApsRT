@@ -23,17 +23,17 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
         public Dictionary<int, Uco> prevs = new();
 
-        public Dictionary<int, PartiaModelling> OpersToSdvigs = new();
+        //public Dictionary<int, PartiaModelling> OpersToSdvigs = new();
 
         // прямолинейный способ хранить предыдущую тару, ДО назначения задельных тар. Когда заделы перезаписывают всякое, то возвращаются тары отсюда. Вместо пустых.
-        public Dictionary<int, (Uco Tara, double namot)> OriginallyTaraWasThis = new();
+        //public Dictionary<int, (Uco Tara, double namot)> OriginallyTaraWasThis = new();
 
         public Dictionary<int, Uco> RestrictionsVia74110 = new();
 
-        public PartiasGeneratorEngineData(List<Stages.Stage> stages)
+        public PartiasGeneratorEngineData(List<Stages.Stage> stages, Session.Session sessionLink = null)
         {
             Stages = stages;
-            Session = stages?[0].SessionLink;
+            Session = stages?[0].SessionLink ?? sessionLink;
         }
 
         public PartiasGeneratorEngineData(List<Stages.Stage> stages, Dictionary<int, Uco> restrictionsVia74110): this(stages)

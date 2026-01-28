@@ -237,9 +237,20 @@ namespace ApsRT.Core.Partias.PartiasClasses
             }
         }
 
-        public void TaraDecreaser74_110(Dictionary<int, Uco> recommendedTara)
+        public void TaraDecreaser74_110()
         {
-
+            Dictionary<int, Uco> recommendedTara = new();
+            PartiasGeneratorEngine.PartiasGeneratorEngine.Checks74_110(OpersHere, recommendedTara, false);
+            var engineData = new PartiasGeneratorEngine.PartiasGeneratorEngineData(null, OpersHere[0][0].Opers[0].SessionLink);
+            engineData.Color = OpersHere[0][0].Opers[0].Color;
+            engineData.RestrictionsVia74110 = recommendedTara;
+            for (int i = 0; i < OpersHere.Count; i++)
+            {
+                for (int j = 0; j < OpersHere[i].Count; j++)
+                {
+                    OpersHere[i][j] = PartiasGeneratorEngine.PartiasGeneratorEngine.checkThisList(OpersHere[i][j], engineData, false/*, finalResult*/);
+                }
+            }
         }
 
         public void SubdivisionsOptimizer(PartiasConnectorEngineResult previousData)
