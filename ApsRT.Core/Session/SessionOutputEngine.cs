@@ -28,9 +28,9 @@ namespace ApsRT.Core.Session
     /// </summary>
     public class SessionOutputEngine
     {
-        public string LogFile { get; set; } = "log.txt";
-        public string PartiiLogFile { get; set; } = "partii_log.txt";
-        public string ExitLogFile { get; set; } = "exit_log.txt";
+        public string LogFile { get; set; } = "log.log";
+        public string PartiiLogFile { get; set; } = "partii_log.log";
+        public string ExitLogFile { get; set; } = "exit_log.log";
 
         public Session SessionLink { get; }
 
@@ -41,9 +41,9 @@ namespace ApsRT.Core.Session
 
         public void ClassicSettingsByOptions(SessionOptions options)
         {
-            LogFile = "log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".txt";
-            PartiiLogFile = "partii_log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".txt";
-            ExitLogFile = "exit_log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".txt";
+            LogFile = "log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".log";
+            PartiiLogFile = "partii_log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".log";
+            ExitLogFile = "exit_log " + DateTime.Now.ToString("dd.MM.yyyy H-mm-ss") + ".log";
             OutputFileName = $"Result_{(options.IsSilent ? "" : "see")}{(options.LaunchZadel ? "part_zadel" : "")}{(options.LaunchPartia ? "part" : "")}{(options.LaunchPlan ? "plan" : "")}" +
     //$"{(string.IsNullOrEmpty(key) ? "" : "_" + key)}" +
     $".csv";
@@ -137,6 +137,9 @@ namespace ApsRT.Core.Session
             lock (algorithm.LockerObject)
             {
 
+
+                // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
+                SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(blocksToCopy, algorithm.UsedPool.BestPoolIndex);
                 //var localCopy = new PlanSimulatorPool(SessionLink, blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
 
                 var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);
@@ -144,7 +147,7 @@ namespace ApsRT.Core.Session
                 PlanSimulatorEngine.CalculatePlan(blocksToCopy, algorithm.UsedPool.BestPoolIndex, algorithm.MinAcceptableDate, result);
 
 
-                OutputMaterialsDeficitsToFile(outputPath + MaterialsDeficitsFileName, blocksToCopy, result.FirstStagesStartDate);
+                OutputMaterialsDeficitsToFile(outputPath + MaterialsDeficitsFileName, blocksToCopy, result.FirstStagesStartDate, algorithm.UsedPool.BestPoolIndex);
 
                 OutputRechangesToFile(outputPath + (asOld ? RechangesFileNameOld : RechangesFileName), result.RechangesBeforeFirstStages, result.FirstStagesStartDate);
 
@@ -567,7 +570,7 @@ namespace ApsRT.Core.Session
 
             outputFile.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
                     $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
-                    $"ДебагНомерМода;Подразделение;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
+                    $"ДебагНомерМода;Подразделение;КоличествоТары;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
                     $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки;БылПропущен");
 
             bool IsSilent = SessionLink.SessionOptions.IsSilent;
@@ -605,7 +608,9 @@ namespace ApsRT.Core.Session
                                     $"{operLoc.Production.Code};{operLoc.CountMES};" +
                                     $"{guidToCheck}" +
                                     $";;{(operLoc.CurrentModelling/*.IsCustomModelling ? operLoc.CustomModelling : operLoc.MesModelling.Code*/)};" +
-                                    $";{operLoc.SessionLink.MasterDataLinks.CentersMasterData.CentersData[blockRC].Subdivision.Code};{operLoc.CurrentTara.Code};{operLoc.CurrentTaraMaxCapacity};{blockRC.Code};" +//{operFirst.CurrentTara.Code};{operFirst.MaxNamotka};{operFirst.Center.Code};" +
+                                    $";{operLoc.SessionLink.MasterDataLinks.CentersMasterData.CentersData[blockRC].Subdivision.Code};" +
+                                    $"{operLoc.PlacesCount};" +
+                                    $"{operLoc.CurrentTara.Code};{operLoc.CurrentTaraMaxCapacity};{blockRC.Code};" +//{operFirst.CurrentTara.Code};{operFirst.MaxNamotka};{operFirst.Center.Code};" +
                                     $"{(operLoc.RCRoute.Code/*operLoc.RCRoute.IsEmpty ? "" : operLoc.RCRoute.Code*/)};" +
                                     (!IsSilent || LaunchPlan ? $"{start:G}" : "") + // 04.06.2024: требование одну дату для всех исходных этапчиков выводить, которые объеиднились в один мод или общий этап.
                                     $";" +
@@ -625,8 +630,8 @@ namespace ApsRT.Core.Session
 
         }
 
-        public string RechangesFileName { get; set; } = "rechanges.csv";
-        public string RechangesFileNameOld { get; set; } = "rechanges_old.csv";
+        public string RangesManualFileName { get; set; } = "ranges manual.csv";
+        public string RangesManualFileNameOld { get; set; } = "ranges manual old.csv";
 
         public void OutputRanksManualToFile(string filename, List<PlanSimulatorBlock> Blocks, int PoolIndex, PlanSimulatorEngineResult dataForHelp, DateTime minAcceptableDate)
         {
@@ -649,6 +654,7 @@ namespace ApsRT.Core.Session
                 "Ранг;" +
                 "Моделирование;" +
                 "Кастомное моделирование;" +
+                "Общий этап;" +
                 "Количество;" +
                 "Тара;" +
                 "Стандартный РЦ;" +
@@ -700,7 +706,7 @@ namespace ApsRT.Core.Session
                             $"{(start + prostoi.interval.Duration):G};" +
                             $"{prostoi.interval.Duration:G};" +
                             $"{(int)prostoi.interval.Duration.TotalSeconds}" +
-                            $";;;;;;;;;;" +
+                            $";;;;;;;;;;;" +
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $";" : "")}" +
                             $"{blockRC}";
@@ -721,7 +727,7 @@ namespace ApsRT.Core.Session
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{nextOper.StageVersion};" : "")}" +
                             $"{nextOper.Registrator}" +
-                            $";;;;;;;{blockRC};;;;;;;;;" +
+                            $";;;;;;;;{blockRC};;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
 
@@ -777,6 +783,7 @@ namespace ApsRT.Core.Session
                             $"{currentRank};" +
                             $"[{operLoc.MesModelling}];" +
                             $"[{operLoc.CustomModelling}];" +
+                            $"{operLoc.EasyFlag};" +
                             $"{operLoc.Count};" +
                             $"{operLoc.CurrentTara};" +
                             $"{operLoc.OriginalCenter};" +
@@ -805,8 +812,8 @@ namespace ApsRT.Core.Session
         }
 
 
-        public string RangesManualFileName { get; set; } = "ranges manual.csv";
-        public string RangesManualFileNameOld { get; set; } = "ranges manual old.csv";
+        public string RechangesFileName { get; set; } = "rechanges.csv";
+        public string RechangesFileNameOld { get; set; } = "rechanges_old.csv";
 
         public void OutputRechangesToFile(string filename, IDictionary<int, (RechangesEngineResult RechangeItself, CachedInterval Interval, int last)> RechangesBeforeFirstStages, IDictionary<int, DateTime> FirstStagesStartDate)
         {
@@ -859,7 +866,7 @@ namespace ApsRT.Core.Session
 
         public string MaterialsDeficitsFileName { get; set; } = "matsErrors.csv";
 
-        public void OutputMaterialsDeficitsToFile(string filename, List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData)
+        public void OutputMaterialsDeficitsToFile(string filename, List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData, int PoolIndex)
         {
             if (File.Exists(filename))
             {
@@ -867,16 +874,22 @@ namespace ApsRT.Core.Session
             }
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine($"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
+            sw.WriteLine(
+                $"ОригиналМатериалНоменклатура_GUID;ОригиналМатериалНоменклатура;" +
+                $"ОригиналМатериалХарактеристика_GUID;ОригиналМатериалХарактеристика;" +
+                $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
                 $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
                 $"МатериалСерия_GUID;МатериалСерия;ШтрихкодСерии;" +
+                //$"ПодразделениеМатериала;" +
                 $"ИдентификаторПартииПФ;" +
                 $"КоличествоПотребность;КоличествоПервогоЭтапа;КоличествоДоступно;ЕдиницаИзмерения;" +
                 $"ДатаПотребности;ДатаПоступления;" +
-                $"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;КоличествоЭтапов;GUIDОбщегоЭтапа;ЭтоДефицит");
+                $"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;КоличествоЭтапов;GUIDОбщегоЭтапа;" +
+                $"РЦ_GUID;РЦ;ПодразделениеРЦ_GUID;ПодразделениеРЦ;" +
+                $"ЭтоДефицит");
             //var D = 0;
 
-            var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData);
+            var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData, PoolIndex);
 
             var stagesMasterData = SessionLink.MasterDataLinks.StagesMasterData;
 
@@ -888,8 +901,16 @@ namespace ApsRT.Core.Session
 
                 var opsCount = opLink.IsCustomModelling ? stagesMasterData.ApsModellingsInfo[opLink.CustomModelling].RelatedOpers.Count : (opLink.MesModelling.IsEmpty ? 1 : stagesMasterData.MesModellingsInfo[opLink.MesModelling.Code].RelatedOpers.Count);
 
+                var subdiv = SessionLink.MasterDataLinks.CentersMasterData.CentersData[element.Center].Subdivision;
+
                 sw.WriteLine(
                     //$"{D};" +
+
+                    $"{element.OrigMaterialData.Nomenklature.Code};" +
+                    $"{element.OrigMaterialData.Nomenklature.Label};" +
+                    $"{element.OrigMaterialData.Characteristics.Code};" +
+                    $"{element.OrigMaterialData.Characteristics.Label};" +
+
                     $"{element.LeftoverData.Nomenklature.Code};" +
                     $"{element.LeftoverData.Nomenklature.Label};" +
                     $"{element.LeftoverData.Characteristics.Code};" +
@@ -898,6 +919,8 @@ namespace ApsRT.Core.Session
                     $"{element.LeftoverData.Seria.Object.Code};" +
                     $"{element.LeftoverData.Seria.Object.Label};" +
                     $"{element.LeftoverData.Seria.Version};" +
+                    
+                    //$"{element.MaterialSubdivision};" +
 
                     $"{element.PartiaPF};" +
                     $"{element.CountNeeded};" +
@@ -911,6 +934,7 @@ namespace ApsRT.Core.Session
                     $"{element.ModellingGuid};" +
                     $"{opsCount};" +
                     $"{element.EasyLifeGuid};" +
+                    $"{element.Center.Code};{element.Center.Label};{subdiv.Code};{subdiv.Label};" +
                     $"{(element.ItsError ? "Да" : "Нет")}"
                     );
                 //D++;

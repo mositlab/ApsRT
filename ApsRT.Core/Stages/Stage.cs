@@ -298,8 +298,8 @@ namespace ApsRT.Core.Stages
         [DataRecordColumn("Уровень")]
         public int Level { get; set; }
 
-        // 
-        [DataRecordColumn("НомерПовива")]
+        // он же номер повива
+        [DataRecordColumn("НомерЗапуска")]
         public int Poviv { get; set; }
 
         //

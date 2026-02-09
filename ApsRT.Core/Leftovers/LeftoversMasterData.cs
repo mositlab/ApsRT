@@ -17,6 +17,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalPack;
 using UniversalPack.Common;
 using static System.Net.Mime.MediaTypeNames;
 using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics, UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string> Seria);
@@ -202,13 +203,13 @@ namespace ApsRT.Core.Leftovers
             });
         }
 
-        public void PrepareModsForLeftovers(List<PlanSimulatorBlock> ops)
+        public void PrepareModsForLeftovers(List<PlanSimulatorBlock> ops, int PoolIndex)
         {
             
             PrepareModsForLeftovers(ops.SelectMany(block => block.Lists.SelectMany(list =>
             {
-                if (list.EasyLifeData == null) return new List<IAbleForTaraCalcInterface>() { list as IAbleForTaraCalcInterface };
-                return list.EasyLifeData.Select(x => x.Value.AsMod);
+                if (list.EasyLifeData == null) return new List<(IAbleForTaraCalcInterface, PlanSimulatorNaladLengthData)>() { (list as IAbleForTaraCalcInterface, list.NaladLengthData[PoolIndex]) };
+                return list.EasyLifeData.Select(x => (x.Value.AsMod, x.Value.NaladLengthData[PoolIndex]));
                 //List<IAbleForTaraCalcInterface> result = new();
                 //foreach (var modGuid in list.ObshEtapData)
                 //{
@@ -226,14 +227,14 @@ namespace ApsRT.Core.Leftovers
         }
 
 
-        public void PrepareModsForLeftovers(List<IAbleForTaraCalcInterface> modsToArrange)
+        public void PrepareModsForLeftovers(List<(IAbleForTaraCalcInterface mod, PlanSimulatorNaladLengthData naladLengthData)> modsToArrange)
         {
             if (CurrentLeftoversCount == null || CurrentLeftoversCount.Count == 0) return;
 
             // Сначала всё очищаем
             foreach (var mod in modsToArrange)
             {
-                var op = mod.FirstOperLink;
+                var op = mod.mod.FirstOperLink;
                 op.StageMaterialsInfo.UsedLeftovers = op.StageMaterialsInfo.UsedMaterials.Select(x => (StageLeftover)null).ToList();
             }
 
@@ -250,13 +251,15 @@ namespace ApsRT.Core.Leftovers
                 //partias.SelectMany(x => PartiasConnectorEngine.SeeSdvigsAsList(x.OpersHere)) // Возьмём этапы со всех партий
 
 
-                .Where(sdvig => sdvig.FirstOperLink.StageMaterialsInfo != null)
+                .Where(sdvig => sdvig.mod.FirstOperLink.StageMaterialsInfo != null)
                 .SelectMany(sdvig =>
 
-                sdvig.FirstOperLink.StageMaterialsInfo.UsedMaterials.Select(
+                sdvig.mod.FirstOperLink.StageMaterialsInfo.UsedMaterials.Select(
                     (mat, index) =>
-
-                    (stageLink: sdvig.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)(GetMatSumFromMod(sdvig, mat.AsMaterialUcoData()) * 1000.0))
+                    {
+                        //var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.EasyFlag.Value].NaladLengthData[PoolIndex];
+                        return (stageLink: sdvig.mod.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)((GetMatSumFromMod(sdvig.mod, mat.AsMaterialUcoData()) + sdvig.naladLengthData.Data.NaladLengthHere.Value) * 1000.0));
+                    }
                 )
             )
                 .Where(
@@ -278,7 +281,7 @@ namespace ApsRT.Core.Leftovers
                 var item = allItems[i];
                 var mod = item.modLink;
 
-                var possibleAnalogues = FindAnaloguesAll(opsPossibleLeftoversForOne, mod, (item.MatData, item.MatWeight));
+                var possibleAnalogues = FindAnaloguesAll(opsPossibleLeftoversForOne, mod.mod, (item.MatData, item.MatWeight));
 
                 AllPossibleAnaloguesForMats.Add(possibleAnalogues); // Добавляю информацию об этом в копию
             }
@@ -369,7 +372,7 @@ namespace ApsRT.Core.Leftovers
             var groupedByOps = allItems.GroupBy(x => x.stageLink); // Сгруппирем по этапам.
             foreach (var group in groupedByOps)
             {
-                var lists = opsPossibleLeftoversForOne[group.First().modLink]; // Получим все списки остатков для этого этапа, чтобы задать инфу этапам
+                var lists = opsPossibleLeftoversForOne[group.First().modLink.mod]; // Получим все списки остатков для этого этапа, чтобы задать инфу этапам
                 foreach (var list in lists)
                 {
                     if (list.Value.List.Count < 2) continue; // Если это одиночная группа, то пофиг на неё.
@@ -379,7 +382,7 @@ namespace ApsRT.Core.Leftovers
 
                     // Мы ищем в группе group первый элемент, чья номенклатура равна "оригиналу" из groupInfo
                     group.FirstOrDefault(item => item.MatData == listGroupInfo.Original, // Сравниваем предмет
-                    (-1, null, null, new (), -1, -1) // А это заглушка Default.
+                    (-1, null, (null, null), new (), -1, -1) // А это заглушка Default.
                     )
                     .elementIndex // По итогу возвращаем elementIndex. Если элемент не найден, он будет равен -1.
 
@@ -529,7 +532,7 @@ namespace ApsRT.Core.Leftovers
             }
         }
 
-        public List<LeftoverLackData> PlanAndFixMaterialsInfo(List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData)
+        public List<LeftoverLackData> PlanAndFixMaterialsInfo(List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData, int PoolIndex)
         {
             List<LeftoverLackData> result = new();
 
@@ -578,11 +581,16 @@ namespace ApsRT.Core.Leftovers
 
                     List<IAbleForTaraCalcInterface> allMods = planMod.EasyLifeData == null ? new() { new PartiaModellingSmall(planMod.StagesAsNormal) } : planMod.EasyLifeData.Select(x => x.Value.AsMod).ToList();
 
+                    var center = planMod.BlockLink.GetCenterData(PoolIndex).Center;
+
                     foreach (var mod in allMods)
                     {
                         var oper = mod.FirstOperLink;//OpersList[0];
                         var matsClass = oper.StageMaterialsInfo;
                         var matsList = matsClass.UsedMaterials;
+
+
+                        var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.CurrentModelling].NaladLengthData[PoolIndex];
 
                         var originalCount = matsList.Select(X => X.IsBuying ? GetMatSumFromMod(mod, X.AsMaterialUcoData()) : 0.0).ToList();//new List<double>();
                         
@@ -607,12 +615,21 @@ namespace ApsRT.Core.Leftovers
                             }
 
                             var origMatToFindHere = matsList[i].AsLeftoverUcoData();
-                            if (leftoversList[i] == null && !howMuchAtStart.Any(x => x.Key.Nomenklature == origMatToFindHere.Nomenklature && x.Key.Characteristics == origMatToFindHere.Characteristics)) // Нет ни одного похожего?? (раньше тут просто было
+
+                            // Добавляем ПУСТОТУ - новое обновление
+                            var nothing = !howMuchAtStart.Any(x => x.Key.Nomenklature == origMatToFindHere.Nomenklature && x.Key.Characteristics == origMatToFindHere.Characteristics);
+                            if (nothing)
+                            {
+                                howMuchAtStart.TryAdd(origMatToFindHere, new());
+                            }
+
+                            if (leftoversList[i] == null && nothing) // Нет ни одного похожего?? (раньше тут просто было
                             {
                                 hasAnyErrorsHere = true;
                                 break; // Ошибки тут очевидно есть, и надо назначить этому материалу аналог. Выходим отсюда и идём в заменялку.
                             }
-                            if (howMuchAtStart.TryGetValue(leftoversList[i]?.LeftoverData ?? origMatToFindHere, out var existingCounts) && existingCounts.MaxBy(x => x.Value).Value.Count < (leftoversList[i]?.CalculatedCount ?? originalCount[i]))
+                            if (howMuchAtStart.TryGetValue(leftoversList[i]?.LeftoverData ?? origMatToFindHere, out var existingCounts)
+                                && (existingCounts.Count == 0 || existingCounts.MaxBy(x => x.Value).Value.Count < (leftoversList[i]?.CalculatedCount ?? originalCount[i]) + naladLengthData.Data.NaladLengthHere.Value))
                             {
                                 hasAnyErrorsHere = true;
                                 break;
@@ -626,7 +643,7 @@ namespace ApsRT.Core.Leftovers
                             {
                                 if (!matsList[i].IsBuying) continue;
                                 var key = leftoversList[i]?.LeftoverData ?? matsList[i].AsLeftoverUcoData();
-                                var valueToMinus = leftoversList[i]?.CalculatedCount ?? originalCount[i];
+                                var valueToMinus = (leftoversList[i]?.CalculatedCount ?? originalCount[i]) + naladLengthData.Data.NaladLengthHere.Value;
                                 if (howMuchAtStart.TryGetValue(key, out var neededCount))
                                 {
                                     var elements = neededCount.Where(x => x.Value.Count >= valueToMinus).OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value);
@@ -699,7 +716,7 @@ namespace ApsRT.Core.Leftovers
                             var analoguesWithoutSeries = listHere.List.Select(
                                 (x, index) =>
                             (AnalogueToSet: x.Analogue,
-                            CountToSet: originalCount[mats[resultedIndexes[index]].ElementIndex] / x.OriginalCount * x.AnalogueCount)
+                            CountToSet: (originalCount[mats[resultedIndexes[index]].ElementIndex] + naladLengthData.Data.NaladLengthHere.Value) / x.OriginalCount * x.AnalogueCount)
                             ).ToArray(); // Создаём аналоги для каждого мата и вычисляем новое количество. В качестве аргумента originalCount[mats[resultedIndexes[index]].ElementIndex] - это количество уже моделирования, а не исходного этапчика. Пригодится для объединенных длин.
 
                             (LeftoverUco AnalogueToSet, double CountToSet, UcoDU EdIzm)[] analogues = analoguesWithoutSeries.Select(x =>
@@ -768,75 +785,102 @@ namespace ApsRT.Core.Leftovers
                             if (!matsList[i].IsBuying) continue;
                             (LeftoverUco Material, double Count) whatWillDecrease;
                             if (matsClass.UsedLeftovers[i] == null)
-                                whatWillDecrease = (matsList[i].AsLeftoverUcoData(), originalCount[i]);
+                                whatWillDecrease = (matsList[i].AsLeftoverUcoData(), originalCount[i] + naladLengthData.Data.NaladLengthHere.Value); // тут налад длину вставляем потому что в оригинал каунт ее нет
                             else
                                 whatWillDecrease = (leftoversList[i].LeftoverData, leftoversList[i].CalculatedCount);
 
-                            var filteredHowMuchAtStart = howMuchAtStart.Where(x => x.Key.Nomenklature == whatWillDecrease.Material.Nomenklature && x.Key.Characteristics == whatWillDecrease.Material.Characteristics && (matsClass.UsedLeftovers[i] == null ? true : (x.Key.Seria == whatWillDecrease.Material.Seria)));
+                            var filteredHowMuchAtStart = howMuchAtStart.Where(x => x.Key.Nomenklature == whatWillDecrease.Material.Nomenklature && x.Key.Characteristics == whatWillDecrease.Material.Characteristics && (matsClass.UsedLeftovers[i] == null ? true : (x.Key.Seria == whatWillDecrease.Material.Seria))).OrderByDescending(x => x.Value.Count);
 
                             if (filteredHowMuchAtStart.Count() > 0/*howMuchAtStart.TryGetValue(whatWillDecrease.Material, out var howMuchNow)*/)
                             {
                                 var howMuchNow = filteredHowMuchAtStart.First().Value;
-                                var pair = howMuchNow/*.Where(x => x.Value >= valueToMinus)*/.OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
-                                var howMuchNowCount = pair.Value.Count;
-                                howMuchNowCount -= whatWillDecrease.Count;
-                                if (howMuchNowCount < 0)
+
+                                if (howMuchNow.Count == 0)
                                 {
-                                    var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
-                                    {
-                                        if (x.Object is PlanSimulatorMod) return false;
-                                        (LeftoverUco Material, Uco Subdivision, double Count) info = ((LeftoverUco Material, Uco Subdivision, double Count))x.Object;
-                                        // УЧТИ, У ПРИХОДЯЩИХ МАТЕРИАЛОВ СЕРИЯ И ШТРИХКОД ВСЕГДА ПУСТЫЕ.
-                                        // НЕ СМОТРИМ НА НИХ, ПОТОМУ ЧТО МОЖЕТ БЫТЬ ТАКОЕ, ЧТО НЕ ХВАТАЕТ ОСТАТКА ВЫШЕ, А У НЕГО СЕРИЯ+ШК ЗАДАНЫ.
-                                        // А НАМ НУЖНО ПРОСТО УЗНАТЬ, КОГДА ПРИЕДЕТ МАТЕРИАЛ С ТАКОЙ ЖЕ НОМЕНКЛ+ХАРКОЙ.
-                                        return whatWillDecrease.Material.Nomenklature == info.Material.Nomenklature
-                                        && whatWillDecrease.Material.Characteristics == info.Material.Characteristics; // Нам нужен приход того же материала
-                                    }); // найдем следующий приход
-                                    DateTime? nextPrihod = n == -1 ? null : pointsToAnalyze[n].Date;
-                                    //Uco? nextPrihodSub = n == -1 ? null : (((LeftoverUco Material, Uco Subdivision, double Count))pointsToAnalyze[n].Object).Subdivision;
+                                    ;
+
+                                    DateTime? nextPrihod = GetPrihod(pointsToAnalyze, currentPoint, whatWillDecrease.Material);
 
                                     var lack = new LeftoverLackData(
                                         whatWillDecrease.Material,
+                                        matsList[i].AsMaterialUcoData(),
                                         oper.GetPartiaCode() ?? Guid.Empty,
                                         whatWillDecrease.Count,
-                                        howMuchNowCount + whatWillDecrease.Count,
-                                        pair.Value.DimensionUnit,
+                                        null,
+                                        UcoDU.EmptyObject,
                                         //pair.Key,
                                         point.Date,
                                         nextPrihod ?? DateTime.MinValue,
                                         //nextPrihodSub,
                                         oper.ID,
                                         oper.CurrentModelling,
-                                        oper.GetEasyFlagToOutput(), true
+                                        oper.GetEasyFlagToOutput(),
+                                        center,
+                                        true
                                         );
 
                                     result.Add(lack);
-
                                 }
                                 else
                                 {
 
-                                    var lack = new LeftoverLackData(
-                                        whatWillDecrease.Material,
-                                        oper.GetPartiaCode() ?? Guid.Empty,
-                                        whatWillDecrease.Count,
-                                        howMuchNowCount + whatWillDecrease.Count,
-                                        pair.Value.DimensionUnit,
-                                        //pair.Key,
-                                        point.Date,
-                                        null,
-                                        //null,
-                                        oper.ID,
-                                        oper.CurrentModelling,
-                                        oper.GetEasyFlagToOutput(), false
-                                        );
+                                    var pair = howMuchNow/*.Where(x => x.Value >= valueToMinus)*/.OrderByDescending(x => x.Key == oper.Subdivision ? 1 : 0).ThenByDescending(x => x.Value).First();
+                                    var howMuchNowCount = pair.Value.Count;
+                                    howMuchNowCount -= whatWillDecrease.Count;
+                                    if (howMuchNowCount < 0)
+                                    {
+                                        DateTime? nextPrihod = GetPrihod(pointsToAnalyze, currentPoint, whatWillDecrease.Material);
 
-                                    result.Add(lack);
-                                    
-                                    //howMuchAtStart.TryAdd(whatWillDecrease.Material, new());
-                                    var keyHere = filteredHowMuchAtStart.First().Key;
-                                    howMuchAtStart[keyHere][pair.Key] = (howMuchNowCount, pair.Value.DimensionUnit); // Подсчитанное количество вбиваем, если оно все ещё больше 0.
+                                        var lack = new LeftoverLackData(
+                                            whatWillDecrease.Material,
+                                            matsList[i].AsMaterialUcoData(),
+                                            oper.GetPartiaCode() ?? Guid.Empty,
+                                            whatWillDecrease.Count,
+                                            howMuchNowCount + whatWillDecrease.Count,
+                                            pair.Value.DimensionUnit,
+                                            //pair.Key,
+                                            point.Date,
+                                            nextPrihod ?? DateTime.MinValue,
+                                            //nextPrihodSub,
+                                            oper.ID,
+                                            oper.CurrentModelling,
+                                            oper.GetEasyFlagToOutput(),
+                                            center,
+                                            true
+                                            );
+
+                                        result.Add(lack);
+
+                                    }
+                                    else
+                                    {
+
+                                        var lack = new LeftoverLackData(
+                                            whatWillDecrease.Material,
+                                            matsList[i].AsMaterialUcoData(),
+                                            oper.GetPartiaCode() ?? Guid.Empty,
+                                            whatWillDecrease.Count,
+                                            howMuchNowCount + whatWillDecrease.Count,
+                                            pair.Value.DimensionUnit,
+                                            //pair.Key,
+                                            point.Date,
+                                            null,
+                                            //null,
+                                            oper.ID,
+                                            oper.CurrentModelling,
+                                            oper.GetEasyFlagToOutput(),
+                                            center,
+                                            false
+                                            );
+
+                                        result.Add(lack);
+
+                                        //howMuchAtStart.TryAdd(whatWillDecrease.Material, new());
+                                        var keyHere = filteredHowMuchAtStart.First().Key;
+                                        howMuchAtStart[keyHere][pair.Key] = (howMuchNowCount, pair.Value.DimensionUnit); // Подсчитанное количество вбиваем, если оно все ещё больше 0.
+                                    }
                                 }
+
 
                             }
 
@@ -858,6 +902,24 @@ namespace ApsRT.Core.Leftovers
 
 
             return result;
+        }
+
+        DateTime? GetPrihod(List<(DateTime Date, object Object)> pointsToAnalyze, int currentPoint, LeftoverUco Material)
+        {
+            var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
+            {
+                if (x.Object is PlanSimulatorMod) return false;
+                (LeftoverUco Material, Uco Subdivision, double Count) info = ((LeftoverUco Material, Uco Subdivision, double Count))x.Object;
+                // УЧТИ, У ПРИХОДЯЩИХ МАТЕРИАЛОВ СЕРИЯ И ШТРИХКОД ВСЕГДА ПУСТЫЕ.
+                // НЕ СМОТРИМ НА НИХ, ПОТОМУ ЧТО МОЖЕТ БЫТЬ ТАКОЕ, ЧТО НЕ ХВАТАЕТ ОСТАТКА ВЫШЕ, А У НЕГО СЕРИЯ+ШК ЗАДАНЫ.
+                // А НАМ НУЖНО ПРОСТО УЗНАТЬ, КОГДА ПРИЕДЕТ МАТЕРИАЛ С ТАКОЙ ЖЕ НОМЕНКЛ+ХАРКОЙ.
+                return Material.Nomenklature == info.Material.Nomenklature
+                && Material.Characteristics == info.Material.Characteristics; // Нам нужен приход того же материала
+            }); // найдем следующий приход
+            DateTime? nextPrihod = n == -1 ? null : pointsToAnalyze[n].Date;
+            //Uco? nextPrihodSub = n == -1 ? null : (((LeftoverUco Material, Uco Subdivision, double Count))pointsToAnalyze[n].Object).Subdivision;
+
+            return nextPrihod;
         }
 
     }

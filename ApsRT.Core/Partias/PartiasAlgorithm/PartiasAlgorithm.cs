@@ -584,7 +584,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     // 2. Потом все остальные
                     foreach (var val in DEAD.Keys)
                     {
-                        if (val > diapazon)
+                        if (!SessionLink.SessionOptions.PartOrZadel && val > diapazon)
                         {
                             break;
                         }

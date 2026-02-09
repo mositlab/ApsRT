@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics, UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string> Seria);
+using MaterialUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
 using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 using UcoDU = UniversalPack.Common.CodedObject<System.Guid, UniversalPack.DimensionUnit>;
 
@@ -13,10 +14,11 @@ namespace ApsRT.Core.Leftovers
 {
     public class LeftoverLackData
     {
-        public LeftoverLackData(LeftoverUco leftoverData, Guid partiaPF, double countNeeded, double countExists, UcoDU edIzm, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid, bool itsError)
+        public LeftoverLackData(LeftoverUco leftoverData, MaterialUco origMaterialData, Guid partiaPF, double countNeeded, double? countExists, UcoDU edIzm, DateTime dateWhenNeeded, DateTime? nextArrivalDate, StageGUID stageGuid, Guid modellingGuid, Guid easyLifeGuid, Uco center, bool itsError)
         {
             ItsError = itsError;
             LeftoverData = leftoverData;
+            OrigMaterialData = origMaterialData;
             PartiaPF = partiaPF;
             CountNeeded = countNeeded;
             CountExists = countExists;
@@ -26,19 +28,22 @@ namespace ApsRT.Core.Leftovers
             ModellingGuid = modellingGuid;
             EasyLifeGuid = easyLifeGuid;
             EdIzm = edIzm;
+            Center = center;
         }
 
         public bool ItsError { get; }
-
+        public MaterialUco OrigMaterialData { get; set; }
         public LeftoverUco LeftoverData { get; set; }
         public Guid PartiaPF { get; set; }
         public double CountNeeded { get; set; }
-        public double CountExists { get; set; }
+        public double? CountExists { get; set; }
         public UcoDU EdIzm { get; set; }
         public DateTime DateWhenNeeded { get; set; }
         public DateTime? NextArrivalDate { get; set; }
         public StageGUID StageGuid { get; set; }
         public Guid ModellingGuid { get; set; }
         public Guid EasyLifeGuid { get; set; }
+
+        public Uco Center { get; set; }
     }
 }

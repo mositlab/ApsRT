@@ -2057,7 +2057,7 @@ namespace ApsRTCustomComponents
         {
             var algorithm = sessionLink.AssignedPlanningAlgorithm;
             if (algorithm == null || algorithm.UsedPool == null) return;
-            sessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(algorithm.UsedPool.Blocks);
+            sessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(algorithm.UsedPool.Blocks, algorithm.UsedPool.BestPoolIndex);
         }
 
         private void button3_Click(object sender, EventArgs e)

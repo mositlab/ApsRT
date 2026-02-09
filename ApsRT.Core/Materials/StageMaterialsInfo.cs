@@ -31,11 +31,13 @@ namespace ApsRT.Core.Materials
             }
             for (int i = 0; i < UsedMaterials.Count; i++)
             {
-                //if (UsedLeftovers[i] != null || other.UsedLeftovers[i] != null)
-                //{
-                //    // пока это заглушка. Потом надо узнать
-                //    return false;
-                //}
+                if (UsedLeftovers[i] != null || other.UsedLeftovers[i] != null)
+                {
+                    if (UsedLeftovers[i] == null && other.UsedLeftovers[i] != null) return false;
+                    if (UsedLeftovers[i] != null && other.UsedLeftovers[i] == null) return false;
+                    // пока это заглушка. Потом надо узнать
+                    return false;
+                }
                 if (
                     //!UsedMaterials[i].IsBuying && !other.UsedMaterials[i].IsBuying &&
                     !UsedMaterials[i].IsEqualTo(other.UsedMaterials[i])) return false;
