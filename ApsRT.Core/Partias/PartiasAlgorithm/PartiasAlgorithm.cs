@@ -1,34 +1,36 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using ApsRT.Core.DataErrors;
+using ApsRT.Core.Leftovers;
+using ApsRT.Core.NaladLengths;
+using ApsRT.Core.Orders;
 using ApsRT.Core.Partias.PartiasClasses;
+using ApsRT.Core.Partias.PartiasConnectorEngine;
+using ApsRT.Core.Partias.PartiasGeneratorEngine;
+using ApsRT.Core.Planning.PlanningAlgorithm;
+using ApsRT.Core.Planning.PlanningAlgorithm.R;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.Session;
+using ApsRT.Core.Settings;
+using ApsRT.Core.Stages;
+using ApsRT.Core.Taras.TaraSearchEngine;
+using Azure;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics.Metrics;
+using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
-using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
-using Azure;
-using ApsRT.Core.DataErrors;
-using ApsRT.Core.Session;
-using ApsRT.Core.Orders;
-using ApsRT.Core.Stages;
-using UniversalPack.Common.Drawing;
 using System.Xml.Linq;
-using System.Security.Cryptography;
-using System.Drawing;
 using UniversalPack;
-using System.Collections.Concurrent;
-using ApsRT.Core.Partias.PartiasConnectorEngine;
-using System.Diagnostics.Metrics;
-using ApsRT.Core.Settings;
 using UniversalPack.Common;
-using System.Data;
+using UniversalPack.Common.Drawing;
 using UniversalPack.Extensions;
-using ApsRT.Core.Planning.PlanningAlgorithm;
-using ApsRT.Core.NaladLengths;
-using ApsRT.Core.Leftovers;
-using ApsRT.Core.Taras.TaraSearchEngine;
-using ApsRT.Core.Partias.PartiasGeneratorEngine;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Partias.PartiasAlgorithm
 {
@@ -98,8 +100,25 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForLockedZadels(PartiiList);
                 }
 
-                // 4. Готовим таблицу дедлайнов
-                CurrentStage = PartiasAlgorithmStage.FiilingDeadlineTables;
+                // Здесь же остатки
+                if (/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
+                {
+                    // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
+                    SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(
+
+                        PartiiList.SelectMany
+                        (
+                            partia => partia.OpersHere
+                            .SelectMany(level => level)
+                        )
+                        .Select(x => (x as IAbleForTaraCalcInterface, (PlanSimulatorNaladLengthData)null))
+                        .ToList()
+
+                        ); // TODO: норм индекс впилить
+                }
+
+                    // 4. Готовим таблицу дедлайнов
+                    CurrentStage = PartiasAlgorithmStage.FiilingDeadlineTables;
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
                 PrepareDeadlinesTable();
 
@@ -108,12 +127,13 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, (allGPToCheckNow.Length * allGPToCheckNow.Length - allGPToCheckNow.Length) / 2);
                 PrepareDeepTable(WithLog);
 
-                // 6. ЗАДЕЛЫ (без ключа) - сработает только при полном планировании
-                if (!/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
+                // 6. ЗАДЕЛЫ (без ключа) - сработает только при полном планировании, и ОСТАТКИ
+                if (/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
                 {
                     CurrentStage = PartiasAlgorithmStage.PreparingZadelsFree;
                     CurrentStageChanged?.Invoke(CurrentStage, 0);
-                    SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForFreeZadels(PartiiList, DEEP);
+                    //SessionLink.MasterDataLinks.ZadelsMasterData.PreparePartiasForFreeZadels(PartiiList, DEEP);
+
                 }
 
                 // 7. Непосредственно поиска
@@ -138,7 +158,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                 CurrentStage = PartiasAlgorithmStage.Output;
                 CurrentStageChanged?.Invoke(CurrentStage, fin.Length);
-                // Перед записью в сессию обновляем заделы
+                // Перед записью в сессию обновляем заделы - в том числе виртуальные
                 if (/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
                 {
                     SessionLink.MasterDataLinks.ZadelsMasterData.UpdateFreeZadelsStatuses(PartiiList);
@@ -1133,10 +1153,11 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                 //op1.EasyFlagIsFromMes = false;
                                 op1.CustomPartiaGuid = chosenPartiaGuid;
 
-                                // Устанавливаем кол-во мест
-                                if (lvl2.PlacesCountMultiplierToRewrite.HasValue)
-                                    op1.SetPlacesCount(op1.OriginalPlacesCount * lvl2.PlacesCountMultiplierToRewrite.Value);
                             }
+
+                            // Устанавливаем кол-во мест
+                            if (lvl2.PlacesCountMultiplierToRewrite.HasValue)
+                                op1.SetPlacesCount(op1.OriginalPlacesCount * lvl2.PlacesCountMultiplierToRewrite.Value);
 
                             // Записываем инфу об ошибках тары, если они есть
                             // отсутствие тары (только если операция не вспомогательная). Решено Аленой, 30.05.

@@ -248,8 +248,11 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // TODO: если уж так нужен флаг будет, то добавить его можно будет где-то здесь.
             foreach (var op in opers) op.Color = col;
 
+            if (sdvigWas.ZadelCode != 0) return sdvigWas;
+
             var x = opers[0];
 
+            Uco? subdiv = engineData.BestSubdivision;
 
             // Это вспомогательная? В таком случае на тару пока забиваем
             if (x.IsVspom)
@@ -261,8 +264,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 //OriginallyTaraWasThis.Add(x.ID, (tarao, 0));
 
 
-                var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, null, 0,
-                    new());
+                var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                 addInfoLocal(opers, tarao, 0, sdvig, false, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
                 return sdvig;
@@ -286,14 +288,14 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
             if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
                 //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                RecommendedSubdivision = subdiv
             }))
             {
                 // Нашлась, отработала хорошо.
                 // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
                 //prevs.Add(x.ID, tara);
                 //OriginallyTaraWasThis.Add(x.ID, (tara, max));
-                var sdvig = new PartiaModelling(opers, RES.TaraName, RES.Max, RES.used_format, RES.FinalRC, null, 0,
-                    new());
+                var sdvig = new PartiaModelling(opers, RES.TaraName, RES.Max, RES.used_format, RES.FinalRC, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                 if (trr.HasValue) sdvig.RCIsChecked = true; // блокируем возможность что-то поставить
                 addInfoLocal(opers, RES.TaraName, RES.Max, sdvig, true, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
@@ -303,14 +305,14 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             {
                 if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
                     //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                    RecommendedSubdivision = subdiv
                 }))
                 {
                     // Нашлась, отработала хорошо.
                     // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
                     //prevs.Add(x.ID, tara);
                     //OriginallyTaraWasThis.Add(x.ID, (tara, max));
-                    var sdvig = new PartiaModelling(opers, RES2.TaraName, RES2.Max, RES2.used_format, RES2.FinalRC, null, 0,
-                        new());
+                    var sdvig = new PartiaModelling(opers, RES2.TaraName, RES2.Max, RES2.used_format, RES2.FinalRC, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                     addInfoLocal(opers, RES2.TaraName, RES2.Max, sdvig, true, engineData);
                     //OpersToSdvigs.Add(x.ID, sdvig);
                     return sdvig;
@@ -328,8 +330,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     {
                         //prevs.Add(x.ID, taraHere); // Новая строчка. Из-за нее следует пройтись по всему алгоритму.
                         //OriginallyTaraWasThis.Add(x.ID, (taraHere, 0));
-                        var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.OriginalCenter, null, 0,
-                            new());
+                        var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                         addInfoLocal(opers, taraHere, 0, sdvig, true, engineData);
                         //OpersToSdvigs.Add(x.ID, sdvig);
                         return sdvig;
@@ -340,8 +341,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // Если ничего не нашёл, то делаем пустоту
             var tarae = Uco.EmptyObject;
             //OriginallyTaraWasThis.Add(x.ID, (tarae, 0));
-            var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, null, 0,
-                new());
+            var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
             addInfoLocal(opers, tarae, 0, sdvig2, false, engineData);
             //OpersToSdvigs.Add(x.ID, sdvig2);
             return sdvig2;

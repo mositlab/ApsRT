@@ -988,6 +988,10 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
                 if (result.FinalRC.IsEmpty)
                 {
+
+                    if (!someOpers.FirstOperLink.CanChangePlacesCount) // Я не могу менять кол-во мест? - выходим
+                        break;
+
                     // не найден, потому что ни одна не подошла из-за "не менять тару"
                     if (NoChangeTaraNonErrorsCount == 0)
                         break;
@@ -999,11 +1003,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     if (someOpers.FirstOperLink.MesModelling.Code != Guid.Empty) // Заблоченные моды я тоже не имею права ставить
                         break;
 
+                    if (someOpers.FirstOperLink.EasyFlagOriginal.HasValue && someOpers.FirstOperLink.EasyFlagOriginal.Value != Guid.Empty) // Заблоченные ОБЩИЕ этапы я тоже не имею права ставить
+                        break;
+
                     if (someOpers.AllOpers.Count > 2) // Больше двух тоже нельзя, иначе я на бесконечное количество итераций зависну
                         break;
 
-                    if (!someOpers.FirstOperLink.CanChangePlacesCount) // Я не могу менять кол-во мест? - выходим
-                        break;
 
                     currentPlacesCountK++;
                 }

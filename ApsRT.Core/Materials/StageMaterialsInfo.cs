@@ -35,8 +35,10 @@ namespace ApsRT.Core.Materials
                 {
                     if (UsedLeftovers[i] == null && other.UsedLeftovers[i] != null) return false;
                     if (UsedLeftovers[i] != null && other.UsedLeftovers[i] == null) return false;
-                    // пока это заглушка. Потом надо узнать
-                    return false;
+                    if (UsedLeftovers[i].LeftoverData != other.UsedLeftovers[i].LeftoverData) return false;
+
+                    // Количество мы НЕ чекаем получается, оно было чекнуто ещё в самом начале OR-Toolовским алгоритмом
+
                 }
                 if (
                     //!UsedMaterials[i].IsBuying && !other.UsedMaterials[i].IsBuying &&

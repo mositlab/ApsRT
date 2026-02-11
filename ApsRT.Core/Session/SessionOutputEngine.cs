@@ -138,8 +138,6 @@ namespace ApsRT.Core.Session
             {
 
 
-                // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
-                SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(blocksToCopy, algorithm.UsedPool.BestPoolIndex);
                 //var localCopy = new PlanSimulatorPool(SessionLink, blocksToCopy, new OpersPoolConstructor(blocksToCopy, algorithm.MinAcceptableDate), algorithm.MinAcceptableDate);
 
                 var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, algorithm.MinAcceptableDate);

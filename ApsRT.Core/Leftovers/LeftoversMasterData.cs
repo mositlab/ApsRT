@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
 using UniversalPack.Common;
+using UniversalPack.Extensions;
 using static System.Net.Mime.MediaTypeNames;
 using LeftoverUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics, UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string> Seria);
 using MaterialUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
@@ -42,9 +43,12 @@ namespace ApsRT.Core.Leftovers
         /// </summary>
         public Dictionary<LeftoverUco, Dictionary<Uco, (double Count, UcoDU DimensionUnit)>> CurrentLeftoversCount { get; private set; } = new();
 
+        public Dictionary<Guid, double> LinearLeftoversCount { get; private set; } = new();
+
         public void ClearLeftoversCount()
         {
             CurrentLeftoversCount.Clear();
+            LinearLeftoversCount.Clear();
         }
 
         public void AddLeftoverCountData(LeftoverCountDataLoaderModel model)
@@ -52,6 +56,7 @@ namespace ApsRT.Core.Leftovers
             LeftoverUco key = (model.Nomenklature, model.Characteristics, model.Seria);
             CurrentLeftoversCount.TryAdd(key, new());
             CurrentLeftoversCount[key].TryAdd(model.Subdivision, (model.CountNow, model.EdIzm));
+            LinearLeftoversCount.TryAdd(model.Seria.Object.Code, model.CountNow);
         }
 
         public Dictionary<LeftoverUco, List<(DateTime When, Uco Subdivision, double Count, UcoDU EdIzm)>> LeftoversArrivalInfo { get; private set; } = new();
@@ -226,7 +231,6 @@ namespace ApsRT.Core.Leftovers
             ).ToList());
         }
 
-
         public void PrepareModsForLeftovers(List<(IAbleForTaraCalcInterface mod, PlanSimulatorNaladLengthData naladLengthData)> modsToArrange)
         {
             if (CurrentLeftoversCount == null || CurrentLeftoversCount.Count == 0) return;
@@ -258,7 +262,7 @@ namespace ApsRT.Core.Leftovers
                     (mat, index) =>
                     {
                         //var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.EasyFlag.Value].NaladLengthData[PoolIndex];
-                        return (stageLink: sdvig.mod.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)((GetMatSumFromMod(sdvig.mod, mat.AsMaterialUcoData()) + sdvig.naladLengthData.Data.NaladLengthHere.Value) * 1000.0));
+                        return (stageLink: sdvig.mod.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)((GetMatSumFromMod(sdvig.mod, mat.AsMaterialUcoData()) + (sdvig.naladLengthData?.Data.NaladLengthHere.Value ?? 0)) * 1000.0));
                     }
                 )
             )
@@ -267,11 +271,29 @@ namespace ApsRT.Core.Leftovers
                 //CurrentLeftoversCount.ContainsKey(item.MatNomen)
                 //&&
                 item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].IsBuying) // Второе ограничение.
-                .Select((x, index) => (elementIndex: index, x.stageLink, x.modLink, x.MatData, x.MatIndex, x.MatWeight))
+                .Select((x, index) => (itsStage: false, elementIndex: index, x.stageLink, x.modLink, x.MatData, x.MatIndex, x.MatWeight))
 
                 //.Take(5000)
 
                 .ToList();
+
+            // Добавим самих ЭТАПЧИКОВ - это буквально а-ля заделы, потому что в остатках может сидеть и то, и то
+            var stage1 = modsToArrange.SelectMany(mod =>
+            {
+                var placesCount = mod.mod.FirstOperLink.PlacesCount; // Количество мест
+                return Enumerable.Range(0, placesCount).Select(place => (mod, place));
+            }).ToArray();
+            var stage2 = stage1.Select((x, index) =>
+            (
+            itsStage: true,
+            elementIndex: allItems.Count + index,
+            stageLink: x.mod.mod.FirstOperLink,
+            modLink: x.mod,
+            new MaterialUco(x.mod.mod.FirstOperLink.Nomenklature, x.mod.mod.FirstOperLink.Characteristics),
+            MatIndex: x.place,
+            MatWeight: (long)(x.mod.mod.Sum * 1000)
+            ));
+            allItems.AddRange(stage2);
 
             Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>> opsPossibleLeftoversForOne = new Dictionary<IAbleForTaraCalcInterface, Dictionary<Guid, LeftoversReplacementClass>>();
 
@@ -302,7 +324,7 @@ namespace ApsRT.Core.Leftovers
             var allBins = CurrentLeftoversCount.SelectMany(x =>
 
             x.Value.Select(sub =>
-            (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (long)(sub.Value.Count * 1000.0), BinEdIzm: sub.Value.DimensionUnit)
+            (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (long)(sub.Value.Count * 1000.0), BinEdIzm: sub.Value.DimensionUnit, UniqueGUID: x.Key.Seria.Object.Code)
 
             )
 
@@ -325,18 +347,24 @@ namespace ApsRT.Core.Leftovers
 
             // Создаём таблицу для данных
             long[,] IBtable = new long[allItems.Count, allBins.Count];
+            // И ещё бонусная таблица
+            long[,] BONUS_Table = new long[allItems.Count, allBins.Count];
             // Заполняем ее данными по весу
             for (int i = 0; i < allItems.Count; i++)
             {
                 for (int b = 0; b < allBins.Count; b++)
                 {
                     var binMatData = (allBins[b].MatData.Nomenklature, allBins[b].MatData.Characteristics);
+
+
                     if (binMatData == allItems[i].MatData)
                     {
                         IBtable[i, b] = allItems[i].MatWeight;
                     }
                     else
                     {
+                        if (allItems[i].itsStage) continue; // Если это этап на закрытие, то ни о каком аналоге речи не идет
+
                         if (AllPossibleAnaloguesForMats[i].TryGetValue(binMatData, out var analogueW)) // НО! Если у мата есть аналог, как раз такой остаток, то поместить МОЖНО!
                         {
                             // Причем не с абы каким весом, а с новым
@@ -345,6 +373,22 @@ namespace ApsRT.Core.Leftovers
                     }
                 }
             }
+
+            // Тут лежит инфа - заюзан ли где то предмет или нет
+            BoolVar[] itemChosen = new BoolVar[allItems.Count];
+
+            for (int i = 0; i < allItems.Count; i++)
+            {
+                itemChosen[i] = model.NewBoolVar($"chosen_{i}");
+
+                // chosen[i] = 1, если предмет лежит ХОТЯ БЫ в одном рюкзаке
+                model.AddMaxEquality(itemChosen[i], Enumerable.Range(0, allBins.Count).Select(b => (Google.OrTools.Sat.LinearExpr)xNew[i, b]));
+            }
+
+            // А тут лежит инфа, залочен рюкзак или нет
+            //BoolVar[] binLocked = new BoolVar[allBins.Count];
+            //for (int b = 0; b < allBins.Count; b++)
+            //    binLocked[b] = model.NewBoolVar($"binLocked_{b}");
 
             // Ограничение: каждый предмет можно только в одну корзину, и при том не в каждую
             for (int i = 0; i < allItems.Count; i++)
@@ -362,16 +406,69 @@ namespace ApsRT.Core.Leftovers
                     {
                         // Поместить можно.
                         literals.Add(xNew[i, b]);
+
+
+                        if (allItems[i].itsStage)
+                        {
+                            // Во первых, все этапы которые те же что и этот, но являются материалами, закроются тут же
+                            List<(ILiteral lit, int i, int b)> allOtherRestrictedMatsFromThisStage = allItems.Where(x => x.stageLink == allItems[i].stageLink && !x.itsStage)
+                                .SelectMany(x => Enumerable.Range(0, allBins.Count).Select(b => (xNew[x.elementIndex, b], x.elementIndex, b))).ToList();
+
+                            model.Add(Google.OrTools.Sat.LinearExpr.Sum(allOtherRestrictedMatsFromThisStage.GroupBy(x => x.i).Select(x => itemChosen[x.Key])) == 0).OnlyEnforceIf(xNew[i, b]);
+
+                            // Во вторых, все его предки, неважно, материалы это или нет, тоже будут в сумме должны быть 0. Они не пойдут ни в одну из корзин, и никуда не встанут.
+                            List<int> allPrevs = allItems[i].modLink.mod.AllOpers.SelectMany(x => x.Prevs).Distinct().ToList();
+                            Queue<int> toCheck = new Queue<int>(allPrevs);
+                            while (toCheck.Count > 0)
+                            {
+                                var el = toCheck.Dequeue();
+                                foreach (var prev in SessionLink.MasterDataLinks.StagesMasterData.AllStages[el].Prevs)
+                                {
+                                    allPrevs.Add(prev);
+                                    /*if (!AllStages[prev].Fixed)*/
+                                    toCheck.Enqueue(prev);
+                                }
+                            }
+                            HashSet<int> asHashSetPrevs = allPrevs.ToHashSet();
+                            List<(ILiteral lit, int i, int b)> allPreviousOps = allItems.Where(x => asHashSetPrevs.Contains(x.stageLink.Index))
+
+
+                                .SelectMany(x => Enumerable.Range(0, allBins.Count).Select(b => (xNew[x.elementIndex, b], x.elementIndex, b))).ToList();
+
+
+                            model.Add(Google.OrTools.Sat.LinearExpr.Sum(allPreviousOps.GroupBy(x => x.i).Select(x => itemChosen[x.Key]))/*.Select(x => x.lit))*/ == 0).OnlyEnforceIf(xNew[i, b]);
+
+                            // И последнее - больше никакой из элементов не может встать в эту корзину - она теперь задел, и этап ее всю забрал себе
+                            List<(ILiteral lit, int i, int b)> allOtherElements = Enumerable.Range(0, allItems.Count).Where(x => x != i).Select(j => (xNew[j, b], j, b)).ToList();
+                            foreach (var el in allOtherElements)
+                                model.AddImplication(xNew[i, b], el.lit.Not());
+                            
+                            // model.Add(Google.OrTools.Sat.LinearExpr.Sum(allOtherElements.Select(x => x.lit)) == 0).OnlyEnforceIf(xNew[i, b]);
+
+                            var finalList = allOtherRestrictedMatsFromThisStage.Union(allPreviousOps).Union(allOtherElements).Distinct().ToArray();
+                            long bonus = 0;
+                            foreach (var el in finalList)
+                            {
+                                bonus += IBtable[el.i, el.b];
+                            }
+                            bonus += 1000 * allItems[i].stageLink.Level;
+                            BONUS_Table[i, b] = bonus;
+                        }
+
                     }
                 }
                 model.Add(Google.OrTools.Sat.LinearExpr.Sum(literalsRestricted) == 0); // В сумме запрещенных литератов быть не должно! Должен быть 0!
                 model.AddAtMostOne(literals); // А разрешенных - лишь 1!
+
+
+                //model.Add().
             }
 
             // Групповые ограничения: если вес аналога есть, это не значит, что он самостоятельный. Требуется указать ограничения по группам
-            var groupedByOps = allItems.GroupBy(x => x.stageLink); // Сгруппирем по этапам.
+            var groupedByOps = allItems.GroupBy(x => (x.stageLink, x.itsStage)); // Сгруппирем по этапам.
             foreach (var group in groupedByOps)
             {
+                if (group.Key.itsStage) continue; // Целые этапы мы В ПРИНЦИПЕ не рассматриваем
                 var lists = opsPossibleLeftoversForOne[group.First().modLink.mod]; // Получим все списки остатков для этого этапа, чтобы задать инфу этапам
                 foreach (var list in lists)
                 {
@@ -382,7 +479,7 @@ namespace ApsRT.Core.Leftovers
 
                     // Мы ищем в группе group первый элемент, чья номенклатура равна "оригиналу" из groupInfo
                     group.FirstOrDefault(item => item.MatData == listGroupInfo.Original, // Сравниваем предмет
-                    (-1, null, (null, null), new (), -1, -1) // А это заглушка Default.
+                    (false /*это ж материал, потому фолс*/, -1, null, (null, null), new (), -1, -1) // А это заглушка Default.
                     )
                     .elementIndex // По итогу возвращаем elementIndex. Если элемент не найден, он будет равен -1.
 
@@ -488,48 +585,128 @@ namespace ApsRT.Core.Leftovers
                 }
             }
 
-            // На основании таблицы задаём удельную ценность
-            LinearExprBuilder obj = Google.OrTools.Sat.LinearExpr.NewBuilder();
-            for (int i = 0; i < allItems.Count; i++)
+            // Добавляем информацию об использовании рюкзака, Если хоть один предмет в неё вошёл.
+            BoolVar[] binUsed = new BoolVar[allBins.Count];
+            for (int b = 0; b < allBins.Count; b++)
             {
-                for (int b = 0; b < allBins.Count; b++)
+                binUsed[b] = model.NewBoolVar($"binUsed_{b}");
+                for (int i = 0; i < allItems.Count; i++)
                 {
-                    obj.AddTerm(xNew[i, b], IBtable[i, b] / (allItems[i].stageLink.Subdivision != allBins[b].Subdivision ? 2 : 1)); // Если не то подразделение, то этот остаток не настолько хорош, как другие.
+                    model.AddImplication(xNew[i, b], binUsed[b]);
                 }
             }
-            model.Maximize(obj);
 
-            // Решалка
-            var dt0 = DateTime.Now;
-            CpSolver solverNew = new CpSolver();
-            CpSolverStatus status = CpSolverStatus.Unknown;
-            CustomCpSolverSolutionCallback cb = new CustomCpSolverSolutionCallback(500);
-            solverNew.StringParameters = "max_time_in_seconds:20.0";// enumerate_all_solutions:true; - было в документации, но и без нее всё работает
-            status = solverNew.Solve(model, cb);
-            var dt1 = DateTime.Now;
-            var delta = dt1 - dt0;
-            Console.WriteLine($"total time wasted on cpSolver is {delta}");
-            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"total time wasted on solver is {delta}");
-            if (status == CpSolverStatus.Optimal || status == CpSolverStatus.Feasible)
+            // Считаем общий вес (точнее СТОИМОСТЬ) всем назначенным остаткам
+            LinearExprBuilder totalWeightExpr = Google.OrTools.Sat.LinearExpr.NewBuilder();
+            for (int b = 0; b < allBins.Count; b++)
             {
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    for (int b = 0; b < allBins.Count; b++)
+                    totalWeightExpr.AddTerm(xNew[i, b], IBtable[i, b] + BONUS_Table[i, b]);
+                }
+            }
+
+
+            // Создаём решалку
+            var dt0 = DateTime.Now;
+            CpSolverStatus status = CpSolverStatus.Unknown;
+            CpSolver solverNew = new CpSolver();
+            solverNew.StringParameters =
+                // enumerate_all_solutions:true; - было в документации, но и без нее всё работает
+                "max_time_in_seconds:300.0 " +
+                "num_search_workers:8 " +
+                "cp_model_probing_level:2 " +
+                "cp_model_presolve:true";
+
+            // Шаг 1. Макс веса
+            model.Maximize(totalWeightExpr);
+            CustomCpSolverSolutionCallback cb = new CustomCpSolverSolutionCallback(50000);
+            status = solverNew.Solve(model, cb);
+
+            var dt1 = DateTime.Now;
+            var delta = dt1 - dt0;
+            Console.WriteLine($"1/2 time wasted on cpSolver is {delta}, status: {status}");
+            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"1/2 time wasted on solver is {delta}, status: {status}");
+            SetResults(status);
+
+            long maxWeightFound = (long)solverNew.ObjectiveValue;
+            // ограничение: что меньше этого не надо
+            model.Add(totalWeightExpr >= maxWeightFound);
+
+            // Старая цель: просто максимизировать количество задействованных материалов в КГ:
+            //LinearExprBuilder obj = Google.OrTools.Sat.LinearExpr.NewBuilder();
+            //for (int i = 0; i < allItems.Count; i++)
+            //{
+            //    for (int b = 0; b < allBins.Count; b++)
+            //    {
+            //        var subdivisionsDecreaser = allItems[i].stageLink.Subdivision != allBins[b].Subdivision ? 2 : 1;
+
+            //        // На основании таблицы задаём удельную ценность
+            //        obj.AddTerm(xNew[i, b], IBtable[i, b] / subdivisionsDecreaser); // Если не то подразделение, то этот остаток не настолько хорош, как другие.
+            //    }
+            //}
+            //model.Maximize(obj);
+
+
+            var maxCap = allBins.Max(x => x.BinCapacity);
+            //var minCap = allBins.Min(x => x.BinCapacity);
+
+            // Заполненность рюкзаков
+            LinearExprBuilder fillBonus = Google.OrTools.Sat.LinearExpr.NewBuilder();
+            for (int b = 0; b < allBins.Count; b++)
+            {
+                LinearExprBuilder binWeight = Google.OrTools.Sat.LinearExpr.NewBuilder();
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    binWeight.AddTerm(xNew[i, b], IBtable[i, b] * 1000 * maxCap / allBins[b].BinCapacity);
+                }
+
+                fillBonus.Add(binWeight);
+            }
+            model.Maximize(fillBonus);
+
+            // Решалка - второй уровень
+            cb = new CustomCpSolverSolutionCallback(50000);
+            var status2 = solverNew.Solve(model, cb);
+
+            dt1 = DateTime.Now;
+            delta = dt1 - dt0;
+            Console.WriteLine($"total time wasted on cpSolver is {delta}, status: {status2}");
+            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"total time wasted on solver is {delta}, status: {status2}");
+            SetResults(status2);
+
+            void SetResults(CpSolverStatus statusHere)
+            {
+                if (statusHere == CpSolverStatus.Optimal || statusHere == CpSolverStatus.Feasible)
+                {
+                    for (int i = 0; i < allItems.Count; i++)
                     {
-                        if (solverNew.BooleanValue(xNew[i, b]))
+                        if (!allItems[i].itsStage) allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers[allItems[i].MatIndex] = null; // очистим все на всякий случай
+                        for (int b = 0; b < allBins.Count; b++)
                         {
-                            var list = allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers;
-                            // Назначим ту номенклатуру, что у рюкзака - это может быть как оригинал, так и аналог.
-                            list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatData, IBtable[i, b] / 1000.0, allBins[b].BinEdIzm);
+                            var lit = xNew[i, b];
+                            if (solverNew.BooleanValue(lit))
+                            {
+                                if (allItems[i].itsStage)
+                                {
+                                    // Это ЗАДЕЛ для ВСЕГО ЭТАПА.
+                                    
+                                    SessionLink.MasterDataLinks.ZadelsMasterData.SetZadelToSdvig(allItems[i].modLink.mod as PartiaModelling, allBins[b].UniqueGUID, Uco.EmptyObject, LinearLeftoversCount[allBins[b].UniqueGUID]);
+                                    Console.WriteLine($"zadel set to stage {allItems[i].modLink.mod.FirstOperLink.ID} = {allBins[b].UniqueGUID}");
+                                }
+                                else
+                                {
+                                    // Это остаток для материала.
+                                    var list = allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers;
+                                    // Назначим ту номенклатуру, что у рюкзака - это может быть как оригинал, так и аналог.
+                                    list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatData, IBtable[i, b] / 1000.0, allBins[b].BinEdIzm);
+                                }
+                            }
                         }
                     }
                 }
             }
-            else
-            {
-                Console.WriteLine($"cpSolver ended with {status}");
-                SessionLink.AssignedLogger.LogQueue.Enqueue($"solver for leftovers ended with {status}");
-            }
+
         }
 
         public List<LeftoverLackData> PlanAndFixMaterialsInfo(List<PlanSimulatorBlock> Blocks, IDictionary<int, DateTime> firstStageStartData, int PoolIndex)

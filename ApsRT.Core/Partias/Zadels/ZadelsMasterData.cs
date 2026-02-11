@@ -188,22 +188,24 @@ namespace ApsRT.Core.Partias.Zadels
 
                                         zadel.ZadelStatus = ZadelStatus.SussesfullyUsed;
 
-                                        var code = partia1[i][j].ZadelCode;
-
                                         var guid = zadelV.Key;
 
-                                        var codeToAdd = guid.GetHashCode();
+                                        int code = SetZadelToSdvig(partia1[i][j], guid, zadel.UsedTara, countToSet);
 
-                                        if (code == 0)
-                                            code = codeToAdd;
-                                        else
-                                            code = HashCode.Combine(code, codeToAdd);
+                                        //var code = partia1[i][j].ZadelCode;
 
-                                        partia1[i][j].ZadelsGUIDs.Add(guid);
-                                        partia1[i][j].ZadelCode = code;
+                                        //var codeToAdd = guid.GetHashCode();
 
-                                        partia1[i][j].Tara = zadel.UsedTara;
-                                        partia1[i][j].Max = countToSet;
+                                        //if (code == 0)
+                                        //    code = codeToAdd;
+                                        //else
+                                        //    code = HashCode.Combine(code, codeToAdd);
+
+                                        //partia1[i][j].ZadelsGUIDs.Add(guid);
+                                        //partia1[i][j].ZadelCode = code;
+
+                                        //partia1[i][j].Tara = zadel.UsedTara;
+                                        //partia1[i][j].Max = countToSet;
 
                                         EraseZadelsTree(partia1[i][j], code);
                                     }
@@ -299,24 +301,11 @@ namespace ApsRT.Core.Partias.Zadels
                                     }
                                     else
                                     {
-                                        var code = partia1[i][j].ZadelCode;
-
                                         var guid = zadel.Key;
 
-                                        var codeToAdd = guid.GetHashCode();
+                                        int code = SetZadelToSdvig(partia1[i][j], guid, zadel.Value.UsedTara, zadel.Value.Count);
 
-                                        if (code == 0)
-                                            code = codeToAdd;
-                                        else
-                                            code = HashCode.Combine(code, codeToAdd);
-
-                                        partia1[i][j].ZadelsGUIDs.Add(guid);
-                                        partia1[i][j].ZadelCode = code;
-
-                                        partia1[i][j].Tara = zadel.Value.UsedTara;
-                                        partia1[i][j].Max = zadel.Value.Count;
-
-                                        EraseZadelsTree(partia1[i][j], code);
+                                        EraseZadelsTree(partia1[i][j], code, OpersToSdvigs, OriginallyTaraWasThis);
                                     }
                                 }
                             }
@@ -324,23 +313,49 @@ namespace ApsRT.Core.Partias.Zadels
                         }
                     }
 
-                    // У всех предыдущих стираем всё
-                    void EraseZadelsTree(PartiaModelling sdvig, int zadelCode)
-                    {
-                        foreach (var prev in sdvig.Opers.SelectMany(x => x.Prevs)) // смотрим предков
-                        {
-                            if (OpersToSdvigs.TryGetValue(prev, out var sdvigP))
-                            {
-                                sdvigP.ZadelCode = zadelCode;
-                                sdvigP.Tara = OriginallyTaraWasThis[prev].Tara; // Возвращаем тару на месту, если там была перезапись
-                                sdvigP.Max = OriginallyTaraWasThis[prev].namot; // Возвращаем тару на месту, если там была перезапись
-                                sdvigP.ZadelsGUIDs.Clear();
-                                EraseZadelsTree(sdvigP, zadelCode);
-                            }
-                        }
-                    }
                 }
             }
+        }
+
+
+        // У всех предыдущих стираем всё
+        void EraseZadelsTree(PartiaModelling sdvig, int zadelCode, Dictionary<int, PartiaModelling> OpersToSdvigs, Dictionary<int, (Uco Tara, double namot)> OriginallyTaraWasThis)
+        {
+            foreach (var prev in sdvig.Opers.SelectMany(x => x.Prevs)) // смотрим предков
+            {
+                if (OpersToSdvigs.TryGetValue(prev, out var sdvigP))
+                {
+                    sdvigP.ZadelCode = zadelCode;
+                    if (OriginallyTaraWasThis != null)
+                    {
+                        sdvigP.Tara = OriginallyTaraWasThis[prev].Tara; // Возвращаем тару на месту, если там была перезапись
+                        sdvigP.Max = OriginallyTaraWasThis[prev].namot; // Возвращаем тару на месту, если там была перезапись
+                    }
+                    sdvigP.ZadelsGUIDs?.Clear();
+                    EraseZadelsTree(sdvigP, zadelCode, OpersToSdvigs, OriginallyTaraWasThis);
+                }
+            }
+        }
+
+        public int SetZadelToSdvig(PartiaModelling partia1, Guid guid, Uco tara, double max)
+        {
+            var code = partia1.ZadelCode;
+
+
+            var codeToAdd = guid.GetHashCode();
+
+            if (code == 0)
+                code = codeToAdd;
+            else
+                code = HashCode.Combine(code, codeToAdd);
+            partia1.ZadelsGUIDs ??= new();
+            partia1.ZadelsGUIDs.Add(guid);
+            partia1.ZadelCode = code;
+
+            partia1.Tara = tara;
+            partia1.Max = max;
+
+            return code;
         }
 
         public void UpdateFreeZadelsStatuses(List<PartiaClass> partiasToCheck)
@@ -354,12 +369,14 @@ namespace ApsRT.Core.Partias.Zadels
                 {
                     foreach (var zadel in mod.ZadelsGUIDs)
                     {
-                        var zadelClass = LinearZadelsDictionary[zadel];
-                        zadelClass.ZadelStatus = ZadelStatus.SussesfullyUsed;
-                        foreach (var oper in mod.Opers)
+                        if (LinearZadelsDictionary.TryGetValue(zadel, out var zadelClass))
                         {
-                            //oper.ZadelsInherited = zadelsCount;
-                            zadelClass.WhereIsUsed.Add((oper.Index, oper.Count/*(mod as IAbleForTaraCalcInterface).Sum*/));
+                            zadelClass.ZadelStatus = ZadelStatus.SussesfullyUsed;
+                            foreach (var oper in mod.Opers)
+                            {
+                                //oper.ZadelsInherited = zadelsCount;
+                                zadelClass.WhereIsUsed.Add((oper.Index, oper.Count/*(mod as IAbleForTaraCalcInterface).Sum*/));
+                            }
                         }
                     }
 

@@ -122,8 +122,9 @@ namespace ApsRTCustomComponents
                         $"\r\nНаладочные длины: {curr} {next}"
                         + $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
                         //+ $"\r\nКгКм сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count * x.KgKm / 1000.0)}"
-                        + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n\r\n"
-                            + $"код задела: {partiaClass1.OpersHere[i][j].ZadelCode}, заделы: {(string.Join(", ", partiaClass1.OpersHere[i][j].ZadelsGUIDs))}\r\n\r\n"
+                        + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n"
+                        + $"Множитель кратности этапа:{partiaClass1.OpersHere[i][j].PlacesCountMultiplierToRewrite}\r\n\r\n"
+                            + $"код задела: {partiaClass1.OpersHere[i][j].ZadelCode}, заделы: {(partiaClass1.OpersHere[i][j].ZadelsGUIDs == null ? "нет" : string.Join(", ", partiaClass1.OpersHere[i][j].ZadelsGUIDs))}\r\n\r\n"
                             + string.Join("\r\n\r\n", partiaClass1.OpersHere[i][j].Opers.Select(x =>
                             {
                                 string livCodeFinal = SessionLink.MasterDataLinks.StagesMasterData.SavedOpersLivenCode.TryGetValue(x.Index, out var livCode) ? livCode.GetHashCode().ToString() : "нету";
@@ -171,7 +172,7 @@ namespace ApsRTCustomComponents
 
                         node.IDs = new HashSet<int>(partiaClass1.OpersHere[i][j].Opers.Select(x => x.Index));
 
-                        node.ZadelsColors = partiaClass1.OpersHere[i][j].ZadelsGUIDs.Count > 0 ?
+                        node.ZadelsColors = partiaClass1.OpersHere[i][j].ZadelsGUIDs != null && partiaClass1.OpersHere[i][j].ZadelsGUIDs.Count > 0 ?
                             //(MainLoader.StaticColors[Math.Abs(partiaClass1.OpersHere[i][j].ZadelGUID.Value.GetHashCode()) % MainLoader.StaticColors.Length]) 
                             partiaClass1.OpersHere[i][j].ZadelsGUIDs.Select(x => GetColorHere(x.GetHashCode())).ToArray()
                             : (partiaClass1.OpersHere[i][j].ZadelCode != 0 ? new[] { GetColorHere(partiaClass1.OpersHere[i][j].ZadelCode) } : null); // дибильный способ как-нибудь выбрать цвет

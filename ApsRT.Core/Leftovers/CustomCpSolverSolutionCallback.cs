@@ -17,6 +17,7 @@ namespace ApsRT.Core.Leftovers
         public override void OnSolutionCallback()
         {
             solution_count_++;
+            if (solution_count_ % 1000 == 0) Console.WriteLine(solution_count_);
             if (solution_count_ >= solution_limit_)
             {
                 Console.WriteLine(string.Format("Stopping search after {0} solutions", solution_limit_));

@@ -30,6 +30,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
         public Dictionary<int, Uco> RestrictionsVia74110 = new();
 
+        public Uco? BestSubdivision = null;
+
         public PartiasGeneratorEngineData(List<Stages.Stage> stages, Session.Session sessionLink = null)
         {
             Stages = stages;
