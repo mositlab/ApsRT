@@ -123,7 +123,7 @@ namespace ApsRTCustomComponents
                         + $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
                         //+ $"\r\nКгКм сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count * x.KgKm / 1000.0)}"
                         + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n"
-                        + $"Множитель кратности этапа:{partiaClass1.OpersHere[i][j].PlacesCountMultiplierToRewrite}\r\n\r\n"
+                        + $"Множитель кратности этапа: {partiaClass1.OpersHere[i][j].PlacesCountMultiplierToRewrite}\r\n\r\n"
                             + $"код задела: {partiaClass1.OpersHere[i][j].ZadelCode}, заделы: {(partiaClass1.OpersHere[i][j].ZadelsGUIDs == null ? "нет" : string.Join(", ", partiaClass1.OpersHere[i][j].ZadelsGUIDs))}\r\n\r\n"
                             + string.Join("\r\n\r\n", partiaClass1.OpersHere[i][j].Opers.Select(x =>
                             {

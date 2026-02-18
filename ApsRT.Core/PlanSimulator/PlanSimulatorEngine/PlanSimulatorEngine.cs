@@ -501,7 +501,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     }
 
                     // Назначаем детям инфу о себе
-                    var rottingData = mod.PartiaRottingData[PoolIndex];
+                    var rottingData = nextModHere.PartiaRottingData[PoolIndex];
                     if (rottingData.Flag != currentFlag || rottingData.WorstMod == null || rottingData.WorstMod.DateOfEnd[PoolIndex] > LastDate)
                     {
                         rottingData.Flag = currentFlag;
@@ -574,36 +574,36 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         {
             var neededDate = modelling.FirstOperJust.Fixed ? modelling.FirstOperJust.StartTimeFact.Value : minDate;
 
-            var timeBcsOfTransfers = neededDate;
-            var subsMasterData = modelling.FirstOperJust.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData;
-            if (subsMasterData.HasAnyData)
-            {
-                var subsData = modelling.LastSubsData[PoolIndex];
-                if (subsData.Flag == neededFlag && subsData.LastMod != null && subsData.LastMod != modelling)
-                {
-                    var nextSub = modelling.BlockLink.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
-                    if (nextSub != subsData.LastSubdivision)
-                    {
-                        var transferTime = subsMasterData.GetSubdivisionTransferTime(subsData.LastSubdivision, nextSub);
-                        timeBcsOfTransfers = subsData.LastMod.DateOfEnd[PoolIndex].AddSeconds(transferTime); // Прибавляем к предыдущему моду из этой партии время перехода
-                    }
-                }
-            }
+            //var timeBcsOfTransfers = neededDate;
+            //var subsMasterData = modelling.FirstOperJust.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData;
+            //if (subsMasterData.HasAnyData)
+            //{
+            //    var subsData = modelling.LastSubsData[PoolIndex];
+            //    if (subsData.Flag == neededFlag && subsData.LastMod != null && subsData.LastMod != modelling)
+            //    {
+            //        var nextSub = modelling.BlockLink.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
+            //        if (nextSub != subsData.LastSubdivision)
+            //        {
+            //            var transferTime = subsMasterData.GetSubdivisionTransferTime(subsData.LastSubdivision, nextSub);
+            //            timeBcsOfTransfers = subsData.LastMod.DateOfEnd[PoolIndex].AddSeconds(transferTime); // Прибавляем к предыдущему моду из этой партии время перехода
+            //        }
+            //    }
+            //}
 
             var timeBcsOfPrevs = modelling.MinDatesData[PoolIndex];//pool.DatesData[modelling.ModID];
 
             if (timeBcsOfPrevs.Flag == neededFlag // Если это время актуально и 
                 && timeBcsOfPrevs.MinValue > neededDate
-                && timeBcsOfPrevs.MinValue > timeBcsOfTransfers)
+                /*&& timeBcsOfPrevs.MinValue > timeBcsOfTransfers*/)
             {
                 return new PlanSimulatorDatesData(timeBcsOfPrevs);
             }
 
-            if (timeBcsOfTransfers > neededDate
-                && (timeBcsOfPrevs.Flag != neededFlag || timeBcsOfTransfers > timeBcsOfPrevs.MinValue))
-            {
-                return new PlanSimulatorDatesData(timeBcsOfTransfers, neededFlag, -1, -1);
-            }
+            //if (timeBcsOfTransfers > neededDate
+            //    && (timeBcsOfPrevs.Flag != neededFlag || timeBcsOfTransfers > timeBcsOfPrevs.MinValue))
+            //{
+            //    return new PlanSimulatorDatesData(timeBcsOfTransfers, neededFlag, -1, -1);
+            //}
 
             return new PlanSimulatorDatesData(neededDate, neededFlag, -1, -1);
 

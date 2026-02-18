@@ -389,8 +389,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             if (here1.Opers[0].CanChangePlacesCount) 
                             {
                                 if (here1.Opers.Count + x.Opers.Count > 2) return false;
-                                if (here1.PlacesCountMultiplierToRewrite.HasValue && here1.PlacesCountMultiplierToRewrite.Value > 1) return false;
-                                if (x.PlacesCountMultiplierToRewrite.HasValue && x.PlacesCountMultiplierToRewrite.Value > 1) return false;
+                                //if (here1.PlacesCountMultiplierToRewrite.HasValue && here1.PlacesCountMultiplierToRewrite.Value > 1) return false;
+                                //if (x.PlacesCountMultiplierToRewrite.HasValue && x.PlacesCountMultiplierToRewrite.Value > 1) return false;
                             }
 
                             if (withHerself)
@@ -516,16 +516,23 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                     bool isZadel = here1.ZadelCode != 0;
 
+                    //bool isZadel2 = here2[i].ZadelCode != 0;
+
                     // Если это задел, то юзается тара из первого же задела тут.
                     // TODO: а что если у каждого задела свои тары?
                     if (isZadel)
                     {
-                        //gotMax = here01.Opers.Sum(x => x.Count);
+                        gotMax = here01.Opers.Sum(x => x.Count);
                         if (here1.ZadelsGUIDs.Count > 0)
                         {
                             gotTara = Zadels.LinearZadelsDictionary.TryGetValue(here1.ZadelsGUIDs[0], out var zet) ? zet.UsedTara : Uco.EmptyObject;
                         }
                     }
+
+                    //if (isZadel2)
+                    //{
+                    //    ;
+                    //}
 
                     // Условие "на одном РЦ" - поиск нужного РЦ или хотя бы ограничение
 
@@ -916,11 +923,11 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         }
 
 
-        static int PreZadelsConnection(PartiaClass partia1, PartiaClass partia2, bool withHerself/*пока низачем не нужен, но мб потом пригодится*/)
+        static int PreZadelsConnection(PartiaClass partia1, PartiaClass partia2, bool withHerself/*пока низачем не нужен, но мб потом пригодится*/, HashSet<int> restrictedCodes)
         {
             var dic1 = SeeSdvigsAsDic(partia1.OpersHere);
 
-            var myPartiaSdvigs = dic1.AsValueEnumerable().Where(x => x.Value.ZadelsGUIDs != null && x.Value.ZadelsGUIDs.Count > 0); // Получаем все сдвиги с заделами
+            var myPartiaSdvigs = dic1.AsValueEnumerable().Where(x => x.Value.ZadelsGUIDs != null && x.Value.ZadelsGUIDs.Count > 0 && (restrictedCodes == null || !restrictedCodes.Contains(x.Value.ZadelCode))); // Получаем все сдвиги с заделами
 
             if (myPartiaSdvigs.Count() == 0) return 0;
 
@@ -946,6 +953,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 );
                 if (possibleOtherPartiaSdvigs.Count() > 0)
                 {
+                    maxLevel = firstOp.Level;
+
+                    continue;
+
                     // Получаем список УЖЕ зарезервированных модов, которые в моей партии при объединении схлопнутся.
                     var alreadyReserved = dic1.AsValueEnumerable().Where(x => x.Value.Opers[0].Level == firstOp.Level && x.Value.ZadelCode == mod.ZadelCode).Select(x => x.Value as IAbleForTaraCalcInterface).ToHashSet();
 
@@ -970,20 +981,20 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             var packedItems = possibleOtherPartiaSdvigs.Where((x, index) => solver.BestSolutionContains(index)).Select(x => x.Value).ToArray();
                             for (int i = 0; i < packedItems.Length; i++)
                             {
-                                SetZadelCodes(packedItems[i], mod.ZadelCode, mod.ZadelsGUIDs); // Назначаем
+                                SetZadelCodes(packedItems[i], mod.ZadelCode, mod.ZadelsGUIDs, mod.Max); // Назначаем
                             }
 
-                            maxLevel = firstOp.Level;
                         }
                     }
 
-                    void SetZadelCodes(PartiaModelling mod, int zadelCode, List<Guid> zadelsGUIDs)
+                    void SetZadelCodes(PartiaModelling mod, int zadelCode, List<Guid> zadelsGUIDs, double max)
                     {
                         // TO DO: А что если тут какой-то другой задел оказался???
                         mod.ZadelCode = zadelCode;
                         mod.ZadelsGUIDs = zadelsGUIDs;
+                        //mod.Max = max;
                         var prevMods = mod.Opers.AsValueEnumerable().SelectMany(x => x.Prevs).Select(x => allOtherSdvigs[x]).Distinct();
-                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, new() /*потому что уровням выше нужно пустоту задать*/);
+                        foreach (var prev in prevMods) SetZadelCodes(prev, zadelCode, new() /*потому что уровням выше нужно пустоту задать*/, max);
                     }
                 }
             }
@@ -1020,9 +1031,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
             if (!SessionLink.SessionOptions.LaunchZadel)
             {
-                int l1 = PreZadelsConnection(firstPartia, secondPartia, withHerself);
+                int l1 = PreZadelsConnection(firstPartia, secondPartia, withHerself, secondPartia.SeeSdvigsAsDic().Where(x => x.Value.ZadelCode > 0).Select(x => x.Value.ZadelCode).Distinct().ToHashSet());
                 if (l1 > maxLevelZadels) maxLevelZadels = l1;
-                int l2 = PreZadelsConnection(secondPartia, firstPartia, withHerself); // Друг для друга создаём инфу о заделах
+                int l2 = PreZadelsConnection(secondPartia, firstPartia, withHerself, firstPartia.SeeSdvigsAsDic().Where(x => x.Value.ZadelCode > 0).Select(x => x.Value.ZadelCode).Distinct().ToHashSet()); // Друг для друга создаём инфу о заделах
                 if (l2 > maxLevelZadels) maxLevelZadels = l2;
             }
 

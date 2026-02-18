@@ -152,6 +152,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, fin.Length);
                 InsidePartiasOptimization(fin, WithLog);
 
+                CalculateUsedZadels(fin);
+
                 CurrentStage = PartiasAlgorithmStage.FormingEasyFlags;
                 CurrentStageChanged?.Invoke(CurrentStage, fin.Length);
                 var easyFlags = CreateEasyFlags(fin);
@@ -201,6 +203,35 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 CurrentStageChanged?.Invoke(CurrentStage, 0);
                 return false;
             }
+        }
+
+        private void CalculateUsedZadels(PartiaClass[] fin)
+        {
+            Dictionary<Guid, double> UsedCount = new();
+            foreach (var partia in fin)
+            {
+                foreach (var level in partia.OpersHere)
+                {
+                    foreach (var sdvig in level)
+                    {
+                        if (sdvig.ZadelsGUIDs != null && sdvig.ZadelsGUIDs.Count > 0)
+                        {
+                            var sum = (sdvig as IAbleForTaraCalcInterface).Sum;
+                            foreach (var zad in sdvig.ZadelsGUIDs)
+                            {
+                                UsedCount.TryAdd(zad, 0);
+                                UsedCount[zad] += sum;
+                            }
+                        }
+                    }
+                }
+            }
+            Console.WriteLine("--- used zadels ---");
+            foreach (var el in UsedCount)
+            {
+                Console.WriteLine($"{el.Key}: {el.Value}");
+            }
+            Console.WriteLine("--- ---");
         }
 
         void PrepareSession()
@@ -1156,7 +1187,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             }
 
                             // Устанавливаем кол-во мест
-                            if (lvl2.PlacesCountMultiplierToRewrite.HasValue)
+                            if (lvl2.PlacesCountMultiplierToRewrite.HasValue && lvl2.PlacesCountMultiplierToRewrite.Value > 1)
                                 op1.SetPlacesCount(op1.OriginalPlacesCount * lvl2.PlacesCountMultiplierToRewrite.Value);
 
                             // Записываем инфу об ошибках тары, если они есть

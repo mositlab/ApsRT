@@ -319,7 +319,7 @@ namespace ApsRT.Core.Partias.Zadels
 
 
         // У всех предыдущих стираем всё
-        void EraseZadelsTree(PartiaModelling sdvig, int zadelCode, Dictionary<int, PartiaModelling> OpersToSdvigs, Dictionary<int, (Uco Tara, double namot)> OriginallyTaraWasThis)
+        public void EraseZadelsTree(PartiaModelling sdvig, int zadelCode, Dictionary<int, PartiaModelling> OpersToSdvigs, Dictionary<int, (Uco Tara, double namot)> OriginallyTaraWasThis)
         {
             foreach (var prev in sdvig.Opers.SelectMany(x => x.Prevs)) // смотрим предков
             {
@@ -331,7 +331,7 @@ namespace ApsRT.Core.Partias.Zadels
                         sdvigP.Tara = OriginallyTaraWasThis[prev].Tara; // Возвращаем тару на месту, если там была перезапись
                         sdvigP.Max = OriginallyTaraWasThis[prev].namot; // Возвращаем тару на месту, если там была перезапись
                     }
-                    sdvigP.ZadelsGUIDs?.Clear();
+                    sdvigP.ZadelsGUIDs = new();
                     EraseZadelsTree(sdvigP, zadelCode, OpersToSdvigs, OriginallyTaraWasThis);
                 }
             }
@@ -353,7 +353,7 @@ namespace ApsRT.Core.Partias.Zadels
             partia1.ZadelCode = code;
 
             partia1.Tara = tara;
-            partia1.Max = max;
+            partia1.Max = partia1.Max == 0 ? max : Math.Min(max, partia1.Max);
 
             return code;
         }

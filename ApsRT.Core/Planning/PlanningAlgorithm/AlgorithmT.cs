@@ -70,14 +70,20 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var RCgroups = OpersCopy.GroupBy(block => block.GetCenterData(INDEX).Center);
 
-            Dictionary<Uco, (TimeSpan Rechanges, TimeSpan OpersTime)> RCData = new();
+            Dictionary<Uco, (TimeSpan Rechanges, TimeSpan OpersTime, double RottingTime)> RCData = new();
 
             foreach (var pair in RCgroups)
             {
                 var opersSum = pair.Sum(block => block.GetCenterData(INDEX).CenterDataLink.OpersTime.TotalSeconds);
                 var rechangesSum = pair.Sum(block => block.GetCenterData(INDEX).CenterDataLink.RechangesTime.TotalSeconds);
+                var rotTime = pair.Sum(block => block.Lists.Sum(mod =>
+                {
+                    var delta = mod.RottingTimeInDays[INDEX];
+                    if (delta < 0) delta = 0;
+                    return delta;
+                }));
 
-                RCData.Add(pair.Key, (TimeSpan.FromSeconds(rechangesSum), TimeSpan.FromSeconds(opersSum)));
+                RCData.Add(pair.Key, (TimeSpan.FromSeconds(rechangesSum), TimeSpan.FromSeconds(opersSum), rotTime));
             }
 
             var worstRCByOpers = RCData.Max(x => x.Value.OpersTime);
@@ -85,13 +91,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             Console.WriteLine($"T: worst RC by opers:");
             foreach (var item in worstRCsByOpers)
             {
-                Console.WriteLine($"{item}: {RCData[item].OpersTime} ({Math.Round(RCData[item].OpersTime / worstRCByOpers, 3)}, rechanges: {Math.Round(RCData[item].Rechanges / worstRCByOpers, 3)})");
+                Console.WriteLine($"{item}: {RCData[item].OpersTime} ({Math.Round(RCData[item].OpersTime / worstRCByOpers, 3)}, rechanges: {Math.Round(RCData[item].Rechanges / worstRCByOpers, 3)}, rotTime: {RCData[item].RottingTime})");
             }
             ;
 
             var onlyBig = worstRCsByOpers
-                .TakeWhile(item => Math.Round(RCData[item].OpersTime / worstRCByOpers, 3) >= 0.4f)
-                .Where(item => RCData[item].Rechanges.Ticks > 0);
+                //.TakeWhile(item =>  || RCData[item].RottingTime > 0)
+                .Where(item =>
+                (RCData[item].Rechanges.Ticks > 0 && Math.Round(RCData[item].OpersTime / worstRCByOpers, 3) >= 0.4f)
+                || RCData[item].RottingTime > 0);
 
             Console.WriteLine($"T: decided to check these RC:");
             foreach (var item in onlyBig)
@@ -269,14 +277,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                         var delta = prev - now;
 
-                        return (Block: block, HisValue: delta, AtoBdata: AtoBdata, DtoBdata: DtoBdata, AtoDdata: AtoDdata, A: A, B: B);
+                        var worstDelta = block.Lists.Max(x => x.RottingTimeInDays[INDEX]);
+                        if (worstDelta <= 0) worstDelta = 0;
+
+                        return (Block: block, HisValue: delta, RotDelta: worstDelta, AtoBdata: AtoBdata, DtoBdata: DtoBdata, AtoDdata: AtoDdata, A: A, B: B);
                     })
-                    .OrderBy(x =>
+                    .OrderByDescending(x =>
                     {
                         // Давай сначала по гниению
-                        var worstDelta = x.Block.Lists.Max(x => x.RottingTimeInDays[INDEX]);
-                        if (worstDelta <= 0) worstDelta = 0;
-                        return worstDelta == 0 ? -1 : x.Block.BlockIndex[INDEX]; // Сначала давай по гниению - чем левее, тем лучше
+                        return x.RotDelta == 0 ? -1 : x.Block.BlockIndex[INDEX]; // Сначала давай по гниению - чем левее, тем лучше
                     })
                     .ThenByDescending(x =>
                         {
@@ -295,7 +304,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 else
                 {
                     var first = possibleBlocksFinal[0];
-                    if (first.HisValue <= 0)
+                    if (first.HisValue <= 0 && first.RotDelta == 0)
                     {
                         value -= 1;
                         OpersCopy.Insert(blockIndex, D); // В оригинале тоже вносим такие изменения

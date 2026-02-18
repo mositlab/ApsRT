@@ -295,7 +295,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
                 //prevs.Add(x.ID, tara);
                 //OriginallyTaraWasThis.Add(x.ID, (tara, max));
-                var sdvig = new PartiaModelling(opers, RES.TaraName, RES.Max, RES.used_format, RES.FinalRC, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
+                var sdvig = new PartiaModelling(opers, RES.TaraName, RES.Max, RES.used_format, RES.FinalRC, RES.CurrentPlacesCountK, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                 if (trr.HasValue) sdvig.RCIsChecked = true; // блокируем возможность что-то поставить
                 addInfoLocal(opers, RES.TaraName, RES.Max, sdvig, true, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
@@ -312,7 +312,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     // Пометки, что этот РЦ проверен, пока не ставится. В случае ненахода норм РЦ или перераспределений итд, потом в партиях с помощью "метода поиска проверенного РЦ" он в случае чего заменится.
                     //prevs.Add(x.ID, tara);
                     //OriginallyTaraWasThis.Add(x.ID, (tara, max));
-                    var sdvig = new PartiaModelling(opers, RES2.TaraName, RES2.Max, RES2.used_format, RES2.FinalRC, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
+                    var sdvig = new PartiaModelling(opers, RES2.TaraName, RES2.Max, RES2.used_format, RES2.FinalRC, RES2.CurrentPlacesCountK, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                     addInfoLocal(opers, RES2.TaraName, RES2.Max, sdvig, true, engineData);
                     //OpersToSdvigs.Add(x.ID, sdvig);
                     return sdvig;

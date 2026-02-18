@@ -332,34 +332,23 @@ namespace ApsRT.Core.Leftovers
 
             ).ToList();
 
+            var OpersToSdvigs = allItems.Where(x => x.itsStage && x.MatIndex == 0).Select(x => new KeyValuePair<int, PartiaModelling>(x.stageLink.Index, x.modLink.mod as PartiaModelling)).ToDictionary();
 
-            //(MatData: x.Key, Subdivision: 0, BinCapacity: (int)(x.Value * 1000.0)));.ToList();
-
-            // Сначала просто создаём переменную
-            ILiteral[,] xNew = new ILiteral[allItems.Count, allBins.Count];
-            for (int i = 0; i < allItems.Count; i++)
-            {
-                for (int b = 0; b < allBins.Count; b++)
-                {
-                    xNew[i, b] = model.NewBoolVar($"ПРЕДМЕТ: {allItems[i].MatData} в корзину {allBins[b].MatData}");
-                }
-            }
-
-            // Создаём таблицу для данных
-            long[,] IBtable = new long[allItems.Count, allBins.Count];
-            // И ещё бонусная таблица
-            long[,] BONUS_Table = new long[allItems.Count, allBins.Count];
+    //(MatData: x.Key, Subdivision: 0, BinCapacity: (int)(x.Value * 1000.0)));.ToList();
+    List <(int i, int b, long w)> weights = new();
             // Заполняем ее данными по весу
             for (int i = 0; i < allItems.Count; i++)
             {
+                bool canBeInAnyBin = false;
                 for (int b = 0; b < allBins.Count; b++)
                 {
                     var binMatData = (allBins[b].MatData.Nomenklature, allBins[b].MatData.Characteristics);
 
-
                     if (binMatData == allItems[i].MatData)
                     {
-                        IBtable[i, b] = allItems[i].MatWeight;
+                        //IBtable[i, b] = allItems[i].MatWeight;
+                        weights.Add((i, b, allItems[i].MatWeight));
+                        canBeInAnyBin = true;
                     }
                     else
                     {
@@ -368,9 +357,41 @@ namespace ApsRT.Core.Leftovers
                         if (AllPossibleAnaloguesForMats[i].TryGetValue(binMatData, out var analogueW)) // НО! Если у мата есть аналог, как раз такой остаток, то поместить МОЖНО!
                         {
                             // Причем не с абы каким весом, а с новым
-                            IBtable[i, b] = (long)analogueW;
+                            //IBtable[i, b] = (long)analogueW;
+                            weights.Add((i, b, (long)analogueW));
+                            canBeInAnyBin = true;
                         }
                     }
+                }
+
+                if (!canBeInAnyBin)
+                {
+                    allItems.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            // Обновляем индексы на всякий случай
+            for (int i = 0; i < allItems.Count; i++)
+            {
+                var el = allItems[i];
+                el.elementIndex = i;
+                allItems[i] = el;
+            }
+
+            // Создаём таблицу для данных
+            long[,] IBtable = new long[allItems.Count, allBins.Count];
+            foreach (var el in weights) IBtable[el.i, el.b] = el.w;
+
+            // И ещё бонусная таблица
+            long[,] BONUS_Table = new long[allItems.Count, allBins.Count];
+            // Сначала просто создаём переменную
+            ILiteral[,] xNew = new ILiteral[allItems.Count, allBins.Count];
+            for (int i = 0; i < allItems.Count; i++)
+            {
+                for (int b = 0; b < allBins.Count; b++)
+                {
+                    xNew[i, b] = IBtable[i, b] == 0 ? null : model.NewBoolVar($"ПРЕДМЕТ: {allItems[i].MatData} в корзину {allBins[b].MatData}");
                 }
             }
 
@@ -382,7 +403,7 @@ namespace ApsRT.Core.Leftovers
                 itemChosen[i] = model.NewBoolVar($"chosen_{i}");
 
                 // chosen[i] = 1, если предмет лежит ХОТЯ БЫ в одном рюкзаке
-                model.AddMaxEquality(itemChosen[i], Enumerable.Range(0, allBins.Count).Select(b => (Google.OrTools.Sat.LinearExpr)xNew[i, b]));
+                model.AddMaxEquality(itemChosen[i], Enumerable.Range(0, allBins.Count).Select(b => xNew[i, b]).Where(x => x != null).Select(x => (Google.OrTools.Sat.LinearExpr)x));
             }
 
             // А тут лежит инфа, залочен рюкзак или нет
@@ -400,12 +421,12 @@ namespace ApsRT.Core.Leftovers
                     if (IBtable[i, b] == 0)
                     {
                         // Это значит, что ни аналога, ни обычного совпадения по номенклатуре не было (иначе бы заполнилась), поместить нельзя
-                        literalsRestricted.Add(xNew[i, b]);
+                        if (xNew[i, b] != null) literalsRestricted.Add(xNew[i, b]);
                     }
                     else
                     {
                         // Поместить можно.
-                        literals.Add(xNew[i, b]);
+                        if (xNew[i, b] != null) literals.Add(xNew[i, b]);
 
 
                         if (allItems[i].itsStage)
@@ -439,13 +460,12 @@ namespace ApsRT.Core.Leftovers
                             model.Add(Google.OrTools.Sat.LinearExpr.Sum(allPreviousOps.GroupBy(x => x.i).Select(x => itemChosen[x.Key]))/*.Select(x => x.lit))*/ == 0).OnlyEnforceIf(xNew[i, b]);
 
                             // И последнее - больше никакой из элементов не может встать в эту корзину - она теперь задел, и этап ее всю забрал себе
-                            List<(ILiteral lit, int i, int b)> allOtherElements = Enumerable.Range(0, allItems.Count).Where(x => x != i).Select(j => (xNew[j, b], j, b)).ToList();
-                            foreach (var el in allOtherElements)
-                                model.AddImplication(xNew[i, b], el.lit.Not());
+                            //List<(ILiteral lit, int i, int b)> allOtherElements = Enumerable.Range(0, allItems.Count).Where(x => x != i).Select(j => (xNew[j, b], j, b)).ToList();
+                            //foreach (var el in allOtherElements)
+                            //    if (el.lit != null) model.AddImplication(xNew[i, b], el.lit.Not());
                             
-                            // model.Add(Google.OrTools.Sat.LinearExpr.Sum(allOtherElements.Select(x => x.lit)) == 0).OnlyEnforceIf(xNew[i, b]);
 
-                            var finalList = allOtherRestrictedMatsFromThisStage.Union(allPreviousOps).Union(allOtherElements).Distinct().ToArray();
+                            var finalList = allOtherRestrictedMatsFromThisStage.Union(allPreviousOps)./*Union(allOtherElements).*/Distinct().ToArray();
                             long bonus = 0;
                             foreach (var el in finalList)
                             {
@@ -457,8 +477,8 @@ namespace ApsRT.Core.Leftovers
 
                     }
                 }
-                model.Add(Google.OrTools.Sat.LinearExpr.Sum(literalsRestricted) == 0); // В сумме запрещенных литератов быть не должно! Должен быть 0!
-                model.AddAtMostOne(literals); // А разрешенных - лишь 1!
+                if (literalsRestricted.Count > 0) model.Add(Google.OrTools.Sat.LinearExpr.Sum(literalsRestricted) == 0); // В сумме запрещенных литератов быть не должно! Должен быть 0!
+                if (literals.Count > 0) model.AddAtMostOne(literals); // А разрешенных - лишь 1!
 
 
                 //model.Add().
@@ -592,7 +612,7 @@ namespace ApsRT.Core.Leftovers
                 binUsed[b] = model.NewBoolVar($"binUsed_{b}");
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    model.AddImplication(xNew[i, b], binUsed[b]);
+                    if (xNew[i, b] != null) model.AddImplication(xNew[i, b], binUsed[b]);
                 }
             }
 
@@ -602,7 +622,7 @@ namespace ApsRT.Core.Leftovers
             {
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    totalWeightExpr.AddTerm(xNew[i, b], IBtable[i, b] + BONUS_Table[i, b]);
+                    if (xNew[i, b] != null) totalWeightExpr.AddTerm(xNew[i, b], IBtable[i, b] + BONUS_Table[i, b]);
                 }
             }
 
@@ -613,7 +633,7 @@ namespace ApsRT.Core.Leftovers
             CpSolver solverNew = new CpSolver();
             solverNew.StringParameters =
                 // enumerate_all_solutions:true; - было в документации, но и без нее всё работает
-                "max_time_in_seconds:300.0 " +
+                "max_time_in_seconds:30.0 " +
                 "num_search_workers:8 " +
                 "cp_model_probing_level:2 " +
                 "cp_model_presolve:true";
@@ -658,7 +678,7 @@ namespace ApsRT.Core.Leftovers
                 LinearExprBuilder binWeight = Google.OrTools.Sat.LinearExpr.NewBuilder();
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    binWeight.AddTerm(xNew[i, b], IBtable[i, b] * 1000 * maxCap / allBins[b].BinCapacity);
+                    if (xNew[i, b] != null) binWeight.AddTerm(xNew[i, b], IBtable[i, b] * 1000 * maxCap / allBins[b].BinCapacity);
                 }
 
                 fillBonus.Add(binWeight);
@@ -679,30 +699,44 @@ namespace ApsRT.Core.Leftovers
             {
                 if (statusHere == CpSolverStatus.Optimal || statusHere == CpSolverStatus.Feasible)
                 {
+                    var mods = allItems.GroupBy(x => x.modLink.mod as PartiaModelling);
+
+                    foreach (var mod in mods)
+                    {
+                        var el = mod.Key;
+                        el.ZadelCode = 0;
+                        el.ZadelsGUIDs = null;
+
+                        SessionLink.MasterDataLinks.ZadelsMasterData.EraseZadelsTree(el, 0, OpersToSdvigs, null);
+                    }
+
                     for (int i = 0; i < allItems.Count; i++)
                     {
                         if (!allItems[i].itsStage) allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers[allItems[i].MatIndex] = null; // очистим все на всякий случай
-                        for (int b = 0; b < allBins.Count; b++)
-                        {
-                            var lit = xNew[i, b];
-                            if (solverNew.BooleanValue(lit))
+                            for (int b = 0; b < allBins.Count; b++)
                             {
-                                if (allItems[i].itsStage)
+                                var lit = xNew[i, b];
+                                if (lit != null && solverNew.BooleanValue(lit))
                                 {
+                                    if (allItems[i].itsStage)
+                                    {
                                     // Это ЗАДЕЛ для ВСЕГО ЭТАПА.
-                                    
-                                    SessionLink.MasterDataLinks.ZadelsMasterData.SetZadelToSdvig(allItems[i].modLink.mod as PartiaModelling, allBins[b].UniqueGUID, Uco.EmptyObject, LinearLeftoversCount[allBins[b].UniqueGUID]);
-                                    Console.WriteLine($"zadel set to stage {allItems[i].modLink.mod.FirstOperLink.ID} = {allBins[b].UniqueGUID}");
-                                }
-                                else
-                                {
-                                    // Это остаток для материала.
-                                    var list = allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers;
-                                    // Назначим ту номенклатуру, что у рюкзака - это может быть как оригинал, так и аналог.
-                                    list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatData, IBtable[i, b] / 1000.0, allBins[b].BinEdIzm);
+                                    var mod = allItems[i].modLink.mod as PartiaModelling;
+                                        int code = SessionLink.MasterDataLinks.ZadelsMasterData.SetZadelToSdvig(mod, allBins[b].UniqueGUID, Uco.EmptyObject, IBtable[i, b] / 1000.0/*LinearLeftoversCount[allBins[b].UniqueGUID]*/);
+
+                                    SessionLink.MasterDataLinks.ZadelsMasterData.EraseZadelsTree(mod, code, OpersToSdvigs, null);
+
+                                    Console.WriteLine($"zadel set to stage {allItems[i].modLink.mod.FirstOperLink.ID} (место {allItems[i].MatIndex}) = {allBins[b].UniqueGUID}");
+                                    }
+                                    else
+                                    {
+                                        // Это остаток для материала.
+                                        var list = allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers;
+                                        // Назначим ту номенклатуру, что у рюкзака - это может быть как оригинал, так и аналог.
+                                        list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatData, IBtable[i, b] / 1000.0, allBins[b].BinEdIzm);
+                                    }
                                 }
                             }
-                        }
                     }
                 }
             }

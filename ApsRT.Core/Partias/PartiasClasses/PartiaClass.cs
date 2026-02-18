@@ -262,7 +262,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
                 if (OpersHere[CurrentLevel].Count == 1) continue;
 
                 // Разделим их по виду операции, номенклатуре и повиву
-                var sdvigGroups = OpersHere[CurrentLevel].GroupBy(x => (x.Opers[0].Nomenklature, x.Opers[0].OperationVid, x.Opers[0].Poviv));
+                var sdvigGroups = OpersHere[CurrentLevel].Where(x => x.ZadelCode == 0).GroupBy(x => (x.Opers[0].Nomenklature, x.Opers[0].OperationVid, x.Opers[0].Poviv));
 
                 // Пройдемся по всем группам
                 foreach (var group in sdvigGroups) // Пройдемся по каждой группе

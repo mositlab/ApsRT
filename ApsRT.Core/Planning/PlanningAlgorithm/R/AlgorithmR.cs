@@ -1641,7 +1641,24 @@ List<PlanSimulatorBlock> toCheck;
             var lastBlock = list.Count == 0 ? null : list[^1];
             var operationA = list.Count == 0 ? null : lastBlock.Lists[0]?.FirstOper;
 
-            var minDate = mod.PrevMods.Count == 0 ? basisLink.StartOfPlanningDate : mod.PrevMods.Max(x => x.DateOfEnd[0]);
+                Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[choosenCenter].Subdivision;
+            var minDateWithMod = mod.PrevMods.Select(prevMod =>
+            {
+                Uco lastSubdivision = prevMod.BlockLink.GetCenterData(0).CenterModelDataLink.Subdivision;
+                return (Mod: prevMod, Time: prevMod.DateOfEnd[0].AddSeconds(basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion)));
+            }
+            );
+
+            int timeTransfer = 0;
+            DateTime minDate = basisLink.StartOfPlanningDate;
+            if (mod.PrevMods.Count > 0)
+            {
+                var maxHere = minDateWithMod.MaxBy(x => x.Time);
+                minDate = maxHere.Time;
+                timeTransfer = (int)(maxHere.Time - maxHere.Mod.DateOfEnd[0]).TotalSeconds;
+            }
+
+
             if (minDate == DateTime.MinValue) minDate = basisLink.StartOfPlanningDate; // Получаем минимальную дату
 
             var lastCenterDate = lastBlock == null ? basisLink.StartOfPlanningDate : lastBlock.Lists[0].DateOfEnd[0];
@@ -1667,18 +1684,20 @@ List<PlanSimulatorBlock> toCheck;
                 }
             }
 
-            int timeTransfer = 0;
-            PlanSimulatorMod lastModFromPartia = null;
-            if (mod.PrevMods.Count > 0)
-            {
-                lastModFromPartia = mod.PrevMods.MaxBy(mod => mod.DateOfEnd[0]);
-                Uco lastSubdivision = lastModFromPartia.BlockLink.GetCenterData(0).CenterModelDataLink.Subdivision;
-                Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[choosenCenter].Subdivision;
-                if (lastSubdivision != currentSubdivion)
-                {
-                    timeTransfer = basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion);
-                }
-            }
+            //int timeTransfer = 0;
+            //PlanSimulatorMod lastModFromPartia = null;
+            //if (mod.PrevMods.Count > 0)
+            //{
+            //    timeTransfer = mod.PrevMods.MaxBy(prevMod =>
+            //    {
+            //        
+            //        prevMod.DateOfEnd[0]
+            //    });
+            //    if (lastSubdivision != currentSubdivion)
+            //    {
+            //        timeTransfer = basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion);
+            //    }
+            //}
 
             // Чтобы сделать только переналадки, хватит вот этого критерия:
             //return (float)rechesDur.TotalSeconds;
@@ -1689,19 +1708,19 @@ List<PlanSimulatorBlock> toCheck;
 
             // Теперь посчитаем переход в другой цех
             // Из времени перехода можно отнять простой, но не переналадку, так как переналадка должна начаться в другом цехе.
-            timeTransfer -= (int)prostoiDur.TotalSeconds;
+            //timeTransfer -= (int)prostoiDur.TotalSeconds;
 
-            // Из цеха так же надо вычесть разницу между lastCenterTime и lastMod, чтобы убрать лишний временной отрезок
-            var delta1 = lastModFromPartia == null ? TimeSpan.Zero : (lastCenterDate - lastModFromPartia.DateOfEnd[0]);
-            if (delta1.Ticks < 0) delta1 = TimeSpan.Zero;
-            timeTransfer -= (int)delta1.TotalSeconds;
-            if (timeTransfer < 0) timeTransfer = 0;
+            //// Из цеха так же надо вычесть разницу между lastCenterTime и lastMod, чтобы убрать лишний временной отрезок
+            //var delta1 = lastModFromPartia == null ? TimeSpan.Zero : (lastCenterDate - lastModFromPartia.DateOfEnd[0]);
+            //if (delta1.Ticks < 0) delta1 = TimeSpan.Zero;
+            //timeTransfer -= (int)delta1.TotalSeconds;
+            //if (timeTransfer < 0) timeTransfer = 0;
 
-            if (basisLink.SessionLink.SettingsController.CurrentSettings.TransferToGamma)
-            {
-                prostoiDur = prostoiDur.Add(TimeSpan.FromSeconds(timeTransfer));
-                timeTransfer = 0;
-            }
+            //if (basisLink.SessionLink.SettingsController.CurrentSettings.TransferToGamma)
+            //{
+            //    prostoiDur = prostoiDur.Add(TimeSpan.FromSeconds(timeTransfer));
+            //    timeTransfer = 0;
+            //}
 
             var PplusR = prostoiDur + rechesDur;
 
