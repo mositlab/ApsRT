@@ -363,12 +363,13 @@ namespace ApsRT.Core.Partias.Zadels
             foreach (var partia in partiasToCheck)
             {
                 var OpersToSdvigs = partia.SeeSdvigsAsDic();
-                var ModsWithUsedZadels = OpersToSdvigs.Where(y => y.Value.ZadelsGUIDs != null && y.Value.ZadelsGUIDs.Count > 0).Select(x => x.Value).ToList();
+                var ModsWithUsedZadels = OpersToSdvigs.Where(y => y.Value.ZadelsGUIDs != null && y.Value.ZadelsGUIDs.Count > 0).Select(x => x.Value).Distinct().ToList();
 
                 foreach (var mod in ModsWithUsedZadels)
                 {
-                    foreach (var zadel in mod.ZadelsGUIDs)
+                    for (int i = 0; i < mod.ZadelsGUIDs.Count; i++)
                     {
+                        var zadel = mod.ZadelsGUIDs[i];
                         if (LinearZadelsDictionary.TryGetValue(zadel, out var zadelClass))
                         {
                             zadelClass.ZadelStatus = ZadelStatus.SussesfullyUsed;
@@ -376,6 +377,29 @@ namespace ApsRT.Core.Partias.Zadels
                             {
                                 //oper.ZadelsInherited = zadelsCount;
                                 zadelClass.WhereIsUsed.Add((oper.Index, oper.Count/*(mod as IAbleForTaraCalcInterface).Sum*/));
+                            }
+                        }
+                        else
+                        {
+                            // Значит это остатки из таблицы остатков
+                            var dic = SessionLink.MasterDataLinks.LeftoversMasterData.UsedLeftoversFromBeggining;
+                            dic.TryAdd(zadel, new());
+                            //var index = mod.Opers[0].Index;
+                            dic[zadel] += mod.Opers.Sum(x => x.Count);
+                            //dic[zadel].TryAdd(index, 0);
+                            //dic[zadel][index]++;
+
+                            var dic2 = SessionLink.MasterDataLinks.LeftoversMasterData.UsedLeftoversFromBegginingData;
+                            dic2.TryAdd(zadel, new());
+                            foreach (var op in mod.Opers)
+                            {
+                                var val = (op.Index, i);
+                                //if (dic2[zadel].Contains(val))
+                                //{
+                                //    ;
+                                //}
+                                dic2[zadel].Add(val);
+                                //Console.WriteLine($"{mod};{partia};{zadel};{op.Index};{i}");
                             }
                         }
                     }

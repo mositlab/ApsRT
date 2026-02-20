@@ -112,6 +112,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             if (onlyBig.Count() == 0) return;
 
             int noResultIters = 0;
+            int forcedToReminimize = 0;
 
             while (true)
             {
@@ -434,7 +435,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             (
                             (localResult.TaraCriticalUsage < LastResult.TaraCriticalUsage) // Сначала прочекаем гниль
                             || // Если не удалось, посмотрим хотя бы на переналадки
-                            (localResult.TaraCriticalUsage == LastResult.TaraCriticalUsage || localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches)
+                            (localResult.TaraCriticalUsage == LastResult.TaraCriticalUsage && localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches)
                             )
                             && localResult.ProductionSeconds <= worstPossiblePlanLength
                             && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount)
@@ -474,6 +475,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 if (StagesValues.All(x => x.Value < 0))
                 {
                     min = StagesValues.Min(x => x.Value);
+                    forcedToReminimize++;
                 }
                 foreach (var x in StagesValues)
                 {
@@ -496,7 +498,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, noResultIters);
 
-                if (noResultIters >= 1000)
+                if (noResultIters >= 1000 || forcedToReminimize > 100)
                 {
                     break;
                 }

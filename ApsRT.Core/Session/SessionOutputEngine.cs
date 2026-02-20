@@ -1,25 +1,26 @@
 ﻿using ApsRT.Core.DataErrors;
 using ApsRT.Core.NaladLengths;
+using ApsRT.Core.Partias.PartiasClasses;
+using ApsRT.Core.Partias.PartiasConnectorEngine;
 using ApsRT.Core.Partias.Zadels;
+using ApsRT.Core.Planning;
+using ApsRT.Core.PlanSimulator;
+using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.RechangesEngine;
+using Azure;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack.Extensions;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
-using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using MaterialUco = (UniversalPack.Common.CodedObject<System.Guid, string> Nomenklature, UniversalPack.Common.CodedObject<System.Guid, string> Characteristics);
-using ApsRT.Core.Partias.PartiasClasses;
-using ApsRT.Core.Partias.PartiasConnectorEngine;
-using System.Drawing;
-using ApsRT.Core.Planning;
-using ApsRT.Core.PlanSimulator;
-using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Session
 {
@@ -957,7 +958,8 @@ namespace ApsRT.Core.Session
         {
             var sw = new StreamWriter(Filename, false, Encoding.UTF8);
             //GUID (исходного этапа имеется в виду) и ИдентификаторОбщегоЭтапа
-            sw.WriteLine($"ИдентификаторЗадела;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}НомерМоделирования;ИдентификаторОбщегоЭтапа;КоличествоИспользовано;Причина");
+            sw.WriteLine($"ИдентификаторЗадела;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}НомерМоделирования;ИдентификаторОбщегоЭтапа;НомерМеста;КоличествоИспользовано;Причина");
+             Dictionary<int, int> stagesPlacesCounter = new ();
             foreach (var zadel in SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary)
             {
                 if (zadel.Value.WhereIsUsed.Count > 0)
@@ -965,10 +967,13 @@ namespace ApsRT.Core.Session
                     foreach (var etap in zadel.Value.WhereIsUsed)
                     {
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
+                        stagesPlacesCounter.TryAdd(opLink.Index, 0);
                         var modGuid = opLink.CurrentModelling;//IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
                         sw.WriteLine($"{zadel.Key};{opLink.GUID};" +
                             $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{opLink.StageVersion};" : "")}" +
-                            $"{modGuid};{(opLink.GetEasyFlagToOutput())};{etap.count};"); // последняя скобка это пустота
+                            $"{modGuid};{(opLink.GetEasyFlagToOutput())};{stagesPlacesCounter[opLink.Index] + 1};{etap.count};"); // последняя скобка это пустота
+                        stagesPlacesCounter[opLink.Index]++;
+
                     }
                 }
                 else
@@ -976,10 +981,23 @@ namespace ApsRT.Core.Session
                     if (!SessionLink.SessionOptions.LaunchZadel) continue; // При свободных заделах не вывожу - апс не ищет.
                     foreach (var etap in zadel.Value.WhereCanUsed)
                     {
-                        sw.WriteLine($"{zadel.Key};{etap.Key};{Guid.Empty};{Guid.Empty};0;{ZadelToString(zadel.Value.ZadelStatus)}");
+                        sw.WriteLine($"{zadel.Key};{etap.Key};{Guid.Empty};{Guid.Empty};0;0;{ZadelToString(zadel.Value.ZadelStatus)}");
                     }
                 }
             }
+
+            // Ну и ещё и остатки выведем - они тоже закрывают этапы
+            foreach (var zadel in SessionLink.MasterDataLinks.LeftoversMasterData.UsedLeftoversFromBegginingData)
+            {
+                foreach (var op in zadel.Value)
+                {
+                    var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[op.Stage];
+                    sw.WriteLine($"{zadel.Key};{opLink.GUID};" +
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{opLink.StageVersion};" : "")}" +
+                        $"{opLink.CurrentModelling};{(opLink.GetEasyFlagToOutput())};{op.Place + 1};{opLink.Count};"); // последняя скобка это пустота
+                }
+            }
+
             sw.Close();
         }
 

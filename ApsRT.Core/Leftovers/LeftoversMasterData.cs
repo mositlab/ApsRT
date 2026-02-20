@@ -61,6 +61,16 @@ namespace ApsRT.Core.Leftovers
 
         public Dictionary<LeftoverUco, List<(DateTime When, Uco Subdivision, double Count, UcoDU EdIzm)>> LeftoversArrivalInfo { get; private set; } = new();
 
+        //Dictionary<int, int>
+        public Dictionary<Guid, double> UsedLeftoversFromBeggining = new();
+        public Dictionary<Guid, List<(int Stage, int Place)>> UsedLeftoversFromBegginingData = new();
+
+        public void ClearLeftoversUsageInfo()
+        {
+            UsedLeftoversFromBeggining.Clear();
+            UsedLeftoversFromBegginingData.Clear();
+        }
+
         public void ClearLeftoversArrivalData()
         {
             LeftoversArrivalInfo.Clear();
@@ -765,8 +775,11 @@ namespace ApsRT.Core.Leftovers
 
 
 
-            var howMuchAtStart = CurrentLeftoversCount.ToDictionary(x => x.Key, x => x.Value.ToDictionary()); // Создаем независимую копию
-
+            var howMuchAtStart = CurrentLeftoversCount.ToDictionary(x => x.Key, x =>
+            {
+                return x.Value.ToDictionary(y => y.Key, y => (Count: y.Value.Count - (UsedLeftoversFromBeggining.TryGetValue(x.Key.Seria.Object.Code, out var z) ? z : 0),
+                y.Value.DimensionUnit));
+            }); // Создаем независимую копию
             /*
              
             Dictionary<MaterialUco, Dictionary<CodedObjectVersioned<Guid, string, string>, Dictionary<Uco, double>>>

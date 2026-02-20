@@ -252,6 +252,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Clear();
 
             SessionLink.MasterDataLinks.ZadelsMasterData.ClearZadelsUsageInfo();
+
+            SessionLink.MasterDataLinks.LeftoversMasterData.ClearLeftoversUsageInfo();
         }
 
         List<PartiaClass> PartiiList;
