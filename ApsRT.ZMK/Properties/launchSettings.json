@@ -2,7 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "guid:c289c91b-4e60-4a25-ba4a-c263f5f7da76",
+      "commandLineArgs": "guid:ЧЕКНИ",
       "hotReloadEnabled": true
     }
   }

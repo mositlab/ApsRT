@@ -472,7 +472,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     var grp2 = here2[i].Opers.Select(x => resultToFill.IDmergedGroups.TryGetValue(x.Index, out var Index) ? Index : -1).Where(x => x != -1).ToHashSet();
 
                     if (
-                        (grp1.Count == 0 ^ grp2.Count == 0) ||
+                        (!isFirstLevel && grp1.Count == 0 && grp2.Count == 0) ||
+
+                        (grp1.Count == 0 ^ grp2.Count == 0) || // Раньше было вот так: (grp1.Count == 0 ^ grp2.Count == 0) ||
                         (
                         //grp1.Any()
                         //&&
@@ -536,7 +538,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                     // Условие "на одном РЦ" - поиск нужного РЦ или хотя бы ограничение
 
-                    //if (!GetCenterFromOneRCGroup(here1, here2[i], resultToFill, out Uco? NeededRC, out var group1, out var group2)) continue;
+                    if (!GetCenterFromOneRCGroup(here1, here2[i], resultToFill, out Uco? NeededRC, out var group1, out var group2)) continue;
 
                     if (!isVspom && !isZadel)
                     {
@@ -559,7 +561,11 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             naladLength = currentF + (float)nextF;
                         }
                         TaraSearchEngineResult got = null;
-                        sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog) { PrevsInfo = resultToFill.IDToTara })
+                        sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog)
+                        {
+                            PrevsInfo = resultToFill.IDToTara,
+                         RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                        })
                             &&
                             Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out got, new SumIsPossibleOptions(withLog)
                             {
@@ -577,7 +583,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                 RecommendedSubdivision = resultToFill.RecommendedSubdivision,
 
-                                //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                                RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
 
                                 NaladLength = naladLength
                             });
@@ -602,8 +608,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
 
                         // Запоминаем условие для одного РЦ
-                        //if (here1.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, gotRc);
-                        //if (here2[i].Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group2, gotRc);
+                        if (here1.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, gotRc);
+                        if (here2[i].Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group2, gotRc);
 
                         here1.Opers.AddRange(here2[i].Opers);
                         here2[i].Opers.Clear();
@@ -894,8 +900,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             finalResult.ForOneRCGroups = new();
             finalResult.PossibleCentersForOneRCGroups = new();
             finalResult.ForOneRCGroupAlreadyUsed = new();
-            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].Level, mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature));
-            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].Level, mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature));
+            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].Level, mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature, mod.AllOpers[0].Characteristics));
+            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].Level, mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature, mod.AllOpers[0].Characteristics));
             var groupsToCheck = groupToCheck1.Union(groupToCheck2);
             foreach (var group in groupsToCheck)
             {
@@ -1074,7 +1080,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 finalResult.RecommendedSubdivision = GetBestSubdivisionHere(listOnOneRc1.Union(listOnOneRc2).ToList());
             }
 
-            //PrepareResultForOneRCData(finalResult, listOnOneRc1.Select(x => (IAbleForTaraCalcInterface)x).ToList(), listOnOneRc2.Select(x => (IAbleForTaraCalcInterface)x).ToList());
+            PrepareResultForOneRCData(finalResult, listOnOneRc1.Select(x => (IAbleForTaraCalcInterface)x).ToList(), listOnOneRc2.Select(x => (IAbleForTaraCalcInterface)x).ToList());
 
             //));
 
