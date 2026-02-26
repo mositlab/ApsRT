@@ -147,7 +147,12 @@ namespace ApsRT.Core.Partias.PartiasClasses
 
                         if (lvl0.SessionLink.MasterDataLinks.StagesMasterData.AllStages.TryGetValue(id, out var op) && op.Prevs.Count > 0)
                         {
-                            foreach (var id2 in op.Prevs)
+                            foreach (var id2 in op.Prevs.OrderBy(index =>
+                            {
+                                var op = lvl0.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index];
+                                var hash = (op.Nomenklature, op.Characteristics, op.OperationVid).GetHashCode();
+                                return hash;
+                            }))
                             {
                                 group = setIt(id2, group) + 1;
                             }

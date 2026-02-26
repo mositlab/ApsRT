@@ -21,5 +21,10 @@ namespace ApsRT.Core.Leftovers
         public LeftoverUco LeftoverData { get; set; }
         public double CalculatedCount { get; set; }
         public UcoDU EdIzm { get; set; }
+
+        public override string ToString()
+        {
+            return $"ОСТАТОК: {LeftoverData.Nomenklature} - {LeftoverData.Characteristics} [{LeftoverData.Seria}] ({CalculatedCount} {EdIzm})";
+        }
     }
 }

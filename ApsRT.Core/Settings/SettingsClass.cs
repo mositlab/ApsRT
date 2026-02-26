@@ -181,5 +181,7 @@ namespace ApsRT.Core.Settings
         public bool Demos_CharacteristicsOnOutput { get; set; }
         [JsonProperty]
         public bool Demos_StagesVersionsOnOutput { get; set; }
+        [JsonProperty]
+        public bool Demos_UseOldPartiasRestrictions { get; set; }
     }
 }

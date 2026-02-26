@@ -472,7 +472,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     var grp2 = here2[i].Opers.Select(x => resultToFill.IDmergedGroups.TryGetValue(x.Index, out var Index) ? Index : -1).Where(x => x != -1).ToHashSet();
 
                     if (
-                        (!isFirstLevel && grp1.Count == 0 && grp2.Count == 0) ||
+                        (here1.Opers.Any(x => x.Prevs.Count > 0) && here2[i].Opers.Any(x => x.Prevs.Count > 0) && grp1.Count == 0 && grp2.Count == 0) ||
 
                         (grp1.Count == 0 ^ grp2.Count == 0) || // Раньше было вот так: (grp1.Count == 0 ^ grp2.Count == 0) ||
                         (
@@ -548,7 +548,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         {
                             var currentF = here01.Opers.Max(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthHere.Value : 0);
                             var sumMod = here01.Opers.Sum(x => x.Count);
-                            var nextF = (here01.Opers.Max(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.prevKoeff : 1) * sumMod) - sumMod;
+                            var nextF = (here01.Opers.Min(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.prevKoeff : 1) * sumMod) - sumMod;
                             //var nextF = here01.Opers.Sum(x => data.NaladLengthsData.TryGetValue(x.Index, out var l1) ? l1.NaladLengthNexts.Value : new NaladLengths.GottenNaladLengthStruct().NaladLengthNexts.Value);
                             //var op1 = data.NaladLengthsData.TryGetValue(here1.Opers[0].Index, out var l1) ? l1 : new NaladLengths.GottenNaladLengthStruct();
                             //var op2 = data.NaladLengthsData.TryGetValue(here2[i].Opers[0].Index, out var l2) ? l2 : new NaladLengths.GottenNaladLengthStruct();
@@ -660,6 +660,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                         resultToFill.IDmergedGroups[id2] = r;
                                     }
                                 }
+                                //SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"op {id2} now has {resultToFill.IDmergedGroups[id2]}");
+                                //Console.WriteLine($"op {id2} now has {resultToFill.IDmergedGroups[id2]}");
 
                             }
                         }
@@ -705,6 +707,69 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             {
                 return resultToFill.mergedNorm;
             }
+        }
+
+
+        static float CalculateFilledK(List<List<PartiaModelling>> OpersHere, PartiasConnectorEngineResult resultToFill)
+        {
+            Dictionary<(Uco Nomen, Uco Char, Uco Vid), (int Max, int Mul, int Cnt, float KZT)> calculator = new();
+            for (int i = 0; i < OpersHere.Count; i++)
+            {
+                for (int j = 0; j < OpersHere[i].Count; j++)
+                {
+                    var mod = OpersHere[i][j];
+
+                    if (mod.ZadelCode != 0) continue; // То, что закрыто заделами - забиваем болт
+
+                    var key = (mod.Opers[0].Nomenklature, mod.Opers[0].Characteristics, mod.Opers[0].OperationVid);
+                    calculator.TryAdd(key, (0, 0, 0, 0));
+                    var data = calculator[key];
+
+                    int multHere = 0, maxHere = 0;
+
+                    for (int o = 0; o < mod.Opers.Count; o++)
+                    {
+                        var op = mod.Opers[o];
+                        var mult = op.MultiplicityInPartiasConstraint;
+                        var max = op.MaxCountInPartiasConstraint;
+                        if (multHere == 0 || multHere > mult) multHere = mult;
+                        if (maxHere == 0 || maxHere > max) maxHere = max;
+                    }
+
+                    if (data.Max == 0 || data.Max > maxHere) data.Max = maxHere;
+                    if (data.Mul == 0 || data.Mul > multHere) data.Mul = multHere;
+                    data.Cnt++;
+
+                    if (maxHere > 0 || multHere > 0) data.KZT += (float)(mod.Max == 0 ? 1 : (((IAbleForTaraCalcInterface)mod).Sum / mod.Max));
+
+                    calculator[key] = data;
+                }
+            }
+            float currentKZT = 1;
+            foreach (var el in calculator)
+            {
+                if (el.Value.Mul > 0 && el.Value.Cnt >= el.Value.Mul && el.Value.Cnt % el.Value.Mul > 0)
+                {
+                    // По идее, тут ещё можно доп всего накидать
+                    return 0.001f;
+                }
+
+                if (el.Value.Max > 0 && el.Value.Cnt > el.Value.Max)
+                {
+                    // По идее, тут ещё можно доп всего накидать
+
+                    //return 0.001f;
+
+                    resultToFill.mergedNorm = 0;
+                    return 0;
+
+                }
+
+                if ((el.Value.Max > 0 || el.Value.Mul > 0) && currentKZT > el.Value.KZT) currentKZT = el.Value.KZT;
+
+            }
+
+            return currentKZT;
         }
 
         static float FindFilledKWithFunc(PartiaConnectorEngineData data, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1, (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2, Func<int, bool> UsedRestriction, PartiasConnectorEngineResult resultToFill)
@@ -1044,23 +1109,29 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             }
 
             // Сначала находим время
-            var wannaMergeOps1 = firstPartia.GetLongestOpersForPostCheck();
-            var wannaMergeOps2 = secondPartia.GetLongestOpersForPostCheck();
+            (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps1 = (null, 0);
+            (List<Stages.Stage> Modelling, int LevelIndex) wannaMergeOps2 = (null, 0);
+
+            if (SessionLink.SettingsController.CurrentSettings.Demos_UseOldPartiasRestrictions)
+            {
+                wannaMergeOps1 = firstPartia.GetLongestOpersForPostCheck();
+                wannaMergeOps2 = secondPartia.GetLongestOpersForPostCheck();
 
 
-            if (firstPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps1.Modelling != null)
-            {
-                var fop1 = wannaMergeOps1.Modelling[0];
-                firstPartia.MaxThereCountForLongestOpers = firstPartia.OpersHere[wannaMergeOps1.LevelIndex].SelectMany(x => x.Opers)
-                    .Where(x => x.Nomenklature == fop1.Nomenklature && x.OperationVid == fop1.OperationVid && x.Poviv == fop1.Poviv)
-                    .Count();
-            }
-            if (secondPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps2.Modelling != null)
-            {
-                var fop2 = wannaMergeOps2.Modelling[0];
-                secondPartia.MaxThereCountForLongestOpers = secondPartia.OpersHere[wannaMergeOps2.LevelIndex].SelectMany(x => x.Opers)
-                    .Where(x => x.Nomenklature == fop2.Nomenklature && x.OperationVid == fop2.OperationVid && x.Poviv == fop2.Poviv)
-                    .Count();
+                if (firstPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps1.Modelling != null)
+                {
+                    var fop1 = wannaMergeOps1.Modelling[0];
+                    firstPartia.MaxThereCountForLongestOpers = firstPartia.OpersHere[wannaMergeOps1.LevelIndex].SelectMany(x => x.Opers)
+                        .Where(x => x.Nomenklature == fop1.Nomenklature && x.OperationVid == fop1.OperationVid && x.Poviv == fop1.Poviv)
+                        .Count();
+                }
+                if (secondPartia.MaxThereCountForLongestOpers == -1 && wannaMergeOps2.Modelling != null)
+                {
+                    var fop2 = wannaMergeOps2.Modelling[0];
+                    secondPartia.MaxThereCountForLongestOpers = secondPartia.OpersHere[wannaMergeOps2.LevelIndex].SelectMany(x => x.Opers)
+                        .Where(x => x.Nomenklature == fop2.Nomenklature && x.OperationVid == fop2.OperationVid && x.Poviv == fop2.Poviv)
+                        .Count();
+                }
             }
 
             var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, CurrentCount * 2, CurrentCount * 2, CurrentCount * 2);
@@ -1123,7 +1194,16 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             //if (What.OpersHere[0].Count > 0) merged = 0; // очевидно что он не схлопнулся до конца, и это плохо
             //float K = 0;
 
-            float filledK = FindFilledK(data, wannaMergeOps1, wannaMergeOps2, Math.Max(Math.Max(firstPartia.MaxThereCountForLongestOpers, secondPartia.MaxThereCountForLongestOpers), 2), finalResult);
+            float filledK;
+
+            if (SessionLink.SettingsController.CurrentSettings.Demos_UseOldPartiasRestrictions)
+            {
+                filledK = FindFilledK(data, wannaMergeOps1, wannaMergeOps2, Math.Max(Math.Max(firstPartia.MaxThereCountForLongestOpers, secondPartia.MaxThereCountForLongestOpers), 2), finalResult);
+            }
+            else
+            {
+                filledK = CalculateFilledK(firstPartia.OpersHere, finalResult);
+            }
 
             // После всего: проходим по всем уровням, по всем РЦ, и смотрим - кому РЦ не задался, тому пытаемся задать с учётом отдающей тары, чтоб он в выходной таблице норм был.
             FinalConnectorChecks(data, finalResult);

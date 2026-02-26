@@ -78,13 +78,13 @@ namespace ApsRTCustomComponents
                     {
                         //var naladLengthIndex = partiaClass1.OpersHere[i][j].Opers[0].Index;
 
-                        var n1 = partiaClass1.OpersHere[i][j].Opers.Select(naladLengthIndex => NaladLengthsData != null && NaladLengthsData.TryGetValue(naladLengthIndex.Index, out var nres) ? (nres.NaladLengthHere.Value, nres.prevKoeff) : (0, 1));
+                        var n1 = partiaClass1.OpersHere[i][j].Opers.Select(op => NaladLengthsData != null && NaladLengthsData.TryGetValue(op.Index, out var nres) ? (nres.NaladLengthHere.Value, nres.prevKoeff) : (0, 1));
 
                         var curr = n1.Max(x => x.Item1);
 
                         var sumMod = partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count);
 
-                        var k = n1.Max(x => x.Item2);
+                        var k = n1.Min(x => x.Item2);
 
                         var next = k * sumMod - sumMod;
 
@@ -119,7 +119,7 @@ namespace ApsRTCustomComponents
 
                         + $"\r\nпросто сумма: {justSum}"
                         + $"\r\nMES сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.CountMES)}" +
-                        $"\r\nНаладочные длины: {curr} {next}"
+                        $"\r\nНаладочные длины: [{string.Join(";", n1.Select(x => x.Item1))}] [{next}] << [{string.Join(";", n1.Select(x => x.Item2))}]"//[{curr}] [{next}] << [{k}]
                         + $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
                         //+ $"\r\nКгКм сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count * x.KgKm / 1000.0)}"
                         + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n"

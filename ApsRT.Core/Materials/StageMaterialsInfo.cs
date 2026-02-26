@@ -17,7 +17,7 @@ namespace ApsRT.Core.Materials
 
         public override string ToString()
         {
-            return $"Исх. комплектующие: {string.Join(",\r\n", UsedMaterials.Select(x => x.ToString()))}";
+            return $"Исх. комплектующие: {string.Join(",\r\n", UsedMaterials.Select((x, index) => UsedLeftovers[index] == null ? x.ToString() : UsedLeftovers[index].ToString()))}";
         }
 
         public string AsLongString() => string.Join(";", UsedMaterials/*.Where(x => x.WorkType == "Производство")*/.Select(x => x.Nomenklature).OrderBy(x => x.Code));

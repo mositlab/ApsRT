@@ -101,20 +101,21 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 }
 
                 // Здесь же остатки
-                if (/*SessionLink.SessionOptions.LaunchZadel && */!SessionLink.SessionOptions.PartOrZadel)
+                if (!SessionLink.SessionOptions.PartOrZadel)
                 {
                     // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
-                    SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(
+                    //SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(
 
-                        PartiiList.SelectMany
-                        (
-                            partia => partia.OpersHere
-                            .SelectMany(level => level)
-                        )
-                        .Select(x => (x as IAbleForTaraCalcInterface, (PlanSimulatorNaladLengthData)null))
-                        .ToList()
+                    //    PartiiList.SelectMany
+                    //    (
+                    //        partia => partia.OpersHere
+                    //        .SelectMany(level => level)
+                    //    )
+                    //    .Select(x => (x as IAbleForTaraCalcInterface, (PlanSimulatorNaladLengthData)null))
+                    //    .ToList()
 
-                        ); // TODO: норм индекс впилить
+                    //    );
+                    // TODO: норм индекс впилить
                 }
 
                     // 4. Готовим таблицу дедлайнов
@@ -548,7 +549,9 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     var prt2 = orderToPartia[allGPToCheckNow[j]];
 
                     var partiaClass1 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.MergeFlag, prt1.MyGuid, prt1.MaxThereCountForLongestOpers);
+                    partiaClass1.Sort();
                     var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid, prt2.MaxThereCountForLongestOpers);
+                    partiaClass2.Sort();
 
 
                     var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData, RestrictionsVia74110));
@@ -558,7 +561,18 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                         DEEP.TryAdd(prt1, new());
                     }
 
+
+                    //if (allGPToCheckNow[i].Object.Label.Contains("000140") && allGPToCheckNow[j].Object.Label.Contains("000140")
+                    //&& (allGPToCheckNow[i].Version == "4" || allGPToCheckNow[j].Version == "4")
+                    //&& (allGPToCheckNow[i].Version == "7" || allGPToCheckNow[j].Version == "7"))
+                    //{
+                    //    ;
+                    //    res.Total = res.mergedNorm = 25;
+                    //    res.FilledK = 0.001f;
+                    //}
+
                     DEEP[prt1].TryAdd(prt2, (res.Total, res.FilledK, res.Diff, res.LongestModsMaxCount, res.LastLevel));// res.K - был недавно, и работало
+
 
                     N++;
                     AlgorithmCallback?.Invoke(CurrentStage, N);
@@ -661,8 +675,26 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
                 var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
                 var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.MaxThereCountForLongestOpers, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
+
+
+                partia1C.Sort();
+                partia2C.Sort();
+
                 var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData, RestrictionsVia74110));
                 var finalDead = partia1C.PossibleDeadline;
+
+                //var ord1 = partia1.OpersHere[0][0].Opers[0].OrderLink.OrderID;
+                //var ord2 = partia2.OpersHere[0][0].Opers[0].OrderLink.OrderID;
+
+                //if (ord1.Object.Label.Contains("000140") && ord2.Object.Label.Contains("000140")
+                //&& (ord1.Version == "4" || ord2.Version == "4")
+                //&& (ord1.Version == "7" || ord2.Version == "7"))
+                //{
+                //    ;
+                //    final.Total = final.mergedNorm = 25;
+                //    final.FilledK = 0.001f;
+                //}
+
                 if (final.Total > 0) // И в случае успеха, мы ссылку на partia1 юзаем и копируем туда полученные данные
                 {
                     partia1.GetDataFromOtherPartia(partia1C);

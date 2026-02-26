@@ -321,6 +321,12 @@ namespace ApsRT.Core.Stages
         [DataRecordColumn("РазрешеноКратноеУвеличение", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
         public bool CanChangePlacesCount { get; set; }
 
+        [DataRecordColumn("Кратность")]
+        public int MultiplicityInPartiasConstraint { get; set; }
+
+        [DataRecordColumn("МаксимальноеЗначение")]
+        public int MaxCountInPartiasConstraint { get; set; }
+
         #endregion
 
         #region Количество этапа и ед. изм.
