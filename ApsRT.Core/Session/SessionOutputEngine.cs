@@ -162,6 +162,8 @@ namespace ApsRT.Core.Session
 
                 OutputPlacesCount(outputPath + (asOld ? PlacesCountFileNameOld : PlacesCountFileName), blocksToCopy);
 
+                OutputPlacesCountAll(outputPath + (asOld ? PlacesCountAllFileNameOld : PlacesCountAllFileName), blocksToCopy);
+
                 // Используемые остатки ПОСЛЕ фикса материалов нужно вывести
                 OutputLeftovers(outputPath + UsedLeftoversFileName, string.IsNullOrEmpty(UsedLeftoversFileNameBig) ? null : (outputPath + UsedLeftoversFileNameBig), result.FirstStagesStartDate);
 
@@ -384,7 +386,7 @@ namespace ApsRT.Core.Session
             sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}КоличествоТары;КоличествоНаТаре");
             var D = 0;
 
-            var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
+            //var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             //int D2 = 0;
             foreach (var r in blocks)
             {
@@ -405,6 +407,71 @@ namespace ApsRT.Core.Session
             sw.Close();
         }
 
+        public string PlacesCountAllFileName { get; set; } = "placesCountAll.csv";
+        public string PlacesCountAllFileNameOld { get; set; } = "placesCountAll_old.csv";
+
+        public void OutputPlacesCountAll(string filename, List<PlanSimulatorBlock> blocks)
+        {
+            // Ранги моделирований для алены и алексея
+            if (File.Exists(filename))
+            {
+                File.Delete(filename);
+            }
+
+            var sw = new StreamWriter(filename, false, Encoding.UTF8);
+            sw.WriteLine($"N;Объединение;КоличествоТары;КоличествоНаТаре");
+            var D = 0;
+
+            //foreach (var r in blocks)
+            //{
+            //    foreach (var mod in r.Lists)
+            //    {
+            //        foreach (var oper in mod.StagesAsNormal)
+            //        {
+            //            if (oper.PlacesCount != oper.OriginalPlacesCount)
+            //            {
+            //                sw.WriteLine($"{D};{oper.GUID};" +
+            //                    $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{oper.StageVersion};" : "")}" +
+            //                    $"{oper.PlacesCount};{oper.Count}");
+            //                D++;
+            //            }
+            //        }
+            //    }
+            //}
+
+            var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
+
+            var mods = ALL.GroupBy(x => x.Value.CurrentModelling);
+
+            foreach (var mod in mods)
+            {
+                if (mod.Key == Guid.Empty) continue;
+
+                var maxPlaces = mod.Max(x => x.Value.PlacesCount);
+
+                //if (maxPlaces == 1) continue;
+
+                double[] count = new double[maxPlaces];
+
+                for (int i = 0; i < maxPlaces; i++)
+                {
+                    count[i] = mod.Sum(x => i < x.Value.PlacesCount ? x.Value.Count : 0);
+                }
+
+                var groups = count.GroupBy(x => x);
+
+                foreach (var group in groups)
+                {
+                    var placesHere = group.Count();
+                    var placeCount = group.Key;
+                    sw.WriteLine($"{D};{mod.Key};{placesHere};{placeCount}");
+                    D++;
+                }
+
+            }
+
+            sw.Close();
+        }
         public string OrdersFileName { get; set; } = "orders.csv";
         public string OrdersFileNameOld { get; set; } = "orders_old.csv";
         

@@ -149,6 +149,7 @@ namespace ApsRTCustomComponents
                                 $"\r\nКоличество мест: {x.PlacesCount}" +
                                 //$"\r\nКгКм: {x.KgKm}" +
                                 $"\r\nВид раб. центра: {(x.RCRoute.IsEmpty ? "нету" : x.RCRoute.ToString())}" +
+                                $"\r\nКр: {x.MultiplicityInPartiasConstraint}, Mx: {x.MaxCountInPartiasConstraint}" +
                                 $"\r\nСписок РЦ: {(x.PossibleCenters == null ? x.OriginalCenter : string.Join(", ", x.PossibleCenters.Select(x => x.ToString())))}" +
                                 $"\r\nНаОдномРЦ: {x.OnOneRC}" +
                                 $"\r\nНеОбъединять: {x.IsLast}" +

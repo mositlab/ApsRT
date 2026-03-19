@@ -123,7 +123,7 @@ namespace ApsRT.Core.DataErrors
                 $"{(session.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{BtoS(yesNexts)};" : "")}" +
                 $"{BtoS(yes6)};{BtoS(yes6 || yesCProd)};{BtoS(yes6 || yesCNom)};{(session.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? $"{BtoS(yes6 && yesCharNom)};{BtoS(yes6 && yesCharProd)};" : "")}{BtoS(yes6 || yesCVid)};" +
                 $"{BtoS(yes61 || yesCRC)};{BtoS(yes62 || yesCRCR)};" +
-                $"{BtoS(yes6)};{BtoS(yes6)};{BtoS(yes6 || yes54)};" +
+                $"{BtoS(yes6)};{BtoS(yes6)};{BtoS(yes6 || yes54 || true)};" +
                 $"{BtoS(yes53)};" +
                 $"{BtoS(yesCount)};{BtoS(yesNalad)};{BtoS(yesMod)};" +// $"{BtoS(yes6 || yesCount)};{BtoS(yesMod)};" +
                 $"ДА;{BtoS(yesdOP)}";

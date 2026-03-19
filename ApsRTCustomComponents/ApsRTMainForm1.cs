@@ -184,7 +184,9 @@ namespace ApsRTCustomComponents
             PartCheckBox.CheckedChanged += (sender, args) => { sessionLink.SessionOptions.LaunchPartia = ((CheckBox)sender).Checked; };
             ZadelCheckBox.Checked = sessionLink.SessionOptions.LaunchZadel;
             ZadelCheckBox.CheckedChanged += (sender, args) => { sessionLink.SessionOptions.LaunchZadel = ((CheckBox)sender).Checked; };
-
+            LogPartiasCheckBox.Checked = sessionLink.SessionOptions.LogIt;
+            LogPartiasCheckBox.CheckedChanged += (sender, args) => { sessionLink.SessionOptions.LogIt = ((CheckBox)sender).Checked; };
+            //.Checked
             PrepareSettings();
         }
 
@@ -911,7 +913,7 @@ namespace ApsRTCustomComponents
 
             int N = 0;
 
-            if (algorithm.Start(LogPartiasCheckBox.Checked))
+            if (algorithm.Start())
             {
                 while (!algorithm.Process.IsCompleted)
                 {

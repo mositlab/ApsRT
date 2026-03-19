@@ -53,8 +53,9 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
         public Task<bool> Process { get; private set; }
 
-        public bool Start(bool WithLog)
+        public bool Start()
         {
+            bool WithLog = SessionLink.SessionOptions.LogIt;
             if (CurrentStage == PartiasAlgorithmStage.None)
             {
                 if (SessionLink.PlanningAlgorithmIsNotRunning)
@@ -104,17 +105,17 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 if (!SessionLink.SessionOptions.PartOrZadel)
                 {
                     // Ну ещё и остатки приготавливаем, сначала очищаем, затем создаём
-                    //SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(
+                    SessionLink.MasterDataLinks.LeftoversMasterData.PrepareModsForLeftovers(
 
-                    //    PartiiList.SelectMany
-                    //    (
-                    //        partia => partia.OpersHere
-                    //        .SelectMany(level => level)
-                    //    )
-                    //    .Select(x => (x as IAbleForTaraCalcInterface, (PlanSimulatorNaladLengthData)null))
-                    //    .ToList()
+                        PartiiList.SelectMany
+                        (
+                            partia => partia.OpersHere
+                            .SelectMany(level => level)
+                        )
+                        .Select(x => (x as IAbleForTaraCalcInterface, (PlanSimulatorNaladLengthData)null))
+                        .ToList()
 
-                    //    );
+                        );
                     // TODO: норм индекс впилить
                 }
 

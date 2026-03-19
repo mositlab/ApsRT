@@ -492,7 +492,7 @@ namespace ApsRT.Core.Partias.Zadels
                         //>
                         > zadelsCharsHere = new();
 
-                        if (zadelsNomensHere.TryGetValue(stage.Characteristics, out var res111111)) zadelsCharsHere = zadelsCharsHere.Union(res111111).ToDictionary();
+                        if (zadelsNomensHere.TryGetValue(stage.Nomenklature, out var res111111)) zadelsCharsHere = zadelsCharsHere.Union(res111111).ToDictionary();
                         if (freeZadels && zadelsNomensHere.TryGetValue(Uco.EmptyObject, out var res222222)) zadelsCharsHere = zadelsCharsHere.Union(res222222).ToDictionary();
 
                         if (zadelsCharsHere.Count > 0)
@@ -504,7 +504,7 @@ namespace ApsRT.Core.Partias.Zadels
                             Dictionary<Guid, ConcreteZadel> // список конкретных заделов, которые тут перечислены
                             > zadelsPovivsHere = new();
 
-                            if (zadelsCharsHere.TryGetValue(stage.Nomenklature, out var res1111)) zadelsPovivsHere = zadelsPovivsHere.Union(res1111).ToDictionary();
+                            if (zadelsCharsHere.TryGetValue(stage.Characteristics, out var res1111)) zadelsPovivsHere = zadelsPovivsHere.Union(res1111).ToDictionary();
                             if (freeZadels && zadelsCharsHere.TryGetValue(Uco.EmptyObject, out var res2222)) zadelsPovivsHere = zadelsPovivsHere.Union(res2222).ToDictionary();
 
                             if (zadelsPovivsHere.Count > 0)

@@ -163,15 +163,14 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // Постобработка
 
 
-            //var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
-            //finalResult.ForOneRCGroups = ForOneRCGroups;
-            //PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
+            var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
+            PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
 
             for (int i = 0; i < partia1.Count; i++)
             {
                 for (int j = 0; j < partia1[i].Count; j++)
                 {
-                    partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog/*, finalResult*/);
+                    partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog, finalResult);
                 }
             }
 
@@ -234,7 +233,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         }
 
 
-        public static PartiaModelling checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog/*, PartiasConnectorEngineResult finalResult*/)
+        public static PartiaModelling checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult)
         {
             var DoneIDS = engineData.DoneIDS;
             //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
@@ -283,11 +282,11 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
             var listOnOneRc1 = new PartiaModellingSmall(opers);
 
-            //var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
+            var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
 
 
             if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
-                //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                 RecommendedSubdivision = subdiv
             }))
             {
@@ -304,7 +303,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             else
             {
                 if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
-                    //RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                    RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                     RecommendedSubdivision = subdiv
                 }))
                 {

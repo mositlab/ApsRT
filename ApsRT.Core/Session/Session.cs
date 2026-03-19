@@ -125,6 +125,12 @@ namespace ApsRT.Core.Session
                     opts.LaunchPartia = true;
                     continue;
                 }
+                if (arg == "log")
+                {
+                    //ConcurrentLogger.AddToLogQueue.Enqueue($"arg: has part\r\n");
+                    opts.LogIt = true;
+                    continue;
+                }
                 if (arg == "plan")
                 {
                     //ConcurrentLogger.AddToLogQueue.Enqueue($"arg: has plan\r\n");
@@ -340,7 +346,7 @@ namespace ApsRT.Core.Session
             {
                 // Если она тихая. то ПРИСТУПАЕМ - ВСЕГДА начиная с партий, какие бы настройки там ни были.
                 if (TryCreateNewPartiasAlgorithmInstance(out var newPartiasAlgorithmInstance)
-                    && newPartiasAlgorithmInstance.Start(false))
+                    && newPartiasAlgorithmInstance.Start())
                 {
                     bool result = await newPartiasAlgorithmInstance.Process;
 

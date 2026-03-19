@@ -288,6 +288,20 @@ namespace ApsRT.Core.Partias.MergeConditions
         {
             // результат проверки объединения
             bool result = false;
+
+            if (!MainChecks(op1, op2, out var str, out var str2))
+            {
+                //if (!forObshEtaps)
+                //{
+                //    OpersAreEqualCash[op1.Index][op2.Index] = false;
+                //    OpersAreEqualCash[op2.Index][op1.Index] = false;
+                //}
+                reason = str;
+                smallreason = str2;
+                hasSettings = true;
+                return false;
+            }
+
             var mergeCondition = GetMergeConditionSafeByOperVidAndSub(op1.OperationVid.Code, op1.Subdivision.Code);
 
             if (mergeCondition != null)
@@ -302,13 +316,18 @@ namespace ApsRT.Core.Partias.MergeConditions
             {
                 if (/*op1.IsVspom ||  */ // Вспомогательную закомментил раньше, а потом МАРИНА И АЛЕНА ПОПРОСИЛИ ЗАКОММЕНТИТЬ ВСЁ
                     /*SessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound*/
-                    false)
+                    // А ПОТОМ МИША ПРЕДЛОЖИЛ - ВСПОМОГАШКИ ПРОСТО МОЛЧА НЕ ОБЪЕДИНЯТЬ
+                    //false
+                    op1.IsVspom)
                 {
                     // иначе проверяем старым способом
 
                     //result = LegacyOperationEquality(op1, op2, out reason, out smallreason, forObshEtaps);
                     //hasSettings = true;
                     //if (!result) return false;
+                    hasSettings = false;
+                    reason = smallreason = $"Для вида тех. операции {op1.OperationVid} не задан набор условий.";
+                    return false;
                 }
                 else
                 {
@@ -322,18 +341,6 @@ namespace ApsRT.Core.Partias.MergeConditions
                 }
             }
 
-            if (!MainChecks(op1, op2, out var str, out var str2))
-            {
-                //if (!forObshEtaps)
-                //{
-                //    OpersAreEqualCash[op1.Index][op2.Index] = false;
-                //    OpersAreEqualCash[op2.Index][op1.Index] = false;
-                //}
-                reason = str;
-                smallreason = str2;
-                hasSettings = true;
-                return false;
-            }
             // кэшируем результат и выходим
             //if (!forObshEtaps)
             //{

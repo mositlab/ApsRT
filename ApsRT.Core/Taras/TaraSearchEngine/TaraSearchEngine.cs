@@ -191,6 +191,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     searchData.dataErrorMore.NeededOtdTarasOnThisEtap.Union(TaraHereMustBeThis/*.Select(x => x.Tara)*/).ToList()
                     ;
 
+                if (SessionLink.SettingsController.CurrentSettings.Demos_IgnoreAnyTaraErrorsInPartias) TaraHereMustBeThis = null;
+
                 //bool VspomTara = first.Prevs.Count > 0 && ALL[first.Prevs[0]].UsesVspomTara;
                 if (first.PossibleCenters == null)
                 {
@@ -589,6 +591,17 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 .Select(x => (options.PrevsInfo[x], ALL[x].UsesVspomTara))
                                 .ToHashSet();
 
+                            if (searchData.errorMessage != null && localTaraHereMustBeThis != null)
+                            {
+                                searchData.errorMessage?.Append($"Желаемые отд тары следующего этапа ({first}):\r\n");
+                                foreach (var tara in localTaraHereMustBeThis)
+                                {
+                                    searchData.errorMessage.Append(tara + "\r\n");
+                                }
+                            }
+
+                            if (SessionLink.SettingsController.CurrentSettings.Demos_IgnoreAnyTaraErrorsInPartias) localTaraHereMustBeThis = null;
+
                             var res01 = rcs1.Where(x => localTaraHereMustBeThis == null || localTaraHereMustBeThis.Count == 0 || localTaraHereMustBeThis.AsValueEnumerable().All(z =>
                             {
                                 var alltarasHere = TaraDataSet.GetNeededTaras(x, first.op.OperationVid, FirVsp ? null : z.WasVspom);
@@ -707,6 +720,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
                         //if (withUI) This.MergeTextBox.Text += $"Нет пересечения РЦ у детей на этапе {i}.\r\n";
                         searchData.errorMessage?.Insert(0, $"ОШИБКА! Нет пересечения РЦ из-за следующего этапа ({first}).");
+
                         searchData.errorMessage?.Append($"\r\n");
                         if (options.WithLog)
                         {

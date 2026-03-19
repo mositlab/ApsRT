@@ -51,7 +51,8 @@ namespace ApsRT.Core.Settings
             UseR = false,
             TGamma = 0.05,
             Test_PercentOfStages = 0,
-            UseMatrixMergeConditions = true
+            UseMatrixMergeConditions = true,
+            Demos_EnableNonMultPartiasMerge = true
         };
 
 
@@ -183,5 +184,9 @@ namespace ApsRT.Core.Settings
         public bool Demos_StagesVersionsOnOutput { get; set; }
         [JsonProperty]
         public bool Demos_UseOldPartiasRestrictions { get; set; }
+        [JsonProperty]
+        public bool Demos_IgnoreAnyTaraErrorsInPartias { get; set; }
+        [JsonProperty]
+        public bool Demos_EnableNonMultPartiasMerge { get; set; }
     }
 }

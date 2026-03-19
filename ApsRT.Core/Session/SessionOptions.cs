@@ -16,6 +16,7 @@ namespace ApsRT.Core.Session
             LaunchPartia = false,
             LaunchPlan = false,
             LaunchZadel = false,
+            LogIt = false,
             Jsort = false;
 
         public string LaunchPath { get; set; }

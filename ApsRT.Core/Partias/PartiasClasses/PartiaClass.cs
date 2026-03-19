@@ -150,9 +150,9 @@ namespace ApsRT.Core.Partias.PartiasClasses
                             foreach (var id2 in op.Prevs.OrderBy(index =>
                             {
                                 var op = lvl0.SessionLink.MasterDataLinks.StagesMasterData.AllStages[index];
-                                var hash = (op.Nomenklature, op.Characteristics, op.OperationVid).GetHashCode();
+                                var hash = (op.Nomenklature.Code, op.Characteristics.Code, op.OperationVid.Code).GetHashCode();
                                 return hash;
-                            }))
+                            }).ThenBy(index => index))
                             {
                                 group = setIt(id2, group) + 1;
                             }
@@ -250,11 +250,16 @@ namespace ApsRT.Core.Partias.PartiasClasses
             engineData.BestSubdivision = PartiasConnectorEngine.PartiasConnectorEngine.GetBestSubdivisionHere(PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(OpersHere));
             engineData.Color = OpersHere[0][0].Opers[0].Color;
             engineData.RestrictionsVia74110 = recommendedTara;
+
+
+            var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
+            PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(OpersHere).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
+
             for (int i = 0; i < OpersHere.Count; i++)
             {
                 for (int j = 0; j < OpersHere[i].Count; j++)
                 {
-                    OpersHere[i][j] = PartiasGeneratorEngine.PartiasGeneratorEngine.checkThisList(OpersHere[i][j], engineData, false/*, finalResult*/);
+                    OpersHere[i][j] = PartiasGeneratorEngine.PartiasGeneratorEngine.checkThisList(OpersHere[i][j], engineData, false, finalResult);
                 }
             }
         }

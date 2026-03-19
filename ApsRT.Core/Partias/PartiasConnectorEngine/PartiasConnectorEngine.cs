@@ -388,7 +388,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             // и чтоб сами этапы ещё ни в чем таком не участвовали (коэффициент = 1 или не задан).
                             if (here1.Opers[0].CanChangePlacesCount) 
                             {
-                                if (here1.Opers.Count + x.Opers.Count > 2) return false;
+                                //if (here1.Opers.Count + x.Opers.Count > 2) return false;
                                 //if (here1.PlacesCountMultiplierToRewrite.HasValue && here1.PlacesCountMultiplierToRewrite.Value > 1) return false;
                                 //if (x.PlacesCountMultiplierToRewrite.HasValue && x.PlacesCountMultiplierToRewrite.Value > 1) return false;
                             }
@@ -710,9 +710,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         }
 
 
-        static float CalculateFilledK(List<List<PartiaModelling>> OpersHere, PartiasConnectorEngineResult resultToFill)
+        static void FillDictionary(List<List<PartiaModelling>> OpersHere, Dictionary<(Uco Nomen, Uco Char, Uco Vid), (int Max, int Mul, int Cnt, float KZT)> calculator)
         {
-            Dictionary<(Uco Nomen, Uco Char, Uco Vid), (int Max, int Mul, int Cnt, float KZT)> calculator = new();
             for (int i = 0; i < OpersHere.Count; i++)
             {
                 for (int j = 0; j < OpersHere[i].Count; j++)
@@ -745,13 +744,35 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     calculator[key] = data;
                 }
             }
+        }
+
+        static float CalculateFilledK(bool withHerself, List<List<PartiaModelling>> OpersHere1, List<List<PartiaModelling>> OpersHere2, PartiasConnectorEngineResult resultToFill)
+        {
+            var SessionLink = OpersHere1[0][0].Opers[0].SessionLink;
+            var options = SessionLink.SessionOptions;
+
+            var needToCheckKZT = !withHerself && resultToFill.mergedNorm > 0 && (options.LaunchPlan || (!options.IsSilent && !options.PartOrZadel));
+
+            if (!needToCheckKZT) return resultToFill.mergedNorm; // Ну а что ещё возвращать?
+
+            Dictionary<(Uco Nomen, Uco Char, Uco Vid), (int Max, int Mul, int Cnt, float KZT)> calculator = new();
+            FillDictionary(OpersHere1, calculator);
+            FillDictionary(OpersHere2, calculator);
             float currentKZT = 1;
             foreach (var el in calculator)
             {
                 if (el.Value.Mul > 0 && el.Value.Cnt >= el.Value.Mul && el.Value.Cnt % el.Value.Mul > 0)
                 {
                     // По идее, тут ещё можно доп всего накидать
-                    return 0.001f;
+                    if (SessionLink.SettingsController.CurrentSettings.Demos_EnableNonMultPartiasMerge)
+                    {
+                        return 0.001f;
+                    }
+                    else
+                    {
+                        resultToFill.mergedNorm = 0;
+                        return 0;
+                    }
                 }
 
                 if (el.Value.Max > 0 && el.Value.Cnt > el.Value.Max)
@@ -924,7 +945,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                         }
                                     }
                                     else
-                                        resultToFill.mergedNorm = 0;
+                                    {
+                                        if (!SessionLink.SettingsController.CurrentSettings.Demos_IgnoreAnyTaraErrorsInPartias)
+                                            resultToFill.mergedNorm = 0;
+                                    }
                                 }
                             }
                             else
@@ -1202,7 +1226,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             }
             else
             {
-                filledK = CalculateFilledK(firstPartia.OpersHere, finalResult);
+                filledK = CalculateFilledK(withHerself, firstPartia.OpersHere, secondPartia.OpersHere, finalResult);
             }
 
             // После всего: проходим по всем уровням, по всем РЦ, и смотрим - кому РЦ не задался, тому пытаемся задать с учётом отдающей тары, чтоб он в выходной таблице норм был.
