@@ -606,7 +606,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                 //SortedList<int, SortedList<float, List<(PartiaClass from, PartiaClass to)>>> localDEEP = new();
                 // кол во корзин, кол во гп, затем кол во барабанов
-                SortedList<int, SortedList<int, SortedList<int, SortedList<float, List<(PartiaClass from, PartiaClass to)>>>>> localDEEP = new();
+                //SortedList<int, SortedList<int, SortedList<int, SortedList<float, List<(PartiaClass from, PartiaClass to)>>>>> localDEEP = new();
+                List<(int korz, int gpCount, int effiency, float k, PartiaClass from, PartiaClass to)> localDEEP = new();
 
                 void addDeepLocal(double valday)
                 {
@@ -620,23 +621,24 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                         var k = val.K;
                         if (val.Total > 0)
                         {
-                            if (!localDEEP.ContainsKey(korzMax))
-                            {
-                                localDEEP.Add(korzMax, new());
-                            }
-                            if (!localDEEP[korzMax].ContainsKey(gpCount))
-                            {
-                                localDEEP[korzMax].Add(gpCount, new());
-                            }
-                            if (!localDEEP[korzMax][gpCount].ContainsKey(effiencyHere))
-                            {
-                                localDEEP[korzMax][gpCount].Add(effiencyHere, new());
-                            }
-                            if (!localDEEP[korzMax][gpCount][effiencyHere].ContainsKey(k))
-                            {
-                                localDEEP[korzMax][gpCount][effiencyHere].Add(k, new());
-                            }
-                            localDEEP[korzMax][gpCount][effiencyHere][k].Add(deadL);
+                            //if (!localDEEP.ContainsKey(korzMax))
+                            //{
+                            //    localDEEP.Add(korzMax, new());
+                            //}
+                            //if (!localDEEP[korzMax].ContainsKey(gpCount))
+                            //{
+                            //    localDEEP[korzMax].Add(gpCount, new());
+                            //}
+                            //if (!localDEEP[korzMax][gpCount].ContainsKey(effiencyHere))
+                            //{
+                            //    localDEEP[korzMax][gpCount].Add(effiencyHere, new());
+                            //}
+                            //if (!localDEEP[korzMax][gpCount][effiencyHere].ContainsKey(k))
+                            //{
+                            //    localDEEP[korzMax][gpCount][effiencyHere].Add(k, new());
+                            //}
+                            //localDEEP[korzMax][gpCount][effiencyHere][k].Add(deadL);
+                            localDEEP.Add((korzMax, gpCount, effiencyHere, k, deadL.from, deadL.to));
                         }
                     }
                 }
@@ -670,8 +672,27 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     break;
                 }
 
-                var partia1 = localDEEP.First().Value.Last().Value.Last().Value.Last().Value[0].from;
-                var partia2 = localDEEP.First().Value.Last().Value.Last().Value.Last().Value[0].to;
+                //var listToCheck = localDEEP.First().Value.Last().Value.Last().Value.Last().Value;
+                var listToCheck = localDEEP
+                    .OrderBy(x => x.korz)
+                    .ThenByDescending(x => x.gpCount)
+                    .ThenByDescending(x => x.effiency)
+                    .ThenByDescending(x => x.k)
+                    .ToList();
+
+                if (SessionLink.SettingsController.CurrentSettings.Demos_BigPartiasLog/* && listToCheck.Count > 1*/)
+                {
+                    SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"variants:\r\n");
+                    int i = 1;
+                    foreach (var el in listToCheck)
+                    {
+                        SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"{i}\t-->\tkorz: {el.korz}\tgpC: {el.gpCount}\teff: {el.effiency}\tk: {el.k}\t\t[{el.from} ---> {el.to}]\r\n");
+                        i++;
+                    }
+                }
+
+                var partia1 = listToCheck[0].from;
+                var partia2 = listToCheck[0].to;
 
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
                 var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);

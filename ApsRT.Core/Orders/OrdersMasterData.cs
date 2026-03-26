@@ -36,6 +36,15 @@ namespace ApsRT.Core.Orders
                 finalOrderModel = orderModel;
             }
 
+            try
+            {
+                finalOrderModel.ShortName = $"{finalOrderModel.OrderID.Object.Label.Split(' ')[3]} ({finalOrderModel.OrderID.Version})";
+            }
+            catch
+            {
+
+            }
+
             Guid? pfPartia = finalOrderModel.PartiaPF;
             if (pfPartia.HasValue && pfPartia == Guid.Empty)
             {

@@ -394,6 +394,9 @@ namespace ApsRT.Core.Stages.MasterData
                 stage.DurationNorm = 1;
             }
 
+
+            stage.SetPlacesCount(stage.OriginalPlacesCount);
+
             if (stage.DurationNorm == 0)
             {
                 // Инфы нет! Придётся делать по другому
@@ -404,8 +407,6 @@ namespace ApsRT.Core.Stages.MasterData
                 // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
                 stage.SetStaticDuration(stage.DurationNorm, stage.Count);
             }
-
-            stage.SetPlacesCount(stage.OriginalPlacesCount);
 
             // Посмотрим на наладочную длину
             if (SessionLink.SettingsController.CurrentSettings.Demos_AllNaladLengthsAreClear)

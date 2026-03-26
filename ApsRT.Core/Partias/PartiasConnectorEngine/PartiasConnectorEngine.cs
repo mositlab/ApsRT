@@ -751,9 +751,11 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             var SessionLink = OpersHere1[0][0].Opers[0].SessionLink;
             var options = SessionLink.SessionOptions;
 
-            var needToCheckKZT = !withHerself && resultToFill.mergedNorm > 0 && (options.LaunchPlan || (!options.IsSilent && !options.PartOrZadel));
+            var needToCheckKZT = !withHerself && resultToFill.mergedNorm > 0;
 
             if (!needToCheckKZT) return resultToFill.mergedNorm; // Ну а что ещё возвращать?
+
+            needToCheckKZT = (options.LaunchPlan || (!options.IsSilent && !options.PartOrZadel));
 
             Dictionary<(Uco Nomen, Uco Char, Uco Vid), (int Max, int Mul, int Cnt, float KZT)> calculator = new();
             FillDictionary(OpersHere1, calculator);
@@ -761,7 +763,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             float currentKZT = 1;
             foreach (var el in calculator)
             {
-                if (el.Value.Mul > 0 && el.Value.Cnt >= el.Value.Mul && el.Value.Cnt % el.Value.Mul > 0)
+                if (needToCheckKZT && el.Value.Mul > 0 && el.Value.Cnt >= el.Value.Mul && el.Value.Cnt % el.Value.Mul > 0)
                 {
                     // По идее, тут ещё можно доп всего накидать
                     if (SessionLink.SettingsController.CurrentSettings.Demos_EnableNonMultPartiasMerge)
@@ -775,7 +777,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     }
                 }
 
-                if (el.Value.Max > 0 && el.Value.Cnt > el.Value.Max)
+                if (needToCheckKZT && el.Value.Max > 0 && el.Value.Cnt > el.Value.Max)
                 {
                     // По идее, тут ещё можно доп всего накидать
 
@@ -800,7 +802,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             var options = SessionLink.SessionOptions;
             var ALL = SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             float filledK = 0;
-            if (wannaMergeOps1.Modelling != null && wannaMergeOps2.Modelling != null && (options.LaunchPlan || (!options.IsSilent && !options.PartOrZadel)))
+            bool needToCheckKZT = (options.LaunchPlan || (!options.IsSilent && !options.PartOrZadel));
+            if (wannaMergeOps1.Modelling != null && wannaMergeOps2.Modelling != null)
             {
                 if (!withHerself)
                 {
@@ -864,16 +867,21 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                 (/*x.NoChangeTara &&*/ x.Prevs.All(x => ALL[x].IsVspom || IDtoSdvig[x].ZadelCode != 0 || ALL[x].PrevsNormCount == 1))
                                 ))
                                     ) continue;
-                                // Первый варик
-                                //filledK = 0.001f;
 
-                                // Текущий варик для ЗМК
-                                filledK = 0;
-                                //resultToFill.mergedNorm = 0; // раскомментить
+                                if (needToCheckKZT)
+                                {
+                                    // Первый варик
+                                    //filledK = 0.001f;
 
-                                // Текущий варик для СКО
-                                filledK = 0.001f;
-                                //resultToFill.mergedNorm = 0;
+                                    // Текущий варик для ЗМК
+                                    filledK = 0;
+                                    //resultToFill.mergedNorm = 0; // раскомментить
+
+                                    // Текущий варик для СКО
+                                    filledK = 0.001f;
+                                    //resultToFill.mergedNorm = 0;
+                                }
+
                                 break;
                             }
                         }

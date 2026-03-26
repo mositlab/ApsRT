@@ -188,5 +188,7 @@ namespace ApsRT.Core.Settings
         public bool Demos_IgnoreAnyTaraErrorsInPartias { get; set; }
         [JsonProperty]
         public bool Demos_EnableNonMultPartiasMerge { get; set; }
+        [JsonProperty]
+        public bool Demos_BigPartiasLog { get; set; }
     }
 }

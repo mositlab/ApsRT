@@ -123,9 +123,9 @@ namespace ApsRT.Core.Partias.PartiasClasses
 
         public override string ToString()
         {
-            var ids = OpersHere.SelectMany(x => x.SelectMany((y, INDEX) => y.Opers.Select(z => $"{z.Index} [{INDEX}]")));
+            var ids = OpersHere.SelectMany(x => x.SelectMany((y, INDEX) => y.Opers.Select(z => ($"{z.Index} [{INDEX}]", z.OrderLink.ShortName))));
             var error = (ids.Distinct().Count() != ids.Count()) ? "!!!" : "";
-            return error + String.Format(" #{0:X} ({1} шт.) - {2}", GetHashCode(), ids.Count(), OpersHere[0][0].Opers[0].OrderLink.OrderID);// + ": " + string.Join("; ", OrdersHere);
+            return error + String.Format(" #{0:X} ({1} шт.) - {2}", GetHashCode(), ids.Count(), string.Join("; ", ids.Select(x => x.ShortName).Distinct()));// + ": " + string.Join("; ", OrdersHere);
         }
 
         public void Sort()

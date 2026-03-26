@@ -24,6 +24,8 @@ namespace ApsRT.Core.Orders
         [DataRecordCodedObjectVersionedColumn("Заказ_GUID", "Заказ", "ПартияГП")]
         public OrderID OrderID { get; set; }
 
+        public string ShortName { get; set; }
+
         [DataRecordColumn("ДатаИсполненияПоЗаказу")]
         public DateTime Deadline { get; set; }
 

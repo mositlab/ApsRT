@@ -2,7 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "guid:ЧЕКДЛИН",
+      "commandLineArgs": "guid:23GP",
       "hotReloadEnabled": true
     }
   }

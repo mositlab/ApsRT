@@ -110,7 +110,11 @@ namespace ApsRTCustomComponents
 
                         var sum = TaraSearchEngine.SumIsPossible(partiaClass1.OpersHere[i][j], out var res, out _, new SumIsPossibleOptions(false));
 
+
                         var opers = partiaClass1.OpersHere[i][j].Opers;
+
+                        var maxT = opers.Max(x => x.LongestDuration);
+
                         var justSum = /*opers[0].Modelling != Guid.Empty ? opers.GroupBy(x => x.Modelling).Sum(x => x.First().Count) : */opers.Sum(x => x.Count);
                         node.Data = $"{partiaClass1.OpersHere[i][j].Opers.Count} шт\r\n" +
                             //$"не менять тару: {notch}\r\n" +
@@ -120,7 +124,8 @@ namespace ApsRTCustomComponents
                         + $"\r\nпросто сумма: {justSum}"
                         + $"\r\nMES сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.CountMES)}" +
                         $"\r\nНаладочные длины: [{string.Join(";", n1.Select(x => x.Item1))}] [{next}] << [{string.Join(";", n1.Select(x => x.Item2))}]"//[{curr}] [{next}] << [{k}]
-                        + $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
+                        + $"\r\nДлит: {maxT} с ({maxT / 60f} м) ({maxT / 3600f} ч)" +
+                        $"\r\nКонеч. тара: {partiaClass1.OpersHere[i][j].Opers[0].EndTara}"
                         //+ $"\r\nКгКм сумма: {partiaClass1.OpersHere[i][j].Opers.Sum(x => x.Count * x.KgKm / 1000.0)}"
                         + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n"
                         + $"Множитель кратности этапа: {partiaClass1.OpersHere[i][j].PlacesCountMultiplierToRewrite}\r\n\r\n"
