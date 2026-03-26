@@ -1024,7 +1024,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     timeTransfer -= (int)delta1.TotalSeconds;
                     if (timeTransfer < 0) timeTransfer = 0;
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/);
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true);
 
                     lock (locker)
                     {
@@ -1277,7 +1277,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         IsFromSameOrder,
                         mod.FirstOperJust.Level,
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
-                        errors, mod.Count, localResultData.timeTransferLeft
+                        errors, mod.Count, localResultData.timeTransferLeft,
+                        false
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 

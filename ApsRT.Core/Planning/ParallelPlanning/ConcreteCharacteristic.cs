@@ -41,7 +41,8 @@ namespace ApsRT.Core.Planning.ParallelPlanning
             {
                 // Смотрим - эта характеристика - это диапазон?
                 var data = stage.NumberProps[UsedProp.NumberIndex];
-                return Min <= data && data <= Max;
+                if (!data.HasValue) return false;
+                return (float)Min <= data.Value && data.Value <= (float)Max;
             }
             else
             {

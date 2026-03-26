@@ -86,6 +86,12 @@ namespace ApsRT.Core.Planning.ParallelPlanning
                 {
                     vari.List.Add(model.Tara, model.TaraCount.Value);
                     vari.TotalCount += model.TaraCount.Value;
+                    //vari.MaxCapacity = model.MaxCapacity ?? 0;
+                }
+                if (!vari.List.ContainsKey(model.Tara) && model.MaxCapacity.HasValue)
+                {
+                    vari.List.Add(model.Tara, model.MaxCapacity.Value);
+                    //vari.TotalCount += model.TaraCount.Value;
                     vari.MaxCapacity = model.MaxCapacity ?? 0;
                 }
                 ParallelLoadingsVariants[model.CenterName][model.OperationVid][model.ParallelID][model.Variant] = vari;
