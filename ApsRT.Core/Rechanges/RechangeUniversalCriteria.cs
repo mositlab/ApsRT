@@ -32,6 +32,9 @@ namespace ApsRT.Core.Rechanges
 
                 if (finalIndex != -1)
                 {
+
+                    IsDynamic |= CustomRechangeCriteriaMethods.ThisMethodIsDynamic[finalIndex];
+
                     LinkDataObtainer = CustomRechangeCriteriaMethods.MethodsArray[finalIndex];
                     LinkValuesCountObtainer = CustomRechangeCriteriaMethods.MethodsValuesCountArray[finalIndex];
 

@@ -238,7 +238,7 @@ namespace ApsRT.Core.PlanSimulator
 
             var modsToGroup = Blocks.SelectMany(x => x.Lists).Where(x => x.StagesAsNormal.Any(s => s.OnOneRC)); // Выберем все нужные моды
 
-            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), /*mod.FirstOperJust.Level,*/ mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature, mod.FirstOperJust.Characteristics, mod.FirstOperJust.Poviv));
+            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), /*mod.FirstOperJust.Level,*/ mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature, mod.FirstOperJust.Characteristics/*, mod.FirstOperJust.Poviv*/));
             foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
             {
                 var groupID = OnOneRCGroupData.Count;
