@@ -278,9 +278,10 @@ namespace ApsRT.Core.Leftovers
             )
                 .Where(
                 item =>
-                //CurrentLeftoversCount.ContainsKey(item.MatNomen)
+                true
                 //&&
-                item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].IsBuying) // Второе ограничение.
+                //item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].IsBuying
+                ) // Второе ограничение.
                 .Select((x, index) => (itsStage: false, elementIndex: index, x.stageLink, x.modLink, x.MatData, x.MatIndex, x.MatWeight))
 
                 //.Take(5000)

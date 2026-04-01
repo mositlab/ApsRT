@@ -539,7 +539,8 @@ namespace ApsRT.Core.Session
             sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске");
             fullOutput?.WriteLine($"N;Регистратор;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
 
-            var D = 1;
+            var DLitt = 1;
+            var Dbig = 1;
             foreach (var block in blocks)
             {
                 for (int i = 0; i < block.Lists.Count; i++)
@@ -570,34 +571,40 @@ namespace ApsRT.Core.Session
                         {
 
                             if (!OP1.NeededNaladLength.HasValue)
-                                sw.WriteLine($"{D};{OP1.GUID};" +
-                                    //$"{OP1.StageVersion};" +
+                            {
+                                sw.WriteLine($"{DLitt};{OP1.GUID};" +
+                        //$"{OP1.StageVersion};" +
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
                                     $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+                                DLitt++;
 
-                            fullOutput?.WriteLine($"{D};\"{OP1.Registrator}\";{OP1.GUID};" +
-                               // $"{OP1.StageVersion};" +
-                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
-                                $"\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
-                                $"{OP1.Level};{ToCsvString(OP1.Nomenklature)};{ToCsvString(OP1.OperationVid)};{ToCsvString(OP1.Production)};{center};" +
-                                $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
-                                $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
-                                $"{list.ModID};" +
-                                $"{list.Count};" +
-                                $"{modNalads.Data.NaladLengthHere};" +
-                                $"{modNalads.Data.NaladLengthNexts};" +
-                                $"{modNalads.Data.prevKoeff};" +
-                                $"{OP1.CurrentTara};" +
-                                $"{OP1.CurrentTaraMaxCapacity};" +
-                                $"{(OP1.IsVspom || OP1.NoChangeTara || !OP1.EndTara.IsEmpty ? "" : (OP1.CurrentTaraMaxCapacity >= modNalads.Data.NaladLengthHere.Value + list.Count))};" +
-                                $"{(OP1.NeededNaladLength.HasValue ? OP1.NeededNaladLength.Value.Length.Value.ToString() : "Нет")}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
+                            }
 
+                            if (fullOutput != null)
+                            {
+                                fullOutput?.WriteLine($"{Dbig};\"{OP1.Registrator}\";{OP1.GUID};" +
+                            // $"{OP1.StageVersion};" +
+                            $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
+                                    $"\"{OP1.OrderLink.OrderID.Object}\";{OP1.OrderLink.OrderID.Version};{OP1.CustomPartiaGuid ?? OP1.OrderLink.PartiaPF ?? Guid.Empty};" +
+                                    $"{OP1.Level};{ToCsvString(OP1.Nomenklature)};{ToCsvString(OP1.OperationVid)};{ToCsvString(OP1.Production)};{center};" +
+                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
+                                    $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
+                                    $"{list.ModID};" +
+                                    $"{list.Count};" +
+                                    $"{modNalads.Data.NaladLengthHere};" +
+                                    $"{modNalads.Data.NaladLengthNexts};" +
+                                    $"{modNalads.Data.prevKoeff};" +
+                                    $"{OP1.CurrentTara};" +
+                                    $"{OP1.CurrentTaraMaxCapacity};" +
+                                    $"{(OP1.IsVspom || OP1.NoChangeTara || !OP1.EndTara.IsEmpty ? "" : (OP1.CurrentTaraMaxCapacity >= modNalads.Data.NaladLengthHere.Value + list.Count))};" +
+                                    $"{(OP1.NeededNaladLength.HasValue ? OP1.NeededNaladLength.Value.Length.Value.ToString() : "Нет")}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
+                                Dbig++;
+                            }
 
                         }
                     }
                     //firstMod = false;
-                    D++;
                 }
             }
 

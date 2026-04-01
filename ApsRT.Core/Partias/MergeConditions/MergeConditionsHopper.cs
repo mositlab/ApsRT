@@ -17,9 +17,9 @@ namespace ApsRT.Core.Partias.MergeConditions
         Session.Session session;
         MergeConditionsMasterData MergeConditionsMasterData;
 
-        public const string DoNotCheckWindingsConst = "НеУчитыватьМаксимальныеНамотки";
-        public const string CheckMaterialsConst = "УчитыватьИсходныеКомплектующие";
-        public const string CheckWorkCenterRouteConst = "УчитыватьПересеченияРЦмаршрута";
+        public const string DoNotCheckWindingsConst = "неучитыватьмаксимальныенамотки";
+        public const string CheckMaterialsConst = "учитыватьисходныекомплектующие";
+        public const string CheckWorkCenterRouteConst = "учитыватьпересечениярцмаршрута";
 
         public void ActionFile(string filename) { }
 
@@ -73,7 +73,7 @@ namespace ApsRT.Core.Partias.MergeConditions
                 }
                 else
                 {
-                    switch (model.Param.Trim())
+                    switch (model.Param.Trim().ToLower())
                     {
                         case DoNotCheckWindingsConst:
                             {
