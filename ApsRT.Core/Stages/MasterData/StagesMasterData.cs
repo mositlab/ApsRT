@@ -400,12 +400,12 @@ namespace ApsRT.Core.Stages.MasterData
             if (stage.DurationNorm == 0)
             {
                 // Инфы нет! Придётся делать по другому
-                stage.SetStaticDuration(null, stage.Count);
+                stage.SetStaticDuration(null, stage.OriginalCount);
             }
             else
             {
                 // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
-                stage.SetStaticDuration(stage.DurationNorm, stage.Count);
+                stage.SetStaticDuration(stage.DurationNorm, stage.OriginalCount);
             }
 
             // Посмотрим на наладочную длину
