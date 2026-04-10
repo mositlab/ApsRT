@@ -68,7 +68,7 @@ namespace ApsRT.Core.Partias.Zadels
                     }
 
                     // 3. Уровень
-                    var level = model.Level;
+                    var level = model.Level ?? 0;
                     if (!ZadelsData[partiaPF][order].ContainsKey(level))
                     {
                         ZadelsData[partiaPF][order].Add(level, new());
@@ -89,7 +89,7 @@ namespace ApsRT.Core.Partias.Zadels
                     }
 
                     // 5. Номер повива
-                    int poviv = model.Poviv;
+                    int poviv = model.Poviv ?? 0;
                     if (!ZadelsData[partiaPF][order][level][nomen][chars].ContainsKey(poviv))
                     {
                         ZadelsData[partiaPF][order][level][nomen][chars].Add(poviv, new());
@@ -98,17 +98,17 @@ namespace ApsRT.Core.Partias.Zadels
                     // 6. Последнее - сам задел
                     var zadelGuid = model.ZadelGuid;
 
-                    if (zadelGuid != Guid.Empty)
+                    if (zadelGuid.HasValue && zadelGuid.Value != Guid.Empty)
                     {
-                        if (!LinearZadelsDictionary.ContainsKey(zadelGuid))
+                        if (!LinearZadelsDictionary.ContainsKey(zadelGuid.Value))
                         {
                             var tara = new ZadelDataLoaderModel().Tara;
                             var newZadel = new ConcreteZadel(tara, level);
                             newZadel.ZadelStatus = ZadelStatus.CannotBeFound;
-                            LinearZadelsDictionary.Add(zadelGuid, newZadel);
+                            LinearZadelsDictionary.Add(zadelGuid.Value, newZadel);
                         }
 
-                        var zadel = LinearZadelsDictionary[zadelGuid]; // берем ссылку на задел и добавляем инфу про ГП в него
+                        var zadel = LinearZadelsDictionary[zadelGuid.Value]; // берем ссылку на задел и добавляем инфу про ГП в него
                         //zadel.RelatedGPs.Add(order);
 
                         //if (!USE_CONCRETE_ETAPS_GUIDS) finalEtap = Guid.Empty;
@@ -119,9 +119,9 @@ namespace ApsRT.Core.Partias.Zadels
                         }
                         zadel.Count = Math.Max(zadel.Count, model.Count); // Обновляем количество.
 
-                        if (!ZadelsData[partiaPF][order][level][nomen][chars][poviv]/*[finalEtap]*/.ContainsKey(zadelGuid)) // Если такого задела нет, то мы его создаём
+                        if (!ZadelsData[partiaPF][order][level][nomen][chars][poviv]/*[finalEtap]*/.ContainsKey(zadelGuid.Value)) // Если такого задела нет, то мы его создаём
                         {
-                            ZadelsData[partiaPF][order][level][nomen][chars][poviv]/*[finalEtap]*/.Add(zadelGuid, zadel);
+                            ZadelsData[partiaPF][order][level][nomen][chars][poviv]/*[finalEtap]*/.Add(zadelGuid.Value, zadel);
                         }
 
                     }

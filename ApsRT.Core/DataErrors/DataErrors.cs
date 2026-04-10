@@ -187,16 +187,16 @@ namespace ApsRT.Core.DataErrors
 
                             NewDataErrorType.SomeFileIsOpened => "Некоторые файлы открыты другим процессом/пользователем и недоступны для записи.",//: {0}.",
 
-                            NewDataErrorType.CorruptedDataFile => "Ошибка при загрузке модуля данных '{0}'. Обратитесь к администратору.",
+                            NewDataErrorType.CorruptedDataFile => "Ошибка при загрузке модуля данных '{0}'.",
 
-                            NewDataErrorType.EmptyDataTable => "Пустая таблица модуля данных '{0}'. Обратитесь к администратору.",
+                            NewDataErrorType.EmptyDataTable => "Пустая таблица модуля данных '{0}'.",
 
-                            NewDataErrorType.EmptyPropType => "Неизвестный тип реквизита для '{0}'. Обратитесь к администратору.",
-                            NewDataErrorType.UnknownPropType => "Неизвестный тип реквизита для '{0}'. Обратитесь к администратору.",
+                            NewDataErrorType.EmptyPropType => "Неизвестный тип реквизита для '{0}'.",
+                            NewDataErrorType.UnknownPropType => "Неизвестный тип реквизита для '{0}'.",
 
-                            NewDataErrorType.CantLinkProp => "Не удаётся создать ссылку на реквизит для '{0}'. Обратитесь к администратору.",
+                            NewDataErrorType.CantLinkProp => "Не удаётся создать ссылку на реквизит для '{0}'.",
 
-                            NewDataErrorType.UnknownPartiaParam => "Неизвестная настройка '{0}'. Обратитесь к администратору.",
+                            NewDataErrorType.UnknownPartiaParam => "Неизвестная настройка '{0}'.",
 
                             NewDataErrorType.NotEnoughMaxOnTaras => "Не найдена основная тара для рассчитанного количества с учетом выбранной тары по макс намотке и приемной таре по цепочке по таре (количество этапа слишком велико).",
                             NewDataErrorType.NotEnoughMaxOnTarasVspom => "Не найдена вспомогательная тара для рассчитанного количества с учетом выбранной тары по макс намотке и приемной таре по цепочке по таре (количество этапа слишком велико).",

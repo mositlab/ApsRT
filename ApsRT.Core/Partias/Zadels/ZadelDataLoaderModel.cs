@@ -25,8 +25,8 @@ namespace ApsRT.Core.Partias.Zadels
         [DataRecordCodedObjectVersionedColumn("ИдентификаторЭтапа", "Регистратор", "ВерсияЭтапа", versionIsInt: true)]
         public StageGUID StageGuid { get; set; }
 
-        [DataRecordColumn("Уровень")]
-        public int Level { get; set; }
+        [DataRecordColumn("Уровень", defaultIfFail: true)]
+        public int? Level { get; set; }
 
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
@@ -34,10 +34,10 @@ namespace ApsRT.Core.Partias.Zadels
         public Uco Characteristics { get; set; }
 
         [DataRecordColumn("НомерПовива", defaultIfFail: true)]
-        public int Poviv { get; set; }
+        public int? Poviv { get; set; }
 
-        [DataRecordColumn("ИдентификаторЗадела")]
-        public Guid ZadelGuid { get; set; }
+        [DataRecordColumn("ИдентификаторЗадела", defaultIfFail: true)]
+        public Guid? ZadelGuid { get; set; }
 
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]
         public Uco Tara { get; set; }

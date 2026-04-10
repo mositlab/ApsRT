@@ -1134,7 +1134,7 @@ namespace ApsRT.Core.Leftovers
             var n = pointsToAnalyze.FindIndex(currentPoint + 1, x =>
             {
                 if (x.Object is PlanSimulatorMod) return false;
-                (LeftoverUco Material, Uco Subdivision, double Count) info = ((LeftoverUco Material, Uco Subdivision, double Count))x.Object;
+                (LeftoverUco Material, Uco Subdivision, double Count, UcoDU edIzm) info = ((LeftoverUco Material, Uco Subdivision, double Count, UcoDU edIzm))x.Object;
                 // УЧТИ, У ПРИХОДЯЩИХ МАТЕРИАЛОВ СЕРИЯ И ШТРИХКОД ВСЕГДА ПУСТЫЕ.
                 // НЕ СМОТРИМ НА НИХ, ПОТОМУ ЧТО МОЖЕТ БЫТЬ ТАКОЕ, ЧТО НЕ ХВАТАЕТ ОСТАТКА ВЫШЕ, А У НЕГО СЕРИЯ+ШК ЗАДАНЫ.
                 // А НАМ НУЖНО ПРОСТО УЗНАТЬ, КОГДА ПРИЕДЕТ МАТЕРИАЛ С ТАКОЙ ЖЕ НОМЕНКЛ+ХАРКОЙ.

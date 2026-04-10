@@ -103,7 +103,7 @@ namespace ApsRT.Core.Hoppers
 
                 if (Paths[module.Name].Length == 0)
                 {
-                    if (module.Data.MustBeFilledWithData) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, module.Data.Label);
+                    if (module.Data.MustBeFilledWithData && session.SettingsController.CurrentSettings.LogErrors) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, module.Data.Label);
                     continue;//return;
                 }
 
@@ -296,7 +296,7 @@ namespace ApsRT.Core.Hoppers
 
                     }
                     OnEndLoadingEvent?.Invoke(hopperData, hopperInterface, i);
-                    if (hopperData.MustBeFilledWithData && !hasAnyRows) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, hopperData.Label);
+                    if (hopperData.MustBeFilledWithData && !hasAnyRows && session.SettingsController.CurrentSettings.LogErrors) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, hopperData.Label);
                 }
             }
         }
@@ -367,7 +367,7 @@ namespace ApsRT.Core.Hoppers
                     }
 
                     connection.SafeClose();
-                    if (hopperData.MustBeFilledWithData && !hasAnyRows) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, hopperData.Label);
+                    if (hopperData.MustBeFilledWithData && !hasAnyRows && session.SettingsController.CurrentSettings.LogErrors) session.DataErrors.AddNewPartiaError(NewDataErrorType.EmptyDataTable, hopperData.Label);
                 }
             }
 
