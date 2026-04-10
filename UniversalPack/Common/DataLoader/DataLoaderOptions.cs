@@ -13,9 +13,12 @@ namespace UniversalPack.Common.DataLoader
 
         public GuidArrrangeType GuidArrrangeType { get; set; }
 
-        public DataLoaderOptions(SourceType type)
+        public IColumnNameProvider UsedColumnNameProvider { get; }
+
+        public DataLoaderOptions(SourceType type, IColumnNameProvider provider)
         {
             SourceType = type;
+            UsedColumnNameProvider = provider;
         }
 
     }

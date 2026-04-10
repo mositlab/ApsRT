@@ -187,19 +187,19 @@ namespace UniversalPack.Common.DataLoader
                     // отдельно определяем типы для парсинга
                     if (propertyInfo.PropertyType.IsAssignableFrom<DateTime>())
                     {
-                        return (e, opts) => ConvertDateTime(e, attribute);
+                        return (e, opts) => ConvertDateTime(e, opts, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<DateOnly>())
                     {
-                        return (e, opts) => ConvertDateOnly(e, attribute);
+                        return (e, opts) => ConvertDateOnly(e, opts, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<double>())
                     {
-                        return (e, opts) => ConvertDouble(e, attribute);
+                        return (e, opts) => ConvertDouble(e, opts, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<int>())
                     {
-                        return (e, opts) => ConvertInt(e, attribute);
+                        return (e, opts) => ConvertInt(e, opts, attribute);
                     }
                     if (propertyInfo.PropertyType.IsAssignableFrom<Guid>())
                     {
@@ -211,20 +211,20 @@ namespace UniversalPack.Common.DataLoader
 
                     if (converter == null)
                     {
-                        return (e, opts) => CommonConvertOneField(e, propertyInfo, attribute);
+                        return (e, opts) => CommonConvertOneField(e, opts, propertyInfo, attribute);
                     }
                     else
                     {
-                        return (e, opts) => ConvertOneFieldWithConverter(e, converter, propertyInfo, attribute);
+                        return (e, opts) => ConvertOneFieldWithConverter(e, opts, converter, propertyInfo, attribute);
                     }
 
                 // обработка кастомных правил конвертации
                 case DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes:
-                    return (e, opts) => ConvertIsYesField(e, attribute);
+                    return (e, opts) => ConvertIsYesField(e, opts, attribute);
                 case DataRecordColumnAttribute.CustomConversionModes.StringToTypeIndex:
-                    return (e, opts) => ConvertTypeIndexField(e, attribute);
+                    return (e, opts) => ConvertTypeIndexField(e, opts, attribute);
                 case DataRecordColumnAttribute.CustomConversionModes.StringToPriority:
-                    return (e, opts) => ConvertPriorityField(e, attribute);
+                    return (e, opts) => ConvertPriorityField(e, opts, attribute);
                 default:
                     throw new InvalidOperationException();
             }
@@ -239,7 +239,8 @@ namespace UniversalPack.Common.DataLoader
         /// <returns></returns>
         private static object ConvertGuid(IDataRecord record, DataLoaderOptions options, string name, bool defaultIfNull)
         {
-            var value = record[name];
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -290,9 +291,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="attribute"></param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object ConvertInt(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertInt(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -330,9 +333,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="attribute"></param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object ConvertDouble(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertDouble(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -370,9 +375,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="propertyInfo"></param>
         /// <param name="attribute"></param>
         /// <returns></returns>
-        private static object ConvertIsYesField(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertIsYesField(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -391,9 +398,11 @@ namespace UniversalPack.Common.DataLoader
             return strValue.IsYes();
         }
 
-        private static object ConvertTypeIndexField(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertTypeIndexField(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -418,9 +427,11 @@ namespace UniversalPack.Common.DataLoader
             });
         }
 
-        private static object ConvertPriorityField(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertPriorityField(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -451,9 +462,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="attribute"></param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object ConvertDateTime(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertDateTime(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -493,9 +506,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="attribute"></param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object ConvertDateOnly(IDataRecord record, DataRecordColumnAttribute attribute)
+        private static object ConvertDateOnly(IDataRecord record, DataLoaderOptions options, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -536,9 +551,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="attribute"></param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object ConvertOneFieldWithConverter(IDataRecord record, TypeConverter converter, PropertyInfo propertyInfo, DataRecordColumnAttribute attribute)
+        private static object ConvertOneFieldWithConverter(IDataRecord record, DataLoaderOptions options, TypeConverter converter, PropertyInfo propertyInfo, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {
@@ -576,9 +593,11 @@ namespace UniversalPack.Common.DataLoader
         /// <param name="attribute">Атрибут свойства модели</param>
         /// <returns></returns>
         /// <exception cref="DataLoaderException"></exception>
-        private static object CommonConvertOneField(IDataRecord record, PropertyInfo propertyInfo, DataRecordColumnAttribute attribute)
+        private static object CommonConvertOneField(IDataRecord record, DataLoaderOptions options, PropertyInfo propertyInfo, DataRecordColumnAttribute attribute)
         {
-            var value = record[attribute.Name];
+            var name = attribute.Name;
+            var columnName = options.UsedColumnNameProvider?.GetName(name) ?? name;
+            var value = record[columnName];
 
             if (value is null || value == DBNull.Value)
             {

@@ -36,6 +36,8 @@ namespace ApsRT.Core.Hoppers
             FindAllHoppers();
         }
 
+        public IColumnNameProvider UsedColumnNameProvider { get; set; }
+
         void FindAllHoppers()
         {
             var asm = Assembly.GetAssembly(typeof(IHopperInterface ));
@@ -254,8 +256,8 @@ namespace ApsRT.Core.Hoppers
                     ".txt" => SourceType.TXT,
                     ".csv" => SourceType.CSV,
                     _ => throw new NotSupportedException(file)
-                });
-
+                }, UsedColumnNameProvider);
+                //options.UsedColumnNameProvider = UsedColumnNameProvider;
                 var reader = filetype switch
                 {
                     ".xlsx" => stream.CreateExcelReader(false),
@@ -335,7 +337,9 @@ namespace ApsRT.Core.Hoppers
                     using (var reader = command.ExecuteReader())
                     using (var wrapper = new SqlDataReaderWrapper(reader))
                     {
-                        var options = new DataLoaderOptions(SourceType.SQL);
+                        var options = new DataLoaderOptions(SourceType.SQL, UsedColumnNameProvider);
+
+                        //options.UsedColumnNameProvider = UsedColumnNameProvider;
 
                         //options.ArrangeGuidBytes = true; // Почему-то это надо для АПС, чтоб биты переставлялись
 

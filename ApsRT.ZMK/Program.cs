@@ -25,7 +25,7 @@ namespace ApsRT.ZMK
 
             var sessionLink = new ApsRT.Core.Session.Session(Environment.GetCommandLineArgs());
             sessionLink.SessionOutputEngine.ClassicSettingsByOptions(sessionLink.SessionOptions);
-            sessionLink.Start();
+            sessionLink.HoppersHandler.UsedColumnNameProvider = new ZMK_ColumnNameProvider();
             sessionLink.SettingsController.SpecialSettings.CalculateBestSubdivisionInPartias = false;
             sessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias = false;
             //sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = false;
@@ -33,6 +33,7 @@ namespace ApsRT.ZMK
             sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction = Core.Settings.SpecialSettings.PartiaMergingRestrictionType.LongestOpers_LessThan3;
             sessionLink.SettingsController.SpecialSettings.UseOnlyWeightMethodWhenSearchWindings = false;
             sessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound = true;
+            sessionLink.Start();
 
 
             ApsRTCustomComponents.ApsRTMainForm1 form = null;
@@ -72,6 +73,18 @@ namespace ApsRT.ZMK
 
             return Environment.ExitCode;
 
+        }
+
+        class ZMK_ColumnNameProvider : UniversalPack.Common.DataLoader.IColumnNameProvider
+        {
+            public string GetName(string rawPropertyColumnName)
+            {
+                switch (rawPropertyColumnName)
+                {
+                    case "&OpersTable_PovivIndex&": return "НомерПовива"; // НомерЗапуска
+                }
+                return rawPropertyColumnName;
+            }
         }
 
     }

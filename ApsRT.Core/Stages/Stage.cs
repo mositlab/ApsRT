@@ -299,7 +299,7 @@ namespace ApsRT.Core.Stages
         public int Level { get; set; }
 
         // он же номер повива
-        [DataRecordColumn("НомерЗапуска")]
+        [DataRecordColumn("&OpersTable_PovivIndex&")]
         public int Poviv { get; set; }
 
         //
