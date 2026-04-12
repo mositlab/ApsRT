@@ -11,15 +11,17 @@ namespace ApsRT.Core.Leftovers
 {
     public class StageLeftover
     {
-        public StageLeftover(LeftoverUco leftoverData, double calculatedCount, UcoDU edIzm)
+        public StageLeftover(LeftoverUco leftoverData, double calculatedCount, double originalCount, UcoDU edIzm)
         {
             LeftoverData = leftoverData;
             CalculatedCount = calculatedCount;
+            OriginalCount = originalCount;
             EdIzm = edIzm;
         }
 
         public LeftoverUco LeftoverData { get; set; }
         public double CalculatedCount { get; set; }
+        public double OriginalCount { get; set; }
         public UcoDU EdIzm { get; set; }
 
         public override string ToString()

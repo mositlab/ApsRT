@@ -955,7 +955,11 @@ namespace ApsRT.Core.Session
                 $"МатериалСерия_GUID;МатериалСерия;ШтрихкодСерии;" +
                 //$"ПодразделениеМатериала;" +
                 $"ИдентификаторПартииПФ;" +
-                $"КоличествоПотребность;КоличествоПервогоЭтапа;КоличествоДоступно;ЕдиницаИзмерения;" +
+                $"КоличествоПотребность;" +
+                $"КоличествоПотребностьАналог;" +
+                $"КоличествоПервогоЭтапа;" +
+                $"КоличествоДоступно;" +
+                $"ЕдиницаИзмерения;" +
                 $"ДатаПотребности;ДатаПоступления;" +
                 $"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;КоличествоЭтапов;GUIDОбщегоЭтапа;" +
                 $"РЦ_GUID;РЦ;ПодразделениеРЦ_GUID;ПодразделениеРЦ;" +
@@ -996,6 +1000,7 @@ namespace ApsRT.Core.Session
                     //$"{element.MaterialSubdivision};" +
 
                     $"{element.PartiaPF};" +
+                    $"{element.ORIGCountNeeded};" +
                     $"{element.CountNeeded};" +
                     $"{opLink.Count};" +
                     $"{element.CountExists};" + // вернем на место

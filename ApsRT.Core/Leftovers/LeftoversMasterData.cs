@@ -272,7 +272,8 @@ namespace ApsRT.Core.Leftovers
                     (mat, index) =>
                     {
                         //var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.EasyFlag.Value].NaladLengthData[PoolIndex];
-                        return (stageLink: sdvig.mod.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)((GetMatSumFromMod(sdvig.mod, mat.AsMaterialUcoData()) + (sdvig.naladLengthData?.Data.NaladLengthHere.Value ?? 0)) * 1000.0));
+                        var count = (GetMatSumFromMod(sdvig.mod, mat.AsMaterialUcoData()) + (sdvig.naladLengthData?.Data.NaladLengthHere.Value ?? 0));
+                        return (stageLink: sdvig.mod.FirstOperLink, modLink: sdvig, MatData: mat.AsMaterialUcoData(), MatIndex: index, MatWeight: (long)(count * 1000.0), MatWeightOrig: count);
                     }
                 )
             )
@@ -282,7 +283,7 @@ namespace ApsRT.Core.Leftovers
                 //&&
                 //item.stageLink.StageMaterialsInfo.UsedMaterials[item.MatIndex].IsBuying
                 ) // Второе ограничение.
-                .Select((x, index) => (itsStage: false, elementIndex: index, x.stageLink, x.modLink, x.MatData, x.MatIndex, x.MatWeight))
+                .Select((x, index) => (itsStage: false, elementIndex: index, x.stageLink, x.modLink, x.MatData, x.MatIndex, x.MatWeight, x.MatWeightOrig))
 
                 //.Take(5000)
 
@@ -302,7 +303,8 @@ namespace ApsRT.Core.Leftovers
             modLink: x.mod,
             new MaterialUco(x.mod.mod.FirstOperLink.Nomenklature, x.mod.mod.FirstOperLink.Characteristics),
             MatIndex: x.place,
-            MatWeight: (long)(x.mod.mod.Sum * 1000)
+            MatWeight: (long)(x.mod.mod.Sum * 1000),
+            MatWeightOrig: x.mod.mod.Sum
             ));
             allItems.AddRange(stage2);
 
@@ -346,7 +348,7 @@ namespace ApsRT.Core.Leftovers
             var OpersToSdvigs = allItems.Where(x => x.itsStage && x.MatIndex == 0).Select(x => new KeyValuePair<int, PartiaModelling>(x.stageLink.Index, x.modLink.mod as PartiaModelling)).ToDictionary();
 
     //(MatData: x.Key, Subdivision: 0, BinCapacity: (int)(x.Value * 1000.0)));.ToList();
-    List <(int i, int b, long w)> weights = new();
+    List <(int i, int b, long w, double orig)> weights = new();
             // Заполняем ее данными по весу
             for (int i = 0; i < allItems.Count; i++)
             {
@@ -358,7 +360,7 @@ namespace ApsRT.Core.Leftovers
                     if (binMatData == allItems[i].MatData)
                     {
                         //IBtable[i, b] = allItems[i].MatWeight;
-                        weights.Add((i, b, allItems[i].MatWeight));
+                        weights.Add((i, b, allItems[i].MatWeight, allItems[i].MatWeightOrig));
                         canBeInAnyBin = true;
                     }
                     else
@@ -369,7 +371,7 @@ namespace ApsRT.Core.Leftovers
                         {
                             // Причем не с абы каким весом, а с новым
                             //IBtable[i, b] = (long)analogueW;
-                            weights.Add((i, b, (long)analogueW));
+                            weights.Add((i, b, (long)analogueW, allItems[i].MatWeightOrig));
                             canBeInAnyBin = true;
                         }
                     }
@@ -391,8 +393,8 @@ namespace ApsRT.Core.Leftovers
             }
 
             // Создаём таблицу для данных
-            long[,] IBtable = new long[allItems.Count, allBins.Count];
-            foreach (var el in weights) IBtable[el.i, el.b] = el.w;
+            (long Count, double Orig)[,] IBtable = new (long Count, double Orig)[allItems.Count, allBins.Count];
+            foreach (var el in weights) IBtable[el.i, el.b] = (el.w, el.orig);
 
             // И ещё бонусная таблица
             long[,] BONUS_Table = new long[allItems.Count, allBins.Count];
@@ -402,7 +404,7 @@ namespace ApsRT.Core.Leftovers
             {
                 for (int b = 0; b < allBins.Count; b++)
                 {
-                    xNew[i, b] = IBtable[i, b] == 0 ? null : model.NewBoolVar($"ПРЕДМЕТ: {allItems[i].MatData} в корзину {allBins[b].MatData}");
+                    xNew[i, b] = IBtable[i, b].Count == 0 ? null : model.NewBoolVar($"ПРЕДМЕТ: {allItems[i].MatData} в корзину {allBins[b].MatData}");
                 }
             }
 
@@ -429,7 +431,7 @@ namespace ApsRT.Core.Leftovers
                 List<ILiteral> literalsRestricted = new List<ILiteral>();
                 for (int b = 0; b < allBins.Count; b++)
                 {
-                    if (IBtable[i, b] == 0)
+                    if (IBtable[i, b].Count == 0)
                     {
                         // Это значит, что ни аналога, ни обычного совпадения по номенклатуре не было (иначе бы заполнилась), поместить нельзя
                         if (xNew[i, b] != null) literalsRestricted.Add(xNew[i, b]);
@@ -480,7 +482,7 @@ namespace ApsRT.Core.Leftovers
                             long bonus = 0;
                             foreach (var el in finalList)
                             {
-                                bonus += IBtable[el.i, el.b];
+                                bonus += IBtable[el.i, el.b].Count;
                             }
                             bonus += 1000 * allItems[i].stageLink.Level;
                             BONUS_Table[i, b] = bonus;
@@ -510,7 +512,7 @@ namespace ApsRT.Core.Leftovers
 
                     // Мы ищем в группе group первый элемент, чья номенклатура равна "оригиналу" из groupInfo
                     group.FirstOrDefault(item => item.MatData == listGroupInfo.Original, // Сравниваем предмет
-                    (false /*это ж материал, потому фолс*/, -1, null, (null, null), new (), -1, -1) // А это заглушка Default.
+                    (false /*это ж материал, потому фолс*/, -1, null, (null, null), new (), -1, -1, -1) // А это заглушка Default.
                     )
                     .elementIndex // По итогу возвращаем elementIndex. Если элемент не найден, он будет равен -1.
 
@@ -604,10 +606,10 @@ namespace ApsRT.Core.Leftovers
                 List<long> Weights = new();
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    if (IBtable[i, b] != 0)
+                    if (IBtable[i, b].Count != 0)
                     {
                         items.Add(xNew[i, b]);
-                        Weights.Add(IBtable[i, b]);
+                        Weights.Add(IBtable[i, b].Count);
                     }
                 }
                 if (items.Count > 0)
@@ -633,7 +635,7 @@ namespace ApsRT.Core.Leftovers
             {
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    if (xNew[i, b] != null) totalWeightExpr.AddTerm(xNew[i, b], IBtable[i, b] + BONUS_Table[i, b]);
+                    if (xNew[i, b] != null) totalWeightExpr.AddTerm(xNew[i, b], IBtable[i, b].Count + BONUS_Table[i, b]);
                 }
             }
 
@@ -689,7 +691,7 @@ namespace ApsRT.Core.Leftovers
                 LinearExprBuilder binWeight = Google.OrTools.Sat.LinearExpr.NewBuilder();
                 for (int i = 0; i < allItems.Count; i++)
                 {
-                    if (xNew[i, b] != null) binWeight.AddTerm(xNew[i, b], IBtable[i, b] * 1000 * maxCap / allBins[b].BinCapacity);
+                    if (xNew[i, b] != null) binWeight.AddTerm(xNew[i, b], IBtable[i, b].Count * 1000 * maxCap / allBins[b].BinCapacity);
                 }
 
                 fillBonus.Add(binWeight);
@@ -733,7 +735,7 @@ namespace ApsRT.Core.Leftovers
                                     {
                                     // Это ЗАДЕЛ для ВСЕГО ЭТАПА.
                                     var mod = allItems[i].modLink.mod as PartiaModelling;
-                                        int code = SessionLink.MasterDataLinks.ZadelsMasterData.SetZadelToSdvig(mod, allBins[b].UniqueGUID, Uco.EmptyObject, IBtable[i, b] / 1000.0/*LinearLeftoversCount[allBins[b].UniqueGUID]*/);
+                                        int code = SessionLink.MasterDataLinks.ZadelsMasterData.SetZadelToSdvig(mod, allBins[b].UniqueGUID, Uco.EmptyObject, IBtable[i, b].Count / 1000.0/*LinearLeftoversCount[allBins[b].UniqueGUID]*/);
 
                                     SessionLink.MasterDataLinks.ZadelsMasterData.EraseZadelsTree(mod, code, OpersToSdvigs, null);
 
@@ -744,7 +746,7 @@ namespace ApsRT.Core.Leftovers
                                         // Это остаток для материала.
                                         var list = allItems[i].stageLink.StageMaterialsInfo.UsedLeftovers;
                                         // Назначим ту номенклатуру, что у рюкзака - это может быть как оригинал, так и аналог.
-                                        list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatData, IBtable[i, b] / 1000.0, allBins[b].BinEdIzm);
+                                        list[allItems[i].MatIndex] = new StageLeftover(allBins[b].MatData, IBtable[i, b].Count / 1000.0, IBtable[i, b].Orig, allBins[b].BinEdIzm);
                                     }
                                 }
                             }
@@ -940,14 +942,19 @@ namespace ApsRT.Core.Leftovers
 
                             var analoguesWithoutSeries = listHere.List.Select(
                                 (x, index) =>
-                            (AnalogueToSet: x.Analogue,
-                            CountToSet: (originalCount[mats[resultedIndexes[index]].ElementIndex] + naladLengthData.Data.NaladLengthHere.Value) / x.OriginalCount * x.AnalogueCount)
+                                {
+                                    var count = (originalCount[mats[resultedIndexes[index]].ElementIndex] + naladLengthData.Data.NaladLengthHere.Value);
+                                    return (AnalogueToSet: x.Analogue,
+                            CountToSet: count / x.OriginalCount * x.AnalogueCount,
+                            OriginalCount: count);
+                                }
+                            
                             ).ToArray(); // Создаём аналоги для каждого мата и вычисляем новое количество. В качестве аргумента originalCount[mats[resultedIndexes[index]].ElementIndex] - это количество уже моделирования, а не исходного этапчика. Пригодится для объединенных длин.
 
-                            (LeftoverUco AnalogueToSet, double CountToSet, UcoDU EdIzm)[] analogues = analoguesWithoutSeries.Select(x =>
+                            (LeftoverUco AnalogueToSet, double CountToSet, double OriginalCount, UcoDU EdIzm)[] analogues = analoguesWithoutSeries.Select(x =>
                             {
                                 //var key1 =
-                                return ((x.AnalogueToSet.Nomenklature, x.AnalogueToSet.Characteristics, CodedObjectVersioned<Guid, string, string>.EmptyObject), x.CountToSet, UcoDU.EmptyObject);
+                                return ((x.AnalogueToSet.Nomenklature, x.AnalogueToSet.Characteristics, CodedObjectVersioned<Guid, string, string>.EmptyObject), x.CountToSet, x.OriginalCount, UcoDU.EmptyObject);
                             }).ToArray();
 
                             bool bad = false;
@@ -999,7 +1006,7 @@ namespace ApsRT.Core.Leftovers
                             for (int i = 0; i < analogues.Length; i++)
                             {
                                 var globalIndex = mats[resultedIndexes[i]].ElementIndex;
-                                leftoversList[globalIndex] = new StageLeftover(analogues[i].AnalogueToSet, analogues[i].CountToSet, analogues[i].EdIzm);
+                                leftoversList[globalIndex] = new StageLeftover(analogues[i].AnalogueToSet, analogues[i].CountToSet, analogues[i].OriginalCount, analogues[i].EdIzm);
                             }
                             resultedIndexes = resultedIndexes.OrderByDescending(x => x).ToArray();
                             foreach (var index in resultedIndexes) mats.RemoveAt(index); // Отсортировав по убыванию, можно безопасно удалить элементы
@@ -1008,11 +1015,14 @@ namespace ApsRT.Core.Leftovers
                         for (int i = 0; i < matsList.Count; i++)
                         {
                             if (!matsList[i].IsBuying) continue;
-                            (LeftoverUco Material, double Count) whatWillDecrease;
+                            (LeftoverUco Material, double Count, double OrigCount) whatWillDecrease;
                             if (matsClass.UsedLeftovers[i] == null)
-                                whatWillDecrease = (matsList[i].AsLeftoverUcoData(), originalCount[i] + naladLengthData.Data.NaladLengthHere.Value); // тут налад длину вставляем потому что в оригинал каунт ее нет
+                            {
+                                var val = originalCount[i] + naladLengthData.Data.NaladLengthHere.Value;
+                                whatWillDecrease = (matsList[i].AsLeftoverUcoData(), val, val); // тут налад длину вставляем потому что в оригинал каунт ее нет
+                            }
                             else
-                                whatWillDecrease = (leftoversList[i].LeftoverData, leftoversList[i].CalculatedCount);
+                                whatWillDecrease = (leftoversList[i].LeftoverData, leftoversList[i].CalculatedCount, leftoversList[i].OriginalCount);
 
                             var filteredHowMuchAtStart = howMuchAtStart.Where(x => x.Key.Nomenklature == whatWillDecrease.Material.Nomenklature && x.Key.Characteristics == whatWillDecrease.Material.Characteristics && (matsClass.UsedLeftovers[i] == null ? true : (x.Key.Seria == whatWillDecrease.Material.Seria))).OrderByDescending(x => x.Value.Count);
 
@@ -1030,6 +1040,7 @@ namespace ApsRT.Core.Leftovers
                                         whatWillDecrease.Material,
                                         matsList[i].AsMaterialUcoData(),
                                         oper.GetPartiaCode() ?? Guid.Empty,
+                                        whatWillDecrease.OrigCount,
                                         whatWillDecrease.Count,
                                         null,
                                         UcoDU.EmptyObject,
@@ -1060,6 +1071,7 @@ namespace ApsRT.Core.Leftovers
                                             whatWillDecrease.Material,
                                             matsList[i].AsMaterialUcoData(),
                                             oper.GetPartiaCode() ?? Guid.Empty,
+                                            whatWillDecrease.OrigCount,
                                             whatWillDecrease.Count,
                                             howMuchNowCount + whatWillDecrease.Count,
                                             pair.Value.DimensionUnit,
@@ -1084,6 +1096,7 @@ namespace ApsRT.Core.Leftovers
                                             whatWillDecrease.Material,
                                             matsList[i].AsMaterialUcoData(),
                                             oper.GetPartiaCode() ?? Guid.Empty,
+                                            whatWillDecrease.OrigCount,
                                             whatWillDecrease.Count,
                                             howMuchNowCount + whatWillDecrease.Count,
                                             pair.Value.DimensionUnit,
