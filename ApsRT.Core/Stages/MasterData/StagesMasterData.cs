@@ -192,6 +192,7 @@ namespace ApsRT.Core.Stages.MasterData
                 var prevs = TryGetStageIndexexByGuid(guid);
                 if (prevs != null)
                 {
+                    //var maxPrev = prevs.Max(x => x.Key);
                     foreach (var PrevIDpair in prevs)
                     {
                         var PrevID = PrevIDpair.Value;
@@ -200,17 +201,24 @@ namespace ApsRT.Core.Stages.MasterData
                             var nexts = TryGetStageIndexexByGuid(guidNext);
                             if (nexts != null)
                             {
+                                //var minNext = nexts.Min(x => x.Key);
                                 foreach (var IDpair in nexts)
                                 {
                                     var ID = IDpair.Value;
                                     if (AllStages.ContainsKey(ID))
                                     {
-                                        AllStages[ID].Prevs.Add(PrevID);
+                                        if (true/*PrevID == maxPrev*/)
+                                        {
+                                            AllStages[ID].Prevs.Add(PrevID);
 
-                                        // Если этот предок не вспомогательный, то прибавляем счетчик норм детей
-                                        if (!AllStages[PrevID].IsVspom) AllStages[ID].PrevsNormCount++;
+                                            // Если этот предок не вспомогательный, то прибавляем счетчик норм детей
+                                            if (!AllStages[PrevID].IsVspom) AllStages[ID].PrevsNormCount++;
+                                        }
 
-                                        AllStages[PrevID].Nexts.Add(ID);
+                                        if (true/*ID == minNext*/)
+                                        {
+                                            AllStages[PrevID].Nexts.Add(ID);
+                                        }
                                     }
                                 }
                             }
@@ -299,13 +307,57 @@ namespace ApsRT.Core.Stages.MasterData
             {
                 var versions = stage.Value;
                 if (versions.Count == 1) continue;
+
                 var array = versions.OrderBy(x => x.Key).ToArray();
                 for (int i = 0; i < array.Length - 1; i++)
                 {
                     var curr = AllStages[array[i].Value];
                     var next = AllStages[array[i + 1].Value];
+
                     if (!curr.Nexts.Contains(next.Index)) curr.Nexts.Add(next.Index);
                     if (!next.Prevs.Contains(curr.Index)) next.Prevs.Add(curr.Index);
+                }
+
+                // Второй заход, который можно закомментировать (и он добавился позднее) - обеспечим, чтоб у этапов были только прямые зависимости друг от друга
+                for (int i = 0; i < array.Length - 1; i++)
+                {
+                    var curr = AllStages[array[i].Value];
+                    var next = AllStages[array[i + 1].Value];
+
+                    // Если это текущий этап, я могу стереть у него детей, и выдать следующим только next
+                    curr.Nexts.Clear();
+                    curr.Nexts.Add(next.Index);
+
+                    if (i > 0)
+                    {
+                        // У ВСЕХ ЭТАПОВ УБИРАЕМ ИНФУ О ТЕКУЩЕМ ЭТАПЕ
+                        foreach (var OPER in AllStages)
+                        {
+                            if (OPER.Value.GUID != curr.GUID) OPER.Value.Nexts.Remove(curr.Index);
+                        }
+                    }
+
+                    // У ВСЕХ ЭТАПОВ УБИРАЕМ ИНФУ О СЛЕД ЭТАПЕ
+                    foreach (var OPER in AllStages)
+                    {
+                        if (OPER.Value.GUID != curr.GUID)
+                        {
+                            OPER.Value.Prevs.Remove(next.Index);
+                            OPER.Value.Nexts.Remove(next.Index);
+                        }
+                    }
+
+                    // У следующего этапа мы можем убрать всех предков, кроме текущего этапа
+                    // Если это не первый этапчик в списке, то у него нужно стереть ВСЕХ предыдущих, кроме этапа пред версии
+                    next.Prevs.Clear();
+                    next.Prevs.Add(curr.Index);
+                }
+
+                // Гарантируем, что у ВСЕХ, кроме последней спецификации, должна быть пустая конечная тара
+                for (int i = 0; i < array.Length - 1; i++)
+                {
+                    var curr = AllStages[array[i].Value];
+                    curr.EndTara = Uco.EmptyObject;
                 }
             }
         }

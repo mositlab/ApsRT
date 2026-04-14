@@ -130,6 +130,10 @@ namespace ApsRTCustomComponents
                         + $"\r\nНезависимо, Сумма возможна: {sum} ('{res.TaraName}', {res.Max} {res.used_format.DimensionUnitToString()} на РЦ {(res.FinalRC.IsEmpty ? "---" : res.FinalRC.ToString())})\r\n"
                         + $"Множитель кратности этапа: {partiaClass1.OpersHere[i][j].PlacesCountMultiplierToRewrite}\r\n\r\n"
                             + $"код задела: {partiaClass1.OpersHere[i][j].ZadelCode}, заделы: {(partiaClass1.OpersHere[i][j].ZadelsGUIDs == null ? "нет" : string.Join(", ", partiaClass1.OpersHere[i][j].ZadelsGUIDs))}\r\n\r\n"
+
+                            + "Предки:" + string.Join(" ", partiaClass1.OpersHere[i][j].Opers.Select(x => $"{{{string.Join("; ", x.Prevs)}}}")) + "\r\n\r\n"
+                            + "Дети:" + string.Join(" ", partiaClass1.OpersHere[i][j].Opers.Select(x => $"{{{string.Join("; ", x.Nexts)}}}")) + "\r\n\r\n"
+
                             + string.Join("\r\n\r\n", partiaClass1.OpersHere[i][j].Opers.Select(x =>
                             {
                                 string livCodeFinal = SessionLink.MasterDataLinks.StagesMasterData.SavedOpersLivenCode.TryGetValue(x.Index, out var livCode) ? livCode.GetHashCode().ToString() : "нету";

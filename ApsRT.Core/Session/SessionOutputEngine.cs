@@ -8,6 +8,7 @@ using ApsRT.Core.PlanSimulator;
 using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.RechangesEngine;
 using Azure;
+using ClosedXML.Excel;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
@@ -946,79 +947,160 @@ namespace ApsRT.Core.Session
                 File.Delete(filename);
             }
 
-            var sw = new StreamWriter(filename, false, Encoding.UTF8);
-            sw.WriteLine(
-                $"ОригиналМатериалНоменклатура_GUID;ОригиналМатериалНоменклатура;" +
-                $"ОригиналМатериалХарактеристика_GUID;ОригиналМатериалХарактеристика;" +
-                $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
-                $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
-                $"МатериалСерия_GUID;МатериалСерия;ШтрихкодСерии;" +
-                //$"ПодразделениеМатериала;" +
-                $"ИдентификаторПартииПФ;" +
-                $"КоличествоПотребность;" +
-                $"КоличествоПотребностьАналог;" +
-                $"КоличествоПервогоЭтапа;" +
-                $"КоличествоДоступно;" +
-                $"ЕдиницаИзмерения;" +
-                $"ДатаПотребности;ДатаПоступления;" +
-                $"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;КоличествоЭтапов;GUIDОбщегоЭтапа;" +
-                $"РЦ_GUID;РЦ;ПодразделениеРЦ_GUID;ПодразделениеРЦ;" +
-                $"ЭтоДефицит");
-            //var D = 0;
-
-            var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData, PoolIndex);
-
-            var stagesMasterData = SessionLink.MasterDataLinks.StagesMasterData;
-
-            foreach (var element in data)
+            using (var workbook = new XLWorkbook())
             {
-                var opIndex = stagesMasterData.TryGetStageIndexByGuid(element.StageGuid.Object.Code, element.StageGuid.Version);
+                var worksheet = workbook.Worksheets.Add("Расход остатков");
+                worksheet.Row(1).Cell(1).Value = "ОригиналМатериалНоменклатура_GUID";
+                worksheet.Row(1).Cell(2).Value = "ОригиналМатериалНоменклатура";
+                worksheet.Row(1).Cell(3).Value = "ОригиналМатериалХарактеристика_GUID";
+                worksheet.Row(1).Cell(4).Value = "ОригиналМатериалХарактеристика";
+                worksheet.Row(1).Cell(5).Value = "МатериалНоменклатура_GUID";
+                worksheet.Row(1).Cell(6).Value = "МатериалНоменклатура";
+                worksheet.Row(1).Cell(7).Value = "МатериалХарактеристика_GUID";
+                worksheet.Row(1).Cell(8).Value = "МатериалХарактеристика";
+                worksheet.Row(1).Cell(9).Value = "МатериалСерия_GUID";
+                worksheet.Row(1).Cell(10).Value = "МатериалСерия";
+                worksheet.Row(1).Cell(11).Value = "ШтрихкодСерии";
+                worksheet.Row(1).Cell(12).Value = "ИдентификаторПартииПФ";
+                worksheet.Row(1).Cell(13).Value = "КоличествоПотребность";
+                worksheet.Row(1).Cell(14).Value = "КоличествоПотребностьАналог";
+                worksheet.Row(1).Cell(15).Value = "КоличествоПервогоЭтапа";
+                worksheet.Row(1).Cell(16).Value = "КоличествоДоступно";
+                worksheet.Row(1).Cell(17).Value = "ЕдиницаИзмерения";
+                worksheet.Row(1).Cell(18).Value = "ДатаПотребности";
+                worksheet.Row(1).Cell(19).Value = "ДатаПоступления";
+                worksheet.Row(1).Cell(20).Value = "GUID";
+                int i = 21;
+                if (SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput)
+                {
+                    worksheet.Row(1).Cell(i).Value = "ВерсияЭтапа";
+                    i++;
+                }
+                worksheet.Row(1).Cell(i).Value = "GUIDОбъединения";
+                worksheet.Row(1).Cell(i + 1).Value = "КоличествоЭтапов";
+                worksheet.Row(1).Cell(i + 2).Value = "GUIDОбщегоЭтапа";
+                worksheet.Row(1).Cell(i + 3).Value = "РЦ_GUID";
+                worksheet.Row(1).Cell(i + 4).Value = "РЦ";
+                worksheet.Row(1).Cell(i + 5).Value = "ПодразделениеРЦ_GUID";
+                worksheet.Row(1).Cell(i + 6).Value = "ПодразделениеРЦ";
+                worksheet.Row(1).Cell(i + 7).Value = "ЭтоДефицит";
 
-                var opLink = stagesMasterData.AllStages[opIndex];
 
-                var opsCount = opLink.IsCustomModelling ? stagesMasterData.ApsModellingsInfo[opLink.CustomModelling].RelatedOpers.Count : (opLink.MesModelling.IsEmpty ? 1 : stagesMasterData.MesModellingsInfo[opLink.MesModelling.Code].RelatedOpers.Count);
-
-                var subdiv = SessionLink.MasterDataLinks.CentersMasterData.CentersData[element.Center].Subdivision;
-
+                var sw = new StreamWriter(filename, false, Encoding.UTF8);
                 sw.WriteLine(
-                    //$"{D};" +
+                    $"ОригиналМатериалНоменклатура_GUID;ОригиналМатериалНоменклатура;" +
+                    $"ОригиналМатериалХарактеристика_GUID;ОригиналМатериалХарактеристика;" +
+                    $"МатериалНоменклатура_GUID;МатериалНоменклатура;" +
+                    $"МатериалХарактеристика_GUID;МатериалХарактеристика;" +
+                    $"МатериалСерия_GUID;МатериалСерия;ШтрихкодСерии;" +
+                    //$"ПодразделениеМатериала;" +
+                    $"ИдентификаторПартииПФ;" +
+                    $"КоличествоПотребность;" +
+                    $"КоличествоПотребностьАналог;" +
+                    $"КоличествоПервогоЭтапа;" +
+                    $"КоличествоДоступно;" +
+                    $"ЕдиницаИзмерения;" +
+                    $"ДатаПотребности;ДатаПоступления;" +
+                    $"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}GUIDОбъединения;КоличествоЭтапов;GUIDОбщегоЭтапа;" +
+                    $"РЦ_GUID;РЦ;ПодразделениеРЦ_GUID;ПодразделениеРЦ;" +
+                    $"ЭтоДефицит");
 
-                    $"{element.OrigMaterialData.Nomenklature.Code};" +
-                    $"{element.OrigMaterialData.Nomenklature.Label};" +
-                    $"{element.OrigMaterialData.Characteristics.Code};" +
-                    $"{element.OrigMaterialData.Characteristics.Label};" +
+                var data = SessionLink.MasterDataLinks.LeftoversMasterData.PlanAndFixMaterialsInfo(Blocks, firstStageStartData, PoolIndex);
 
-                    $"{element.LeftoverData.Nomenklature.Code};" +
-                    $"{element.LeftoverData.Nomenklature.Label};" +
-                    $"{element.LeftoverData.Characteristics.Code};" +
-                    $"{element.LeftoverData.Characteristics.Label};" +
+                var stagesMasterData = SessionLink.MasterDataLinks.StagesMasterData;
 
-                    $"{element.LeftoverData.Seria.Object.Code};" +
-                    $"{element.LeftoverData.Seria.Object.Label};" +
-                    $"{element.LeftoverData.Seria.Version};" +
-                    
-                    //$"{element.MaterialSubdivision};" +
+                int rowIndex = 2;
+                foreach (var element in data)
+                {
+                    var opIndex = stagesMasterData.TryGetStageIndexByGuid(element.StageGuid.Object.Code, element.StageGuid.Version);
 
-                    $"{element.PartiaPF};" +
-                    $"{element.ORIGCountNeeded};" +
-                    $"{element.CountNeeded};" +
-                    $"{opLink.Count};" +
-                    $"{element.CountExists};" + // вернем на место
-                    $"{element.EdIzm.Code};" +
-                    $"{element.DateWhenNeeded};" +
-                    $"{(element.NextArrivalDate?.ToString() ?? "")};" +
-                    $"{element.StageGuid.Object.Code};" +
-                    $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{element.StageGuid.Version};" : "")}" +
-                    $"{element.ModellingGuid};" +
-                    $"{opsCount};" +
-                    $"{element.EasyLifeGuid};" +
-                    $"{element.Center.Code};{element.Center.Label};{subdiv.Code};{subdiv.Label};" +
-                    $"{(element.ItsError ? "Да" : "Нет")}"
-                    );
-                //D++;
+                    var opLink = stagesMasterData.AllStages[opIndex];
+
+                    var opsCount = opLink.IsCustomModelling ? stagesMasterData.ApsModellingsInfo[opLink.CustomModelling].RelatedOpers.Count : (opLink.MesModelling.IsEmpty ? 1 : stagesMasterData.MesModellingsInfo[opLink.MesModelling.Code].RelatedOpers.Count);
+
+                    var subdiv = SessionLink.MasterDataLinks.CentersMasterData.CentersData[element.Center].Subdivision;
+
+                    sw.WriteLine(
+                        //$"{D};" +
+
+                        $"{element.OrigMaterialData.Nomenklature.Code};" +
+                        $"{element.OrigMaterialData.Nomenklature.Label};" +
+                        $"{element.OrigMaterialData.Characteristics.Code};" +
+                        $"{element.OrigMaterialData.Characteristics.Label};" +
+
+                        $"{element.LeftoverData.Nomenklature.Code};" +
+                        $"{element.LeftoverData.Nomenklature.Label};" +
+                        $"{element.LeftoverData.Characteristics.Code};" +
+                        $"{element.LeftoverData.Characteristics.Label};" +
+
+                        $"{element.LeftoverData.Seria.Object.Code};" +
+                        $"{element.LeftoverData.Seria.Object.Label};" +
+                        $"{element.LeftoverData.Seria.Version};" +
+
+                        //$"{element.MaterialSubdivision};" +
+
+                        $"{element.PartiaPF};" +
+                        $"{element.ORIGCountNeeded};" +
+                        $"{element.CountNeeded};" +
+                        $"{opLink.Count};" +
+                        $"{element.CountExists};" + // вернем на место
+                        $"{element.EdIzm.Code};" +
+                        $"{element.DateWhenNeeded};" +
+                        $"{(element.NextArrivalDate?.ToString() ?? "")};" +
+                        $"{element.StageGuid.Object.Code};" +
+                        $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{element.StageGuid.Version};" : "")}" +
+                        $"{element.ModellingGuid};" +
+                        $"{opsCount};" +
+                        $"{element.EasyLifeGuid};" +
+                        $"{element.Center.Code};{element.Center.Label};{subdiv.Code};{subdiv.Label};" +
+                        $"{(element.ItsError ? "Да" : "Нет")}"
+                        );
+
+                    worksheet.Row(rowIndex).Cell(1).Value = $"{element.OrigMaterialData.Nomenklature.Code}";
+                    worksheet.Row(rowIndex).Cell(2).Value = $"{element.OrigMaterialData.Nomenklature.Label}";
+                    worksheet.Row(rowIndex).Cell(3).Value = $"{element.OrigMaterialData.Characteristics.Code}";
+                    worksheet.Row(rowIndex).Cell(4).Value = $"{element.OrigMaterialData.Characteristics.Label}";
+                    worksheet.Row(rowIndex).Cell(5).Value = $"{element.LeftoverData.Nomenklature.Code}";
+                    worksheet.Row(rowIndex).Cell(6).Value = $"{element.LeftoverData.Nomenklature.Label}";
+                    worksheet.Row(rowIndex).Cell(7).Value = $"{element.LeftoverData.Characteristics.Code}";
+                    worksheet.Row(rowIndex).Cell(8).Value = $"{element.LeftoverData.Characteristics.Label}";
+                    worksheet.Row(rowIndex).Cell(9).Value = $"{element.LeftoverData.Seria.Object.Code}";
+                    worksheet.Row(rowIndex).Cell(10).Value = $"{element.LeftoverData.Seria.Object.Label}";
+                    worksheet.Row(rowIndex).Cell(11).Value = $"{element.LeftoverData.Seria.Version}";
+                    worksheet.Row(rowIndex).Cell(12).Value = $"{element.PartiaPF}";
+                    worksheet.Row(rowIndex).Cell(13).Value = $"{element.ORIGCountNeeded}";
+                    worksheet.Row(rowIndex).Cell(14).Value = $"{element.CountNeeded}";
+                    worksheet.Row(rowIndex).Cell(15).Value = $"{opLink.Count}";
+                    worksheet.Row(rowIndex).Cell(16).Value = $"{element.CountExists}"; // вернем на место
+                    worksheet.Row(rowIndex).Cell(17).Value = $"{element.EdIzm.Code}";
+                    worksheet.Row(rowIndex).Cell(18).Value = $"{element.DateWhenNeeded}";
+                    worksheet.Row(rowIndex).Cell(19).Value = $"{(element.NextArrivalDate?.ToString() ?? "")}";
+                    worksheet.Row(rowIndex).Cell(20).Value = $"{element.StageGuid.Object.Code}";
+                    i = 21;
+                    if (SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput)
+                    {
+                        worksheet.Row(rowIndex).Cell(i).Value = $"{element.StageGuid.Version}";
+                        i++;
+                    }
+                    worksheet.Row(rowIndex).Cell(i).Value = $"{element.ModellingGuid}";
+                    worksheet.Row(rowIndex).Cell(i + 1).Value = $"{opsCount}";
+                    worksheet.Row(rowIndex).Cell(i + 2).Value = $"{element.EasyLifeGuid}";
+                    worksheet.Row(rowIndex).Cell(i + 3).Value = $"{element.Center.Code}";
+                    worksheet.Row(rowIndex).Cell(i + 4).Value = $"{element.Center.Label}";
+                    worksheet.Row(rowIndex).Cell(i + 5).Value = $"{subdiv.Code}";
+                    worksheet.Row(rowIndex).Cell(i + 6).Value = $"{subdiv.Label}";
+                    worksheet.Row(rowIndex).Cell(i + 7).Value = $"{(element.ItsError ? "Да" : "Нет")}";
+
+
+                    rowIndex++;
+                }
+
+                sw.Close();
+                workbook.SaveAs("matsErrors.xlsx");
             }
 
-            sw.Close();
+            //var D = 0;
+
         }
 
 

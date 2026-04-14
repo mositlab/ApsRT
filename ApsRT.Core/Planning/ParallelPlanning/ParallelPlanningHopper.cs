@@ -14,7 +14,7 @@ using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Planning.ParallelPlanning
 {
-    [Hopper(Label = "Варианты загрузки пар. РЦ", LoadWhenOnZadel = false, LoadWhenOnPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = true,
+    [Hopper(Label = "Варианты загрузки пар. РЦ", LoadWhenOnZadel = false, LoadWhenOnPart = false, IsDirectory = false, IsMultiple = false, UsesGuid = false, MustBeFilledWithData = false,
         NeededHoppers = new[] { nameof(CentersParamsHopper) })]
     public class ParallelPlanningHopper : IHopperInterface
     {
