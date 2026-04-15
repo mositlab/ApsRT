@@ -642,10 +642,22 @@ namespace ApsRT.Core.Session
         {
             var outputFile = new StreamWriter(filename, false, Encoding.UTF8);
 
-            outputFile.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
-                    $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
-                    $"ДебагНомерМода;Подразделение;КоличествоТары;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
-                    $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки;БылПропущен");
+            if (SessionLink.SettingsController.CurrentSettings.Demos_NO_WHITESPACES_OnOutput)
+            {
+                outputFile.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;ПартияГП;Спецификация;" +
+                        $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
+                        $"ДебагНомерМода;Подразделение;КоличествоТары;ТипТары;МаксимальнаяНамотка;РЦ;РабЦентрМаршрута;" +
+                        $"ВремяНачалаОбъединения;ВремяОкончанияОбъединения;ДлительностьЧ;ЕдиницаИзмерения;" +
+                        $"ИдентификаторОбщегоЭтапа;ЕстьОшибки;БылПропущен");
+            }
+            else
+            {
+                outputFile.WriteLine($"GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Номенклатура;{(SessionLink.SettingsController.CurrentSettings.Demos_CharacteristicsOnOutput ? "ХарактеристикаНоменклатуры;ХарактеристикаПродукции;" : "")}ЗП;Партия ГП;Спецификация;" +
+                        $"Продукция;Количество;НомерПартии;ДебагНомерпартии;НомерМоделирования;" +
+                        $"ДебагНомерМода;Подразделение;КоличествоТары;Тип тары;Максимальная Намотка;РЦ;Раб центр маршрута;" +
+                        $"Время Начала Объединения;Время Окончания Объединения;ДлительностьЧ;ЕдиницаИзмерения;ИдентификаторОбщегоЭтапа;ЕстьОшибки;БылПропущен");
+            }
+
 
             bool IsSilent = SessionLink.SessionOptions.IsSilent;
             bool LaunchPlan = SessionLink.SessionOptions.LaunchPlan;
