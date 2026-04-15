@@ -856,7 +856,7 @@ namespace ApsRT.Core.Leftovers
 
                         var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.CurrentModelling].NaladLengthData[PoolIndex];
 
-                        var originalCount = matsList.Select(X => X.IsBuying ? GetMatSumFromMod(mod, X.AsMaterialUcoData()) : 0.0).ToList();//new List<double>();
+                        var originalCount = matsList.Select(X => true/*X.IsBuying*/ ? GetMatSumFromMod(mod, X.AsMaterialUcoData()) : 0.0).ToList();//new List<double>();
                         
 
                         //var matsList = matsClass.UsedMaterials.Select(x =>
@@ -872,7 +872,7 @@ namespace ApsRT.Core.Leftovers
 
                         for (int i = 0; i < matsList.Count; i++)
                         {
-                            if (!matsList[i].IsBuying)
+                            if (!(matsList[i].IsBuying || leftoversList[i] != null))
                             {
                                 //originalCount.Add(0); // Для правильной индексации добавляем пустоту
                                 continue;
@@ -905,7 +905,7 @@ namespace ApsRT.Core.Leftovers
                             // Вычитаем всю информацию
                             for (int i = 0; i < matsList.Count; i++)
                             {
-                                if (!matsList[i].IsBuying) continue;
+                                if (!(matsList[i].IsBuying || leftoversList[i] != null)) continue;
                                 var key = leftoversList[i]?.LeftoverData ?? matsList[i].AsLeftoverUcoData();
                                 var valueToMinus = (leftoversList[i]?.CalculatedCount ?? originalCount[i]) + naladLengthData.Data.NaladLengthHere.Value;
                                 if (howMuchAtStart.TryGetValue(key, out var neededCount))
@@ -951,7 +951,7 @@ namespace ApsRT.Core.Leftovers
                         //    opsPossibleLeftoversForOne.Add(oper, dic);
                         //}
 
-                        var mats = matsList.Select((x, index) => (ElementIndex: index, Material: x)).Where(x => x.Material.IsBuying).ToList();
+                        var mats = matsList.Select((x, index) => (ElementIndex: index, Material: x)).Where(x => true /*x.Material.IsBuying*/).ToList();
 
                         // Получаем список всех замен, и отсортируем ещё и по общей сумме оставшегося количества на складе
                         var dictionariesReplacement = opsPossibleLeftoversForOne[mod].OrderByDescending(x => x.Value.List.Count).ThenByDescending(x => x.Value.List.Sum(y => howMuchAtStart.Sum(x =>
@@ -967,7 +967,7 @@ namespace ApsRT.Core.Leftovers
                         foreach (var someGroup in dictionariesReplacement)
                         {
                             var listHere = someGroup.Value;
-                            var resultedIndexes = listHere.List.Select(x => mats.FindIndex(mat => mat.Material.AsMaterialUcoData() == x.Original)).ToArray(); // Найдём сначала оригиналы.
+                            var resultedIndexes = listHere.List.Select(x => mats.FindIndex(mat => mat.Material.IsBuying && mat.Material.AsMaterialUcoData() == x.Original)).ToArray(); // Найдём сначала оригиналы.
 
                             // ElementIndex внутри mats = ссылка на индексы в основном массиве для простого поиска после фильтрации по IsBuying.
                             // resultedIndexes = индексы внутри mats после того как была найдена номенклатура
@@ -1051,7 +1051,7 @@ namespace ApsRT.Core.Leftovers
 
                         for (int i = 0; i < matsList.Count; i++)
                         {
-                            if (!matsList[i].IsBuying) continue;
+                            if (!(matsList[i].IsBuying || leftoversList[i] != null)) continue;
                             (LeftoverUco Material, double Count, double OrigCount) whatWillDecrease;
                             if (matsClass.UsedLeftovers[i] == null)
                             {
