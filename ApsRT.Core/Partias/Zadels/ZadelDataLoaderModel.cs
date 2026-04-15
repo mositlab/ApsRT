@@ -39,6 +39,9 @@ namespace ApsRT.Core.Partias.Zadels
         [DataRecordColumn("ИдентификаторЗадела", defaultIfFail: true)]
         public Guid? ZadelGuid { get; set; }
 
+        [DataRecordColumn("ШтрихкодТары", defaultIfFail: true)]
+        public Guid? SeriaCode { get; set; }
+
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]
         public Uco Tara { get; set; }
 

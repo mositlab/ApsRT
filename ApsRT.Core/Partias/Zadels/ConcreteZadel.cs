@@ -10,20 +10,34 @@ namespace ApsRT.Core.Partias.Zadels
 {
     public class ConcreteZadel
     {
-        public ConcreteZadel(Uco usedTara, int level)
+        public ConcreteZadel(Uco usedTara, int level, int poviv, Uco nomen, Uco chara, StageGUID guid, Guid partiaPF, Guid? seriaCode)
         {
             UsedTara = usedTara;
             Count = 0;
             Level = level;
+            Poviv = poviv;
+            Nomenklature = nomen;
+            Characteristics = chara;
+            StageGuid = guid;
+            PartiaPF = partiaPF;
+            SeriaCode = seriaCode;
         }
+
+        public Uco Nomenklature { get; set; }
+        public Uco Characteristics { get; set; }
+        public int Poviv { get; set; }
 
         public int Level { get; }
 
         public double Count { get; set; }
 
         internal Uco UsedTara { get; } // на какой таре задел намотан
-                                                             //internal double Count { get; init; } // количество этого задела
+                                       //internal double Count { get; init; } // количество этого задела
 
+        internal Guid? SeriaCode { get; }
+
+        internal Guid PartiaPF {get; set;}
+        internal StageGUID StageGuid { get; set; }
         //internal List<OrderID> RelatedGPs { get; set; } // пока не уверен надо ли
 
         internal ZadelStatus ZadelStatus { get; set; }

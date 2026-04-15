@@ -2,6 +2,7 @@
 using ApsRT.Core.Orders;
 using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Partias.PartiasConnectorEngine;
+using ApsRT.Core.Partias.Zadels;
 using ApsRT.Core.PlanSimulator;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Google.OrTools.LinearSolver;
@@ -84,14 +85,14 @@ namespace ApsRT.Core.Leftovers
         }
 
 
-        internal Dictionary<(OrderID Order, Uco Nomenklature, Uco Specification),
+        internal Dictionary<(OrderID Order, Uco Nomenklature, Uco Characteristics, Uco Specification),
             Dictionary<Guid, LeftoversReplacementClass>
             > LeftoversGroupsInfo { get; private set; } = new();
 
 
         internal void AddLeftoversGroupsInfo(LeftoverGroupDataLoaderModel model)
         {
-            (OrderID Order, Uco Nomenklature, Uco Specification) key = (model.Order, model.Nomenklature, model.Specification);
+            (OrderID Order, Uco Nomenklature, Uco Characteristics, Uco Specification) key = (model.Order, model.Nomenklature, model.Characteristics, model.Specification);
             LeftoversGroupsInfo.TryAdd(key, new());
             LeftoversGroupsInfo[key].TryAdd(model.MaterialsGroup, new());
             LeftoversGroupsInfo[key][model.MaterialsGroup].List.Add(new LeftoverReplacementInfo(model));
@@ -142,42 +143,42 @@ namespace ApsRT.Core.Leftovers
             // Найдем группу заменяемости по полным данным
 
             // ООО
-            var key1 = (op.OrderLink.OrderID, op.Nomenklature, op.Specification);
+            var key1 = (op.OrderLink.OrderID, op.Nomenklature, op.Characteristics, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key1, out var dic1))
                 dicAll.AddRange(dic1.Where(comparer));
 
             // ООХ
-            var key8 = (op.OrderLink.OrderID, op.Nomenklature, Uco.EmptyObject);
+            var key8 = (op.OrderLink.OrderID, op.Nomenklature, op.Characteristics, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key8, out var dic8))
                 dicAll.AddRange(dic8.Where(comparer));
 
             // ОХО
-            var key7 = (op.OrderLink.OrderID, Uco.EmptyObject, op.Specification);
+            var key7 = (op.OrderLink.OrderID, Uco.EmptyObject, Uco.EmptyObject, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key7, out var dic7))
                 dicAll.AddRange(dic7.Where(comparer));
 
             // ОХХ
-            var key6 = (op.OrderLink.OrderID, Uco.EmptyObject, Uco.EmptyObject);
+            var key6 = (op.OrderLink.OrderID, Uco.EmptyObject, Uco.EmptyObject, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key6, out var dic6))
                 dicAll.AddRange(dic6.Where(comparer));
 
             // ХОО
-            var key2 = (OrderID.EmptyObject, op.Nomenklature, op.Specification);
+            var key2 = (OrderID.EmptyObject, op.Nomenklature, op.Characteristics, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key2, out var dic2))
                 dicAll.AddRange(dic2.Where(comparer));
 
             // ХОХ
-            var key4 = (OrderID.EmptyObject, op.Nomenklature, Uco.EmptyObject);
+            var key4 = (OrderID.EmptyObject, op.Nomenklature, op.Characteristics, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key4, out var dic4))
                 dicAll.AddRange(dic4.Where(comparer));
 
             // ХХО
-            var key3 = (OrderID.EmptyObject, Uco.EmptyObject, op.Specification);
+            var key3 = (OrderID.EmptyObject, Uco.EmptyObject, Uco.EmptyObject, op.Specification);
             if (LeftoversGroupsInfo.TryGetValue(key3, out var dic3))
                 dicAll.AddRange(dic3.Where(comparer));
 
             // ХХХ
-            var key5 = (OrderID.EmptyObject, Uco.EmptyObject, Uco.EmptyObject);
+            var key5 = (OrderID.EmptyObject, Uco.EmptyObject, Uco.EmptyObject, Uco.EmptyObject);
             if (LeftoversGroupsInfo.TryGetValue(key5, out var dic5))
                 dicAll.AddRange(dic5.Where(comparer));
 
@@ -337,13 +338,23 @@ namespace ApsRT.Core.Leftovers
             var allBins = CurrentLeftoversCount.SelectMany(x =>
 
             x.Value.Select(sub =>
-            (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (long)(sub.Value.Count * 1000.0), BinEdIzm: sub.Value.DimensionUnit, UniqueGUID: x.Key.Seria.Object.Code)
+            (MatData: x.Key, Subdivision: sub.Key, BinCapacity: (long)(sub.Value.Count * 1000.0), BinEdIzm: sub.Value.DimensionUnit, UniqueGUID: x.Key.Seria.Object.Code, ItsZadel: false)
 
             )
 
             .Where(x => anyItemHas(x.MatData)) // Небольшое ограничение, чтоб лишних не хватал
 
             ).ToList();
+
+            var zadelsToAdd = SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary.Select(zadel =>
+
+            (MatData: new LeftoverUco(zadel.Value.Nomenklature, zadel.Value.Characteristics, OrderID.EmptyObject), Subdivision: Uco.EmptyObject, BinCapacity: (long)(zadel.Value.Count * 1000.0), BinEdIzm: UcoDU.EmptyObject, UniqueGUID: zadel.Key, ItsZadel: true)
+            )
+            .Where(x => anyItemHas(x.MatData)) // Небольшое ограничение, чтоб лишних не хватал
+
+            .ToList();
+
+            allBins = allBins.Union(zadelsToAdd).ToList();
 
             var OpersToSdvigs = allItems.Where(x => x.itsStage && x.MatIndex == 0).Select(x => new KeyValuePair<int, PartiaModelling>(x.stageLink.Index, x.modLink.mod as PartiaModelling)).ToDictionary();
 
@@ -360,12 +371,38 @@ namespace ApsRT.Core.Leftovers
                     if (binMatData == allItems[i].MatData)
                     {
                         //IBtable[i, b] = allItems[i].MatWeight;
-                        weights.Add((i, b, allItems[i].MatWeight, allItems[i].MatWeightOrig));
-                        canBeInAnyBin = true;
+
+                        if (allBins[b].ItsZadel)
+                        {
+                            // ПОСМОТРИМ ЕЩЁ, можно ли на этот этап ставить!
+                            var zadelData = SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary[allBins[b].UniqueGUID];
+                            var opToCheckWith = allItems[i].stageLink;
+                            if ((zadelData.PartiaPF == opToCheckWith.PartiaPF || zadelData.PartiaPF == Guid.Empty)
+                                &&
+                                (zadelData.Poviv == opToCheckWith.Poviv || zadelData.Poviv == 0)
+                                &&
+                                (zadelData.Level == opToCheckWith.Level || zadelData.Level == 0)
+                                //&&
+                                //(zadelData.StageGuid.Object.Code == opToCheckWith.GUID || zadelData.StageGuid.Object.Code == Guid.Empty)
+                                //&&
+                                //(zadelData.StageGuid.Version == opToCheckWith.StageVersion || zadelData.StageGuid.Version == 0)
+                                )
+                            {
+                                weights.Add((i, b, allItems[i].MatWeight, allItems[i].MatWeightOrig));
+                                canBeInAnyBin = true;
+                            }
+                        }
+                        else
+                        {
+                            weights.Add((i, b, allItems[i].MatWeight, allItems[i].MatWeightOrig));
+                            canBeInAnyBin = true;
+                        }
                     }
                     else
                     {
                         if (allItems[i].itsStage) continue; // Если это этап на закрытие, то ни о каком аналоге речи не идет
+
+                        if (allBins[b].ItsZadel) continue; // Если этот остаток - задел, то я не могу говорить об аналогах.
 
                         if (AllPossibleAnaloguesForMats[i].TryGetValue(binMatData, out var analogueW)) // НО! Если у мата есть аналог, как раз такой остаток, то поместить МОЖНО!
                         {

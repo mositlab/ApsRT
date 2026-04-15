@@ -11,6 +11,7 @@ using ApsRT.Core.Partias.PartiasGeneratorEngine;
 using UniversalPack.Extensions;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using System.Collections.Concurrent;
+using ApsRT.Core.Stages;
 
 namespace ApsRT.Core.Partias.Zadels
 {
@@ -59,9 +60,11 @@ namespace ApsRT.Core.Partias.Zadels
                 var finalEtap = model.StageGuid;
                 var OperationsDataSet = SessionLink.MasterDataLinks.StagesMasterData;
                 var id = OperationsDataSet.TryGetStageIndexByGuid(finalEtap.Object.Code, finalEtap.Version);
-                if (id != -1 && OperationsDataSet.AllStages.TryGetValue(id, out var op))
+                Stage? op = null;
+                if (true/*id != -1 && */)
                 {
-                    var order = op.OrderLink.OrderID;
+                    OperationsDataSet.AllStages.TryGetValue(id, out op);
+                    var order = op?.OrderLink.OrderID ?? OrderID.EmptyObject;
                     if (!ZadelsData[partiaPF].ContainsKey(order))
                     {
                         ZadelsData[partiaPF].Add(order, new());
@@ -96,14 +99,17 @@ namespace ApsRT.Core.Partias.Zadels
                     }
 
                     // 6. Последнее - сам задел
-                    var zadelGuid = model.ZadelGuid;
+                    var zadelGuid = model.ZadelGuid ?? (Guid?)(Guid.NewGuid());
+
+                    // 6.1 Штрихкод ещё
+                    var seria = model.SeriaCode;
 
                     if (zadelGuid.HasValue && zadelGuid.Value != Guid.Empty)
                     {
                         if (!LinearZadelsDictionary.ContainsKey(zadelGuid.Value))
                         {
                             var tara = new ZadelDataLoaderModel().Tara;
-                            var newZadel = new ConcreteZadel(tara, level);
+                            var newZadel = new ConcreteZadel(tara, level, poviv, nomen, chars, finalEtap, partiaPF, seria);
                             newZadel.ZadelStatus = ZadelStatus.CannotBeFound;
                             LinearZadelsDictionary.Add(zadelGuid.Value, newZadel);
                         }

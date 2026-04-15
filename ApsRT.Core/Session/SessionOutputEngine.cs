@@ -1119,7 +1119,7 @@ namespace ApsRT.Core.Session
         {
             var sw = new StreamWriter(Filename, false, Encoding.UTF8);
             //GUID (исходного этапа имеется в виду) и ИдентификаторОбщегоЭтапа
-            sw.WriteLine($"ИдентификаторЗадела;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}НомерМоделирования;ИдентификаторОбщегоЭтапа;НомерМеста;КоличествоИспользовано;Причина");
+            sw.WriteLine($"ИдентификаторЗадела;Тара;Тара_GUID;Штрихкод;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}НомерМоделирования;ИдентификаторОбщегоЭтапа;НомерМеста;КоличествоИспользовано;Причина");
              Dictionary<int, int> stagesPlacesCounter = new ();
             foreach (var zadel in SessionLink.MasterDataLinks.ZadelsMasterData.LinearZadelsDictionary)
             {
@@ -1130,7 +1130,7 @@ namespace ApsRT.Core.Session
                         var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[etap.operID];
                         stagesPlacesCounter.TryAdd(opLink.Index, 0);
                         var modGuid = opLink.CurrentModelling;//IsCustomModelling ? opLink.CustomModelling : opLink.MesModelling.Code;
-                        sw.WriteLine($"{zadel.Key};{opLink.GUID};" +
+                        sw.WriteLine($"{zadel.Key};{zadel.Value.UsedTara.Label};{zadel.Value.UsedTara.Code};{zadel.Value.SeriaCode};{opLink.GUID};" +
                             $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{opLink.StageVersion};" : "")}" +
                             $"{modGuid};{(opLink.GetEasyFlagToOutput())};{stagesPlacesCounter[opLink.Index] + 1};{etap.count};"); // последняя скобка это пустота
                         stagesPlacesCounter[opLink.Index]++;
@@ -1142,7 +1142,7 @@ namespace ApsRT.Core.Session
                     if (!SessionLink.SessionOptions.LaunchZadel) continue; // При свободных заделах не вывожу - апс не ищет.
                     foreach (var etap in zadel.Value.WhereCanUsed)
                     {
-                        sw.WriteLine($"{zadel.Key};{etap.Key};{Guid.Empty};{Guid.Empty};0;0;{ZadelToString(zadel.Value.ZadelStatus)}");
+                        sw.WriteLine($"{zadel.Key};{zadel.Value.UsedTara.Label};{zadel.Value.UsedTara.Code};{zadel.Value.SeriaCode};{etap.Key};{Guid.Empty};{Guid.Empty};0;0;{ZadelToString(zadel.Value.ZadelStatus)}");
                     }
                 }
             }
@@ -1153,7 +1153,7 @@ namespace ApsRT.Core.Session
                 foreach (var op in zadel.Value)
                 {
                     var opLink = SessionLink.MasterDataLinks.StagesMasterData.AllStages[op.Stage];
-                    sw.WriteLine($"{zadel.Key};{opLink.GUID};" +
+                    sw.WriteLine($"{zadel.Key};{""};{Guid.Empty};{zadel.Key};{opLink.GUID};" +
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{opLink.StageVersion};" : "")}" +
                         $"{opLink.CurrentModelling};{(opLink.GetEasyFlagToOutput())};{op.Place + 1};{opLink.Count};"); // последняя скобка это пустота
                 }

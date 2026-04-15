@@ -47,6 +47,9 @@ namespace ApsRT.Core.Leftovers
         [DataRecordCodedObjectColumn("Номенклатура_GUID", "Номенклатура")]
         public Uco Nomenklature { get; set; }
 
+        [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика")]
+        public Uco Characteristics { get; set; }
+
         [DataRecordCodedObjectColumn("Спецификация_GUID", "Спецификация")]
         public Uco Specification { get; set; }
 
