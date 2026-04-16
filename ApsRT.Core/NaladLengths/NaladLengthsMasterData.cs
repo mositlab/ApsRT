@@ -174,7 +174,9 @@ namespace ApsRT.Core.NaladLengths
                         bool found = false;
                         foreach (var sech in firstNode.NextLevel)
                         {
-                            if (value >= sech.Key.X && value <= sech.Key.Y)
+                            if ((value >= sech.Key.X && value <= sech.Key.Y)
+                                ||
+                                (sech.Key.X == 0 && sech.Key.Y == 0))
                             {
                                 firstNode = sech.Value; // Перезаписываем значение
                                 found = true;
