@@ -997,8 +997,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             finalResult.ForOneRCGroups = new();
             finalResult.PossibleCentersForOneRCGroups = new();
             finalResult.ForOneRCGroupAlreadyUsed = new();
-            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (/*mod.AllOpers[0].Level, */mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature, mod.AllOpers[0].Characteristics));
-            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (/*mod.AllOpers[0].Level, */mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature, mod.AllOpers[0].Characteristics));
+            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (/*mod.AllOpers[0].Level, */mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature/*, mod.AllOpers[0].Characteristics*/));
+            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (/*mod.AllOpers[0].Level, */mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature/*, mod.AllOpers[0].Characteristics*/));
             var groupsToCheck = groupToCheck1.Union(groupToCheck2);
             foreach (var group in groupsToCheck)
             {
