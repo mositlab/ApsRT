@@ -7,6 +7,7 @@ using ApsRT.Core.Rechanges.MasterData;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
+using DocumentFormat.OpenXml.Presentation;
 using Google.OrTools.Sat;
 using System;
 using System.Collections.Concurrent;
@@ -386,6 +387,19 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             }
         }
 
+
+        StreamWriter planning_logger;
+
+        ConcurrentBag<string> planLogWriterConc;
+
+        void BigLogAdd(int iterationIndex, PlanSimulatorBlock block, RTempResult localResult, RTempResult minResult, bool noStars, RSearcher searcherClass, bool itsBetter)
+        {
+            string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};{(itsBetter ? "Да" : "Нет")}";
+            planning_logger.WriteLine(line);
+            //planLogWriterConc.Add(line);
+            //BigLogAdd(localResult, searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass);
+        }
+
         public void Start(PlanningAlgorithmWorkflow workflow)
         {
             var start = DateTime.Now;
@@ -394,6 +408,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             Console.WriteLine("R, beg, " + OpersCopy.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
 
+
+            planning_logger = new("planAnalysis.csv", false, Encoding.UTF8);
+            planning_logger.WriteLine("Итерация;Тип итерации;Рассматриваемый этап;Рассматриваемый этап регистратор;Предыдущий этап;Предыдущий этап регистратор;Выбран?");
+            planLogWriterConc = new();
 
             gamma = basisLink.SessionLink.SettingsController.CurrentSettings.TGamma;
 
@@ -439,6 +457,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             var end = DateTime.Now;
 
             Console.WriteLine($"R total time = {end - start}");
+
+            foreach (var line in planLogWriterConc) planning_logger.WriteLine(line);
+
+            planning_logger.Close();
         }
 
         void Step3_DurationsProcessor()
@@ -842,7 +864,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
         //}
         //Dictionary<(int ID, Uco RC, Uco Tara, bool Parr), (float Value, bool IsGood)> RWriterElements = new();
 
-        void Step2_1_Parallel(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
+        void Step2_1_Parallel(int iterationIndex, PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
         {
             var process = Parallel.For(0, PossibleOpersHere.Length, i =>
             {
@@ -855,7 +877,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
 
                 bool anythingWas = false;
-                if (Can1) anythingWas |= Step2_1_1_Check(mod, searcherClass, data, neededThisRC, allowedRC, LastResult);
+                if (Can1) anythingWas |= Step2_1_1_Check(iterationIndex, mod, searcherClass, data, neededThisRC, allowedRC, LastResult);
 
                 //if (!Can1 || !anythingWas) Step2_1_2_Errored(mod, searcherClass, LastResult);
 
@@ -863,7 +885,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             while (!process.IsCompleted) ;
         }
 
-        bool ParallelCheck(PlanSimulatorMod mod, RSearcher searcherClass, Uco currentCenter, Uco currentTara, double maxNamot, bool ForceThisTara, PlanSimulatorEngineResult LastResult)
+        bool ParallelCheck(int iterationIndex, PlanSimulatorMod mod, RSearcher searcherClass, Uco currentCenter, Uco currentTara, double maxNamot, bool ForceThisTara, PlanSimulatorEngineResult LastResult)
         {
             bool result = false;
             if (!mod.FirstOperJust.CurrentTara.IsEmpty && mod.FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrID) && parrID != -1
@@ -1031,10 +1053,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         bool ThisWillBrokeMyResult = ForceThisTara && !searcherClass.ThisResultIsBad;
                         bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
 
-                        if ((localResult.IsBetterThanOther(searcherClass.minResult, true || !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
+                        bool condition = (localResult.IsBetterThanOther(searcherClass.minResult, true || !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
                            &&
                            !ThisWillBrokeMyResult
-                           )
+                           ;
+
+                        if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
+                        {
+                            BigLogAdd(iterationIndex, parrBlockVariant.block, localResult, searcherClass.minResult, true || !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass, condition);
+                        }
+                        if (condition)
                         {
                             searcherClass.ThisResultIsBad = ForceThisTara;
                             searcherClass.WillBeParr = true;
@@ -1052,7 +1080,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             return result;
         }
 
-        bool Step2_1_1_Check(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC, PlanSimulatorEngineResult LastResult)
+        bool Step2_1_1_Check(int iterationIndex, PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC, PlanSimulatorEngineResult LastResult)
         {
             bool result = false;
             var possibleRCs = data.PossibleCentersAndTaras;
@@ -1086,20 +1114,20 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
                     bool isBadAfterAll = CheckOneRCIsBad(allowedRC, NeedThisOneRC, currentCenter);
-                    result |= ParallelCheck(mod, searcherClass, rc, tara/*currentCenter, currentTara*/, MaxNamot, isBadAfterAll, LastResult);
+                    result |= ParallelCheck(iterationIndex, mod, searcherClass, rc, tara/*currentCenter, currentTara*/, MaxNamot, isBadAfterAll, LastResult);
                 }
             }
             return result;
         }
 
-        void Step2_1_2_Errored(PlanSimulatorMod mod, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
+        void Step2_1_2_Errored(int iterationIndex, PlanSimulatorMod mod, RSearcher searcherClass, PlanSimulatorEngineResult LastResult)
         {
             var possibleRCs = mod.PossibleRCsHere;
             //var subProcess = Parallel.For(0, possibleRCs.Count, j =>
             for (int j = 0; j < possibleRCs.Count; j++)
             {
                 var currentCenter = possibleRCs[j];
-                ParallelCheck(mod, searcherClass, currentCenter, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true, LastResult);
+                ParallelCheck(iterationIndex, mod, searcherClass, currentCenter, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true, LastResult);
             }
             //);
             //while (!subProcess.IsCompleted) ;
@@ -1124,7 +1152,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             return (allowedRC, neededThisRC);
         }
 
-        void Step2_2_Linear(PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass)
+        void Step2_2_Linear(int iterationIndex, PlanSimulatorBlock[] PossibleOpersHere, RSearcher searcherClass)
         {
             if (true || !searcherClass.WillBeParr)
             {
@@ -1143,12 +1171,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
 
                     bool anythingWas = false;
-                    if (Can1) anythingWas |= Step2_2_1_TaraAndRCsCheck(mod, searcherClass, data, neededThisRC, allowedRC);
+                    if (Can1) anythingWas |= Step2_2_1_TaraAndRCsCheck(iterationIndex, mod, searcherClass, data, neededThisRC, allowedRC);
 
                     //var was = searcherClass.ChoosenCenter;
                     if (!Can1 || !anythingWas)
                     {
-                        Step2_2_2_ForcedCheckNoTara(mod, searcherClass, data);
+                        Step2_2_2_ForcedCheckNoTara(iterationIndex, mod, searcherClass, data);
                     }
                 }
                 );
@@ -1156,7 +1184,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             }
         }
 
-        bool Step2_2_1_TaraAndRCsCheck(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC)
+        bool Step2_2_1_TaraAndRCsCheck(int iterationIndex, PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco? NeedThisOneRC, List<Uco> allowedRC)
         {
             bool result = false;
             var possibleRCs = data.PossibleCentersAndTaras;
@@ -1170,7 +1198,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 bool isBadAfterAll = CheckOneRCIsBad(allowedRC, NeedThisOneRC, currentCenter);
 
-                result |= TaraAndRCsSubchecker(mod, searcherClass, data, currentCenter, currentTara, isBadAfterAll);
+                result |= TaraAndRCsSubchecker(iterationIndex, mod, searcherClass, data, currentCenter, currentTara, isBadAfterAll);
             }
             return result;
             //);
@@ -1180,14 +1208,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             //}
         }
 
-        void Step2_2_2_ForcedCheckNoTara(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data)
+        void Step2_2_2_ForcedCheckNoTara(int iterationIndex, PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data)
         {
             var possibleRCs = mod.PossibleRCsHere;
             //var subProcess = Parallel.For(0, possibleRCs.Count, j =>
             for (int j = 0; j < possibleRCs.Count; j++)
             {
                 var currentCenter = possibleRCs[j];
-                TaraAndRCsSubchecker(mod, searcherClass, data, currentCenter, mod.FirstOperJust.CurrentTara /*Если вспомогательный или НеМенятьНамотку, то тара всё равно будет пустая*/, true);
+                TaraAndRCsSubchecker(iterationIndex, mod, searcherClass, data, currentCenter, mod.FirstOperJust.CurrentTara /*Если вспомогательный или НеМенятьНамотку, то тара всё равно будет пустая*/, true);
             }
             //);
             //while (!subProcess.IsCompleted)
@@ -1219,7 +1247,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
         }
         
         
-        bool TaraAndRCsSubchecker(PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco currentCenter, Uco currentTara, bool ForceThisTara)
+        bool TaraAndRCsSubchecker(int iterationIndex, PlanSimulatorMod mod, RSearcher searcherClass, TemporaryTaraSearchData data, Uco currentCenter, Uco currentTara, bool ForceThisTara)
         {
             bool result = false;
             while (AvailableIndexes.Count == 0)
@@ -1288,10 +1316,18 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     bool IneedItBcsItsGood = !ForceThisTara && searcherClass.ThisResultIsBad;
                     lock (locker)
                     {
-                        if ((localResult.IsBetterThanOther(searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
+                        bool condition = (localResult.IsBetterThanOther(searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar)/*searcherClass.minResult > localResult*/ || IneedItBcsItsGood)
                             &&
-                            !ThisWillBrokeMyResult
-                            )
+                            !ThisWillBrokeMyResult;
+
+
+
+                        if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
+                        {
+                            BigLogAdd(iterationIndex, mod.BlockLink, localResult, searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass, condition);
+                        }
+
+                        if (condition)
                         {
 
 
@@ -1434,9 +1470,9 @@ List<PlanSimulatorBlock> toCheck;
 
                     //RWriterElements.Clear();
 
-                    Step2_1_Parallel(PossibleOpersHere, searcherClass, LastResult); // Попробуем параллель поискать
+                    Step2_1_Parallel(iterationIndex, PossibleOpersHere, searcherClass, LastResult); // Попробуем параллель поискать
 
-                    Step2_2_Linear(PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
+                    Step2_2_Linear(iterationIndex, PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
                     if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
                     {
@@ -1446,9 +1482,9 @@ List<PlanSimulatorBlock> toCheck;
 
                         RSearcher searcherClass2 = new();
 
-                        Step2_1_Parallel(nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
+                        Step2_1_Parallel(iterationIndex, nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
 
-                        Step2_2_Linear(nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
+                        Step2_2_Linear(iterationIndex, nextPossibleOpers, searcherClass2); // А теперь, если не было параллелизма, обычный варик
 
                         if (
                             !searcherClass2.ThisResultIsBad && searcherClass.ThisResultIsBad
@@ -1506,6 +1542,13 @@ List<PlanSimulatorBlock> toCheck;
                     //    if (searcherClass.ChoosenTara != recTara)
                     //        Console.WriteLine($"set {searcherClass.ChoosenMod}, recommended: {recTara}, but got {searcherClass.ChoosenTara}");
                     //}
+
+                    if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
+                    {
+
+                        string line = $"{iterationIndex};Финал;{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator}";
+                        planning_logger.WriteLine(line);
+                    }
 
                     if (searcherClass.WillBeParr)
                     {
@@ -1590,8 +1633,8 @@ List<PlanSimulatorBlock> toCheck;
 
                 if (LinearPlan.Count % 500 == 0)
                 {
-                    Console.WriteLine($"R: {LinearPlan.Count}");
-                    basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"step 1: {LinearPlan.Count} / {OpersCopy.Count} done\r\n");
+                    Console.WriteLine($"R: {iterationIndex}");
+                    basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"step 1: {iterationIndex} - {LinearPlan.Count} / {OpersCopy.Count} done\r\n");
                     LastResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate)); // Вызывем симулятор плана - НА ВСЯКИЙ СЛУЧАЙ.
                 }
 

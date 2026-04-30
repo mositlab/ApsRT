@@ -191,6 +191,8 @@ namespace ApsRT.Core.Settings
         [JsonProperty]
         public bool Demos_BigPartiasLog { get; set; }
         [JsonProperty]
+        public bool Demos_BigPlanningLog { get; set; }
+        [JsonProperty]
         public bool Demos_NO_WHITESPACES_OnOutput { get; set; }
 
     }

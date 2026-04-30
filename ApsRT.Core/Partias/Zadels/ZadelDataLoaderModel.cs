@@ -40,10 +40,13 @@ namespace ApsRT.Core.Partias.Zadels
         public Guid? ZadelGuid { get; set; }
 
         [DataRecordColumn("ШтрихкодТары", defaultIfFail: true)]
-        public Guid? SeriaCode { get; set; }
+        public string? SeriaCode { get; set; }
 
         [DataRecordCodedObjectColumn("ТипТары_GUID", "ТипТары")]
         public Uco Tara { get; set; }
+
+        [DataRecordCodedObjectColumn("Тара_GUID", "Тара")]
+        public Uco JustTara { get; set; }
 
         [DataRecordColumn("КоличествоЗадела", defaultIfFail: true)]
         public double Count { get; set; }

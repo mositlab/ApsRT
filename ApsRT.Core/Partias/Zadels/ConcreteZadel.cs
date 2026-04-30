@@ -10,9 +10,10 @@ namespace ApsRT.Core.Partias.Zadels
 {
     public class ConcreteZadel
     {
-        public ConcreteZadel(Uco usedTara, int level, int poviv, Uco nomen, Uco chara, StageGUID guid, Guid partiaPF, Guid? seriaCode)
+        public ConcreteZadel(Uco usedTara, Uco justTara, int level, int poviv, Uco nomen, Uco chara, StageGUID guid, Guid partiaPF, string? seriaCode)
         {
             UsedTara = usedTara;
+            JustTara = justTara;
             Count = 0;
             Level = level;
             Poviv = poviv;
@@ -34,7 +35,9 @@ namespace ApsRT.Core.Partias.Zadels
         internal Uco UsedTara { get; } // на какой таре задел намотан
                                        //internal double Count { get; init; } // количество этого задела
 
-        internal Guid? SeriaCode { get; }
+        internal Uco JustTara { get; } // тупо надо выводить эту тару
+
+        internal string? SeriaCode { get; }
 
         internal Guid PartiaPF {get; set;}
         internal StageGUID StageGuid { get; set; }

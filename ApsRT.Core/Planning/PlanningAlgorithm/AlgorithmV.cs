@@ -32,9 +32,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             this.basisLink = basisLink;
         }
 
-        StreamWriter ordersWriter = new ("ordersYAI.csv", false, Encoding.UTF8);
+        StreamWriter planning_logger = new ("planAnalysis.csv", false, Encoding.UTF8);
 
-        ConcurrentBag<string> ordersWriterConc = new();
+        ConcurrentBag<string> planLogWriterConc = new();
 
         double globalres = double.MaxValue;
 
@@ -58,7 +58,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             poolCopy.PrepareAllRCsOnBlocks();
 
-            ordersWriter.WriteLine("N;ПоследняяОперация;ПоследняяДата;РассматриваемаяОперация;МинДедлайн;Секунд;СекундКаждая;КогдаКончится;Дельта");
+            planning_logger.WriteLine("N;ПоследняяОперация;ПоследняяДата;РассматриваемаяОперация;МинДедлайн;Секунд;СекундКаждая;КогдаКончится;Дельта");
             //$"{OpersHave};{a.StagesAsNormal[0].GUID};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{timeWhenEnds};{delta}"
 
             //PrepareOpsForEnding(poolCopy.Blocks.SelectMany(block => block.Lists).ToList(), 1.5f);
@@ -554,9 +554,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             //while (!resu.IsCompleted) ;
             Sub(0, workflow, possibleFirstIndexes);
 
-            foreach (var line in ordersWriterConc) ordersWriter.WriteLine(line);
+            foreach (var line in planLogWriterConc) planning_logger.WriteLine(line);
 
-            ordersWriter.Close();
+            planning_logger.Close();
         }
 
         /// <summary>
@@ -990,7 +990,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 if (OpersHave % 1000 == 0)
                 {
-                    ordersWriterConc.Add($"{OpersHave};{(a == null ? "" : a.StagesAsNormal[0].GUID)};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{secondsAsString};{timeWhenEnds};{delta}");
+                    planLogWriterConc.Add($"{OpersHave};{(a == null ? "" : a.StagesAsNormal[0].GUID)};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{secondsAsString};{timeWhenEnds};{delta}");
                 }
             }
 

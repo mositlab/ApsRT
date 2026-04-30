@@ -108,8 +108,9 @@ namespace ApsRT.Core.Partias.Zadels
                     {
                         if (!LinearZadelsDictionary.ContainsKey(zadelGuid.Value))
                         {
-                            var tara = new ZadelDataLoaderModel().Tara;
-                            var newZadel = new ConcreteZadel(tara, level, poviv, nomen, chars, finalEtap, partiaPF, seria);
+                            var tara = model.Tara;
+                            var justTara = model.JustTara;
+                            var newZadel = new ConcreteZadel(tara, justTara, level, poviv, nomen, chars, finalEtap, partiaPF, seria);
                             newZadel.ZadelStatus = ZadelStatus.CannotBeFound;
                             LinearZadelsDictionary.Add(zadelGuid.Value, newZadel);
                         }
