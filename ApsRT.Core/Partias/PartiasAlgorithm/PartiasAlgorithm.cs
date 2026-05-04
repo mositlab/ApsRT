@@ -249,6 +249,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 op.CustomPartiaGuid = null;
                 op.ZadelsInherited = 0; // Инфу по заделам убираем
                 op.SetPlacesCount(op.OriginalPlacesCount);
+                op.PrepareDurations(); // Длительности
+                op.BakeAllIndexDiapazons(null); // Диапазоны для переналадок
             }
 
             SessionLink.MasterDataLinks.StagesMasterData.ApsModellingsInfo.Clear();
@@ -1245,6 +1247,10 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             // Устанавливаем кол-во мест
                             if (lvl2.PlacesCountMultiplierToRewrite.HasValue && lvl2.PlacesCountMultiplierToRewrite.Value > 1)
                                 op1.SetPlacesCount(op1.OriginalPlacesCount * lvl2.PlacesCountMultiplierToRewrite.Value);
+
+                            op1.PrepareDurations(); // Записываем длительности теперь. Заделы сюда уже включены
+
+                            op1.BakeAllIndexDiapazons(null); // И напоследок на всякий случай запекаем Диапазоны для переналадок
 
                             // Записываем инфу об ошибках тары, если они есть
                             // отсутствие тары (только если операция не вспомогательная). Решено Аленой, 30.05.

@@ -442,14 +442,14 @@ namespace ApsRT.Core.Stages
             // Если нет информации там, ищу в базах данных
             if (masterData.AnyDurations && masterData.TryGetTypicalDuration(RC, this, out var timePerEd))
             {
-                var integ = (int)Math.Round(timePerEd * countToTime);
+                var integ = (int)Math.Round(timePerEd * countToTime * ZadelsDurationK);
                 if (integ == 0) integ = 1;
                 return integ;
             }
 
-            if (StaticDuration.HasValue) return StaticDuration.Value;
+            if (StaticDuration.HasValue) return (int)(StaticDuration.Value * ZadelsDurationK);
 
-            return currSets.OriginalDurationTime;
+            return (int)(currSets.OriginalDurationTime * ZadelsDurationK);
         }
 
         public int GetDuration(Uco RC)
@@ -595,6 +595,9 @@ namespace ApsRT.Core.Stages
         public int ZadelsInherited { get; set; }
 
         public bool ClosedByZadels => ZadelsInherited >= PlacesCount;
+
+        public float ZadelsDurationK => (float)(PlacesCount - ZadelsInherited) / PlacesCount;
+
         #endregion
     }
 

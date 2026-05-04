@@ -392,9 +392,23 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         ConcurrentBag<string> planLogWriterConc;
 
-        void BigLogAdd(int iterationIndex, PlanSimulatorBlock block, RTempResult localResult, RTempResult minResult, bool noStars, RSearcher searcherClass, bool itsBetter)
+        void BigLogAdd(int iterationIndex, PlanSimulatorBlock block, Uco center, Uco tara, RTempResult localResult, RTempResult minResult, bool noStars, RSearcher searcherClass, bool itsBetter, bool parallel)
         {
-            string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};{(itsBetter ? "Да" : "Нет")}";
+            string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};" +
+                $"{center};{searcherClass.ChoosenCenter};" +
+                $"{tara};{searcherClass.ChoosenTara};" +
+                $"{localResult.ErrorsCount};{minResult.ErrorsCount};" +
+                $"{localResult.TransferTime};{minResult.TransferTime};" +
+                $"{noStars};" +
+                $"{parallel};{searcherClass.WillBeParr};" +
+                $"{localResult.DeltaFromStart};{minResult.DeltaFromStart};" +
+                $"{localResult.TotalCost};{minResult.TotalCost};" +
+                $"{localResult.Rechanges};{minResult.Rechanges};" +
+                $"{localResult.DeltaFromDeadline};{minResult.DeltaFromDeadline};" +
+                $"{localResult.OperCount};{minResult.OperCount};" +
+                $"{localResult.IsFromSameOrder};{minResult.IsFromSameOrder};" +
+                $"{localResult.Level};{minResult.Level};" +
+                $"{(itsBetter ? "Да" : "Нет")}";
             planning_logger.WriteLine(line);
             //planLogWriterConc.Add(line);
             //BigLogAdd(localResult, searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass);
@@ -410,7 +424,23 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
 
             planning_logger = new("planAnalysis.csv", false, Encoding.UTF8);
-            planning_logger.WriteLine("Итерация;Тип итерации;Рассматриваемый этап;Рассматриваемый этап регистратор;Предыдущий этап;Предыдущий этап регистратор;Выбран?");
+            planning_logger.WriteLine("Итерация;Тип итерации;" +
+                "Рассматриваемый этап;Рассматриваемый этап регистратор;" +
+                "Предыдущий этап;Предыдущий этап регистратор;" +
+                "Текущий РЦ;Предыдущий РЦ;" +
+                "Текущая тара;Предыдущая тара;" +
+                "R_ErrorsCount Текущий;R_ErrorsCount Предыдущий;" +
+                "R_TransferTime Текущий;R_TransferTime Предыдущий;" +
+                "NoSteps;" +
+                "Параллель;Параллель была;" +
+                "R_DeltaFromStart Текущий;R_DeltaFromStart Предыдущий;" +
+                "R_TotalCost Текущий;R_TotalCost Предыдущий;" +
+                "R_Rechanges Текущий;R_Rechanges Предыдущий;" +
+                "R_DeltaFromDeadline Текущий;R_DeltaFromDeadline Предыдущий;" +
+                "R_OperCount Текущий;R_OperCount Предыдущий;" +
+                "R_IsFromSameOrder Текущий;R_IsFromSameOrder Предыдущий;" +
+                "R_Level Текущий;R_Level Предыдущий;" +
+                "Выбран?");
             planLogWriterConc = new();
 
             gamma = basisLink.SessionLink.SettingsController.CurrentSettings.TGamma;
@@ -1060,7 +1090,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                         if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
                         {
-                            BigLogAdd(iterationIndex, parrBlockVariant.block, localResult, searcherClass.minResult, true || !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass, condition);
+                            BigLogAdd(iterationIndex, parrBlockVariant.block, currentCenter, currentTara, localResult, searcherClass.minResult, true || !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass, condition, true);
                         }
                         if (condition)
                         {
@@ -1324,7 +1354,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                         if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
                         {
-                            BigLogAdd(iterationIndex, mod.BlockLink, localResult, searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass, condition);
+                            BigLogAdd(iterationIndex, mod.BlockLink, ForceThisTara ? currentCenter : rc, ForceThisTara ? currentTara : tara, localResult, searcherClass.minResult, !basisLink.SessionLink.SettingsController.CurrentSettings.UseRStar, searcherClass, condition, false);
                         }
 
                         if (condition)
