@@ -915,7 +915,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                             var fop = sdvig.Opers[0];
 
-                            //if (!GetCenterFromOneRCGroup(sdvig, resultToFill, out Uco? NeededRC, out var group1)) continue;
+                            if (!GetCenterFromOneRCGroup(sdvig, resultToFill, out Uco? NeededRC, out var group1)) continue;
 
                             //sdvig.RCIsChecked = true;
                             if (true/*fop.EndTara.IsEmpty*/)
@@ -927,13 +927,13 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                     LogSomeErrors = withHerself,
                                     PrevsInfo = resultToFill.IDToTara,
                                     RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
-                                    //RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null
+                                    RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null
                                 })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, res.TaraName, res.FinalRC, res.Max, res.used_format, res.CurrentPlacesCountK, resultToFill);
                                     //sdvig.RC = RC;
                                     // Запоминаем условие для одного РЦ
-                                    //if (sdvig.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, newRC);
+                                    if (sdvig.Opers[0].OnOneRC) resultToFill.ForOneRCGroupAlreadyUsed.TryAdd(group1, res.FinalRC);
                                 }
                                 else
                                 {
@@ -997,21 +997,33 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             finalResult.ForOneRCGroups = new();
             finalResult.PossibleCentersForOneRCGroups = new();
             finalResult.ForOneRCGroupAlreadyUsed = new();
-            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (/*mod.AllOpers[0].Level, */mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature/*, mod.AllOpers[0].Characteristics*/));
-            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (/*mod.AllOpers[0].Level, */mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature/*, mod.AllOpers[0].Characteristics*/));
-            var groupsToCheck = groupToCheck1.Union(groupToCheck2);
+            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature));
+            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature));
+
+            Dictionary<(Uco vid, Uco nomen), List<IAbleForTaraCalcInterface>> groupsToCheck = new();
+            foreach (var group in groupToCheck1)
+            {
+                groupsToCheck.TryAdd(group.Key, new());
+                groupsToCheck[group.Key].AddRange(group);
+            }
+            foreach (var group in groupToCheck2)
+            {
+                groupsToCheck.TryAdd(group.Key, new());
+                groupsToCheck[group.Key].AddRange(group);
+            }
+
             foreach (var group in groupsToCheck)
             {
                 var groupN = finalResult.ForOneRCGroups.Count; // Получаем номер для этой группы
-                foreach (var mod in group)
+                foreach (var mod in group.Value)
                 {
                     finalResult.ForOneRCGroups.Add(mod.AllOpers[0].Index, groupN); // Заполняем данными
                 }
 
-                List<Uco> allowedRCs = group.First().AllOpers[0].PossibleCenters ?? new List<Uco>() { group.First().AllOpers[0].OriginalCenter };
+                List<Uco> allowedRCs = group.Value.First().AllOpers[0].PossibleCenters ?? new List<Uco>() { group.Value.First().AllOpers[0].OriginalCenter };
                 allowedRCs = allowedRCs.Select(rc =>
                 {
-                    var res0 = group.Select(mod =>
+                    var res0 = group.Value.Select(mod =>
                     {
                         var possible = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out var res, out _, new SumIsPossibleOptions(false)
                         {
