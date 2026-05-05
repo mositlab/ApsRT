@@ -900,7 +900,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             var SessionLink = firstPartia.OpersHere[0][0].Opers[0].SessionLink;
 
-            resultToFill.ForOneRCGroupAlreadyUsed = new(); // Всё обнуляем
+            //resultToFill.ForOneRCGroupAlreadyUsed = new(); // Всё обнуляем - А ВОТ НЕ СТОИТ СКОРЕЕ ВСЕГО.
 
             if (resultToFill.mergedNorm > 0 || withHerself)
             {
