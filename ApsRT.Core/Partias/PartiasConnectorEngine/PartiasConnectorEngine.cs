@@ -986,7 +986,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             }
         }
 
-        public static void PrepareResultForOneRCData(PartiasConnectorEngineResult finalResult, List<IAbleForTaraCalcInterface> listOnOneRc1, List<IAbleForTaraCalcInterface> listOnOneRc2)
+        public static void PrepareResultForOneRCData(PartiasConnectorEngineResult finalResult, List<IAbleForTaraCalcInterface> listOnOneRc1, List<IAbleForTaraCalcInterface> listOnOneRc2, bool searchForMax)
         {
             //return;
 
@@ -1009,16 +1009,29 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 }
 
                 List<Uco> allowedRCs = group.First().AllOpers[0].PossibleCenters ?? new List<Uco>() { group.First().AllOpers[0].OriginalCenter };
-                allowedRCs = allowedRCs.Where(rc =>
-                    group.All(
-                        mod => Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out _, out _, new SumIsPossibleOptions(false)
+                allowedRCs = allowedRCs.Select(rc =>
+                {
+                    var res0 = group.Select(mod =>
+                    {
+                        var possible = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(mod, out var res, out _, new SumIsPossibleOptions(false)
                         {
                             LogSomeErrors = false, // ошибки не фиксируем
-                            RCMustBeThis = new(1) { rc } // РЦ должен быть именно такой
-                        })
-                    )
-                    )
-                    .OrderByDescending(rc => finalResult.RecommendedSubdivision.HasValue && CentersData[rc].Subdivision == finalResult.RecommendedSubdivision.Value ? 1 : 0) // Сортируем по цеху, если он вообще задан
+                            RCMustBeThis = new(1) { rc }, // РЦ должен быть именно такой
+                            SearchForMaxTara = searchForMax
+                        });
+                        return (possible, res);
+                    });
+
+                    bool allCan = res0.All(x => x.possible);
+                    double max = 0;
+                    if (allCan) max = res0.Max(x => x.res.Max);
+
+                    return (rc, allCan, max);
+                })
+                    .Where(rc => rc.allCan)
+                    .OrderByDescending(rc => rc.max)
+                    .ThenByDescending(rc => finalResult.RecommendedSubdivision.HasValue && CentersData[rc.rc].Subdivision == finalResult.RecommendedSubdivision.Value ? 1 : 0) // Сортируем по цеху, если он вообще задан
+                    .Select(rc => rc.rc)
                     .ToList();
 
                 finalResult.PossibleCentersForOneRCGroups.Add(groupN, allowedRCs); // Сохраняем информацию
@@ -1183,7 +1196,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                 finalResult.RecommendedSubdivision = GetBestSubdivisionHere(listOnOneRc1.Union(listOnOneRc2).ToList());
             }
 
-            PrepareResultForOneRCData(finalResult, listOnOneRc1.Select(x => (IAbleForTaraCalcInterface)x).ToList(), listOnOneRc2.Select(x => (IAbleForTaraCalcInterface)x).ToList());
+            PrepareResultForOneRCData(finalResult, listOnOneRc1.Select(x => (IAbleForTaraCalcInterface)x).ToList(), listOnOneRc2.Select(x => (IAbleForTaraCalcInterface)x).ToList(), true);
 
             //));
 

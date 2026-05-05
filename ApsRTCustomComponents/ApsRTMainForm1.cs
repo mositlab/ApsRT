@@ -35,6 +35,7 @@ using ApsRT.Core.PlanSimulator;
 using ApsRT.Core.Planning;
 using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using UniversalPack.Extensions;
+using System.Text;
 
 namespace ApsRTCustomComponents
 {
@@ -1960,7 +1961,7 @@ namespace ApsRTCustomComponents
         {
             var ops = ganttANL.SavedOpersLink;
             //var pool = new OpersPool(sessionLink, ops, new OpersPoolConstructor(ops, sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate), sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
-            
+
             var operInd0 = ops.FindIndex(x => x.Lists.Any(y => y.StagesAsNormal.Any(z => z.Index == OperIndex)));
             var oper = ops[operInd0];
             ops.RemoveAt(operInd0);
@@ -2123,6 +2124,21 @@ namespace ApsRTCustomComponents
             }
             writer.Close();
             Console.WriteLine("max done");
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            string guid = textBox1.Text;
+            StreamWriter sw = new StreamWriter("planAnalysisFiltered.csv", false, Encoding.UTF8);
+            var reader = new StreamReader("planAnalysis.csv", Encoding.UTF8);
+            sw.WriteLine(reader.ReadLine());
+            while (!reader.EndOfStream)
+            {
+                var line = reader.ReadLine();
+                if (line.Contains(guid)) sw.WriteLine(line);
+            }
+            sw.Close();
+            reader.Close();
         }
     }
 }

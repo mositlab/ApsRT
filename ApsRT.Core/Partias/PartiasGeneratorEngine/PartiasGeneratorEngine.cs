@@ -164,7 +164,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
 
             var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
-            PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new());
+            PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new(), false);
 
             for (int i = 0; i < partia1.Count; i++)
             {

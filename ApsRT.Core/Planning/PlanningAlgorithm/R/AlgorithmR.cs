@@ -380,6 +380,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
                 //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
 
+                if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
+                {
+                    string line = $"{i + 1};Финал;{element.Block.Lists[0].FirstOperJust.GUID};{element.Block.Lists[0].FirstOperJust.Registrator};{element.RC};;{element.Tara};;{element.Block.Lists[0].FirstOperJust.CurrentModelling}";
+                    planning_logger.WriteLine(line);
+                }
+
                 AddBlockToPlan(element.Block, center, tara, element.Max);
 
                 passedCenters.Add(center);
@@ -397,6 +403,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};" +
                 $"{center};{searcherClass.ChoosenCenter};" +
                 $"{tara};{searcherClass.ChoosenTara};" +
+                $"{block.Lists[0].FirstOperJust.CurrentModelling};{(searcherClass.ChoosenMod?.FirstOperJust.CurrentModelling.ToString() ?? "")};" +
                 $"{localResult.ErrorsCount};{minResult.ErrorsCount};" +
                 $"{localResult.TransferTime};{minResult.TransferTime};" +
                 $"{noStars};" +
@@ -429,6 +436,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 "Предыдущий этап;Предыдущий этап регистратор;" +
                 "Текущий РЦ;Предыдущий РЦ;" +
                 "Текущая тара;Предыдущая тара;" +
+                "Текущий мод;Предыдущий мод;" +
                 "R_ErrorsCount Текущий;R_ErrorsCount Предыдущий;" +
                 "R_TransferTime Текущий;R_TransferTime Предыдущий;" +
                 "NoSteps;" +
@@ -1573,10 +1581,32 @@ List<PlanSimulatorBlock> toCheck;
                     //        Console.WriteLine($"set {searcherClass.ChoosenMod}, recommended: {recTara}, but got {searcherClass.ChoosenTara}");
                     //}
 
+                    if (searcherClass.ChoosenMod.StagesAsNormal.Any(x => x.Index == 4178))
+                    {
+                        ;
+                    }
+
                     if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
                     {
 
-                        string line = $"{iterationIndex};Финал;{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator}";
+                        string line = $"{iterationIndex};Финал;{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};{searcherClass.ChoosenCenter};;{searcherClass.ChoosenTara};;{searcherClass.ChoosenMod?.FirstOperJust.CurrentModelling}";
+                        /*
+                         string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};" +
+                $"{center};{searcherClass.ChoosenCenter};" +
+                $"{tara};{searcherClass.ChoosenTara};" +
+                $"{localResult.ErrorsCount};{minResult.ErrorsCount};" +
+                $"{localResult.TransferTime};{minResult.TransferTime};" +
+                $"{noStars};" +
+                $"{parallel};{searcherClass.WillBeParr};" +
+                $"{localResult.DeltaFromStart};{minResult.DeltaFromStart};" +
+                $"{localResult.TotalCost};{minResult.TotalCost};" +
+                $"{localResult.Rechanges};{minResult.Rechanges};" +
+                $"{localResult.DeltaFromDeadline};{minResult.DeltaFromDeadline};" +
+                $"{localResult.OperCount};{minResult.OperCount};" +
+                $"{localResult.IsFromSameOrder};{minResult.IsFromSameOrder};" +
+                $"{localResult.Level};{minResult.Level};" +
+                $"{(itsBetter ? "Да" : "Нет")}";
+                         */
                         planning_logger.WriteLine(line);
                     }
 

@@ -198,10 +198,6 @@ namespace ApsRTCustomComponents
             label55 = new Label();
             label51 = new Label();
             MaxOldSessionPathsDaysNumericUpDown = new NumericUpDown();
-            button4 = new Button();
-            button3 = new Button();
-            button2 = new Button();
-            button1 = new Button();
             groupBox7 = new GroupBox();
             TransferToGammaCheckBox = new MaterialCheckBox();
             MatrixMergeConditionsCheckBox = new MaterialCheckBox();
@@ -330,6 +326,14 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            ExpFunctionsPage = new TabPage();
+            button4 = new Button();
+            button3 = new Button();
+            button2 = new Button();
+            button1 = new Button();
+            textBox1 = new TextBox();
+            label59 = new Label();
+            button5 = new Button();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -495,6 +499,7 @@ namespace ApsRTCustomComponents
             ((System.ComponentModel.ISupportInitialize)PartiasMaxDaysNumericUpDown).BeginInit();
             AuthorsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ExpFunctionsPage.SuspendLayout();
             SuspendLayout();
             // 
             // OpenPlanningButton
@@ -552,6 +557,7 @@ namespace ApsRTCustomComponents
             MainTabControl.Controls.Add(PartiasTabPage);
             MainTabControl.Controls.Add(PlanningTabPage);
             MainTabControl.Controls.Add(SettingsTabPage);
+            MainTabControl.Controls.Add(ExpFunctionsPage);
             MainTabControl.Controls.Add(AuthorsTabPage);
             MainTabControl.Dock = DockStyle.Fill;
             MainTabControl.Location = new Point(0, 35);
@@ -596,7 +602,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 397);
+            label49.Location = new Point(959, 396);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -609,7 +615,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 394);
+            pictureBox1.Location = new Point(1099, 393);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -622,7 +628,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 444);
+            label48.Location = new Point(3, 443);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -723,9 +729,9 @@ namespace ApsRTCustomComponents
             PartiasTabPage.BackColor = Color.White;
             PartiasTabPage.Controls.Add(PartiasTabControl);
             PartiasTabPage.Controls.Add(materialTabSelector2);
-            PartiasTabPage.Location = new Point(4, 24);
+            PartiasTabPage.Location = new Point(4, 25);
             PartiasTabPage.Name = "PartiasTabPage";
-            PartiasTabPage.Size = new Size(1171, 502);
+            PartiasTabPage.Size = new Size(1171, 501);
             PartiasTabPage.TabIndex = 0;
             PartiasTabPage.Text = "Формирование партий";
             // 
@@ -737,7 +743,7 @@ namespace ApsRTCustomComponents
             PartiasTabControl.Location = new Point(0, 35);
             PartiasTabControl.Name = "PartiasTabControl";
             PartiasTabControl.SelectedIndex = 0;
-            PartiasTabControl.Size = new Size(1171, 467);
+            PartiasTabControl.Size = new Size(1171, 466);
             PartiasTabControl.TabIndex = 21;
             // 
             // AllPartiasTabControl
@@ -747,7 +753,7 @@ namespace ApsRTCustomComponents
             AllPartiasTabControl.Location = new Point(4, 25);
             AllPartiasTabControl.Name = "AllPartiasTabControl";
             AllPartiasTabControl.Padding = new Padding(3);
-            AllPartiasTabControl.Size = new Size(1163, 438);
+            AllPartiasTabControl.Size = new Size(1163, 437);
             AllPartiasTabControl.TabIndex = 0;
             AllPartiasTabControl.Text = "Полный расчёт";
             // 
@@ -778,7 +784,7 @@ namespace ApsRTCustomComponents
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer3);
-            splitContainer1.Size = new Size(1157, 432);
+            splitContainer1.Size = new Size(1157, 431);
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
             // 
@@ -838,7 +844,7 @@ namespace ApsRTCustomComponents
             AllForAllTextBox.Multiline = true;
             AllForAllTextBox.Name = "AllForAllTextBox";
             AllForAllTextBox.ScrollBars = ScrollBars.Both;
-            AllForAllTextBox.Size = new Size(398, 253);
+            AllForAllTextBox.Size = new Size(398, 252);
             AllForAllTextBox.TabIndex = 27;
             // 
             // label2
@@ -945,8 +951,8 @@ namespace ApsRTCustomComponents
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(PartiasDataTable);
-            splitContainer3.Size = new Size(751, 430);
-            splitContainer3.SplitterDistance = 248;
+            splitContainer3.Size = new Size(751, 429);
+            splitContainer3.SplitterDistance = 247;
             splitContainer3.TabIndex = 0;
             // 
             // CustomTreeViewOnPPanel
@@ -954,7 +960,7 @@ namespace ApsRTCustomComponents
             CustomTreeViewOnPPanel.Dock = DockStyle.Fill;
             CustomTreeViewOnPPanel.Location = new Point(0, 0);
             CustomTreeViewOnPPanel.Name = "CustomTreeViewOnPPanel";
-            CustomTreeViewOnPPanel.Size = new Size(751, 248);
+            CustomTreeViewOnPPanel.Size = new Size(751, 247);
             CustomTreeViewOnPPanel.TabIndex = 1;
             // 
             // PartiasDataTable
@@ -1287,9 +1293,9 @@ namespace ApsRTCustomComponents
             // 
             PlanningTabPage.Controls.Add(PlanningTabControl);
             PlanningTabPage.Controls.Add(materialTabSelector3);
-            PlanningTabPage.Location = new Point(4, 24);
+            PlanningTabPage.Location = new Point(4, 25);
             PlanningTabPage.Name = "PlanningTabPage";
-            PlanningTabPage.Size = new Size(1171, 502);
+            PlanningTabPage.Size = new Size(1171, 501);
             PlanningTabPage.TabIndex = 1;
             PlanningTabPage.Text = "Планирование производства";
             PlanningTabPage.UseVisualStyleBackColor = true;
@@ -1303,7 +1309,7 @@ namespace ApsRTCustomComponents
             PlanningTabControl.Location = new Point(0, 35);
             PlanningTabControl.Name = "PlanningTabControl";
             PlanningTabControl.SelectedIndex = 0;
-            PlanningTabControl.Size = new Size(1171, 467);
+            PlanningTabControl.Size = new Size(1171, 466);
             PlanningTabControl.TabIndex = 0;
             // 
             // TyrantTabPage
@@ -1312,7 +1318,7 @@ namespace ApsRTCustomComponents
             TyrantTabPage.Location = new Point(4, 25);
             TyrantTabPage.Name = "TyrantTabPage";
             TyrantTabPage.Padding = new Padding(3);
-            TyrantTabPage.Size = new Size(1163, 438);
+            TyrantTabPage.Size = new Size(1163, 437);
             TyrantTabPage.TabIndex = 0;
             TyrantTabPage.Text = "Полное планирование";
             TyrantTabPage.UseVisualStyleBackColor = true;
@@ -1332,7 +1338,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer5.Panel2.Controls.Add(splitContainer6);
             splitContainer5.Panel2.Controls.Add(panel1);
-            splitContainer5.Size = new Size(1157, 432);
+            splitContainer5.Size = new Size(1157, 431);
             splitContainer5.SplitterDistance = 385;
             splitContainer5.TabIndex = 0;
             // 
@@ -1357,8 +1363,8 @@ namespace ApsRTCustomComponents
             // splitContainer7.Panel2
             // 
             splitContainer7.Panel2.Controls.Add(splitContainer8);
-            splitContainer7.Size = new Size(385, 432);
-            splitContainer7.SplitterDistance = 124;
+            splitContainer7.Size = new Size(385, 431);
+            splitContainer7.SplitterDistance = 123;
             splitContainer7.TabIndex = 0;
             // 
             // StagesColorCheckBox
@@ -1580,8 +1586,8 @@ namespace ApsRTCustomComponents
             splitContainer6.Panel2.Controls.Add(ganttNEW);
             splitContainer6.Panel2.Controls.Add(vScrollBarNEW);
             splitContainer6.Panel2MinSize = 10;
-            splitContainer6.Size = new Size(768, 402);
-            splitContainer6.SplitterDistance = 218;
+            splitContainer6.Size = new Size(768, 401);
+            splitContainer6.SplitterDistance = 217;
             splitContainer6.TabIndex = 1;
             // 
             // ganttOLD
@@ -1590,7 +1596,7 @@ namespace ApsRTCustomComponents
             ganttOLD.Dock = DockStyle.Fill;
             ganttOLD.Location = new Point(0, 0);
             ganttOLD.Name = "ganttOLD";
-            ganttOLD.Size = new Size(742, 218);
+            ganttOLD.Size = new Size(742, 217);
             ganttOLD.TabIndex = 0;
             ganttOLD.TimelineHeight = 50;
             ganttOLD.TitleRowHeight = -1;
@@ -1601,7 +1607,7 @@ namespace ApsRTCustomComponents
             vScrollBarOLD.Dock = DockStyle.Right;
             vScrollBarOLD.Location = new Point(742, 0);
             vScrollBarOLD.Name = "vScrollBarOLD";
-            vScrollBarOLD.Size = new Size(26, 218);
+            vScrollBarOLD.Size = new Size(26, 217);
             vScrollBarOLD.TabIndex = 1;
             // 
             // ganttNEW
@@ -2383,10 +2389,6 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.Controls.Add(groupBox8);
             splitContainer2.Panel2.Controls.Add(label51);
             splitContainer2.Panel2.Controls.Add(MaxOldSessionPathsDaysNumericUpDown);
-            splitContainer2.Panel2.Controls.Add(button4);
-            splitContainer2.Panel2.Controls.Add(button3);
-            splitContainer2.Panel2.Controls.Add(button2);
-            splitContainer2.Panel2.Controls.Add(button1);
             splitContainer2.Panel2.Controls.Add(groupBox7);
             splitContainer2.Panel2.Controls.Add(groupBox6);
             splitContainer2.Panel2.Controls.Add(groupBox2);
@@ -2670,78 +2672,6 @@ namespace ApsRTCustomComponents
             MaxOldSessionPathsDaysNumericUpDown.TabIndex = 49;
             MaxOldSessionPathsDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
             MaxOldSessionPathsDaysNumericUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
-            // 
-            // button4
-            // 
-            button4.BackColor = Color.CornflowerBlue;
-            button4.BackgroundImageLayout = ImageLayout.Zoom;
-            button4.Cursor = Cursors.Hand;
-            button4.FlatAppearance.BorderSize = 0;
-            button4.FlatStyle = FlatStyle.Flat;
-            button4.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button4.ForeColor = Color.White;
-            button4.Location = new Point(1041, 493);
-            button4.Name = "button4";
-            button4.Size = new Size(126, 36);
-            button4.TabIndex = 48;
-            button4.Text = "Выгрузить макс намотки";
-            button4.UseCompatibleTextRendering = true;
-            button4.UseVisualStyleBackColor = false;
-            button4.Click += button4_Click;
-            // 
-            // button3
-            // 
-            button3.BackColor = Color.CornflowerBlue;
-            button3.BackgroundImageLayout = ImageLayout.Zoom;
-            button3.Cursor = Cursors.Hand;
-            button3.FlatAppearance.BorderSize = 0;
-            button3.FlatStyle = FlatStyle.Flat;
-            button3.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button3.ForeColor = Color.White;
-            button3.Location = new Point(944, 493);
-            button3.Name = "button3";
-            button3.Size = new Size(91, 36);
-            button3.TabIndex = 47;
-            button3.Text = "Симулятор";
-            button3.UseCompatibleTextRendering = true;
-            button3.UseVisualStyleBackColor = false;
-            button3.Click += button3_Click;
-            // 
-            // button2
-            // 
-            button2.BackColor = Color.CornflowerBlue;
-            button2.BackgroundImageLayout = ImageLayout.Zoom;
-            button2.Cursor = Cursors.Hand;
-            button2.FlatAppearance.BorderSize = 0;
-            button2.FlatStyle = FlatStyle.Flat;
-            button2.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button2.ForeColor = Color.White;
-            button2.Location = new Point(944, 452);
-            button2.Name = "button2";
-            button2.Size = new Size(223, 36);
-            button2.TabIndex = 46;
-            button2.Text = "Запустить назначение остатков";
-            button2.UseCompatibleTextRendering = true;
-            button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
-            // 
-            // button1
-            // 
-            button1.BackColor = Color.CornflowerBlue;
-            button1.BackgroundImageLayout = ImageLayout.Zoom;
-            button1.Cursor = Cursors.Hand;
-            button1.FlatAppearance.BorderSize = 0;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button1.ForeColor = Color.White;
-            button1.Location = new Point(944, 412);
-            button1.Name = "button1";
-            button1.Size = new Size(223, 36);
-            button1.TabIndex = 45;
-            button1.Text = "Сформулировать информацию по материалам";
-            button1.UseCompatibleTextRendering = true;
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
             // 
             // groupBox7
             // 
@@ -4473,9 +4403,9 @@ namespace ApsRTCustomComponents
             AuthorsTabPage.Controls.Add(label50);
             AuthorsTabPage.Controls.Add(pictureBox2);
             AuthorsTabPage.Controls.Add(label52);
-            AuthorsTabPage.Location = new Point(4, 24);
+            AuthorsTabPage.Location = new Point(4, 25);
             AuthorsTabPage.Name = "AuthorsTabPage";
-            AuthorsTabPage.Size = new Size(1171, 502);
+            AuthorsTabPage.Size = new Size(1171, 501);
             AuthorsTabPage.TabIndex = 4;
             AuthorsTabPage.Text = "Разработчики";
             AuthorsTabPage.UseVisualStyleBackColor = true;
@@ -4532,6 +4462,129 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
+            // 
+            // ExpFunctionsPage
+            // 
+            ExpFunctionsPage.Controls.Add(button5);
+            ExpFunctionsPage.Controls.Add(textBox1);
+            ExpFunctionsPage.Controls.Add(label59);
+            ExpFunctionsPage.Controls.Add(button4);
+            ExpFunctionsPage.Controls.Add(button3);
+            ExpFunctionsPage.Controls.Add(button2);
+            ExpFunctionsPage.Controls.Add(button1);
+            ExpFunctionsPage.Location = new Point(4, 25);
+            ExpFunctionsPage.Name = "ExpFunctionsPage";
+            ExpFunctionsPage.Size = new Size(1171, 501);
+            ExpFunctionsPage.TabIndex = 5;
+            ExpFunctionsPage.Text = "Экспериментальные функции";
+            ExpFunctionsPage.UseVisualStyleBackColor = true;
+            // 
+            // button4
+            // 
+            button4.BackColor = Color.CornflowerBlue;
+            button4.BackgroundImageLayout = ImageLayout.Zoom;
+            button4.Cursor = Cursors.Hand;
+            button4.FlatAppearance.BorderSize = 0;
+            button4.FlatStyle = FlatStyle.Flat;
+            button4.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button4.ForeColor = Color.White;
+            button4.Location = new Point(105, 84);
+            button4.Name = "button4";
+            button4.Size = new Size(126, 36);
+            button4.TabIndex = 52;
+            button4.Text = "Выгрузить макс намотки";
+            button4.UseCompatibleTextRendering = true;
+            button4.UseVisualStyleBackColor = false;
+            button4.Click += button4_Click;
+            // 
+            // button3
+            // 
+            button3.BackColor = Color.CornflowerBlue;
+            button3.BackgroundImageLayout = ImageLayout.Zoom;
+            button3.Cursor = Cursors.Hand;
+            button3.FlatAppearance.BorderSize = 0;
+            button3.FlatStyle = FlatStyle.Flat;
+            button3.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(8, 84);
+            button3.Name = "button3";
+            button3.Size = new Size(91, 36);
+            button3.TabIndex = 51;
+            button3.Text = "Симулятор";
+            button3.UseCompatibleTextRendering = true;
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += button3_Click;
+            // 
+            // button2
+            // 
+            button2.BackColor = Color.CornflowerBlue;
+            button2.BackgroundImageLayout = ImageLayout.Zoom;
+            button2.Cursor = Cursors.Hand;
+            button2.FlatAppearance.BorderSize = 0;
+            button2.FlatStyle = FlatStyle.Flat;
+            button2.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button2.ForeColor = Color.White;
+            button2.Location = new Point(8, 43);
+            button2.Name = "button2";
+            button2.Size = new Size(223, 36);
+            button2.TabIndex = 50;
+            button2.Text = "Запустить назначение остатков";
+            button2.UseCompatibleTextRendering = true;
+            button2.UseVisualStyleBackColor = false;
+            button2.Click += button2_Click;
+            // 
+            // button1
+            // 
+            button1.BackColor = Color.CornflowerBlue;
+            button1.BackgroundImageLayout = ImageLayout.Zoom;
+            button1.Cursor = Cursors.Hand;
+            button1.FlatAppearance.BorderSize = 0;
+            button1.FlatStyle = FlatStyle.Flat;
+            button1.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button1.ForeColor = Color.White;
+            button1.Location = new Point(8, 3);
+            button1.Name = "button1";
+            button1.Size = new Size(223, 36);
+            button1.TabIndex = 49;
+            button1.Text = "Сформулировать информацию по материалам";
+            button1.UseCompatibleTextRendering = true;
+            button1.UseVisualStyleBackColor = false;
+            button1.Click += button1_Click;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(355, 10);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(336, 23);
+            textBox1.TabIndex = 53;
+            // 
+            // label59
+            // 
+            label59.AutoSize = true;
+            label59.Font = new Font("Microsoft Sans Serif", 9F);
+            label59.Location = new Point(263, 13);
+            label59.Name = "label59";
+            label59.Size = new Size(86, 15);
+            label59.TabIndex = 54;
+            label59.Text = "Нужный GUID";
+            // 
+            // button5
+            // 
+            button5.BackColor = Color.CornflowerBlue;
+            button5.BackgroundImageLayout = ImageLayout.Zoom;
+            button5.Cursor = Cursors.Hand;
+            button5.FlatAppearance.BorderSize = 0;
+            button5.FlatStyle = FlatStyle.Flat;
+            button5.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button5.ForeColor = Color.White;
+            button5.Location = new Point(697, 10);
+            button5.Name = "button5";
+            button5.Size = new Size(126, 36);
+            button5.TabIndex = 55;
+            button5.Text = "Отфильтровать анализ";
+            button5.UseCompatibleTextRendering = true;
+            button5.UseVisualStyleBackColor = false;
+            button5.Click += button5_Click;
             // 
             // ApsRTMainForm1
             // 
@@ -4730,6 +4783,8 @@ namespace ApsRTCustomComponents
             AuthorsTabPage.ResumeLayout(false);
             AuthorsTabPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ExpFunctionsPage.ResumeLayout(false);
+            ExpFunctionsPage.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -4995,7 +5050,6 @@ namespace ApsRTCustomComponents
         private DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
         private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
         private ContextMenuStrip contextMenuStrip1;
-        private Button button1;
         private Label label48;
         private PictureBox pictureBox1;
         private Label label49;
@@ -5005,9 +5059,6 @@ namespace ApsRTCustomComponents
         private Label label52;
         private Label label53;
         private Label VersionLabel;
-        private Button button2;
-        private Button button3;
-        private Button button4;
         private Label label51;
         private NumericUpDown MaxOldSessionPathsDaysNumericUpDown;
         private MaterialCheckBox UseRCheckBox;
@@ -5029,5 +5080,13 @@ namespace ApsRTCustomComponents
         private Label label58;
         private MaterialCheckBox MatrixMergeConditionsCheckBox;
         private MaterialCheckBox TransferToGammaCheckBox;
+        private TabPage ExpFunctionsPage;
+        private Button button4;
+        private Button button3;
+        private Button button2;
+        private Button button1;
+        private Button button5;
+        private TextBox textBox1;
+        private Label label59;
     }
 }
