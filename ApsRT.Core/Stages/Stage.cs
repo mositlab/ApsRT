@@ -444,6 +444,10 @@ namespace ApsRT.Core.Stages
             {
                 var integ = (int)Math.Round(timePerEd * countToTime * ZadelsDurationK);
                 if (integ == 0) integ = 1;
+                if (integ > 1000000000)
+                {
+                    ;
+                }
                 return integ;
             }
 

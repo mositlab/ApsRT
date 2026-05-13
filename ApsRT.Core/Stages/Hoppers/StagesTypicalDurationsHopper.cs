@@ -45,7 +45,7 @@ namespace ApsRT.Core.Stages.Hoppers
 
         void IHopperInterface.AfterLoading()
         {
-
+            StagesTypicalDurationsMasterData.PostProcess();
         }
     }
 

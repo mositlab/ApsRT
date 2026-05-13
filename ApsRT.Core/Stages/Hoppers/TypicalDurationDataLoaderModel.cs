@@ -44,6 +44,12 @@ namespace ApsRT.Core.Stages.Hoppers
         [DataRecordCodedObjectColumn("Характеристика_GUID", "Характеристика")]
         public Uco Characteristics { get; set; }
 
+        [DataRecordCodedObjectColumn("Вариант_GUID", "Вариант")]
+        public Uco Variant { get; set; }
+
+        [DataRecordColumn("НомерОперации")]
+        public int OperNumber { get; set; }
+
         [DataRecordColumn("ДлительностьВыполнения")]
         public double Duration { get; set; }
     }
