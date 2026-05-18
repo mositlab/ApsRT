@@ -9,6 +9,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
     struct RTempResult
     {
         public TimeSpan Rechanges;
+        public TimeSpan Prostoi;
         public TimeSpan DeltaFromStart;
         public TimeSpan DeltaFromStartNoOp;
         public TimeSpan DeltaFromDeadline;
@@ -26,7 +27,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         public bool ItsParr;
 
-        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr)
+        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi)
         {
             Rechanges = rechanges;
             DeltaFromStart = deltaFromStart;
@@ -40,6 +41,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             OperCount = operCount;
             TransferTime = transferTime;
             ItsParr = itsParr;
+            Prostoi = prostoi;
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
         }
 

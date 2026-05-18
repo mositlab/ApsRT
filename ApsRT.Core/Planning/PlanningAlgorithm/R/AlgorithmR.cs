@@ -400,7 +400,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         void BigLogAdd(int iterationIndex, PlanSimulatorBlock block, Uco center, Uco tara, RTempResult localResult, RTempResult minResult, bool noStars, RSearcher searcherClass, bool itsBetter, bool parallel)
         {
-            string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};" +
+            string line = $"{iterationIndex};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};" +
                 $"{center};{searcherClass.ChoosenCenter};" +
                 $"{tara};{searcherClass.ChoosenTara};" +
                 $"{block.Lists[0].FirstOperJust.CurrentModelling};{(searcherClass.ChoosenMod?.FirstOperJust.CurrentModelling.ToString() ?? "")};" +
@@ -409,8 +409,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 $"{noStars};" +
                 $"{parallel};{searcherClass.WillBeParr};" +
                 $"{localResult.DeltaFromStart};{minResult.DeltaFromStart};" +
+                $"{localResult.DeltaFromStartNoOp};{minResult.DeltaFromStartNoOp};" +
                 $"{localResult.TotalCost};{minResult.TotalCost};" +
                 $"{localResult.Rechanges};{minResult.Rechanges};" +
+                $"{localResult.Prostoi};{minResult.Prostoi};" +
                 $"{localResult.DeltaFromDeadline};{minResult.DeltaFromDeadline};" +
                 $"{localResult.OperCount};{minResult.OperCount};" +
                 $"{localResult.IsFromSameOrder};{minResult.IsFromSameOrder};" +
@@ -442,8 +444,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 "NoSteps;" +
                 "Параллель;Параллель была;" +
                 "R_DeltaFromStart Текущий;R_DeltaFromStart Предыдущий;" +
+                "R_DeltaFromStartNoOp Текущий;R_DeltaFromStartNoOp Предыдущий;" +
                 "R_TotalCost Текущий;R_TotalCost Предыдущий;" +
                 "R_Rechanges Текущий;R_Rechanges Предыдущий;" +
+                "R_Prostoi Текущий;R_Prostoi Предыдущий;" +
                 "R_DeltaFromDeadline Текущий;R_DeltaFromDeadline Предыдущий;" +
                 "R_OperCount Текущий;R_OperCount Предыдущий;" +
                 "R_IsFromSameOrder Текущий;R_IsFromSameOrder Предыдущий;" +
@@ -998,17 +1002,17 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 if (possibleParallelOpers.Length > 0)
                 {
-                    (PlanSimulatorBlock block, double prostoi, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
+                    (PlanSimulatorBlock block, TimeSpan prostoi, double crit1, double crit2, float TotalCost)[] variants = possibleParallelOpers.Select(block =>
                     {
                         var deltaBetweenInnerOps = Math.Abs((block.MaxTime(currentCenter) - mod.AllTime[currentCenter]).TotalSeconds); // Приходится заюзать то, что я описал выше, потому что близость операций можно определить по дельте между ними
                         deltaBetweenInnerOps = Math.Round(deltaBetweenInnerOps); // На будущее - уберу дробную часть
 
 
-                        var dateDeltaNoAbs = (mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]).TotalSeconds;
-                        var dateDelta = Math.Abs(dateDeltaNoAbs);
+                        var dateDeltaNoAbs = (mod.MinDatesData[0].MinValue - block.Lists[0].DateOfStart[0]);
+                        var dateDelta = Math.Abs(dateDeltaNoAbs.TotalSeconds);
                         dateDelta = Math.Round(dateDelta);
 
-                        var prostoi = dateDeltaNoAbs < 0 ? -dateDeltaNoAbs : 0;
+                        var prostoi = dateDeltaNoAbs.TotalSeconds < 0 ? -dateDeltaNoAbs : TimeSpan.Zero;
 
                         return (block, prostoi: prostoi, crit1: dateDelta, crit2: deltaBetweenInnerOps, TotalCost: (float)(dateDelta + deltaBetweenInnerOps / 10000f));
                     })
@@ -1066,7 +1070,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     // Теперь посчитаем переход в другой цех
                     // Из времени перехода можно отнять простой, но не переналадку, так как переналадка должна начаться в другом цехе.
-                    timeTransfer -= (int)parrBlockVariant.prostoi;
+                    timeTransfer -= (int)parrBlockVariant.prostoi.TotalSeconds;
 
                     if (basisLink.SessionLink.SettingsController.CurrentSettings.TransferToGamma)
                     {
@@ -1084,7 +1088,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     timeTransfer -= (int)delta1.TotalSeconds;
                     if (timeTransfer < 0) timeTransfer = 0;
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true);
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true, parrBlockVariant.prostoi);
 
                     lock (locker)
                     {
@@ -1344,7 +1348,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         mod.FirstOperJust.Level,
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
                         errors, mod.Count, localResultData.timeTransferLeft,
-                        false
+                        false, localResultData.prostoi
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 
@@ -1438,7 +1442,7 @@ List<PlanSimulatorBlock> toCheck;
 
 
             int LevelCounter = 0;
-            int MaxLevelCounter = basisLink.UsedPool.Blocks.Count;
+            int MaxLevelCounter = OpersCopy.Count;
 
             int ErroredIterationsCount = 0;
 
@@ -1512,12 +1516,13 @@ List<PlanSimulatorBlock> toCheck;
 
                     Step2_2_Linear(iterationIndex, PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
+                    int nextCount = 0;
                     if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
                     {
                         var nextPossibleOpers = GetOpersToCheckByLevel(-1)
                             .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
                             .ToArray();
-
+                        nextCount = nextPossibleOpers.Length;
                         RSearcher searcherClass2 = new();
 
                         Step2_1_Parallel(iterationIndex, nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
@@ -1581,15 +1586,15 @@ List<PlanSimulatorBlock> toCheck;
                     //        Console.WriteLine($"set {searcherClass.ChoosenMod}, recommended: {recTara}, but got {searcherClass.ChoosenTara}");
                     //}
 
-                    if (searcherClass.ChoosenMod.StagesAsNormal.Any(x => x.Index == 4178))
-                    {
-                        ;
-                    }
+                    //if (searcherClass.ChoosenMod.StagesAsNormal.Any(x => x.Index == 4178))
+                    //{
+                    //    ;
+                    //}
 
                     if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
                     {
 
-                        string line = $"{iterationIndex};Финал;{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};{searcherClass.ChoosenCenter};;{searcherClass.ChoosenTara};;{searcherClass.ChoosenMod?.FirstOperJust.CurrentModelling}";
+                        string line = $"{iterationIndex};Финал;{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};{searcherClass.ChoosenCenter};;{searcherClass.ChoosenTara};;{searcherClass.ChoosenMod?.FirstOperJust.CurrentModelling};{(searcherClass.ThisResultIsBad ? "ПЛОХ" : "НОРМ")};{PossibleOpersHere.Length};{nextCount}";
                         /*
                          string line = $"{ExistingBlocks.Count};Поиск;{block.Lists[0].FirstOperJust.GUID};{block.Lists[0].FirstOperJust.Registrator};{searcherClass.ChoosenMod?.FirstOperJust.GUID};{searcherClass.ChoosenMod?.FirstOperJust.Registrator};" +
                 $"{center};{searcherClass.ChoosenCenter};" +
@@ -1716,12 +1721,17 @@ List<PlanSimulatorBlock> toCheck;
 
         }
 
-        (TimeSpan Rechanges, TimeSpan TotalTime, TimeSpan TotalTimeNoOp, int timeTransferLeft) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
+        (TimeSpan Rechanges, TimeSpan prostoi, TimeSpan TotalTime, TimeSpan TotalTimeNoOp, int timeTransferLeft) HeuristicCheckBlock(PlanSimulatorMod mod, Uco choosenCenter, int poolIndex/*, List<PlanSimulatorBlock> list*/, DateTime startDate, out int errorsCount)
         {
 
             errorsCount = 0;
 
-            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (TimeSpan.Zero, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate, 0);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
+            if (mod.IsFixed && mod.FirstOperJust.StartTimeFact.HasValue) return (
+                    TimeSpan.Zero,
+                    TimeSpan.Zero,
+                    mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate,
+                    mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate,
+                    0);//(float)(mod.FirstOperJust.StartTimeFact.Value - basisLink.MinAcceptableDate).TotalSeconds;
 
             var list = BlocksDependingOnCenter[choosenCenter];
             //var swallowCopy = PlanSimulatorPool.CopyBlocksSwallow(LinearPlan);
@@ -1835,8 +1845,8 @@ List<PlanSimulatorBlock> toCheck;
 
             //var res2 = (float)/*rechesDur.TotalSeconds;//*/(lastDate - basisLink.MinAcceptableDate).TotalSeconds;
 
-
-            return (rechesDur, lastDate - startDate, time1 - startDate, timeTransfer);
+            //(TimeSpan Rechanges, TimeSpan prostoi, TimeSpan TotalTime, TimeSpan TotalTimeNoOp, int timeTransferLeft)
+            return (rechesDur, prostoiDur, lastDate - startDate, time1 - startDate, timeTransfer);
 
         }
 
