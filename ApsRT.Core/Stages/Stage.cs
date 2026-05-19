@@ -603,6 +603,19 @@ namespace ApsRT.Core.Stages
         public float ZadelsDurationK => (float)(PlacesCount - ZadelsInherited) / PlacesCount;
 
         #endregion
+
+
+        #region Ограничения для срывов сроков и планировщика
+        public int LevelsToEnd = 0;
+        public bool NeedsToGoFirst = false;
+
+        public void EraseDeadlinesInfo()
+        {
+            LevelsToEnd = 0;
+            NeedsToGoFirst = false;
+        }
+        #endregion
+
     }
 
 }

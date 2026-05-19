@@ -171,9 +171,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
 
-            poolCopy.PrepareOnOneRCData();
+            //poolCopy.PrepareOnOneRCData();
 
-            poolCopy.PrepareAllRCsOnBlocks();
+            //poolCopy.PrepareAllRCsOnBlocks();
 
             var OpersCopyEEL40 = OpersCopy.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
 

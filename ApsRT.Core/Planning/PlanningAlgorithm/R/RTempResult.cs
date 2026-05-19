@@ -27,7 +27,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         public bool ItsParr;
 
-        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi)
+        public bool NeedsToBeFirst;
+
+        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst)
         {
             Rechanges = rechanges;
             DeltaFromStart = deltaFromStart;
@@ -42,6 +44,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             TransferTime = transferTime;
             ItsParr = itsParr;
             Prostoi = prostoi;
+            NeedsToBeFirst = needsToBeFirst;
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
         }
 
@@ -57,6 +60,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             //if (ItsParr && !otherResult.ItsParr) return true;
             //if (!ItsParr && otherResult.ItsParr) return false;
+
+            if (NeedsToBeFirst && !otherResult.NeedsToBeFirst) return true;
+            if (!NeedsToBeFirst && otherResult.NeedsToBeFirst) return false;
 
             if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
 

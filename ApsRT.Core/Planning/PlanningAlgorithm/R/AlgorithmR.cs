@@ -57,6 +57,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         int FixedCompleted = 0, VPZCompleted = 0;
 
+        public int NeedsToBeFirstCounter = 0;
+
         void AddOneRCData(PlanSimulatorMod firstMod, Uco center)
         {
 
@@ -137,10 +139,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             var level = block.Lists[0].FirstOperJust.Level;
             GroupedByLevel[level].Remove(block);
             AddFixedOrVPZ(firstMod, false);
+            if (block.NeedsToBeFirst) NeedsToBeFirstCounter--;
         }
 
         void AddBlockParallel(PlanSimulatorBlock block, Uco center, Uco tara, double max, PlanSimulatorBlock mainBlock)
         {
+            if (block.NeedsToBeFirst) NeedsToBeFirstCounter--;
+
             block.SetCenter(center, 0);
 
             var firstMod = block.Lists[0];
@@ -431,6 +436,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             Console.WriteLine("R, beg, " + OpersCopy.SelectMany(x => x.Lists.SelectMany(y => y.StagesAsNormal.Select(z => z.Index))).Count());
 
+            NeedsToBeFirstCounter = OpersCopy.Where(x => x.NeedsToBeFirst).Count();
 
             planning_logger = new("planAnalysis.csv", false, Encoding.UTF8);
             planning_logger.WriteLine("Итерация;Тип итерации;" +
@@ -459,9 +465,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
-            poolCopy.PrepareOnOneRCData();
+            //poolCopy.PrepareOnOneRCData();
             //poolCopy.PrepareRecommendedTara();
-            poolCopy.PrepareAllRCsOnBlocks();
+            //poolCopy.PrepareAllRCsOnBlocks();
             BlocksDependingOnCenter = poolCopy.CentersData.ToFrozenDictionary(x => x.Key, x => new List<PlanSimulatorBlock>());
 
             GroupedByLevel = OpersCopy.GroupBy(block => block.Lists[0].FirstOperJust.Level).ToFrozenDictionary(x => x.Key, x => x.ToList());
@@ -1088,7 +1094,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     timeTransfer -= (int)delta1.TotalSeconds;
                     if (timeTransfer < 0) timeTransfer = 0;
 
-                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true, parrBlockVariant.prostoi);
+                    RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true, parrBlockVariant.prostoi,
+                        mod.BlockLink.NeedsToBeFirst);
 
                     lock (locker)
                     {
@@ -1348,7 +1355,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         mod.FirstOperJust.Level,
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
                         errors, mod.Count, localResultData.timeTransferLeft,
-                        false, localResultData.prostoi
+                        false, localResultData.prostoi,
+                        mod.BlockLink.NeedsToBeFirst
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 
@@ -1517,7 +1525,10 @@ List<PlanSimulatorBlock> toCheck;
                     Step2_2_Linear(iterationIndex, PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
                     int nextCount = 0;
-                    if (searcherClass.minResult.ErrorsCount > 0 || searcherClass.ThisResultIsBad)
+                    if (searcherClass.minResult.ErrorsCount > 0
+                        ||
+                        searcherClass.ThisResultIsBad
+                        || (NeedsToBeFirstCounter > 0 && !searcherClass.ChoosenMod.BlockLink.NeedsToBeFirst))
                     {
                         var nextPossibleOpers = GetOpersToCheckByLevel(-1)
                             .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
@@ -1623,7 +1634,6 @@ List<PlanSimulatorBlock> toCheck;
                     {
                         AddBlockToPlan(searcherClass.ChoosenMod.BlockLink, searcherClass.ChoosenCenter, searcherClass.ChoosenTara, searcherClass.MaxNamotka);
                     }
-
 
                     //bool ChronologyCheck = basisLink.CheckChronology(LinearPlan, out _, out _);
                     //if (!ChronologyCheck)

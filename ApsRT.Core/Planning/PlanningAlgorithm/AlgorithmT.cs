@@ -59,8 +59,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             //.Where(x => x.Lists[0].FirstOperJust.Center.Label.Contains("EEL-40")).ToList();
             var poolCopy = new PlanSimulatorPool(basisLink.SessionLink, OpersCopy, basisLink.MinAcceptableDate, basisLink.UsedPool.PoolSize);
-            poolCopy.PrepareOnOneRCData();
-            poolCopy.PrepareAllRCsOnBlocks();
+            //poolCopy.PrepareOnOneRCData();
+            //poolCopy.PrepareAllRCsOnBlocks();
 
             PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngineResult LastResult = PlanSimulator.PlanSimulatorEngine.PlanSimulatorEngine.CalculatePlan(OpersCopy, 0, basisLink.StartOfPlanningDate, PlanSimulatorEngineResult.CreateFullInstance(basisLink.SessionLink, basisLink.StartOfPlanningDate));
 

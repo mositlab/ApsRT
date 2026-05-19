@@ -138,8 +138,65 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 if (SessionLink.SettingsController.CurrentSettings.UseR)
                 {
+                    // Шаг первый. Подготавливаем все этапчики к тому, что высокий приоритет заставляет их вставать
+                    foreach (var stage in UsedPool.StagesLinks.Values)
+                    {
+                        stage.Stage.EraseDeadlinesInfo(); // Сначала стираем всю информацию.
+                    }
+
+                    // Группируем этапы по партиям.
+                    var partias = UsedPool.Blocks.GroupBy(x => x.Lists[0].FirstOperJust.GetOrderOrPartiaCode());
+                    foreach (var group in partias)
+                    {
+                        foreach (var block in group)
+                        {
+                            if (block.Lists[0].StagesAsNormal.Any(x => x.OrderLink.Priority == 0)) // 0 самый высокий
+                            {
+                                block.NeedsToBeFirst = true; // Пока ставим независимо вообще от ничего.
+                            }
+                        }
+                    }
+
+                    var OpersCopyForSecondPool = UsedPool.CopyBlocksDeep(this, UsedPool.BestPoolIndex, true);
+
                     var Step1 = new AlgorithmR(this);// new AlgorithmV(this);
                     Step1.Start(UsedWorkflow);
+
+                    if (WannaStop)
+                    {
+                        CurrentStage = PlanningAlgorithmStage.Failed;
+                        CurrentStageChanged?.Invoke(CurrentStage, 0);
+                        return false;
+                    }
+
+                    TimeSpan PossibleDeadlineOffset = TimeSpan.FromHours(SessionLink.SettingsController.CurrentSettings.PossibleDeadlineOffsetInHours);
+
+                    // Шаг второй. Берём все этапы, которые не имело смысла пихать в самое начало и заново запускаем эрку.
+                    var blocksToFilter = UsedPool.Blocks.Where(x => x.NeedsToBeFirst);
+                    Dictionary<OrderID, DateTime> ordersEnd = UsedPool.OrdersData
+                        .Where(x => SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[x.Key].Priority == 0)
+                        .ToDictionary(x => x.Key,
+                        x => blocksToFilter.Max(b =>
+                        {
+                            var mods = b.Lists.Where(m => m.StagesAsNormal.Any(s => s.OrderLink.OrderID == x.Key));
+                            if (mods.Count() > 0) return mods.Max(m => m.DateOfEnd[0]);
+                            return DateTime.MinValue;
+                        }));
+                    Dictionary<OrderID, bool> ordersStillNeeded = ordersEnd.ToDictionary(x => x.Key, x =>
+                    {
+                        var dateActualEnd = ordersEnd[x.Key];
+                        if (dateActualEnd + PossibleDeadlineOffset <= SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[x.Key].Deadline)
+                    });
+                    foreach (var block in blocksToFilter)
+                    {
+                        //UsedPool.OrdersData[][0].
+                    }
+
+                    // Тут надо сделать копию так, чтобы параллельки и прочее исчезло. А как это сделать, если UsedPool уже изменен эркой?
+                    UsedPool = new PlanSimulatorPool(SessionLink, OpersCopyForSecondPool, MinAcceptableDate, UsedPool.PoolSize); // Используем то, что мы уже скопировали ранее
+
+                    var Step1_2 = new AlgorithmR(this);// new AlgorithmV(this);
+                    Step1_2.Start(UsedWorkflow);
                 }
                 else
                 {
@@ -264,9 +321,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             SessionLink.MasterDataLinks.WorkingIntervalsMasterData.PrepareCentersForMinDataTime(UsedPool.CentersData.Keys, MinAcceptableDate);
 
-            UsedPool.PrepareOnOneRCData();
+            //UsedPool.PrepareOnOneRCData();
 
-            UsedPool.PrepareAllRCsOnBlocks();
+            //UsedPool.PrepareAllRCsOnBlocks();
 
             var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
             //var localCopy = new OpersPool(SessionLink, ops, new OpersPoolConstructor(ops, MinAcceptableDate), MinAcceptableDate);

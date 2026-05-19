@@ -54,9 +54,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             var centers_choosen = poolCopy.CentersData; // Каждый раз копию делать не нужно, потому что считаются все итерации друг за другом
 
-            poolCopy.PrepareOnOneRCData();
+            //poolCopy.PrepareOnOneRCData();
 
-            poolCopy.PrepareAllRCsOnBlocks();
+            //poolCopy.PrepareAllRCsOnBlocks();
 
             planning_logger.WriteLine("N;ПоследняяОперация;ПоследняяДата;РассматриваемаяОперация;МинДедлайн;Секунд;СекундКаждая;КогдаКончится;Дельта");
             //$"{OpersHave};{a.StagesAsNormal[0].GUID};{lastDate};{b.StagesAsNormal[0].GUID};{minDeadline};{seconds};{timeWhenEnds};{delta}"

@@ -27,6 +27,10 @@ namespace ApsRT.Core.PlanSimulator
         //public DateTime[] DateOfEnd;
         //public PlanSimulatorCenterData[] CenterDataLocalCopy;
 
+        #region Динамические поля
+        public bool NeedsToBeFirst;
+        #endregion
+
         public (Uco Center, PlanSimulatorCenterData CenterDataLink, CenterBaseModel CenterModelDataLink) GetCenterData(int PoolIndex)
         {
             return (ActualRC[PoolIndex], CenterDataLinks[PoolIndex], CenterModelData[PoolIndex]);

@@ -52,7 +52,8 @@ namespace ApsRT.Core.Settings
             TGamma = 0.05,
             Test_PercentOfStages = 0,
             UseMatrixMergeConditions = true,
-            Demos_EnableNonMultPartiasMerge = true
+            Demos_EnableNonMultPartiasMerge = true,
+            PossibleDeadlineOffsetInHours = 12
         };
 
 
@@ -160,6 +161,9 @@ namespace ApsRT.Core.Settings
 
         [JsonProperty]
         public double MaxDaysBetweenPartias { get; set; }
+
+        [JsonProperty]
+        public double PossibleDeadlineOffsetInHours { get; set; }
 
         [JsonProperty]
         public FormTheme CurrentTheme { get; set; }

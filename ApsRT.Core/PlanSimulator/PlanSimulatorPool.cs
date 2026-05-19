@@ -223,6 +223,9 @@ namespace ApsRT.Core.PlanSimulator
                 ;
             }
             ModLinks = modLinks.ToFrozenDictionary();
+
+            PrepareOnOneRCData();
+            PrepareAllRCsOnBlocks();
         }
 
 
