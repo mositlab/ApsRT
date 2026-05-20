@@ -600,6 +600,7 @@ namespace ApsRT.Core.PlanSimulator
                     block.FillKoeff = Blocks[i].FillKoeff;
                 }
                 //opersCopy.Add(block); // Добавляем блок, у которого за основу взяты параметры
+                block.NeedsToBeFirst = Blocks[i].NeedsToBeFirst;
                 opersCopy[i] = block;
             });
             while (!res0.IsCompleted)

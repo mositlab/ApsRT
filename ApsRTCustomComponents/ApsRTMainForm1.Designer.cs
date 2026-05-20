@@ -179,6 +179,7 @@ namespace ApsRTCustomComponents
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
+            numericUpDown1 = new NumericUpDown();
             groupBox8 = new GroupBox();
             StagesPercentNumericUpDown = new NumericUpDown();
             label58 = new Label();
@@ -318,6 +319,14 @@ namespace ApsRTCustomComponents
             BackupStagesDurationNumericUpDown = new NumericUpDown();
             PartiasMaxDaysLabel = new Label();
             PartiasMaxDaysNumericUpDown = new NumericUpDown();
+            ExpFunctionsPage = new TabPage();
+            button5 = new Button();
+            textBox1 = new TextBox();
+            label59 = new Label();
+            button4 = new Button();
+            button3 = new Button();
+            button2 = new Button();
+            button1 = new Button();
             AuthorsTabPage = new TabPage();
             label53 = new Label();
             label50 = new Label();
@@ -326,14 +335,6 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            ExpFunctionsPage = new TabPage();
-            button4 = new Button();
-            button3 = new Button();
-            button2 = new Button();
-            button1 = new Button();
-            textBox1 = new TextBox();
-            label59 = new Label();
-            button5 = new Button();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -434,6 +435,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             groupBox8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)StagesPercentNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)TMaxDaysNumericUpDown).BeginInit();
@@ -497,9 +499,9 @@ namespace ApsRTCustomComponents
             ((System.ComponentModel.ISupportInitialize)IterationsNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)BackupStagesDurationNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)PartiasMaxDaysNumericUpDown).BeginInit();
+            ExpFunctionsPage.SuspendLayout();
             AuthorsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
-            ExpFunctionsPage.SuspendLayout();
             SuspendLayout();
             // 
             // OpenPlanningButton
@@ -602,7 +604,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 396);
+            label49.Location = new Point(959, 394);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -615,7 +617,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 393);
+            pictureBox1.Location = new Point(1099, 391);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -628,7 +630,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 443);
+            label48.Location = new Point(3, 441);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -729,9 +731,9 @@ namespace ApsRTCustomComponents
             PartiasTabPage.BackColor = Color.White;
             PartiasTabPage.Controls.Add(PartiasTabControl);
             PartiasTabPage.Controls.Add(materialTabSelector2);
-            PartiasTabPage.Location = new Point(4, 25);
+            PartiasTabPage.Location = new Point(4, 24);
             PartiasTabPage.Name = "PartiasTabPage";
-            PartiasTabPage.Size = new Size(1171, 501);
+            PartiasTabPage.Size = new Size(1171, 502);
             PartiasTabPage.TabIndex = 0;
             PartiasTabPage.Text = "Формирование партий";
             // 
@@ -743,7 +745,7 @@ namespace ApsRTCustomComponents
             PartiasTabControl.Location = new Point(0, 35);
             PartiasTabControl.Name = "PartiasTabControl";
             PartiasTabControl.SelectedIndex = 0;
-            PartiasTabControl.Size = new Size(1171, 466);
+            PartiasTabControl.Size = new Size(1171, 467);
             PartiasTabControl.TabIndex = 21;
             // 
             // AllPartiasTabControl
@@ -753,7 +755,7 @@ namespace ApsRTCustomComponents
             AllPartiasTabControl.Location = new Point(4, 25);
             AllPartiasTabControl.Name = "AllPartiasTabControl";
             AllPartiasTabControl.Padding = new Padding(3);
-            AllPartiasTabControl.Size = new Size(1163, 437);
+            AllPartiasTabControl.Size = new Size(1163, 438);
             AllPartiasTabControl.TabIndex = 0;
             AllPartiasTabControl.Text = "Полный расчёт";
             // 
@@ -784,7 +786,7 @@ namespace ApsRTCustomComponents
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer3);
-            splitContainer1.Size = new Size(1157, 431);
+            splitContainer1.Size = new Size(1157, 432);
             splitContainer1.SplitterDistance = 400;
             splitContainer1.TabIndex = 23;
             // 
@@ -844,7 +846,7 @@ namespace ApsRTCustomComponents
             AllForAllTextBox.Multiline = true;
             AllForAllTextBox.Name = "AllForAllTextBox";
             AllForAllTextBox.ScrollBars = ScrollBars.Both;
-            AllForAllTextBox.Size = new Size(398, 252);
+            AllForAllTextBox.Size = new Size(398, 253);
             AllForAllTextBox.TabIndex = 27;
             // 
             // label2
@@ -951,7 +953,7 @@ namespace ApsRTCustomComponents
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(PartiasDataTable);
-            splitContainer3.Size = new Size(751, 429);
+            splitContainer3.Size = new Size(751, 430);
             splitContainer3.SplitterDistance = 247;
             splitContainer3.TabIndex = 0;
             // 
@@ -973,7 +975,7 @@ namespace ApsRTCustomComponents
             PartiasDataTable.Location = new Point(0, 0);
             PartiasDataTable.Name = "PartiasDataTable";
             PartiasDataTable.RowHeadersWidth = 51;
-            PartiasDataTable.Size = new Size(751, 178);
+            PartiasDataTable.Size = new Size(751, 179);
             PartiasDataTable.TabIndex = 0;
             // 
             // Column1
@@ -1118,7 +1120,7 @@ namespace ApsRTCustomComponents
             tabPage2.Controls.Add(TwoPartiasPartia2View);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
-            tabPage2.Size = new Size(760, 334);
+            tabPage2.Size = new Size(760, 333);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Партия 2";
             tabPage2.UseVisualStyleBackColor = true;
@@ -1130,7 +1132,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartia2View.Location = new Point(0, 0);
             TwoPartiasPartia2View.Margin = new Padding(0);
             TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
-            TwoPartiasPartia2View.Size = new Size(760, 334);
+            TwoPartiasPartia2View.Size = new Size(760, 333);
             TwoPartiasPartia2View.TabIndex = 0;
             // 
             // tabPage3
@@ -1138,7 +1140,7 @@ namespace ApsRTCustomComponents
             tabPage3.Controls.Add(TwoPartiasPartiaResView);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(760, 334);
+            tabPage3.Size = new Size(760, 333);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Результат";
             tabPage3.UseVisualStyleBackColor = true;
@@ -1150,7 +1152,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartiaResView.Location = new Point(0, 0);
             TwoPartiasPartiaResView.Margin = new Padding(0);
             TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
-            TwoPartiasPartiaResView.Size = new Size(760, 334);
+            TwoPartiasPartiaResView.Size = new Size(760, 333);
             TwoPartiasPartiaResView.TabIndex = 1;
             // 
             // label8
@@ -1293,9 +1295,9 @@ namespace ApsRTCustomComponents
             // 
             PlanningTabPage.Controls.Add(PlanningTabControl);
             PlanningTabPage.Controls.Add(materialTabSelector3);
-            PlanningTabPage.Location = new Point(4, 25);
+            PlanningTabPage.Location = new Point(4, 24);
             PlanningTabPage.Name = "PlanningTabPage";
-            PlanningTabPage.Size = new Size(1171, 501);
+            PlanningTabPage.Size = new Size(1171, 502);
             PlanningTabPage.TabIndex = 1;
             PlanningTabPage.Text = "Планирование производства";
             PlanningTabPage.UseVisualStyleBackColor = true;
@@ -1309,7 +1311,7 @@ namespace ApsRTCustomComponents
             PlanningTabControl.Location = new Point(0, 35);
             PlanningTabControl.Name = "PlanningTabControl";
             PlanningTabControl.SelectedIndex = 0;
-            PlanningTabControl.Size = new Size(1171, 466);
+            PlanningTabControl.Size = new Size(1171, 467);
             PlanningTabControl.TabIndex = 0;
             // 
             // TyrantTabPage
@@ -1318,7 +1320,7 @@ namespace ApsRTCustomComponents
             TyrantTabPage.Location = new Point(4, 25);
             TyrantTabPage.Name = "TyrantTabPage";
             TyrantTabPage.Padding = new Padding(3);
-            TyrantTabPage.Size = new Size(1163, 437);
+            TyrantTabPage.Size = new Size(1163, 438);
             TyrantTabPage.TabIndex = 0;
             TyrantTabPage.Text = "Полное планирование";
             TyrantTabPage.UseVisualStyleBackColor = true;
@@ -1338,7 +1340,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer5.Panel2.Controls.Add(splitContainer6);
             splitContainer5.Panel2.Controls.Add(panel1);
-            splitContainer5.Size = new Size(1157, 431);
+            splitContainer5.Size = new Size(1157, 432);
             splitContainer5.SplitterDistance = 385;
             splitContainer5.TabIndex = 0;
             // 
@@ -1363,7 +1365,7 @@ namespace ApsRTCustomComponents
             // splitContainer7.Panel2
             // 
             splitContainer7.Panel2.Controls.Add(splitContainer8);
-            splitContainer7.Size = new Size(385, 431);
+            splitContainer7.Size = new Size(385, 432);
             splitContainer7.SplitterDistance = 123;
             splitContainer7.TabIndex = 0;
             // 
@@ -1499,7 +1501,7 @@ namespace ApsRTCustomComponents
             // splitContainer8.Panel2
             // 
             splitContainer8.Panel2.Controls.Add(BarDescTextBox);
-            splitContainer8.Size = new Size(385, 304);
+            splitContainer8.Size = new Size(385, 305);
             splitContainer8.SplitterDistance = 123;
             splitContainer8.TabIndex = 0;
             // 
@@ -1565,7 +1567,7 @@ namespace ApsRTCustomComponents
             BarDescTextBox.Multiline = true;
             BarDescTextBox.Name = "BarDescTextBox";
             BarDescTextBox.ScrollBars = ScrollBars.Both;
-            BarDescTextBox.Size = new Size(385, 177);
+            BarDescTextBox.Size = new Size(385, 178);
             BarDescTextBox.TabIndex = 0;
             // 
             // splitContainer6
@@ -1586,7 +1588,7 @@ namespace ApsRTCustomComponents
             splitContainer6.Panel2.Controls.Add(ganttNEW);
             splitContainer6.Panel2.Controls.Add(vScrollBarNEW);
             splitContainer6.Panel2MinSize = 10;
-            splitContainer6.Size = new Size(768, 401);
+            splitContainer6.Size = new Size(768, 402);
             splitContainer6.SplitterDistance = 217;
             splitContainer6.TabIndex = 1;
             // 
@@ -1616,7 +1618,7 @@ namespace ApsRTCustomComponents
             ganttNEW.Dock = DockStyle.Fill;
             ganttNEW.Location = new Point(0, 0);
             ganttNEW.Name = "ganttNEW";
-            ganttNEW.Size = new Size(742, 180);
+            ganttNEW.Size = new Size(742, 181);
             ganttNEW.TabIndex = 0;
             ganttNEW.TimelineHeight = 50;
             ganttNEW.TitleRowHeight = -1;
@@ -1627,7 +1629,7 @@ namespace ApsRTCustomComponents
             vScrollBarNEW.Dock = DockStyle.Right;
             vScrollBarNEW.Location = new Point(742, 0);
             vScrollBarNEW.Name = "vScrollBarNEW";
-            vScrollBarNEW.Size = new Size(26, 180);
+            vScrollBarNEW.Size = new Size(26, 181);
             vScrollBarNEW.TabIndex = 1;
             // 
             // panel1
@@ -1723,7 +1725,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer18.Panel2.Controls.Add(AnlDescTextBox);
             splitContainer18.Size = new Size(385, 365);
-            splitContainer18.SplitterDistance = 147;
+            splitContainer18.SplitterDistance = 146;
             splitContainer18.TabIndex = 38;
             // 
             // ManualPlanningDataTable
@@ -1741,7 +1743,7 @@ namespace ApsRTCustomComponents
             ManualPlanningDataTable.Name = "ManualPlanningDataTable";
             ManualPlanningDataTable.ReadOnly = true;
             ManualPlanningDataTable.RowHeadersWidth = 51;
-            ManualPlanningDataTable.Size = new Size(385, 147);
+            ManualPlanningDataTable.Size = new Size(385, 146);
             ManualPlanningDataTable.TabIndex = 0;
             // 
             // dataGridViewTextBoxColumn1
@@ -1788,7 +1790,7 @@ namespace ApsRTCustomComponents
             AnlDescTextBox.Multiline = true;
             AnlDescTextBox.Name = "AnlDescTextBox";
             AnlDescTextBox.ScrollBars = ScrollBars.Both;
-            AnlDescTextBox.Size = new Size(385, 214);
+            AnlDescTextBox.Size = new Size(385, 215);
             AnlDescTextBox.TabIndex = 0;
             // 
             // panel3
@@ -1930,7 +1932,7 @@ namespace ApsRTCustomComponents
             splitContainer15.Panel2.Controls.Add(ProstoiGraphControl);
             splitContainer15.Panel2MinSize = 10;
             splitContainer15.Size = new Size(551, 369);
-            splitContainer15.SplitterDistance = 183;
+            splitContainer15.SplitterDistance = 182;
             splitContainer15.TabIndex = 0;
             // 
             // OrdersGraphControl
@@ -1947,7 +1949,7 @@ namespace ApsRTCustomComponents
             OrdersGraphControl.ScrollMinX = 0D;
             OrdersGraphControl.ScrollMinY = 0D;
             OrdersGraphControl.ScrollMinY2 = 0D;
-            OrdersGraphControl.Size = new Size(551, 183);
+            OrdersGraphControl.Size = new Size(551, 182);
             OrdersGraphControl.TabIndex = 2;
             OrdersGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -1964,7 +1966,7 @@ namespace ApsRTCustomComponents
             ProstoiGraphControl.ScrollMinX = 0D;
             ProstoiGraphControl.ScrollMinY = 0D;
             ProstoiGraphControl.ScrollMinY2 = 0D;
-            ProstoiGraphControl.Size = new Size(551, 182);
+            ProstoiGraphControl.Size = new Size(551, 183);
             ProstoiGraphControl.TabIndex = 2;
             ProstoiGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -1985,7 +1987,7 @@ namespace ApsRTCustomComponents
             splitContainer16.Panel2.Controls.Add(TotalTimeGraphControl);
             splitContainer16.Panel2MinSize = 10;
             splitContainer16.Size = new Size(594, 369);
-            splitContainer16.SplitterDistance = 183;
+            splitContainer16.SplitterDistance = 182;
             splitContainer16.TabIndex = 0;
             // 
             // RechangesGraphControl
@@ -2001,7 +2003,7 @@ namespace ApsRTCustomComponents
             RechangesGraphControl.ScrollMinX = 0D;
             RechangesGraphControl.ScrollMinY = 0D;
             RechangesGraphControl.ScrollMinY2 = 0D;
-            RechangesGraphControl.Size = new Size(594, 183);
+            RechangesGraphControl.Size = new Size(594, 182);
             RechangesGraphControl.TabIndex = 2;
             RechangesGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2018,7 +2020,7 @@ namespace ApsRTCustomComponents
             TotalTimeGraphControl.ScrollMinX = 0D;
             TotalTimeGraphControl.ScrollMinY = 0D;
             TotalTimeGraphControl.ScrollMinY2 = 0D;
-            TotalTimeGraphControl.Size = new Size(594, 182);
+            TotalTimeGraphControl.Size = new Size(594, 183);
             TotalTimeGraphControl.TabIndex = 2;
             TotalTimeGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2028,7 +2030,7 @@ namespace ApsRTCustomComponents
             tabPage9.Location = new Point(4, 24);
             tabPage9.Name = "tabPage9";
             tabPage9.Padding = new Padding(3);
-            tabPage9.Size = new Size(1155, 376);
+            tabPage9.Size = new Size(1155, 375);
             tabPage9.TabIndex = 1;
             tabPage9.Text = "Основное (ч. 2)";
             tabPage9.UseVisualStyleBackColor = true;
@@ -2048,7 +2050,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer11.Panel2.Controls.Add(splitContainer13);
             splitContainer11.Panel2MinSize = 10;
-            splitContainer11.Size = new Size(1149, 370);
+            splitContainer11.Size = new Size(1149, 369);
             splitContainer11.SplitterDistance = 1120;
             splitContainer11.TabIndex = 0;
             // 
@@ -2068,8 +2070,8 @@ namespace ApsRTCustomComponents
             // 
             splitContainer12.Panel2.Controls.Add(zedGraphControl2);
             splitContainer12.Panel2MinSize = 10;
-            splitContainer12.Size = new Size(1120, 370);
-            splitContainer12.SplitterDistance = 333;
+            splitContainer12.Size = new Size(1120, 369);
+            splitContainer12.SplitterDistance = 332;
             splitContainer12.TabIndex = 0;
             // 
             // TaraRedutantUsageGraphControl
@@ -2085,7 +2087,7 @@ namespace ApsRTCustomComponents
             TaraRedutantUsageGraphControl.ScrollMinX = 0D;
             TaraRedutantUsageGraphControl.ScrollMinY = 0D;
             TaraRedutantUsageGraphControl.ScrollMinY2 = 0D;
-            TaraRedutantUsageGraphControl.Size = new Size(1120, 333);
+            TaraRedutantUsageGraphControl.Size = new Size(1120, 332);
             TaraRedutantUsageGraphControl.TabIndex = 2;
             TaraRedutantUsageGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2122,8 +2124,8 @@ namespace ApsRTCustomComponents
             // 
             splitContainer13.Panel2.Controls.Add(zedGraphControl3);
             splitContainer13.Panel2MinSize = 10;
-            splitContainer13.Size = new Size(25, 370);
-            splitContainer13.SplitterDistance = 183;
+            splitContainer13.Size = new Size(25, 369);
+            splitContainer13.SplitterDistance = 182;
             splitContainer13.TabIndex = 0;
             // 
             // zedGraphControl1
@@ -2139,7 +2141,7 @@ namespace ApsRTCustomComponents
             zedGraphControl1.ScrollMinX = 0D;
             zedGraphControl1.ScrollMinY = 0D;
             zedGraphControl1.ScrollMinY2 = 0D;
-            zedGraphControl1.Size = new Size(25, 183);
+            zedGraphControl1.Size = new Size(25, 182);
             zedGraphControl1.TabIndex = 2;
             zedGraphControl1.UseExtendedPrintDialog = true;
             // 
@@ -2166,7 +2168,7 @@ namespace ApsRTCustomComponents
             tabPage4.Controls.Add(panel2);
             tabPage4.Location = new Point(4, 24);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(1155, 376);
+            tabPage4.Size = new Size(1155, 375);
             tabPage4.TabIndex = 2;
             tabPage4.Text = "Особые графики";
             tabPage4.UseVisualStyleBackColor = true;
@@ -2187,8 +2189,8 @@ namespace ApsRTCustomComponents
             // 
             splitContainer9.Panel2.Controls.Add(ProductionGraphControl);
             splitContainer9.Panel2MinSize = 10;
-            splitContainer9.Size = new Size(1155, 346);
-            splitContainer9.SplitterDistance = 161;
+            splitContainer9.Size = new Size(1155, 345);
+            splitContainer9.SplitterDistance = 160;
             splitContainer9.TabIndex = 1;
             // 
             // splitContainer10
@@ -2206,7 +2208,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer10.Panel2.Controls.Add(MaterialsGraphControl);
             splitContainer10.Panel2MinSize = 10;
-            splitContainer10.Size = new Size(1155, 161);
+            splitContainer10.Size = new Size(1155, 160);
             splitContainer10.SplitterDistance = 584;
             splitContainer10.TabIndex = 0;
             // 
@@ -2223,7 +2225,7 @@ namespace ApsRTCustomComponents
             TarasGraphControl.ScrollMinX = 0D;
             TarasGraphControl.ScrollMinY = 0D;
             TarasGraphControl.ScrollMinY2 = 0D;
-            TarasGraphControl.Size = new Size(584, 161);
+            TarasGraphControl.Size = new Size(584, 160);
             TarasGraphControl.TabIndex = 2;
             TarasGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2240,7 +2242,7 @@ namespace ApsRTCustomComponents
             MaterialsGraphControl.ScrollMinX = 0D;
             MaterialsGraphControl.ScrollMinY = 0D;
             MaterialsGraphControl.ScrollMinY2 = 0D;
-            MaterialsGraphControl.Size = new Size(567, 161);
+            MaterialsGraphControl.Size = new Size(567, 160);
             MaterialsGraphControl.TabIndex = 2;
             MaterialsGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2316,7 +2318,7 @@ namespace ApsRTCustomComponents
             tabPage5.Controls.Add(AllPercentagesGraphControl);
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
-            tabPage5.Size = new Size(1155, 376);
+            tabPage5.Size = new Size(1155, 375);
             tabPage5.TabIndex = 3;
             tabPage5.Text = "Оптимизация (в %)";
             tabPage5.UseVisualStyleBackColor = true;
@@ -2334,7 +2336,7 @@ namespace ApsRTCustomComponents
             AllPercentagesGraphControl.ScrollMinX = 0D;
             AllPercentagesGraphControl.ScrollMinY = 0D;
             AllPercentagesGraphControl.ScrollMinY2 = 0D;
-            AllPercentagesGraphControl.Size = new Size(1155, 376);
+            AllPercentagesGraphControl.Size = new Size(1155, 375);
             AllPercentagesGraphControl.TabIndex = 1;
             AllPercentagesGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2386,6 +2388,7 @@ namespace ApsRTCustomComponents
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.AutoScroll = true;
+            splitContainer2.Panel2.Controls.Add(numericUpDown1);
             splitContainer2.Panel2.Controls.Add(groupBox8);
             splitContainer2.Panel2.Controls.Add(label51);
             splitContainer2.Panel2.Controls.Add(MaxOldSessionPathsDaysNumericUpDown);
@@ -2414,6 +2417,21 @@ namespace ApsRTCustomComponents
             HoppersPanel.Name = "HoppersPanel";
             HoppersPanel.Size = new Size(1171, 185);
             HoppersPanel.TabIndex = 25;
+            // 
+            // numericUpDown1
+            // 
+            numericUpDown1.BackColor = Color.CornflowerBlue;
+            numericUpDown1.BorderStyle = BorderStyle.None;
+            numericUpDown1.DecimalPlaces = 3;
+            numericUpDown1.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            numericUpDown1.ForeColor = Color.White;
+            numericUpDown1.Location = new Point(1063, 409);
+            numericUpDown1.Margin = new Padding(0);
+            numericUpDown1.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            numericUpDown1.Name = "numericUpDown1";
+            numericUpDown1.Size = new Size(97, 19);
+            numericUpDown1.TabIndex = 87;
+            numericUpDown1.TextAlign = HorizontalAlignment.Center;
             // 
             // groupBox8
             // 
@@ -4397,72 +4415,6 @@ namespace ApsRTCustomComponents
             PartiasMaxDaysNumericUpDown.TextAlign = HorizontalAlignment.Center;
             PartiasMaxDaysNumericUpDown.Value = new decimal(new int[] { 30, 0, 0, 0 });
             // 
-            // AuthorsTabPage
-            // 
-            AuthorsTabPage.Controls.Add(label53);
-            AuthorsTabPage.Controls.Add(label50);
-            AuthorsTabPage.Controls.Add(pictureBox2);
-            AuthorsTabPage.Controls.Add(label52);
-            AuthorsTabPage.Location = new Point(4, 25);
-            AuthorsTabPage.Name = "AuthorsTabPage";
-            AuthorsTabPage.Size = new Size(1171, 501);
-            AuthorsTabPage.TabIndex = 4;
-            AuthorsTabPage.Text = "Разработчики";
-            AuthorsTabPage.UseVisualStyleBackColor = true;
-            // 
-            // label53
-            // 
-            label53.AutoSize = true;
-            label53.Font = new Font("Segoe UI Light", 14F);
-            label53.Location = new Point(286, 61);
-            label53.Name = "label53";
-            label53.Size = new Size(279, 150);
-            label53.TabIndex = 29;
-            label53.Text = "Трушин Владислав Алексеевич\r\nФролов Андрей Денисович\r\nКосухина Марина Михайловна\r\nОмерова Алёна Сергеевна\r\nАнисов Ян Иванович\r\nМаракушев Алексей Васильевич";
-            // 
-            // label50
-            // 
-            label50.AutoSize = true;
-            label50.Font = new Font("Segoe UI Light", 14F, FontStyle.Bold);
-            label50.Location = new Point(24, 320);
-            label50.Name = "label50";
-            label50.RightToLeft = RightToLeft.No;
-            label50.Size = new Size(190, 75);
-            label50.TabIndex = 28;
-            label50.Text = "ООО «МОСИТЛАБ»\r\n+7 (495) 280-82-99\r\nwww.mositlab.ru";
-            label50.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // pictureBox2
-            // 
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(24, 61);
-            pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(256, 256);
-            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox2.TabIndex = 27;
-            pictureBox2.TabStop = false;
-            // 
-            // label52
-            // 
-            label52.AutoSize = true;
-            label52.Font = new Font("Segoe UI Light", 22.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            label52.Location = new Point(24, 9);
-            label52.Name = "label52";
-            label52.Size = new Size(686, 41);
-            label52.TabIndex = 25;
-            label52.Text = "Система оптимизации графика производства (APS)";
-            // 
-            // openFileDialog1
-            // 
-            openFileDialog1.FileName = "openFileDialog1";
-            openFileDialog1.Filter = "Текстовые таблицы (TXT)|*.txt|Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
-            // 
-            // contextMenuStrip1
-            // 
-            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(61, 4);
-            // 
             // ExpFunctionsPage
             // 
             ExpFunctionsPage.Controls.Add(button5);
@@ -4472,12 +4424,47 @@ namespace ApsRTCustomComponents
             ExpFunctionsPage.Controls.Add(button3);
             ExpFunctionsPage.Controls.Add(button2);
             ExpFunctionsPage.Controls.Add(button1);
-            ExpFunctionsPage.Location = new Point(4, 25);
+            ExpFunctionsPage.Location = new Point(4, 24);
             ExpFunctionsPage.Name = "ExpFunctionsPage";
-            ExpFunctionsPage.Size = new Size(1171, 501);
+            ExpFunctionsPage.Size = new Size(1171, 502);
             ExpFunctionsPage.TabIndex = 5;
             ExpFunctionsPage.Text = "Экспериментальные функции";
             ExpFunctionsPage.UseVisualStyleBackColor = true;
+            // 
+            // button5
+            // 
+            button5.BackColor = Color.CornflowerBlue;
+            button5.BackgroundImageLayout = ImageLayout.Zoom;
+            button5.Cursor = Cursors.Hand;
+            button5.FlatAppearance.BorderSize = 0;
+            button5.FlatStyle = FlatStyle.Flat;
+            button5.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            button5.ForeColor = Color.White;
+            button5.Location = new Point(697, 10);
+            button5.Name = "button5";
+            button5.Size = new Size(126, 36);
+            button5.TabIndex = 55;
+            button5.Text = "Отфильтровать анализ";
+            button5.UseCompatibleTextRendering = true;
+            button5.UseVisualStyleBackColor = false;
+            button5.Click += button5_Click;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(355, 10);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(336, 23);
+            textBox1.TabIndex = 53;
+            // 
+            // label59
+            // 
+            label59.AutoSize = true;
+            label59.Font = new Font("Microsoft Sans Serif", 9F);
+            label59.Location = new Point(263, 13);
+            label59.Name = "label59";
+            label59.Size = new Size(86, 15);
+            label59.TabIndex = 54;
+            label59.Text = "Нужный GUID";
             // 
             // button4
             // 
@@ -4551,40 +4538,71 @@ namespace ApsRTCustomComponents
             button1.UseVisualStyleBackColor = false;
             button1.Click += button1_Click;
             // 
-            // textBox1
+            // AuthorsTabPage
             // 
-            textBox1.Location = new Point(355, 10);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(336, 23);
-            textBox1.TabIndex = 53;
+            AuthorsTabPage.Controls.Add(label53);
+            AuthorsTabPage.Controls.Add(label50);
+            AuthorsTabPage.Controls.Add(pictureBox2);
+            AuthorsTabPage.Controls.Add(label52);
+            AuthorsTabPage.Location = new Point(4, 24);
+            AuthorsTabPage.Name = "AuthorsTabPage";
+            AuthorsTabPage.Size = new Size(1171, 502);
+            AuthorsTabPage.TabIndex = 4;
+            AuthorsTabPage.Text = "Разработчики";
+            AuthorsTabPage.UseVisualStyleBackColor = true;
             // 
-            // label59
+            // label53
             // 
-            label59.AutoSize = true;
-            label59.Font = new Font("Microsoft Sans Serif", 9F);
-            label59.Location = new Point(263, 13);
-            label59.Name = "label59";
-            label59.Size = new Size(86, 15);
-            label59.TabIndex = 54;
-            label59.Text = "Нужный GUID";
+            label53.AutoSize = true;
+            label53.Font = new Font("Segoe UI Light", 14F);
+            label53.Location = new Point(286, 61);
+            label53.Name = "label53";
+            label53.Size = new Size(279, 150);
+            label53.TabIndex = 29;
+            label53.Text = "Трушин Владислав Алексеевич\r\nФролов Андрей Денисович\r\nКосухина Марина Михайловна\r\nОмерова Алёна Сергеевна\r\nАнисов Ян Иванович\r\nМаракушев Алексей Васильевич";
             // 
-            // button5
+            // label50
             // 
-            button5.BackColor = Color.CornflowerBlue;
-            button5.BackgroundImageLayout = ImageLayout.Zoom;
-            button5.Cursor = Cursors.Hand;
-            button5.FlatAppearance.BorderSize = 0;
-            button5.FlatStyle = FlatStyle.Flat;
-            button5.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            button5.ForeColor = Color.White;
-            button5.Location = new Point(697, 10);
-            button5.Name = "button5";
-            button5.Size = new Size(126, 36);
-            button5.TabIndex = 55;
-            button5.Text = "Отфильтровать анализ";
-            button5.UseCompatibleTextRendering = true;
-            button5.UseVisualStyleBackColor = false;
-            button5.Click += button5_Click;
+            label50.AutoSize = true;
+            label50.Font = new Font("Segoe UI Light", 14F, FontStyle.Bold);
+            label50.Location = new Point(24, 320);
+            label50.Name = "label50";
+            label50.RightToLeft = RightToLeft.No;
+            label50.Size = new Size(190, 75);
+            label50.TabIndex = 28;
+            label50.Text = "ООО «МОСИТЛАБ»\r\n+7 (495) 280-82-99\r\nwww.mositlab.ru";
+            label50.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            pictureBox2.Location = new Point(24, 61);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(256, 256);
+            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox2.TabIndex = 27;
+            pictureBox2.TabStop = false;
+            // 
+            // label52
+            // 
+            label52.AutoSize = true;
+            label52.Font = new Font("Segoe UI Light", 22.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            label52.Location = new Point(24, 9);
+            label52.Name = "label52";
+            label52.Size = new Size(686, 41);
+            label52.TabIndex = 25;
+            label52.Text = "Система оптимизации графика производства (APS)";
+            // 
+            // openFileDialog1
+            // 
+            openFileDialog1.FileName = "openFileDialog1";
+            openFileDialog1.Filter = "Текстовые таблицы (TXT)|*.txt|Excel-файлы|*.XLSX|CSV-таблицы|*.csv|JSON-конфигураторы|*.json";
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(61, 4);
             // 
             // ApsRTMainForm1
             // 
@@ -4710,6 +4728,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
             groupBox8.ResumeLayout(false);
             groupBox8.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)StagesPercentNumericUpDown).EndInit();
@@ -4780,11 +4799,11 @@ namespace ApsRTCustomComponents
             ((System.ComponentModel.ISupportInitialize)IterationsNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)BackupStagesDurationNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)PartiasMaxDaysNumericUpDown).EndInit();
+            ExpFunctionsPage.ResumeLayout(false);
+            ExpFunctionsPage.PerformLayout();
             AuthorsTabPage.ResumeLayout(false);
             AuthorsTabPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
-            ExpFunctionsPage.ResumeLayout(false);
-            ExpFunctionsPage.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -5088,5 +5107,6 @@ namespace ApsRTCustomComponents
         private Button button5;
         private TextBox textBox1;
         private Label label59;
+        private NumericUpDown numericUpDown1;
     }
 }

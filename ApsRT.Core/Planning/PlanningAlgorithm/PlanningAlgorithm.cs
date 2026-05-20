@@ -146,6 +146,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                     // Группируем этапы по партиям.
                     var partias = UsedPool.Blocks.GroupBy(x => x.Lists[0].FirstOperJust.GetOrderOrPartiaCode());
+                    bool hasAnyNeedsToBeFirst = false;
                     foreach (var group in partias)
                     {
                         foreach (var block in group)
@@ -153,6 +154,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             if (block.Lists[0].StagesAsNormal.Any(x => x.OrderLink.Priority == 0)) // 0 самый высокий
                             {
                                 block.NeedsToBeFirst = true; // Пока ставим независимо вообще от ничего.
+                                hasAnyNeedsToBeFirst = true;
                             }
                         }
                     }
@@ -169,34 +171,46 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         return false;
                     }
 
-                    TimeSpan PossibleDeadlineOffset = TimeSpan.FromHours(SessionLink.SettingsController.CurrentSettings.PossibleDeadlineOffsetInHours);
+                    if (hasAnyNeedsToBeFirst)
+                    {
+                        TimeSpan PossibleDeadlineOffset = TimeSpan.FromHours(SessionLink.SettingsController.CurrentSettings.PossibleDeadlineOffsetInHours);
 
-                    // Шаг второй. Берём все этапы, которые не имело смысла пихать в самое начало и заново запускаем эрку.
-                    var blocksToFilter = UsedPool.Blocks.Where(x => x.NeedsToBeFirst);
-                    Dictionary<OrderID, DateTime> ordersEnd = UsedPool.OrdersData
-                        .Where(x => SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[x.Key].Priority == 0)
-                        .ToDictionary(x => x.Key,
-                        x => blocksToFilter.Max(b =>
+                        // Шаг второй. Берём все этапы, которые не имело смысла пихать в самое начало и заново запускаем эрку.
+                        var blocksToFilter = UsedPool.Blocks.Where(x => x.NeedsToBeFirst);
+                        Dictionary<OrderID, DateTime> ordersEnd = UsedPool.OrdersData
+                            .Where(x => SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[x.Key].Priority == 0)
+                            .ToDictionary(x => x.Key,
+                            x => blocksToFilter.Max(b =>
+                            {
+                                var mods = b.Lists.Where(m => m.StagesAsNormal.Any(s => s.OrderLink.OrderID == x.Key));
+                                if (mods.Count() > 0) return mods.Max(m => m.DateOfEnd[0]);
+                                return DateTime.MinValue;
+                            }));
+                        Dictionary<OrderID, bool> ordersStillNeeded = ordersEnd.ToDictionary(x => x.Key, x =>
                         {
-                            var mods = b.Lists.Where(m => m.StagesAsNormal.Any(s => s.OrderLink.OrderID == x.Key));
-                            if (mods.Count() > 0) return mods.Max(m => m.DateOfEnd[0]);
-                            return DateTime.MinValue;
-                        }));
-                    Dictionary<OrderID, bool> ordersStillNeeded = ordersEnd.ToDictionary(x => x.Key, x =>
-                    {
-                        var dateActualEnd = ordersEnd[x.Key];
-                        if (dateActualEnd + PossibleDeadlineOffset <= SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[x.Key].Deadline)
-                    });
-                    foreach (var block in blocksToFilter)
-                    {
-                        //UsedPool.OrdersData[][0].
+                            var delta = SessionLink.MasterDataLinks.OrdersMasterData.AllOrders[x.Key].Deadline - ordersEnd[x.Key]; // Получаем дельту - из дедлайна вычитаем реальную дату завершения.
+                                                                                                                                   // Если дельта больше 0, то заказ НЕ сорван. Если же меньше, то сорван (потому что закончился ПОЗЖЕ дедлайна).
+
+                            // Если заказ сорван - то я в любом случае оставляю его НУЖНЫМ, приоритетным.
+                            if (delta.Ticks < 0) return true;
+
+                            // Если дельта больше 0, мы можем сравнить ее с допустимым отклонением. Если дельта МЕНЬШЕ отклонения - то заказ нужно оставить ПРИОРИТЕТНЫМ. Если б была бы больше отклонения - очевидно, что места ещё полно.
+                            return (delta < PossibleDeadlineOffset);
+                        });
+
+                        // Обновляем блоки.
+                        foreach (var block in blocksToFilter)
+                        {
+                            block.NeedsToBeFirst = block.Lists[0].StagesAsNormal.Any(s => ordersStillNeeded.TryGetValue(s.OrderLink.OrderID, out var needed) ? needed : false);
+                        }
+
+                        // Тут надо сделать копию так, чтобы параллельки и прочее исчезло. А как это сделать, если UsedPool уже изменен эркой?
+                        UsedPool = new PlanSimulatorPool(SessionLink, OpersCopyForSecondPool, MinAcceptableDate, UsedPool.PoolSize); // Используем то, что мы уже скопировали ранее
+
+                        var Step1_2 = new AlgorithmR(this);// new AlgorithmV(this);
+                        Step1_2.Start(UsedWorkflow);
                     }
 
-                    // Тут надо сделать копию так, чтобы параллельки и прочее исчезло. А как это сделать, если UsedPool уже изменен эркой?
-                    UsedPool = new PlanSimulatorPool(SessionLink, OpersCopyForSecondPool, MinAcceptableDate, UsedPool.PoolSize); // Используем то, что мы уже скопировали ранее
-
-                    var Step1_2 = new AlgorithmR(this);// new AlgorithmV(this);
-                    Step1_2.Start(UsedWorkflow);
                 }
                 else
                 {

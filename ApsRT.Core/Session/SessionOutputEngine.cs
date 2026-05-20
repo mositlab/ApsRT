@@ -737,6 +737,8 @@ namespace ApsRT.Core.Session
                 "GUID;" +
                 $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}" +
                 "Регистратор;" +
+                "Fixed;" +
+                "ФактВПЗ;" +
                 "Ранг;" +
                 "Моделирование;" +
                 "Кастомное моделирование;" +
@@ -792,7 +794,7 @@ namespace ApsRT.Core.Session
                             $"{(start + prostoi.interval.Duration):G};" +
                             $"{prostoi.interval.Duration:G};" +
                             $"{(int)prostoi.interval.Duration.TotalSeconds}" +
-                            $";;;;;;;;;;;" +
+                            $";;;;;;;;;;;;;" +
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $";" : "")}" +
                             $"{blockRC}";
@@ -813,7 +815,7 @@ namespace ApsRT.Core.Session
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{nextOper.StageVersion};" : "")}" +
                             $"{nextOper.Registrator}" +
-                            $";;;;;;;;{blockRC};;;;;;;;;" +
+                            $";;;;;;;;;;{blockRC};;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
 
@@ -866,6 +868,8 @@ namespace ApsRT.Core.Session
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{operLoc.StageVersion};" : "")}" +
                             $"{operLoc.Registrator};" +
+                            $"{operLoc.Fixed};" +
+                            $"{operLoc.IsFact || operLoc.VPZ};" +
                             $"{currentRank};" +
                             $"[{operLoc.MesModelling}];" +
                             $"[{operLoc.CustomModelling}];" +

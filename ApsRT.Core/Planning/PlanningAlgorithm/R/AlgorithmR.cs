@@ -370,8 +370,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             HashSet<PlanSimulatorBlock> passedBlocks = new();
 
             var OpersForFirstLevelForSort = firstResults
-                .OrderBy(x => x.ItsBadResult ? 1 : 0) // Сначала уберем плохие результаты наверх
+                .OrderBy(x => x.ItsBadResult ? 1 : 0) // Сначала уберем плохие результаты в самый низ
                 .ThenBy(x => x.Block.Lists[0].IsFixed ? 0 : x.Block.Lists[0].IsFactOrVPZ ? 1 : 2) // Расставим ещё и в порядке "фикс.-впз.-свобод."
+                .ThenBy(x => x.Block.NeedsToBeFirst ? 0 : 1) // Теперь - те, которые хотим поставить самыми первыми
                 .ThenBy(x => x.Block.Lists[0].IsFixed && x.Block.Lists[0].FirstOperJust.StartTimeFact.HasValue ? (x.Block.Lists[0].FirstOperJust.StartTimeFact.Value - basisLink.StartOfPlanningDate).TotalSeconds : x.Cost) // А теперь уже и по цене отсортируем
                 .ToArray();
 
@@ -382,8 +383,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 var tara = element.Tara;
                 if (passedCenters.Contains(center) || passedBlocks.Contains(element.Block)) continue;
 
-                //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
-                //if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
+                if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
+                if (LinearPlan.Count < basisLink.GLOBAL_VPZ_MAX && !element.Block.Lists[0].IsFactOrVPZ) continue;
 
                 if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
                 {
@@ -1403,7 +1404,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
         {
             //другая попытка, хуже:
 List<PlanSimulatorBlock> toCheck;
-            if (FixedCompleted < basisLink.GLOBAL_FIXED_MIN || Level == -1) toCheck = OpersCopy;
+            if (FixedCompleted < basisLink.GLOBAL_FIXED_MIN || VPZCompleted < basisLink.GLOBAL_VPZ_MAX || Level == -1 || NeedsToBeFirstCounter > 0) toCheck = OpersCopy;
             else
             {
                 if (GroupedByLevel.TryGetValue(Level, out var list)) toCheck = list;
@@ -1520,21 +1521,41 @@ List<PlanSimulatorBlock> toCheck;
 
                     //RWriterElements.Clear();
 
-                    Step2_1_Parallel(iterationIndex, PossibleOpersHere, searcherClass, LastResult); // Попробуем параллель поискать
+                    var blocks = OpersCopy.Where(x => x.NeedsToBeFirst);
+                    var goodBlocks = blocks.Where(x => x.Lists[0].PrevMods.All(mod => ExistingBlocks.Contains(mod.BlockLink)));
+
+                    if (PossibleOpersHere.Any(x => x.NeedsToBeFirst))
+                    {
+                        ;
+                    }
+                    else
+                    {
+                        ;
+                    }
+
+                        Step2_1_Parallel(iterationIndex, PossibleOpersHere, searcherClass, LastResult); // Попробуем параллель поискать
 
                     Step2_2_Linear(iterationIndex, PossibleOpersHere, searcherClass); // А теперь, если не было параллелизма, обычный варик
 
                     int nextCount = 0;
                     if (searcherClass.minResult.ErrorsCount > 0
                         ||
-                        searcherClass.ThisResultIsBad
-                        || (NeedsToBeFirstCounter > 0 && !searcherClass.ChoosenMod.BlockLink.NeedsToBeFirst))
+                        searcherClass.ThisResultIsBad)
                     {
                         var nextPossibleOpers = GetOpersToCheckByLevel(-1)
                             .Where(block => !PossibleOpersHere.Contains(block)) // Возьмём только те, что я не рассматривал
                             .ToArray();
                         nextCount = nextPossibleOpers.Length;
                         RSearcher searcherClass2 = new();
+
+                        if (nextPossibleOpers.Any(x => x.NeedsToBeFirst))
+                        {
+                            ;
+                        }
+                        else
+                        {
+                            ;
+                        }
 
                         Step2_1_Parallel(iterationIndex, nextPossibleOpers, searcherClass2, LastResult); // Попробуем параллель поискать
 

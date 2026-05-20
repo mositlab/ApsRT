@@ -55,14 +55,14 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             if (ErrorsCount < otherResult.ErrorsCount) return true;
             if (ErrorsCount > otherResult.ErrorsCount) return false;
 
+            if (NeedsToBeFirst && !otherResult.NeedsToBeFirst) return true;
+            if (!NeedsToBeFirst && otherResult.NeedsToBeFirst) return false;
+
             if (TransferTime < otherResult.TransferTime) return true;
             if (TransferTime > otherResult.TransferTime) return false;
 
             //if (ItsParr && !otherResult.ItsParr) return true;
             //if (!ItsParr && otherResult.ItsParr) return false;
-
-            if (NeedsToBeFirst && !otherResult.NeedsToBeFirst) return true;
-            if (!NeedsToBeFirst && otherResult.NeedsToBeFirst) return false;
 
             if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
 
