@@ -8,7 +8,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 {
     struct RTempResult
     {
-        public TimeSpan? DeltaFromPrevResult;
+        public TimeOnly? DeltaFromPrevResult;
 
         public TimeSpan Rechanges;
         public TimeSpan Prostoi;
@@ -47,7 +47,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             ItsParr = itsParr;
             Prostoi = prostoi;
             NeedsToBeFirst = needsToBeFirst;
-            DeltaFromPrevResult = deltaFromPrevResult.HasValue && deltaFromPrevResult.Value.Ticks < 0 ? -deltaFromPrevResult : deltaFromPrevResult;
+            deltaFromPrevResult = deltaFromPrevResult.HasValue && deltaFromPrevResult.Value.Ticks < 0 ? -deltaFromPrevResult : deltaFromPrevResult;
+
+            // По предложению 
+            if (deltaFromPrevResult.HasValue) DeltaFromPrevResult = TimeOnly.FromTimeSpan(deltaFromPrevResult.Value);
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
         }
 
@@ -101,9 +104,6 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             if (TotalCost < otherResult.TotalCost) return true;
             if (TotalCost > otherResult.TotalCost) return false;
 
-            if (Rechanges < otherResult.Rechanges) return true;
-            if (Rechanges > otherResult.Rechanges) return false;
-
             if (DeltaFromPrevResult.HasValue && otherResult.DeltaFromPrevResult.HasValue)
             {
                 if (DeltaFromPrevResult < otherResult.DeltaFromPrevResult) return true;
@@ -120,6 +120,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 }
             }
+
+            if (Rechanges < otherResult.Rechanges) return true;
+            if (Rechanges > otherResult.Rechanges) return false;
 
             if (DeltaFromDeadline < otherResult.DeltaFromDeadline) return true;
             if (DeltaFromDeadline > otherResult.DeltaFromDeadline) return false;
