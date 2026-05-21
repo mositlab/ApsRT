@@ -1096,7 +1096,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     if (timeTransfer < 0) timeTransfer = 0;
 
                     RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true, parrBlockVariant.prostoi,
-                        mod.BlockLink.NeedsToBeFirst);
+                        mod.BlockLink.NeedsToBeFirst, mod.FirstOperJust.PrevDateTime.HasValue ? (mod.DateOfStart[0] - mod.FirstOperJust.PrevDateTime) : null);
 
                     lock (locker)
                     {
@@ -1325,12 +1325,15 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     // Поскольку фильтрашка сама учитывает "NoCheckNamotka", и конечную тару, здесь проверять уже ничего не надо.
 
                     result = true; // Значит я так могу.
-                    var localResultData = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith, basisLink.SessionLink.SettingsController.CurrentSettings.RGlobalTimeDelta ? basisLink.StartOfPlanningDate : mod.PossibleRCsHere.Min(x =>
+
+                    var startDate = basisLink.SessionLink.SettingsController.CurrentSettings.RGlobalTimeDelta ? basisLink.StartOfPlanningDate : mod.PossibleRCsHere.Min(x =>
                     {
                         var list = BlocksDependingOnCenter[x];
                         if (list.Count == 0) return basisLink.StartOfPlanningDate;
                         return list[^1].Lists[0].DateOfStart[0] + list[^1].MaxTime(x);
-                    }),
+                    });
+
+                    var localResultData = HeuristicCheckBlock(mod, currentCenter, IndexToWorkWith, startDate,
                     out int errors);
                     //ForceThisTara |= itsBadResult; // Если это хуевый результат, то смотрим на это.
                     string logString = "";
@@ -1357,7 +1360,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         (float)(localResultData.TotalTimeNoOp.TotalSeconds * gamma + (1 - gamma) * localResultData.Rechanges.TotalSeconds),
                         errors, mod.Count, localResultData.timeTransferLeft,
                         false, localResultData.prostoi,
-                        mod.BlockLink.NeedsToBeFirst
+                        mod.BlockLink.NeedsToBeFirst,
+                        mod.FirstOperJust.PrevDateTime.HasValue ? ((startDate + localResultData.prostoi + localResultData.Rechanges) - mod.FirstOperJust.PrevDateTime) : null
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 

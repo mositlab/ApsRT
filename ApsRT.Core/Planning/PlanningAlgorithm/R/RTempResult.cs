@@ -8,6 +8,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 {
     struct RTempResult
     {
+        public TimeSpan? DeltaFromPrevResult;
+
         public TimeSpan Rechanges;
         public TimeSpan Prostoi;
         public TimeSpan DeltaFromStart;
@@ -29,7 +31,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         public bool NeedsToBeFirst;
 
-        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst)
+        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst, TimeSpan? deltaFromPrevResult)
         {
             Rechanges = rechanges;
             DeltaFromStart = deltaFromStart;
@@ -45,6 +47,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             ItsParr = itsParr;
             Prostoi = prostoi;
             NeedsToBeFirst = needsToBeFirst;
+            DeltaFromPrevResult = deltaFromPrevResult.HasValue && deltaFromPrevResult.Value.Ticks < 0 ? -deltaFromPrevResult : deltaFromPrevResult;
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
         }
 
@@ -100,6 +103,23 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             if (Rechanges < otherResult.Rechanges) return true;
             if (Rechanges > otherResult.Rechanges) return false;
+
+            if (DeltaFromPrevResult.HasValue && otherResult.DeltaFromPrevResult.HasValue)
+            {
+                if (DeltaFromPrevResult < otherResult.DeltaFromPrevResult) return true;
+                if (DeltaFromPrevResult > otherResult.DeltaFromPrevResult) return false;
+            }
+            else
+            {
+                if (DeltaFromPrevResult.HasValue && !otherResult.DeltaFromPrevResult.HasValue)
+                {
+
+                }
+                if (!DeltaFromPrevResult.HasValue && otherResult.DeltaFromPrevResult.HasValue)
+                {
+
+                }
+            }
 
             if (DeltaFromDeadline < otherResult.DeltaFromDeadline) return true;
             if (DeltaFromDeadline > otherResult.DeltaFromDeadline) return false;
