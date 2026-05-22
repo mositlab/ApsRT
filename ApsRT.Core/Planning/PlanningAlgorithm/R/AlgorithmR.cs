@@ -439,28 +439,31 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             NeedsToBeFirstCounter = OpersCopy.Where(x => x.NeedsToBeFirst).Count();
 
-            planning_logger = new("planAnalysis.csv", false, Encoding.UTF8);
-            planning_logger.WriteLine("Итерация;Тип итерации;" +
-                "Рассматриваемый этап;Рассматриваемый этап регистратор;" +
-                "Предыдущий этап;Предыдущий этап регистратор;" +
-                "Текущий РЦ;Предыдущий РЦ;" +
-                "Текущая тара;Предыдущая тара;" +
-                "Текущий мод;Предыдущий мод;" +
-                "R_ErrorsCount Текущий;R_ErrorsCount Предыдущий;" +
-                "R_TransferTime Текущий;R_TransferTime Предыдущий;" +
-                "NoSteps;" +
-                "Параллель;Параллель была;" +
-                "R_DeltaFromStart Текущий;R_DeltaFromStart Предыдущий;" +
-                "R_DeltaFromStartNoOp Текущий;R_DeltaFromStartNoOp Предыдущий;" +
-                "R_TotalCost Текущий;R_TotalCost Предыдущий;" +
-                "R_Rechanges Текущий;R_Rechanges Предыдущий;" +
-                "R_Prostoi Текущий;R_Prostoi Предыдущий;" +
-                "R_DeltaFromDeadline Текущий;R_DeltaFromDeadline Предыдущий;" +
-                "R_OperCount Текущий;R_OperCount Предыдущий;" +
-                "R_IsFromSameOrder Текущий;R_IsFromSameOrder Предыдущий;" +
-                "R_Level Текущий;R_Level Предыдущий;" +
-                "Выбран?");
-            planLogWriterConc = new();
+            if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
+            {
+                planning_logger = new("planAnalysis.csv", false, Encoding.UTF8);
+                planning_logger.WriteLine("Итерация;Тип итерации;" +
+                    "Рассматриваемый этап;Рассматриваемый этап регистратор;" +
+                    "Предыдущий этап;Предыдущий этап регистратор;" +
+                    "Текущий РЦ;Предыдущий РЦ;" +
+                    "Текущая тара;Предыдущая тара;" +
+                    "Текущий мод;Предыдущий мод;" +
+                    "R_ErrorsCount Текущий;R_ErrorsCount Предыдущий;" +
+                    "R_TransferTime Текущий;R_TransferTime Предыдущий;" +
+                    "NoSteps;" +
+                    "Параллель;Параллель была;" +
+                    "R_DeltaFromStart Текущий;R_DeltaFromStart Предыдущий;" +
+                    "R_DeltaFromStartNoOp Текущий;R_DeltaFromStartNoOp Предыдущий;" +
+                    "R_TotalCost Текущий;R_TotalCost Предыдущий;" +
+                    "R_Rechanges Текущий;R_Rechanges Предыдущий;" +
+                    "R_Prostoi Текущий;R_Prostoi Предыдущий;" +
+                    "R_DeltaFromDeadline Текущий;R_DeltaFromDeadline Предыдущий;" +
+                    "R_OperCount Текущий;R_OperCount Предыдущий;" +
+                    "R_IsFromSameOrder Текущий;R_IsFromSameOrder Предыдущий;" +
+                    "R_Level Текущий;R_Level Предыдущий;" +
+                    "Выбран?");
+                planLogWriterConc = new();
+            }
 
             gamma = basisLink.SessionLink.SettingsController.CurrentSettings.TGamma;
 
@@ -507,9 +510,13 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             Console.WriteLine($"R total time = {end - start}");
 
-            foreach (var line in planLogWriterConc) planning_logger.WriteLine(line);
+            if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
+            {
+                foreach (var line in planLogWriterConc) planning_logger.WriteLine(line);
 
-            planning_logger.Close();
+                planning_logger.Close();
+            }
+
         }
 
         void Step3_DurationsProcessor()
