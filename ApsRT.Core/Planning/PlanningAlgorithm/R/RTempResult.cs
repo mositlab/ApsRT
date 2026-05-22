@@ -8,7 +8,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 {
     struct RTempResult
     {
-        public TimeOnly? DeltaFromPrevResult;
+        public int? DeltaFromPrevResult;
 
         public TimeSpan Rechanges;
         public TimeSpan Prostoi;
@@ -50,7 +50,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             deltaFromPrevResult = deltaFromPrevResult.HasValue && deltaFromPrevResult.Value.Ticks < 0 ? -deltaFromPrevResult : deltaFromPrevResult;
 
             // По предложению 
-            if (deltaFromPrevResult.HasValue) DeltaFromPrevResult = TimeOnly.FromTimeSpan(deltaFromPrevResult.Value);
+            if (deltaFromPrevResult.HasValue) DeltaFromPrevResult = (int)deltaFromPrevResult.Value.TotalDays;
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
         }
 

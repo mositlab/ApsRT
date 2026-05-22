@@ -179,7 +179,7 @@ namespace ApsRTCustomComponents
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
-            numericUpDown1 = new NumericUpDown();
+            MaxDeadlinesOffsetNumericUpDown = new NumericUpDown();
             groupBox8 = new GroupBox();
             StagesPercentNumericUpDown = new NumericUpDown();
             label58 = new Label();
@@ -335,6 +335,9 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            label60 = new Label();
+            BigPartLoggerCheckBox = new MaterialCheckBox();
+            BigPlanLoggerCheckBox = new MaterialCheckBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -435,7 +438,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)MaxDeadlinesOffsetNumericUpDown).BeginInit();
             groupBox8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)StagesPercentNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)TMaxDaysNumericUpDown).BeginInit();
@@ -604,7 +607,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 394);
+            label49.Location = new Point(959, 393);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -617,7 +620,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 391);
+            pictureBox1.Location = new Point(1099, 390);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -630,7 +633,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 441);
+            label48.Location = new Point(3, 440);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -1120,7 +1123,7 @@ namespace ApsRTCustomComponents
             tabPage2.Controls.Add(TwoPartiasPartia2View);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
-            tabPage2.Size = new Size(760, 333);
+            tabPage2.Size = new Size(760, 334);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Партия 2";
             tabPage2.UseVisualStyleBackColor = true;
@@ -1132,7 +1135,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartia2View.Location = new Point(0, 0);
             TwoPartiasPartia2View.Margin = new Padding(0);
             TwoPartiasPartia2View.Name = "TwoPartiasPartia2View";
-            TwoPartiasPartia2View.Size = new Size(760, 333);
+            TwoPartiasPartia2View.Size = new Size(760, 334);
             TwoPartiasPartia2View.TabIndex = 0;
             // 
             // tabPage3
@@ -1140,7 +1143,7 @@ namespace ApsRTCustomComponents
             tabPage3.Controls.Add(TwoPartiasPartiaResView);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(760, 333);
+            tabPage3.Size = new Size(760, 334);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Результат";
             tabPage3.UseVisualStyleBackColor = true;
@@ -1152,7 +1155,7 @@ namespace ApsRTCustomComponents
             TwoPartiasPartiaResView.Location = new Point(0, 0);
             TwoPartiasPartiaResView.Margin = new Padding(0);
             TwoPartiasPartiaResView.Name = "TwoPartiasPartiaResView";
-            TwoPartiasPartiaResView.Size = new Size(760, 333);
+            TwoPartiasPartiaResView.Size = new Size(760, 334);
             TwoPartiasPartiaResView.TabIndex = 1;
             // 
             // label8
@@ -2030,7 +2033,7 @@ namespace ApsRTCustomComponents
             tabPage9.Location = new Point(4, 24);
             tabPage9.Name = "tabPage9";
             tabPage9.Padding = new Padding(3);
-            tabPage9.Size = new Size(1155, 375);
+            tabPage9.Size = new Size(1155, 376);
             tabPage9.TabIndex = 1;
             tabPage9.Text = "Основное (ч. 2)";
             tabPage9.UseVisualStyleBackColor = true;
@@ -2050,7 +2053,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer11.Panel2.Controls.Add(splitContainer13);
             splitContainer11.Panel2MinSize = 10;
-            splitContainer11.Size = new Size(1149, 369);
+            splitContainer11.Size = new Size(1149, 370);
             splitContainer11.SplitterDistance = 1120;
             splitContainer11.TabIndex = 0;
             // 
@@ -2070,7 +2073,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer12.Panel2.Controls.Add(zedGraphControl2);
             splitContainer12.Panel2MinSize = 10;
-            splitContainer12.Size = new Size(1120, 369);
+            splitContainer12.Size = new Size(1120, 370);
             splitContainer12.SplitterDistance = 332;
             splitContainer12.TabIndex = 0;
             // 
@@ -2104,7 +2107,7 @@ namespace ApsRTCustomComponents
             zedGraphControl2.ScrollMinX = 0D;
             zedGraphControl2.ScrollMinY = 0D;
             zedGraphControl2.ScrollMinY2 = 0D;
-            zedGraphControl2.Size = new Size(1120, 33);
+            zedGraphControl2.Size = new Size(1120, 34);
             zedGraphControl2.TabIndex = 2;
             zedGraphControl2.UseExtendedPrintDialog = true;
             // 
@@ -2124,7 +2127,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer13.Panel2.Controls.Add(zedGraphControl3);
             splitContainer13.Panel2MinSize = 10;
-            splitContainer13.Size = new Size(25, 369);
+            splitContainer13.Size = new Size(25, 370);
             splitContainer13.SplitterDistance = 182;
             splitContainer13.TabIndex = 0;
             // 
@@ -2158,7 +2161,7 @@ namespace ApsRTCustomComponents
             zedGraphControl3.ScrollMinX = 0D;
             zedGraphControl3.ScrollMinY = 0D;
             zedGraphControl3.ScrollMinY2 = 0D;
-            zedGraphControl3.Size = new Size(25, 183);
+            zedGraphControl3.Size = new Size(25, 184);
             zedGraphControl3.TabIndex = 2;
             zedGraphControl3.UseExtendedPrintDialog = true;
             // 
@@ -2168,7 +2171,7 @@ namespace ApsRTCustomComponents
             tabPage4.Controls.Add(panel2);
             tabPage4.Location = new Point(4, 24);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(1155, 375);
+            tabPage4.Size = new Size(1155, 376);
             tabPage4.TabIndex = 2;
             tabPage4.Text = "Особые графики";
             tabPage4.UseVisualStyleBackColor = true;
@@ -2189,7 +2192,7 @@ namespace ApsRTCustomComponents
             // 
             splitContainer9.Panel2.Controls.Add(ProductionGraphControl);
             splitContainer9.Panel2MinSize = 10;
-            splitContainer9.Size = new Size(1155, 345);
+            splitContainer9.Size = new Size(1155, 346);
             splitContainer9.SplitterDistance = 160;
             splitContainer9.TabIndex = 1;
             // 
@@ -2259,7 +2262,7 @@ namespace ApsRTCustomComponents
             ProductionGraphControl.ScrollMinX = 0D;
             ProductionGraphControl.ScrollMinY = 0D;
             ProductionGraphControl.ScrollMinY2 = 0D;
-            ProductionGraphControl.Size = new Size(1155, 181);
+            ProductionGraphControl.Size = new Size(1155, 182);
             ProductionGraphControl.TabIndex = 2;
             ProductionGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2318,7 +2321,7 @@ namespace ApsRTCustomComponents
             tabPage5.Controls.Add(AllPercentagesGraphControl);
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
-            tabPage5.Size = new Size(1155, 375);
+            tabPage5.Size = new Size(1155, 376);
             tabPage5.TabIndex = 3;
             tabPage5.Text = "Оптимизация (в %)";
             tabPage5.UseVisualStyleBackColor = true;
@@ -2336,7 +2339,7 @@ namespace ApsRTCustomComponents
             AllPercentagesGraphControl.ScrollMinX = 0D;
             AllPercentagesGraphControl.ScrollMinY = 0D;
             AllPercentagesGraphControl.ScrollMinY2 = 0D;
-            AllPercentagesGraphControl.Size = new Size(1155, 375);
+            AllPercentagesGraphControl.Size = new Size(1155, 376);
             AllPercentagesGraphControl.TabIndex = 1;
             AllPercentagesGraphControl.UseExtendedPrintDialog = true;
             // 
@@ -2388,7 +2391,10 @@ namespace ApsRTCustomComponents
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.AutoScroll = true;
-            splitContainer2.Panel2.Controls.Add(numericUpDown1);
+            splitContainer2.Panel2.Controls.Add(BigPlanLoggerCheckBox);
+            splitContainer2.Panel2.Controls.Add(BigPartLoggerCheckBox);
+            splitContainer2.Panel2.Controls.Add(label60);
+            splitContainer2.Panel2.Controls.Add(MaxDeadlinesOffsetNumericUpDown);
             splitContainer2.Panel2.Controls.Add(groupBox8);
             splitContainer2.Panel2.Controls.Add(label51);
             splitContainer2.Panel2.Controls.Add(MaxOldSessionPathsDaysNumericUpDown);
@@ -2418,20 +2424,20 @@ namespace ApsRTCustomComponents
             HoppersPanel.Size = new Size(1171, 185);
             HoppersPanel.TabIndex = 25;
             // 
-            // numericUpDown1
+            // MaxDeadlinesOffsetNumericUpDown
             // 
-            numericUpDown1.BackColor = Color.CornflowerBlue;
-            numericUpDown1.BorderStyle = BorderStyle.None;
-            numericUpDown1.DecimalPlaces = 3;
-            numericUpDown1.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
-            numericUpDown1.ForeColor = Color.White;
-            numericUpDown1.Location = new Point(1063, 409);
-            numericUpDown1.Margin = new Padding(0);
-            numericUpDown1.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
-            numericUpDown1.Name = "numericUpDown1";
-            numericUpDown1.Size = new Size(97, 19);
-            numericUpDown1.TabIndex = 87;
-            numericUpDown1.TextAlign = HorizontalAlignment.Center;
+            MaxDeadlinesOffsetNumericUpDown.BackColor = Color.CornflowerBlue;
+            MaxDeadlinesOffsetNumericUpDown.BorderStyle = BorderStyle.None;
+            MaxDeadlinesOffsetNumericUpDown.DecimalPlaces = 3;
+            MaxDeadlinesOffsetNumericUpDown.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            MaxDeadlinesOffsetNumericUpDown.ForeColor = Color.White;
+            MaxDeadlinesOffsetNumericUpDown.Location = new Point(1063, 409);
+            MaxDeadlinesOffsetNumericUpDown.Margin = new Padding(0);
+            MaxDeadlinesOffsetNumericUpDown.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            MaxDeadlinesOffsetNumericUpDown.Name = "MaxDeadlinesOffsetNumericUpDown";
+            MaxDeadlinesOffsetNumericUpDown.Size = new Size(97, 19);
+            MaxDeadlinesOffsetNumericUpDown.TabIndex = 87;
+            MaxDeadlinesOffsetNumericUpDown.TextAlign = HorizontalAlignment.Center;
             // 
             // groupBox8
             // 
@@ -4604,6 +4610,47 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
+            // label60
+            // 
+            label60.Font = new Font("Microsoft Sans Serif", 9F);
+            label60.Location = new Point(949, 409);
+            label60.Name = "label60";
+            label60.Size = new Size(107, 36);
+            label60.TabIndex = 88;
+            label60.Text = "Макс. откл. по дедлайнам (ч.):";
+            // 
+            // BigPartLoggerCheckBox
+            // 
+            BigPartLoggerCheckBox.BackColor = Color.Black;
+            BigPartLoggerCheckBox.Depth = 0;
+            BigPartLoggerCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            BigPartLoggerCheckBox.ForeColor = Color.CornflowerBlue;
+            BigPartLoggerCheckBox.Location = new Point(949, 449);
+            BigPartLoggerCheckBox.Margin = new Padding(0);
+            BigPartLoggerCheckBox.MouseLocation = new Point(-1, -1);
+            BigPartLoggerCheckBox.Name = "BigPartLoggerCheckBox";
+            BigPartLoggerCheckBox.Ripple = true;
+            BigPartLoggerCheckBox.Size = new Size(167, 30);
+            BigPartLoggerCheckBox.TabIndex = 89;
+            BigPartLoggerCheckBox.Text = "PART LOG";
+            BigPartLoggerCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // BigPlanLoggerCheckBox
+            // 
+            BigPlanLoggerCheckBox.BackColor = Color.Black;
+            BigPlanLoggerCheckBox.Depth = 0;
+            BigPlanLoggerCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            BigPlanLoggerCheckBox.ForeColor = Color.CornflowerBlue;
+            BigPlanLoggerCheckBox.Location = new Point(949, 482);
+            BigPlanLoggerCheckBox.Margin = new Padding(0);
+            BigPlanLoggerCheckBox.MouseLocation = new Point(-1, -1);
+            BigPlanLoggerCheckBox.Name = "BigPlanLoggerCheckBox";
+            BigPlanLoggerCheckBox.Ripple = true;
+            BigPlanLoggerCheckBox.Size = new Size(167, 30);
+            BigPlanLoggerCheckBox.TabIndex = 90;
+            BigPlanLoggerCheckBox.Text = "PLAN LOG";
+            BigPlanLoggerCheckBox.UseVisualStyleBackColor = false;
+            // 
             // ApsRTMainForm1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -4728,7 +4775,7 @@ namespace ApsRTCustomComponents
             splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)MaxDeadlinesOffsetNumericUpDown).EndInit();
             groupBox8.ResumeLayout(false);
             groupBox8.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)StagesPercentNumericUpDown).EndInit();
@@ -5107,6 +5154,9 @@ namespace ApsRTCustomComponents
         private Button button5;
         private TextBox textBox1;
         private Label label59;
-        private NumericUpDown numericUpDown1;
+        private NumericUpDown MaxDeadlinesOffsetNumericUpDown;
+        private Label label60;
+        private MaterialCheckBox BigPlanLoggerCheckBox;
+        private MaterialCheckBox BigPartLoggerCheckBox;
     }
 }

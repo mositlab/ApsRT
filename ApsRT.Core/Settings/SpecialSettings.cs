@@ -25,6 +25,8 @@ namespace ApsRT.Core.Settings
 
         public bool UseLegacySettingsWhenNotFound { get; set; }
 
+        public bool DoNotMergeVspomOps { get; set; }
+
         public enum PartiaMergingRestrictionType
         {
             LongestOpers_LessThan3,

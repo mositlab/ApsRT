@@ -484,6 +484,15 @@ namespace ApsRTCustomComponents
                 sessionLink.SettingsController.ToggleConsole(settings.HideConsole);
             };
 
+            BigPartLoggerCheckBox.Checked = settings.Demos_BigPartiasLog;
+            BigPartLoggerCheckBox.CheckedChanged += (sender, args) => { settings.Demos_BigPartiasLog = ((CheckBox)sender).Checked; };
+
+            BigPlanLoggerCheckBox.Checked = settings.Demos_BigPlanningLog;
+            BigPlanLoggerCheckBox.CheckedChanged += (sender, args) => { settings.Demos_BigPlanningLog = ((CheckBox)sender).Checked; };
+
+            MaxDeadlinesOffsetNumericUpDown.Value = (decimal)settings.PossibleDeadlineOffsetInHours;
+            MaxDeadlinesOffsetNumericUpDown.ValueChanged += (sender, args) => { settings.PossibleDeadlineOffsetInHours = (double)((NumericUpDown)sender).Value; };
+
         }
 
         private void OpenGraphsButton_Click(object? sender, EventArgs e)
@@ -1730,7 +1739,7 @@ namespace ApsRTCustomComponents
             var row7 = PlanningDataTable.Rows[6];
             row7.DefaultCellStyle.ForeColor = Color.DarkBlue;
             row7.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
-            row7.Cells[0].Value = "Недоступность материалов";
+            row7.Cells[0].Value = "Отклонение от предыдущего графика";
 
             var row8 = PlanningDataTable.Rows[7];
             row8.DefaultCellStyle.ForeColor = Color.Orange;

@@ -33,6 +33,7 @@ namespace ApsRT.ZMK
             sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction = Core.Settings.SpecialSettings.PartiaMergingRestrictionType.LongestOpers_LessThan3;
             sessionLink.SettingsController.SpecialSettings.UseOnlyWeightMethodWhenSearchWindings = false;
             sessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound = true;
+            sessionLink.SettingsController.SpecialSettings.DoNotMergeVspomOps = false;
             sessionLink.Start();
 
 

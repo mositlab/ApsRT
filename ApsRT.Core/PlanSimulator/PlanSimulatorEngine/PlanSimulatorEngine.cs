@@ -279,6 +279,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 // Смотрим на наладочные длины
                 ProcessNaladLengths(PoolIndex, currentBlock, ChoosenModellings, currentFlag, rechangesResult, ChoosenCenter, lastMod, resultToFill);
 
+                // Смотрим на отклонения от предыдущего графика
+                ProcessPrevTimes(PoolIndex, currentBlock, ChoosenModellings, resultToFill);
+
                 // Если эта операция последняя, то:
                 // а. Она будет одна
                 // б. Стоит чекнуть заказ
@@ -333,6 +336,24 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             //{
             //    currentBlock.CenterDataLocalCopy[PoolIndex] = centGlobalStruct.Copy(); // Поскольку я уже работаю с копией, то заново копировать её резона нет.
             //}
+        }
+
+        private static void ProcessPrevTimes(int poolIndex, PlanSimulatorBlock block, List<int> ChoosenModellings, PlanSimulatorEngineResult resultToFill)
+        {
+            for (int i = 0; i < ChoosenModellings.Count; i++)
+            {
+                var mod = block.Lists[ChoosenModellings[i]]; // Берём моделирование
+                var start = mod.DateOfStart[poolIndex];
+                for (int j = 0; j < mod.StagesAsNormal.Count; j++)
+                {
+                    var prevDate = mod.StagesAsNormal[j].PrevDateTime;
+                    if (prevDate.HasValue)
+                    {
+                        var delta = Math.Abs((prevDate.Value - start).TotalSeconds);
+                        resultToFill.BadOffsets += delta;
+                    }
+                }
+            }
         }
 
         /// <summary>
