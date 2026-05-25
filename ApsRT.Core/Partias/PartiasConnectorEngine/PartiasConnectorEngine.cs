@@ -564,12 +564,14 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         sum = Taras.TaraSearchEngine.TaraSearchEngine.GetAllVariantsForThese(here01, out var searchData, new SumIsPossibleOptions(withLog)
                         {
                             PrevsInfo = resultToFill.IDToTara,
+                            EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
                          RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                         })
                             &&
                             Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out got, new SumIsPossibleOptions(withLog)
                             {
                                 PrevsInfo = resultToFill.IDToTara,
+                                EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
 
                                 TaraMustBeThis =
                                 here1.ZadelsGUIDs != null && here1.ZadelsGUIDs.Count > 0 && Zadels.LinearZadelsDictionary.TryGetValue(here1.ZadelsGUIDs[0], out var zet) ?
@@ -670,14 +672,18 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         return (byte)(isZadel ? 0 : (isVspom ? 1 : 2));//(byte)(enough ? (ThatWasVspom ? 1 : 2) : 0);
                                                                        //break;
                     }
-                    //else
-                    //{
+                    else
+                    {
+                        //foreach (var op in here1.Opers)
+                        //{
+                        //    resultToFill.EmptyErroredTarasInfo.Add(op.Index);
+                        //}
                     //    if (here1.Opers[0].Time == longestHere && here2[i].Opers[0].Time == longestWhat)
                     //    {
                     //        // А ведь это были те, что надо запихать. Поэтому говорим, что это плохо!
                     //        badOffset--;
                     //    }
-                    //}
+                    }
                 }
             }
             return 0;//(byte)(enough ? (ThatWasVspom ? 1 : 2) : 0);
@@ -926,6 +932,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                 {
                                     LogSomeErrors = withHerself,
                                     PrevsInfo = resultToFill.IDToTara,
+                                    EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
                                     RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
                                     RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null
                                 })) // ошибки - только если она сама с собой, на последнем этапе

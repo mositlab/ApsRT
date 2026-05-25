@@ -288,6 +288,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
                             var b = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(currentSdvig, out var res, out _, new SumIsPossibleOptions(false)
                             {
                                 PrevsInfo = previousData.IDToTara,
+                                EmptyErroredTarasInfo = previousData.EmptyErroredTarasInfo,
                                 NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCs(currentSdvig.Opers, (index) => dics.TryGetValue(index, out var s) ? s.RC : null),
                                 //.SelectMany(x => x.Nexts)
                                 //.Select(x => dics.TryGetValue(x, out var s) ? s : null)

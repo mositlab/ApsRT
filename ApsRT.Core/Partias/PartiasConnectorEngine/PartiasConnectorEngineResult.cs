@@ -21,6 +21,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
         public Dictionary<int, Uco> IDToTara;
 
+        public HashSet<int> EmptyErroredTarasInfo;
+
         public Dictionary<int, int> IDmergedPrevs;
 
         public Dictionary<int, int> IDmergedGroups;
@@ -47,6 +49,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         public PartiasConnectorEngineResult(int total, float filledK, int diff, int longestModsMaxCount, int iDToTara, int iDmergedPrevs, int iDmergedGroups) : this(total, filledK, diff, longestModsMaxCount)
         {
             IDToTara = new (iDToTara);
+            EmptyErroredTarasInfo = new (iDToTara);
             IDmergedPrevs = new(iDmergedPrevs);
             IDmergedGroups = new(iDmergedGroups);
         }

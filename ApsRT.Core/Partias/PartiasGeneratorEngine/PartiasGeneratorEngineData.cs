@@ -23,6 +23,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
         public Dictionary<int, Uco> prevs = new();
 
+        public HashSet<int> EmptyErroredTarasInfo = new();
+
         //public Dictionary<int, PartiaModelling> OpersToSdvigs = new();
 
         // прямолинейный способ хранить предыдущую тару, ДО назначения задельных тар. Когда заделы перезаписывают всякое, то возвращаются тары отсюда. Вместо пустых.

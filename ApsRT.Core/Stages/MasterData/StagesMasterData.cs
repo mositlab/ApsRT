@@ -367,6 +367,11 @@ namespace ApsRT.Core.Stages.MasterData
             var masterDatas = SessionLink.MasterDataLinks;
             var PropsMasterData = masterDatas.PropsMasterData;
 
+            if (stage.GUID == Guid.Empty)
+            {
+                return;
+            }
+
             if (stage.StageVersion <= 0)
             {
                 var id = stage.ID;

@@ -138,7 +138,11 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     .Where(x => x.Level == Level)
                     .GroupBy(x => x.MesModelling.Code) // достаточно лишь того, который пришёл из меса, поэтому так
 
-                    .SelectMany(group => selectSdvigs(group)).ToList();
+                    .SelectMany(group => selectSdvigs(group))
+                    
+                    .OrderBy(x => x.Opers[0].StageVersion)
+
+                    .ToList();
 
                 if (CurrentLevel1.Count > 0)
                 {
@@ -240,6 +244,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             var RestrictionsVia74110 = engineData.RestrictionsVia74110;
             //var OpersToSdvigs = engineData.OpersToSdvigs;
             var prevs = engineData.prevs;
+            var errored = engineData.EmptyErroredTarasInfo;
             var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
             var col = engineData.Color;
 
@@ -264,7 +269,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
 
                 var sdvig = new PartiaModelling(opers, tarao, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
-                addInfoLocal(opers, tarao, 0, sdvig, false, engineData);
+                addInfoLocal(opers, tarao, 0, sdvig, true, true, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
                 return sdvig;
             }
@@ -285,7 +290,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
 
 
-            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
+            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, EmptyErroredTarasInfo = errored, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
                 RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                 RecommendedSubdivision = subdiv
             }))
@@ -296,13 +301,14 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 //OriginallyTaraWasThis.Add(x.ID, (tara, max));
                 var sdvig = new PartiaModelling(opers, RES.TaraName, RES.Max, RES.used_format, RES.FinalRC, RES.CurrentPlacesCountK, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
                 if (trr.HasValue) sdvig.RCIsChecked = true; // блокируем возможность что-то поставить
-                addInfoLocal(opers, RES.TaraName, RES.Max, sdvig, true, engineData);
+                addInfoLocal(opers, RES.TaraName, RES.Max, sdvig, true, true, engineData);
                 //OpersToSdvigs.Add(x.ID, sdvig);
                 return sdvig;
             }
             else
             {
                 if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
+                    EmptyErroredTarasInfo = errored,
                     RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                     RecommendedSubdivision = subdiv
                 }))
@@ -312,7 +318,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     //prevs.Add(x.ID, tara);
                     //OriginallyTaraWasThis.Add(x.ID, (tara, max));
                     var sdvig = new PartiaModelling(opers, RES2.TaraName, RES2.Max, RES2.used_format, RES2.FinalRC, RES2.CurrentPlacesCountK, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
-                    addInfoLocal(opers, RES2.TaraName, RES2.Max, sdvig, true, engineData);
+                    addInfoLocal(opers, RES2.TaraName, RES2.Max, sdvig, true, true, engineData);
                     //OpersToSdvigs.Add(x.ID, sdvig);
                     return sdvig;
                 }
@@ -330,7 +336,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         //prevs.Add(x.ID, taraHere); // Новая строчка. Из-за нее следует пройтись по всему алгоритму.
                         //OriginallyTaraWasThis.Add(x.ID, (taraHere, 0));
                         var sdvig = new PartiaModelling(opers, taraHere, 0, x.EdIzm, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
-                        addInfoLocal(opers, taraHere, 0, sdvig, true, engineData);
+                        addInfoLocal(opers, taraHere, 0, sdvig, true, true, engineData);
                         //OpersToSdvigs.Add(x.ID, sdvig);
                         return sdvig;
                     }
@@ -341,21 +347,32 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             var tarae = Uco.EmptyObject;
             //OriginallyTaraWasThis.Add(x.ID, (tarae, 0));
             var sdvig2 = new PartiaModelling(opers, tarae, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
-            addInfoLocal(opers, tarae, 0, sdvig2, false, engineData);
+            addInfoLocal(opers, tarae, 0, sdvig2, true, false, engineData);
             //OpersToSdvigs.Add(x.ID, sdvig2);
             return sdvig2;
         }
 
-        static void addInfoLocal(List<Stage> opers, Uco tara, double max, PartiaModelling sdvig, bool toPrevs, PartiasGeneratorEngineData engineData)
+        static void addInfoLocal(List<Stage> opers, Uco tara, double max, PartiaModelling sdvig, bool toPrevs, bool goodTara, PartiasGeneratorEngineData engineData)
         {
             //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
             //var OpersToSdvigs = engineData.OpersToSdvigs;
             var prevs = engineData.prevs;
+            var errored = engineData.EmptyErroredTarasInfo;
             foreach (var x in opers)
             {
                 //OriginallyTaraWasThis.Add(x.Index, (tara, max));
                 //OpersToSdvigs.Add(x.Index, sdvig);
-                if (toPrevs) prevs.Add(x.Index, tara);
+                if (toPrevs)
+                {
+                    if (goodTara)
+                    {
+                        if (!tara.IsEmpty) prevs.Add(x.Index, tara);
+                    }
+                    else
+                    {
+                        errored.Add(x.Index);
+                    }
+                }
             }
         }
 

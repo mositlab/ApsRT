@@ -240,8 +240,21 @@ namespace ApsRT.Core.DataErrors
                         message = string.Format(message, error.Value.DataToInsert ?? "");
                         string list1 = ""; if (error.Value.RCsOnThisEtap != null) list1 = string.Join(", ", error.Value.RCsOnThisEtap.Select(X => X.Label));
                         string list2 = ""; if (error.Value.TarasOnThisEtap != null) list2 = string.Join(", ", error.Value.TarasOnThisEtap.Select(X => X.Label));
-                        string list3 = ""; if (error.Value.NeededOtdTarasOnThisEtap != null) list3 = string.Join(", ", error.Value.NeededOtdTarasOnThisEtap.Select(X => X.Tara.Label + (X.WasVspom ? " (вспом.)" : "")));
-                        string list4 = ""; if (error.Value.MaxNamotka != null)
+
+
+                        string list3 = "";
+                        if (error.Value.NeededOtdTarasOnThisEtap != null && error.Value.NeededOtdTarasOnThisEtap.Count > 0) list3 = string.Join(", ", error.Value.NeededOtdTarasOnThisEtap.Select(X => X.Tara.Label + (X.WasVspom ? " (вспом.)" : "")));
+                        else
+                        {
+                            if (error.Value.NeededOtdTarasOnThisEtapAnyBad) list3 = "Требуемые отдающие тары не определены из-за ошибок на предыдущих этапах.";
+                        }
+
+                        if (string.IsNullOrEmpty(list3) && element.Key >= 0 && allStages[element.Key].OrderLink.OrderID.Object.Label.Contains("338"))
+                        {
+                            ;
+                        }
+
+                            string list4 = ""; if (error.Value.MaxNamotka != null)
                             list4 = string.Join(", ", error.Value.MaxNamotka.Select(X => $"{X.Tara.Label} ({X.Max})"));
                         string list5 = ""; if (error.Value.MaxPlusUsedTaras != null) list5 = string.Join(", ", error.Value.MaxPlusUsedTaras.Select(X => X.Label));
                         string list51 = ""; if (error.Value.RCsOnNextEtap != null) list51 = string.Join(", ", error.Value.RCsOnNextEtap.Select(X => X.Label));

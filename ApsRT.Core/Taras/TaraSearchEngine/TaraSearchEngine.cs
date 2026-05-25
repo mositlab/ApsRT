@@ -185,6 +185,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     searchData.errorMessage?.Append($"Отд. тары у {first.Index}: {string.Join(", ", TaraHereMustBeThis)}\r\n");
                 }
 
+                searchData.dataErrorMore.NeededOtdTarasOnThisEtapAnyBad |= first.Prevs.AsValueEnumerable().Any(x => options.EmptyErroredTarasInfo?.Contains(x) ?? false);
 
                 if (TaraHereMustBeThis != null) searchData.dataErrorMore.NeededOtdTarasOnThisEtap = 
                     searchData.dataErrorMore.NeededOtdTarasOnThisEtap == null ? TaraHereMustBeThis/*.Select(x => x.Tara)*/.Distinct().ToList() :
@@ -538,7 +539,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                     dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
                                     ;
 
-                                dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
+                                dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                                 foundOtdTara = new();
                             }
                         }
@@ -646,7 +647,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
                                 ;
 
-                            dataErrors.AddNewPartiaError(first.op.Index, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
+                            dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                             foundOtdTara = new();
                         }
                     }

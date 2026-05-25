@@ -147,7 +147,7 @@ namespace ApsRT.Core.NaladLengths
                 return value2;
             });
 
-            worstLength.Value *= op.PlacesCount; // Умножаем на количество мест
+            //worstLength.Value *= op.PlacesCount; // Умножаем на количество мест
 
             return NaladLengthsConverted(worstLength, op.EdIzmClassificator, op.KgKm);
         }
@@ -289,7 +289,7 @@ namespace ApsRT.Core.NaladLengths
         {
             //if (op.EdIzmClassificator == DimensionUnit.m) return nalad;
             //return op.KgKm.HasValue ? (nalad * op.KgKm.Value / 1000f) : nalad;
-            if (EdIzmClassificator == nalad.EdIzm) return nalad;
+            if (EdIzmClassificator.Label == nalad.EdIzm.Label) return nalad;
 
             // А вот если не совпадают, то во
             if (EdIzmClassificator.Label == DimensionUnit.kg && KgKm.HasValue) return new NaladLengthValue(nalad.Value * KgKm.Value / 1000f, EdIzmClassificator);

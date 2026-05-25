@@ -31,6 +31,7 @@ namespace ApsRT.Core.DataErrors
         internal List<Uco> RCsOnThisEtap; // Набор РЦ на текущей операции
         internal List<Uco> TarasOnThisEtap; // Тары на текущем этапе - Тип тары приемная на текущей операции
         internal List<(Uco Tara, bool WasVspom)> NeededOtdTarasOnThisEtap; // Требуемые отдающие тары здесь - Отдающая тара на текущей операции
+        internal bool NeededOtdTarasOnThisEtapAnyBad;
         internal List<(Uco Tara, double Max)> MaxNamotka; // максимальная намотка
         internal List<Uco> MaxPlusUsedTaras; // Пересечение максимальных намоток и применяемых тар - Подходящая тара с максимальной намотки
         internal List<Uco> RCsOnNextEtap; // РЦ на след уровне

@@ -12,6 +12,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
     {
         public bool WithLog; // в лог писать ли (текстовик для меня)
         public Dictionary<int, Uco> PrevsInfo = null; // в такой структуре он нуждается из-за поиска РЦ с отдающей тарой
+        public HashSet<int> EmptyErroredTarasInfo = null;
         public HashSet<Uco> NextRCsMustBeThese = null; // ограничение, что у детей должны быть только эти РЦ, пришлось юзать тут
         public bool NextRCsExcludeNoChangeTara = false;// если да, то в NextRCsMustBeThese не должно быть с признаком не менять тару
         public HashSet<Uco>? RCMustBeThis = null; // ограничение, что РЦ должен быть именно этот (для V)
