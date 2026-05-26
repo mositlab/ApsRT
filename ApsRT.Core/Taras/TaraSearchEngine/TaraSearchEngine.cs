@@ -980,14 +980,16 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             {
                                 if (!result.TaraName.IsEmpty
                                     && options.RecommendedTara.HasValue
-                                    && options.RecommendedTara.Value == result.TaraName)
+                                    && options.RecommendedTara.Value == result.TaraName
+                                    && result.TaraName != center.Tara)
                                 {
                                     continue;
                                 }
 
                                 if (!result.FinalRC.IsEmpty
                                     && someOpers.FirstOperLink.RecommendedRC.HasValue
-                                    && someOpers.FirstOperLink.RecommendedRC.Value == result.FinalRC)
+                                    && someOpers.FirstOperLink.RecommendedRC.Value == result.FinalRC
+                                    && result.FinalRC != center.RC)
                                 {
                                     continue;
                                 }
