@@ -551,9 +551,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                         Uco choosenTara = Uco.EmptyObject;
                         double maxNamotka = 0;
+                        bool thereNoResults = true;
                         if (mod.EasyLifeData == null)
                         {
-                            if (!TaraSearchEngine.SumIsPossible(mod, out _, out _, new SumIsPossibleOptions(false)
+                            var result = TaraSearchEngine.SumIsPossible(mod, out var res, out _, new SumIsPossibleOptions(false)
                             {
                                 LogSomeErrors = false,
                                 PrevsInfo = PrevsInfoForR,
@@ -561,9 +562,20 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                 ModToTaraInfoLink = basisLink.ModToTaraInfo,
                                 NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCs(mod.StagesAsNormal, (index) => mod.BlockLink.PoolLink.StagesLinks.TryGetValue(index, out var s) ? s.ModLink.BlockLink.GetCenterData(0).Center : null),
                                 NaladLength = mod.NaladLengthData[0].Data.NaladLengthHere.Value + mod.NaladLengthData[0].Data.NaladLengthNexts.Value // Текущую налад длину берём
-                            }))
+                            });
+
+
+                            if (!result)
                             {
                                 return;
+                            }
+
+
+                            if (result && (res.Max < maxNamotka || thereNoResults))
+                            {
+                                maxNamotka = res.Max;
+                                choosenTara = res.TaraName;
+                                thereNoResults = false;
                             }
                         }
                         else
@@ -581,10 +593,11 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                     NaladLength = easyMod.Value.NaladLengthData[0].Data.NaladLengthHere.Value + easyMod.Value.NaladLengthData[0].Data.NaladLengthNexts.Value // Текущую налад длину берём
                                 });
 
-                                if (result && res.Max > maxNamotka)
+                                if (result && (res.Max < maxNamotka || thereNoResults))
                                 {
                                     maxNamotka = res.Max;
                                     choosenTara = res.TaraName;
+                                    thereNoResults = false;
                                 }
 
                                 return result;
@@ -593,6 +606,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                 return;
                             }
                         }
+
+                        if (thereNoResults) return;
 
                         while (AvailableIndexes.Count == 0)
                         {
@@ -1611,6 +1626,11 @@ List<PlanSimulatorBlock> toCheck;
                      */
 
                     //);
+
+                    if (searcherClass.ChoosenMod.FirstOperJust.Index == 7)
+                    {
+                        ;
+                    }
 
                     if (searcherClass.ThisResultIsBad)
                     {

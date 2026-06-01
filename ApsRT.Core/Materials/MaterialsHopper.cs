@@ -79,7 +79,7 @@ namespace ApsRT.Core.Materials
 
             if (model.StageGuid.Version == 0)
             {
-                var ids = StagesMasterData.TryGetStageIndexexByGuid(model.StageGuid.Object.Code);
+                var ids = StagesMasterData.TryGetStagesIndexesByGuid(model.StageGuid.Object.Code);
                 if (ids != null)
                     foreach (var pair in ids) processMaterial(pair.Value, data, options, model);
             }

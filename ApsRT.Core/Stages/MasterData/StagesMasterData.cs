@@ -56,7 +56,7 @@ namespace ApsRT.Core.Stages.MasterData
             return GuidsAndVersions.TryGetValue(guid, out var res) && res.TryGetValue(version, out int index) ? index : -1;
         }
 
-        public Dictionary<int, int> TryGetStageIndexexByGuid(Guid guid)
+        public Dictionary<int, int> TryGetStagesIndexesByGuid(Guid guid)
         {
             return GuidsAndVersions.TryGetValue(guid, out var res) ? res : null;
         }
@@ -189,7 +189,7 @@ namespace ApsRT.Core.Stages.MasterData
                 bool nextYes = model.NextIsInPlan;
                 int places = model.PlacesCount;
 
-                var prevs = TryGetStageIndexexByGuid(guid);
+                var prevs = TryGetStagesIndexesByGuid(guid);
                 if (prevs != null)
                 {
                     //var maxPrev = prevs.Max(x => x.Key);
@@ -198,7 +198,7 @@ namespace ApsRT.Core.Stages.MasterData
                         var PrevID = PrevIDpair.Value;
                         if (AllStages.ContainsKey(PrevID))
                         {
-                            var nexts = TryGetStageIndexexByGuid(guidNext);
+                            var nexts = TryGetStagesIndexesByGuid(guidNext);
                             if (nexts != null)
                             {
                                 //var minNext = nexts.Min(x => x.Key);
@@ -236,7 +236,7 @@ namespace ApsRT.Core.Stages.MasterData
 
                 if (!thisYes && nextYes)
                 {
-                    var list = TryGetStageIndexexByGuid(guidNext);
+                    var list = TryGetStagesIndexesByGuid(guidNext);
                     if (list != null)
                     {
                         foreach (var el in list)
@@ -309,8 +309,12 @@ namespace ApsRT.Core.Stages.MasterData
                 if (versions.Count == 1) continue;
 
                 var array = versions.OrderBy(x => x.Key).ToArray();
+
+                // Вставляем здесь сортировку в зависимости от версий этапов
+
                 for (int i = 0; i < array.Length - 1; i++)
                 {
+
                     var curr = AllStages[array[i].Value];
                     var next = AllStages[array[i + 1].Value];
 
@@ -359,6 +363,65 @@ namespace ApsRT.Core.Stages.MasterData
                     var curr = AllStages[array[i].Value];
                     curr.EndTara = Uco.EmptyObject;
                 }
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    var curr = AllStages[array[i].Value];
+                    curr.FinalStageVersion = i;
+                }
+            }
+        }
+
+        public void EnsureVersionedStagesProperCount()
+        {
+            foreach (var stage in GuidsAndVersions)
+            {
+                var versions = stage.Value;
+                if (versions.Count == 1) continue;
+
+                var array = versions.OrderBy(x => AllStages[x.Value].FinalStageVersion).ToArray();
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    var curr = AllStages[array[i].Value];
+
+                    if (curr.EdIzmClassificator.Label == UniversalPack.DimensionUnit.kg || true)
+                    {
+                        // Материалы суммируем, все.
+                        var neededCountHere = curr.StageMaterialsInfo.UsedMaterials.Where(x => !x.IsBuying).Sum(x => x.Count);
+
+                        if (neededCountHere == 0)
+                        {
+                            // ОШИБКА!!! Так быть НЕ ДОЛЖНО!
+                            break;
+                        }
+
+                        // Назначаем текущее количество
+                        curr.OriginalCount = neededCountHere;
+
+                        if (i > 0)
+                        {
+                            // Если это не первый повив, то возьмем ещё и из предыдущего
+                            curr.OriginalCount += AllStages[array[i - 1].Value].OriginalCount;
+                        }
+
+                        // Исправляем из-за этой хрени длительности и количество мест
+
+                        curr.SetPlacesCount(curr.OriginalPlacesCount);
+
+                        if (curr.DurationNorm == 0)
+                        {
+                            // Инфы нет! Придётся делать по другому
+                            curr.SetStaticDuration(null, curr.OriginalCount);
+                        }
+                        else
+                        {
+                            // Умножаем ДО количества мест, потому что нужно время ЭТАПА, а не одной КАТУШКИ.
+                            curr.SetStaticDuration(curr.DurationNorm, curr.OriginalCount);
+                        }
+                    }
+                }
+
             }
         }
 
@@ -394,7 +457,7 @@ namespace ApsRT.Core.Stages.MasterData
             #endregion
 
             #region Проверка на дубликат
-            var allVersions = TryGetStageIndexexByGuid(stage.GUID);
+            var allVersions = TryGetStagesIndexesByGuid(stage.GUID);
             if (allVersions != null && allVersions.TryGetValue(stage.StageVersion, out int existingIndex))
             {
                 SessionLink.AssignedLogger.LogQueue.Enqueue($"{stage.GUID} ({stage.StageVersion}) уже есть в списке этапов и имеет индекс {existingIndex}!\r\n");

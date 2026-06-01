@@ -80,6 +80,14 @@ namespace ApsRT.Core.Stages
 
         public int StageVersion => ID.Version;
 
+        /// <summary>
+        /// Вид операции
+        /// </summary>
+        [DataRecordColumn("ВерсияСледующегоЭтапа")]
+        public int NextStageVersion { get; set; }
+
+        public int FinalStageVersion = 0;
+
         #endregion
 
         #region Номенклатурные данные

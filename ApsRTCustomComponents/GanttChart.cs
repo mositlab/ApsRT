@@ -273,12 +273,13 @@ namespace ApsRTCustomComponents
         public class RowTitle
         {
             public TextInfo[] Texts;
-            public Uco CenterID;//DoubleID
+            public Uco CenterID, SubID;//DoubleID
 
-            public RowTitle(TextInfo[] texts, Uco centerID)
+            public RowTitle(TextInfo[] texts, Uco centerID, Uco subID)
             {
                 Texts = texts;
                 CenterID = centerID;
+                SubID = subID;
             }
         }
 

@@ -1416,7 +1416,8 @@ namespace ApsRTCustomComponents
                 {
                     textRows.Add(new GanttChart.RowTitle(new GanttChart.TextInfo[]
                     {
-                            new GanttChart.TextInfo($"[{CentersData[id].RowIndex}] {id}", new Point(12, 0)),
+                            new GanttChart.TextInfo($"[{CentersData[id].RowIndex}] {id.Label}", new Point(12, 0)),
+                            new GanttChart.TextInfo($"{CentersData[id].Subdivision.Label}", new Point(82, 17)),
                             new GanttChart.TextInfo($"R: {el.Value[PoolIndex].RechangesTime}", new Point(2, 17), smallFont, Color.Red),
                             new GanttChart.TextInfo("", new Point(125, 17), smallFont, Color.Red),
                             new GanttChart.TextInfo($"P: {el.Value[PoolIndex].ProstoiTime}", new Point(2, 29), smallFont, Color.DarkViolet),
@@ -1424,7 +1425,7 @@ namespace ApsRTCustomComponents
                             new GanttChart.TextInfo($"T: {el.Value[PoolIndex].TotalTime}", new Point(2, 42), smallFont, Color.RoyalBlue),
                             new GanttChart.TextInfo("", new Point(125, 42), smallFont, Color.RoyalBlue)
                         //new GanttChart.TextInfo((gg+1).ToString(), new Point(2, 0), smallFont, Color.Black)
-                    }, id));
+                    }, id, CentersData[id].Subdivision));
                     GlobalToLocalCenterRows.Add(id, currRow);
                     currRow++;
                 }
