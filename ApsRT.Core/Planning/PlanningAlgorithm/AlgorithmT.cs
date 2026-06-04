@@ -98,7 +98,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             var onlyBig = worstRCsByOpers
                 //.TakeWhile(item =>  || RCData[item].RottingTime > 0)
                 .Where(item =>
-                (RCData[item].Rechanges.Ticks > 0 && Math.Round(RCData[item].OpersTime / worstRCByOpers, 3) >= 0.4f)
+                (RCData[item].Rechanges.Ticks >= 0 && Math.Round(RCData[item].OpersTime / worstRCByOpers, 3) >= 0.0f)
                 || RCData[item].RottingTime > 0);
 
             Console.WriteLine($"T: decided to check these RC:");
@@ -310,7 +310,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 else
                 {
                     var first = possibleBlocksFinal[0];
-                    if (first.HisValue <= 0 && first.RotDelta == 0)
+                    if (first.HisValue < 0 && first.RotDelta == 0)
                     {
                         value -= 1;
                         OpersCopy.Insert(blockIndex, D); // В оригинале тоже вносим такие изменения
