@@ -538,8 +538,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                     dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                     dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
                                     ;
-
-                                dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
+                                if (LogErrorsBySettings && options.LogSomeErrors)
+                                    dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                                 foundOtdTara = new();
                             }
                         }
@@ -646,8 +646,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                 dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
                                 ;
-
-                            dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
+                            if (LogErrorsBySettings && options.LogSomeErrors)
+                                dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                             foundOtdTara = new();
                         }
                     }

@@ -171,7 +171,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         return false;
                     }
 
-                    if (hasAnyNeedsToBeFirst)
+                    if (hasAnyNeedsToBeFirst || true)
                     {
                         TimeSpan PossibleDeadlineOffset = TimeSpan.FromHours(SessionLink.SettingsController.CurrentSettings.PossibleDeadlineOffsetInHours);
 
@@ -199,9 +199,16 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         });
 
                         // Обновляем блоки.
-                        foreach (var block in blocksToFilter)
+                        foreach (var block in OpersCopyForSecondPool)
                         {
                             block.NeedsToBeFirst = block.Lists[0].StagesAsNormal.Any(s => ordersStillNeeded.TryGetValue(s.OrderLink.OrderID, out var needed) ? needed : false);
+
+
+                            var blockFromPrevPlan = UsedPool.StagesLinks[block.Lists[0].FirstOperJust.Index].ModLink.BlockLink;
+
+                            var start = blockFromPrevPlan.Lists[0].DateOfStart[0];
+
+                            block.SumTimeToPrevs = blockFromPrevPlan.Lists[0].PrevMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].PrevMods.Max(x => (start -x.DateOfEnd[0]).TotalSeconds));
                         }
 
                         // Тут надо сделать копию так, чтобы параллельки и прочее исчезло. А как это сделать, если UsedPool уже изменен эркой?

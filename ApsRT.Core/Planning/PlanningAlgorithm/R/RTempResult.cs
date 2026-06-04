@@ -31,7 +31,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         public bool NeedsToBeFirst;
 
-        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst, TimeSpan? deltaFromPrevResult)
+        public TimeSpan SumTimeFromPrevs;
+
+        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst, TimeSpan? deltaFromPrevResult, TimeSpan sumTimeFromPrevs)
         {
             Rechanges = rechanges;
             DeltaFromStart = deltaFromStart;
@@ -52,6 +54,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             // По предложению 
             if (deltaFromPrevResult.HasValue) DeltaFromPrevResult = (int)deltaFromPrevResult.Value.TotalDays;
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
+
+            SumTimeFromPrevs = sumTimeFromPrevs;
         }
 
         public bool IsBetterThanOther(RTempResult otherResult, bool NoSteps)
@@ -123,6 +127,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             if (Rechanges < otherResult.Rechanges) return true;
             if (Rechanges > otherResult.Rechanges) return false;
+
+            if (SumTimeFromPrevs > otherResult.SumTimeFromPrevs) return true;
+            if (SumTimeFromPrevs < otherResult.SumTimeFromPrevs) return false;
 
             if (DeltaFromDeadline < otherResult.DeltaFromDeadline) return true;
             if (DeltaFromDeadline > otherResult.DeltaFromDeadline) return false;

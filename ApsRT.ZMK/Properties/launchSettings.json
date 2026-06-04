@@ -2,7 +2,7 @@
   "profiles": {
     "ApsRT.ZMK": {
       "commandName": "Project",
-      "commandLineArgs": "guid:2",
+      "commandLineArgs": "guid:4",
       "hotReloadEnabled": true
     }
   }

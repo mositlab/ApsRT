@@ -601,6 +601,7 @@ namespace ApsRT.Core.PlanSimulator
                 }
                 //opersCopy.Add(block); // Добавляем блок, у которого за основу взяты параметры
                 block.NeedsToBeFirst = Blocks[i].NeedsToBeFirst;
+                block.SumTimeToPrevs = Blocks[i].SumTimeToPrevs;
                 opersCopy[i] = block;
             });
             while (!res0.IsCompleted)

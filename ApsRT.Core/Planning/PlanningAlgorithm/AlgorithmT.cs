@@ -128,7 +128,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 var rechanges = LastResult.RechangesBeforeFirstStages
                     .Where(item =>
                     {
-                        if (item.Value.RechangeItself == null || item.Value.RechangeItself.Duration == 0) return false;
+                        if (item.Value.RechangeItself == null/* || item.Value.RechangeItself.Duration == 0*/) return false;
                         var center = poolCopy.StagesLinks[item.Key].ModLink.BlockLink.GetCenterData(INDEX).Center;
                         return onlyBig.Contains(center);
                     })
@@ -145,7 +145,12 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     })
                     .ThenByDescending(x =>
                     {
-                        return x.Value.RechangeItself.Duration;
+                        var prosF = LastResult.ProstoiBeforeFirstStages.TryGetValue(x.Key, out var pros) ? pros.Interval.Duration.TotalSeconds : 0;
+                        if (prosF > 0)
+                        {
+                            ;
+                        }
+                        return Math.Max(x.Value.RechangeItself.Duration, prosF);
                     })
                     .ToArray();
                 if (rechanges.Length == 0) break;
@@ -436,6 +441,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             (localResult.TaraCriticalUsage < LastResult.TaraCriticalUsage) // Сначала прочекаем гниль
                             || // Если не удалось, посмотрим хотя бы на переналадки
                             (localResult.TaraCriticalUsage == LastResult.TaraCriticalUsage && localResult.RechangesSecondsWithoutLunches < LastResult.RechangesSecondsWithoutLunches)
+                            ||
+                            (localResult.TaraCriticalUsage == LastResult.TaraCriticalUsage && localResult.RechangesSecondsWithoutLunches == LastResult.RechangesSecondsWithoutLunches && localResult.ProstoiSeconds < LastResult.ProstoiSeconds)
                             )
                             && localResult.ProductionSeconds <= worstPossiblePlanLength
                             && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount)

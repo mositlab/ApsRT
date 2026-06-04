@@ -29,6 +29,8 @@ namespace ApsRT.Core.PlanSimulator
 
         #region Динамические поля
         public bool NeedsToBeFirst;
+
+        public TimeSpan SumTimeToPrevs;
         #endregion
 
         public (Uco Center, PlanSimulatorCenterData CenterDataLink, CenterBaseModel CenterModelDataLink) GetCenterData(int PoolIndex)

@@ -565,7 +565,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                         {
                             PrevsInfo = resultToFill.IDToTara,
                             EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
-                         RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                            LogSomeErrors = false,
+                            RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                         })
                             &&
                             Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out got, new SumIsPossibleOptions(withLog)
@@ -1231,7 +1232,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     if (firstPartia.OpersHere.Count - 1 < CurrentLevel || secondPartia.OpersHere.Count - 1 < CurrentLevel || !AbleToMergeLevel(firstPartia.OpersHere[CurrentLevel], secondPartia.OpersHere[CurrentLevel], CurrentLevel, CurrentLevel == 0, data, finalResult))
                     {
                         if (CurrentLevel == 0) firstLevelBad = true;//merged = 0; // Если я даже на первом уровне не смог объединить что-то, то считаю, что вообще ничего не смог
-                        if (maxLevelZadels <= firstPartia.OpersHere[CurrentLevel][0].Opers[0].Level) isMerging = false;
+                        if (CurrentLevel < firstPartia.OpersHere.Count && maxLevelZadels <= firstPartia.OpersHere[CurrentLevel][0].Opers[0].Level) isMerging = false;
                         //if (CurrentLevel == 0) break; // если даже на первом уровне не смог, то вообще ничего не позволяем ему соединить, а сразу обрываем цикл
                     }
                     else

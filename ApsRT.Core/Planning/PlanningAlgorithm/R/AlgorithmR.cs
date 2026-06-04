@@ -1118,7 +1118,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     if (timeTransfer < 0) timeTransfer = 0;
 
                     RTempResult localResult = new RTempResult(TimeSpan.Zero /*переналадки уже уплочены*/, dateOfEnd - basisLink.StartOfPlanningDate, TimeSpan.FromSeconds(parrBlockVariant.crit1), minDeadline - dateOfEnd/*parrBlockVariant.crit1*/, mod.WorstOrderPriority, IsFromSameOrder, mod.FirstOperJust.Level, localResult0, 0, mod.Count, timeTransfer/*, mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == currentTara*/, true, parrBlockVariant.prostoi,
-                        mod.BlockLink.NeedsToBeFirst, mod.FirstOperJust.PrevDateTime.HasValue ? (parrBlockVariant.block.Lists[0].DateOfStart[0] - mod.FirstOperJust.PrevDateTime) : null);
+                        mod.BlockLink.NeedsToBeFirst, mod.FirstOperJust.PrevDateTime.HasValue ? (parrBlockVariant.block.Lists[0].DateOfStart[0] - mod.FirstOperJust.PrevDateTime) : null, mod.BlockLink.SumTimeToPrevs);
 
                     lock (locker)
                     {
@@ -1383,7 +1383,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                         errors, mod.Count, localResultData.timeTransferLeft,
                         false, localResultData.prostoi,
                         mod.BlockLink.NeedsToBeFirst,
-                        mod.FirstOperJust.PrevDateTime.HasValue ? ((startDate + localResultData.prostoi + localResultData.Rechanges) - mod.FirstOperJust.PrevDateTime) : null
+                        mod.FirstOperJust.PrevDateTime.HasValue ? ((startDate + localResultData.prostoi + localResultData.Rechanges) - mod.FirstOperJust.PrevDateTime) : null,
+                        mod.BlockLink.SumTimeToPrevs
                         //mod.BlockLink.PoolLink.RecommendedTara.TryGetValue(mod, out var recTara) && recTara == (ForceThisTara ? currentTara : tara)
                         );
 

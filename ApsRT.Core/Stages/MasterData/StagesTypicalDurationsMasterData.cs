@@ -26,6 +26,8 @@ namespace ApsRT.Core.Stages.MasterData
 
         public void PostProcess()
         {
+            if (!AnyDurations) return;
+
             foreach (var rcs in TypicalDurations)
             {
                 foreach (var nomens in rcs.Value)
