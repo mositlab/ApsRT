@@ -1546,6 +1546,7 @@ namespace ApsRTCustomComponents
                             $"\r\nРЦ: {blockRC}" +
                             $"\r\nРанг: {currentRank}" +
                             $"\r\nИндекс блока: {currMod.BlockLink.BlockIndex[PoolIndex]}" +
+                            $"\r\nDyn: {currMod.BlockLink.NeedsToBeFirst}; {currMod.BlockLink.SumTimeToPrevs}; {currMod.BlockLink.ProstoiOnNextStages}" +
                             (operLoc.PrevDateTime.HasValue ? $"\r\nПред. время: {operLoc.PrevDateTime.Value} + {(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)} = {operLoc.PrevDateTime.Value.Add(MIN_DATE_TIME_AFTER_FIX - prevTimeDelta.Value)}" : "") +
                             $"\r\nGUID партии: {operLoc.GetOrderOrPartiaCode()}" +
                             $"\r\nНоменклатура: {operLoc.Nomenklature}" +

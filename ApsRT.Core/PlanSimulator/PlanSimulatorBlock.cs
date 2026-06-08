@@ -31,6 +31,7 @@ namespace ApsRT.Core.PlanSimulator
         public bool NeedsToBeFirst;
 
         public TimeSpan SumTimeToPrevs;
+        public TimeSpan ProstoiOnNextStages;
         #endregion
 
         public (Uco Center, PlanSimulatorCenterData CenterDataLink, CenterBaseModel CenterModelDataLink) GetCenterData(int PoolIndex)

@@ -208,7 +208,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                             var start = blockFromPrevPlan.Lists[0].DateOfStart[0];
 
-                            block.SumTimeToPrevs = blockFromPrevPlan.Lists[0].PrevMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].PrevMods.Max(x => (start -x.DateOfEnd[0]).TotalSeconds));
+                            block.SumTimeToPrevs = blockFromPrevPlan.Lists[0].PrevMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].PrevMods.Sum(x => (start -x.DateOfEnd[0]).TotalSeconds));
+
+                            block.ProstoiOnNextStages = blockFromPrevPlan.Lists[0].NextMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].NextMods.Sum(nextMod => UsedWorkflow.BestValue.ProstoiBeforeFirstStages.TryGetValue(nextMod.FirstOperJust.Index, out var pros) ? pros.Interval.Duration.TotalSeconds : 0));
                         }
 
                         // Тут надо сделать копию так, чтобы параллельки и прочее исчезло. А как это сделать, если UsedPool уже изменен эркой?
@@ -247,6 +249,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     }
                 }
 
+                var chron = CheckChronology(UsedPool.Blocks, out _, out _);
+
+                Console.WriteLine("after T, chron: " + chron);
+
                 NaladLengthsFixer();
                 if (WannaStop)
                 {
@@ -255,6 +261,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     return false;
                 }
 
+                chron = CheckChronology(UsedPool.Blocks, out _, out _);
+                Console.WriteLine("after nlf, chron: " + chron);
 
 
                 if (SessionLink.SettingsController.CurrentSettings.UseG)
@@ -691,6 +699,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             FoundSmth = true;
             FoundGlobal = true;
             OnNewResult?.Invoke(t);
+            UsedWorkflow.BestValue = t;
         }
 
         #region Наладочные длины

@@ -32,8 +32,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
         public bool NeedsToBeFirst;
 
         public TimeSpan SumTimeFromPrevs;
+        public TimeSpan ProstoiOnNextStages;
 
-        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst, TimeSpan? deltaFromPrevResult, TimeSpan sumTimeFromPrevs)
+        public RTempResult(TimeSpan rechanges, TimeSpan deltaFromStart, TimeSpan deltaFromStartNoOp, TimeSpan deltaFromDeadline/*, TimeSpan deltaFromDeadlineHeuristic*/, int OrderPriority, bool isFromSameOrder, int level, float totalCost, int errorsCount, double operCount, int transferTime, bool itsParr, TimeSpan prostoi, bool needsToBeFirst, TimeSpan? deltaFromPrevResult, TimeSpan sumTimeFromPrevs, TimeSpan prostoiOnNextStages)
         {
             Rechanges = rechanges;
             DeltaFromStart = deltaFromStart;
@@ -56,6 +57,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             //DeltaFromDeadlineHeuristic = deltaFromDeadlineHeuristic;
 
             SumTimeFromPrevs = sumTimeFromPrevs;
+            ProstoiOnNextStages = prostoiOnNextStages;
         }
 
         public bool IsBetterThanOther(RTempResult otherResult, bool NoSteps)
@@ -127,6 +129,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
             if (Rechanges < otherResult.Rechanges) return true;
             if (Rechanges > otherResult.Rechanges) return false;
+
+            if (ProstoiOnNextStages > otherResult.ProstoiOnNextStages) return true;
+            if (ProstoiOnNextStages < otherResult.ProstoiOnNextStages) return false;
 
             if (SumTimeFromPrevs > otherResult.SumTimeFromPrevs) return true;
             if (SumTimeFromPrevs < otherResult.SumTimeFromPrevs) return false;

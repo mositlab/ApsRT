@@ -146,10 +146,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                     .ThenByDescending(x =>
                     {
                         var prosF = LastResult.ProstoiBeforeFirstStages.TryGetValue(x.Key, out var pros) ? pros.Interval.Duration.TotalSeconds : 0;
-                        if (prosF > 0)
-                        {
-                            ;
-                        }
+                        var block = poolCopy.StagesLinks[x.Key].ModLink.BlockLink;
+                        //block.SumTimeToPrevs.TotalSeconds;
                         return Math.Max(x.Value.RechangeItself.Duration, prosF);
                     })
                     .ToArray();
@@ -351,6 +349,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                         var chron = basisLink.CheckChronology(swallowCopy, out _, out _);
                         if (!chron)
                         {
+                            Console.WriteLine("T: chronology ruined! Let's go back.");
                             ;
                         }
 
@@ -445,7 +444,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                             (localResult.TaraCriticalUsage == LastResult.TaraCriticalUsage && localResult.RechangesSecondsWithoutLunches == LastResult.RechangesSecondsWithoutLunches && localResult.ProstoiSeconds < LastResult.ProstoiSeconds)
                             )
                             && localResult.ProductionSeconds <= worstPossiblePlanLength
-                            && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount)
+                            && localResult.CatchedNaladLengthsErrorsCount <= LastResult.CatchedNaladLengthsErrorsCount
+                            && chron)
                         {
                             ;
                             //LastResult = localResult;
