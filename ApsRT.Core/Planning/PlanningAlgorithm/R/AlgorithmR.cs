@@ -164,7 +164,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 mainBlock.ExistingTaraHere.Add(tara, 0);
             }
 
-            mainBlock.ExistingTaraHere[tara]++;
+            mainBlock.ExistingTaraHere[tara] += firstMod.PlacesCount;
+            mainBlock.ExistingTaraHereCount += firstMod.PlacesCount;
 
             mainBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
 
@@ -498,6 +499,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 Console.WriteLine("R: post checker...");
                 Step4_PostChecker();
+
+                var blocks = basisLink.UsedPool.Blocks.Where(x => x.GetCenterData(0).Center.Label.Contains("НАКАЛ"));
 
                 ;
             }
@@ -1018,9 +1021,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     currentCenter,
                     mod.FirstOperJust.OperationVid,
                     parrID,
-                    mod.BlockLink.Lists.Count, //TODO: у общих этапов их количество может быть больше
+                    block.ExistingTaraHereCount,//block.Lists.Count, //TODO: у общих этапов их количество может быть больше
                     block.ExistingTaraHere,
                     currentTara,//mod.FirstOperJust.CurrentTara,
+                    mod.PlacesCount,
                     out var resultat
                     ) >= 0;
 
@@ -1759,7 +1763,7 @@ List<PlanSimulatorBlock> toCheck;
                     basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, LinearPlan.Count);
                 }
 
-                if (LinearPlan.Count % 500 == 0)
+                if (LinearPlan.Count % 100 == 0)
                 {
                     Console.WriteLine($"R: {iterationIndex}");
                     basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue($"step 1: {iterationIndex} - {LinearPlan.Count} / {OpersCopy.Count} done\r\n");

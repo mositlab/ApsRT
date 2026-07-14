@@ -179,6 +179,9 @@ namespace ApsRTCustomComponents
             SettingsTabPage = new TabPage();
             splitContainer2 = new SplitContainer();
             HoppersPanel = new Panel();
+            BigPlanLoggerCheckBox = new MaterialCheckBox();
+            BigPartLoggerCheckBox = new MaterialCheckBox();
+            label60 = new Label();
             MaxDeadlinesOffsetNumericUpDown = new NumericUpDown();
             groupBox8 = new GroupBox();
             StagesPercentNumericUpDown = new NumericUpDown();
@@ -320,6 +323,9 @@ namespace ApsRTCustomComponents
             PartiasMaxDaysLabel = new Label();
             PartiasMaxDaysNumericUpDown = new NumericUpDown();
             ExpFunctionsPage = new TabPage();
+            findRechangesButton = new Button();
+            textBoxForRechange2 = new TextBox();
+            textBoxForRechange1 = new TextBox();
             button5 = new Button();
             textBox1 = new TextBox();
             label59 = new Label();
@@ -335,9 +341,7 @@ namespace ApsRTCustomComponents
             folderBrowserDialog1 = new FolderBrowserDialog();
             openFileDialog1 = new OpenFileDialog();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            label60 = new Label();
-            BigPartLoggerCheckBox = new MaterialCheckBox();
-            BigPlanLoggerCheckBox = new MaterialCheckBox();
+            textBoxForRechange3 = new TextBox();
             MainTabControl.SuspendLayout();
             MainTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -607,7 +611,7 @@ namespace ApsRTCustomComponents
             label49.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             label49.AutoSize = true;
             label49.Font = new Font("Segoe UI Light", 8F);
-            label49.Location = new Point(959, 393);
+            label49.Location = new Point(959, 391);
             label49.Name = "label49";
             label49.RightToLeft = RightToLeft.No;
             label49.Size = new Size(102, 39);
@@ -620,7 +624,7 @@ namespace ApsRTCustomComponents
             // 
             pictureBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(1099, 390);
+            pictureBox1.Location = new Point(1099, 388);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(64, 64);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -633,7 +637,7 @@ namespace ApsRTCustomComponents
             label48.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label48.AutoSize = true;
             label48.Font = new Font("Segoe UI Light", 10F);
-            label48.Location = new Point(3, 440);
+            label48.Location = new Point(3, 438);
             label48.Name = "label48";
             label48.Size = new Size(93, 19);
             label48.TabIndex = 22;
@@ -2423,6 +2427,47 @@ namespace ApsRTCustomComponents
             HoppersPanel.Name = "HoppersPanel";
             HoppersPanel.Size = new Size(1171, 185);
             HoppersPanel.TabIndex = 25;
+            // 
+            // BigPlanLoggerCheckBox
+            // 
+            BigPlanLoggerCheckBox.BackColor = Color.Black;
+            BigPlanLoggerCheckBox.Depth = 0;
+            BigPlanLoggerCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            BigPlanLoggerCheckBox.ForeColor = Color.CornflowerBlue;
+            BigPlanLoggerCheckBox.Location = new Point(949, 482);
+            BigPlanLoggerCheckBox.Margin = new Padding(0);
+            BigPlanLoggerCheckBox.MouseLocation = new Point(-1, -1);
+            BigPlanLoggerCheckBox.Name = "BigPlanLoggerCheckBox";
+            BigPlanLoggerCheckBox.Ripple = true;
+            BigPlanLoggerCheckBox.Size = new Size(167, 30);
+            BigPlanLoggerCheckBox.TabIndex = 90;
+            BigPlanLoggerCheckBox.Text = "PLAN LOG";
+            BigPlanLoggerCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // BigPartLoggerCheckBox
+            // 
+            BigPartLoggerCheckBox.BackColor = Color.Black;
+            BigPartLoggerCheckBox.Depth = 0;
+            BigPartLoggerCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
+            BigPartLoggerCheckBox.ForeColor = Color.CornflowerBlue;
+            BigPartLoggerCheckBox.Location = new Point(949, 449);
+            BigPartLoggerCheckBox.Margin = new Padding(0);
+            BigPartLoggerCheckBox.MouseLocation = new Point(-1, -1);
+            BigPartLoggerCheckBox.Name = "BigPartLoggerCheckBox";
+            BigPartLoggerCheckBox.Ripple = true;
+            BigPartLoggerCheckBox.Size = new Size(167, 30);
+            BigPartLoggerCheckBox.TabIndex = 89;
+            BigPartLoggerCheckBox.Text = "PART LOG";
+            BigPartLoggerCheckBox.UseVisualStyleBackColor = false;
+            // 
+            // label60
+            // 
+            label60.Font = new Font("Microsoft Sans Serif", 9F);
+            label60.Location = new Point(949, 409);
+            label60.Name = "label60";
+            label60.Size = new Size(107, 36);
+            label60.TabIndex = 88;
+            label60.Text = "Макс. откл. по дедлайнам (ч.):";
             // 
             // MaxDeadlinesOffsetNumericUpDown
             // 
@@ -4423,6 +4468,10 @@ namespace ApsRTCustomComponents
             // 
             // ExpFunctionsPage
             // 
+            ExpFunctionsPage.Controls.Add(textBoxForRechange3);
+            ExpFunctionsPage.Controls.Add(findRechangesButton);
+            ExpFunctionsPage.Controls.Add(textBoxForRechange2);
+            ExpFunctionsPage.Controls.Add(textBoxForRechange1);
             ExpFunctionsPage.Controls.Add(button5);
             ExpFunctionsPage.Controls.Add(textBox1);
             ExpFunctionsPage.Controls.Add(label59);
@@ -4430,12 +4479,44 @@ namespace ApsRTCustomComponents
             ExpFunctionsPage.Controls.Add(button3);
             ExpFunctionsPage.Controls.Add(button2);
             ExpFunctionsPage.Controls.Add(button1);
-            ExpFunctionsPage.Location = new Point(4, 24);
+            ExpFunctionsPage.Location = new Point(4, 25);
             ExpFunctionsPage.Name = "ExpFunctionsPage";
-            ExpFunctionsPage.Size = new Size(1171, 502);
+            ExpFunctionsPage.Size = new Size(1171, 501);
             ExpFunctionsPage.TabIndex = 5;
             ExpFunctionsPage.Text = "Экспериментальные функции";
             ExpFunctionsPage.UseVisualStyleBackColor = true;
+            // 
+            // findRechangesButton
+            // 
+            findRechangesButton.BackColor = Color.CornflowerBlue;
+            findRechangesButton.BackgroundImageLayout = ImageLayout.Zoom;
+            findRechangesButton.Cursor = Cursors.Hand;
+            findRechangesButton.FlatAppearance.BorderSize = 0;
+            findRechangesButton.FlatStyle = FlatStyle.Flat;
+            findRechangesButton.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            findRechangesButton.ForeColor = Color.White;
+            findRechangesButton.Location = new Point(605, 52);
+            findRechangesButton.Name = "findRechangesButton";
+            findRechangesButton.Size = new Size(126, 36);
+            findRechangesButton.TabIndex = 58;
+            findRechangesButton.Text = "Отфильтровать анализ";
+            findRechangesButton.UseCompatibleTextRendering = true;
+            findRechangesButton.UseVisualStyleBackColor = false;
+            findRechangesButton.Click += findRechangesButton_Click;
+            // 
+            // textBoxForRechange2
+            // 
+            textBoxForRechange2.Location = new Point(263, 72);
+            textBoxForRechange2.Name = "textBoxForRechange2";
+            textBoxForRechange2.Size = new Size(336, 23);
+            textBoxForRechange2.TabIndex = 57;
+            // 
+            // textBoxForRechange1
+            // 
+            textBoxForRechange1.Location = new Point(263, 43);
+            textBoxForRechange1.Name = "textBoxForRechange1";
+            textBoxForRechange1.Size = new Size(336, 23);
+            textBoxForRechange1.TabIndex = 56;
             // 
             // button5
             // 
@@ -4610,46 +4691,12 @@ namespace ApsRTCustomComponents
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // label60
+            // textBoxForRechange3
             // 
-            label60.Font = new Font("Microsoft Sans Serif", 9F);
-            label60.Location = new Point(949, 409);
-            label60.Name = "label60";
-            label60.Size = new Size(107, 36);
-            label60.TabIndex = 88;
-            label60.Text = "Макс. откл. по дедлайнам (ч.):";
-            // 
-            // BigPartLoggerCheckBox
-            // 
-            BigPartLoggerCheckBox.BackColor = Color.Black;
-            BigPartLoggerCheckBox.Depth = 0;
-            BigPartLoggerCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            BigPartLoggerCheckBox.ForeColor = Color.CornflowerBlue;
-            BigPartLoggerCheckBox.Location = new Point(949, 449);
-            BigPartLoggerCheckBox.Margin = new Padding(0);
-            BigPartLoggerCheckBox.MouseLocation = new Point(-1, -1);
-            BigPartLoggerCheckBox.Name = "BigPartLoggerCheckBox";
-            BigPartLoggerCheckBox.Ripple = true;
-            BigPartLoggerCheckBox.Size = new Size(167, 30);
-            BigPartLoggerCheckBox.TabIndex = 89;
-            BigPartLoggerCheckBox.Text = "PART LOG";
-            BigPartLoggerCheckBox.UseVisualStyleBackColor = false;
-            // 
-            // BigPlanLoggerCheckBox
-            // 
-            BigPlanLoggerCheckBox.BackColor = Color.Black;
-            BigPlanLoggerCheckBox.Depth = 0;
-            BigPlanLoggerCheckBox.Font = new Font("Microsoft Sans Serif", 10F);
-            BigPlanLoggerCheckBox.ForeColor = Color.CornflowerBlue;
-            BigPlanLoggerCheckBox.Location = new Point(949, 482);
-            BigPlanLoggerCheckBox.Margin = new Padding(0);
-            BigPlanLoggerCheckBox.MouseLocation = new Point(-1, -1);
-            BigPlanLoggerCheckBox.Name = "BigPlanLoggerCheckBox";
-            BigPlanLoggerCheckBox.Ripple = true;
-            BigPlanLoggerCheckBox.Size = new Size(167, 30);
-            BigPlanLoggerCheckBox.TabIndex = 90;
-            BigPlanLoggerCheckBox.Text = "PLAN LOG";
-            BigPlanLoggerCheckBox.UseVisualStyleBackColor = false;
+            textBoxForRechange3.Location = new Point(263, 101);
+            textBoxForRechange3.Name = "textBoxForRechange3";
+            textBoxForRechange3.Size = new Size(336, 23);
+            textBoxForRechange3.TabIndex = 59;
             // 
             // ApsRTMainForm1
             // 
@@ -5158,5 +5205,9 @@ namespace ApsRTCustomComponents
         private Label label60;
         private MaterialCheckBox BigPlanLoggerCheckBox;
         private MaterialCheckBox BigPartLoggerCheckBox;
+        private Button findRechangesButton;
+        private TextBox textBoxForRechange2;
+        private TextBox textBoxForRechange1;
+        private TextBox textBoxForRechange3;
     }
 }

@@ -14,6 +14,8 @@ namespace ApsRT.Core.PlanSimulator
             return $"[{ModID}], opers: [ {string.Join(", ", StagesAsNormal.Select(x => x.Index))} ], block {BlockLink}";
         }
 
+        public int PlacesCount { get; private set; }
+
 
         public PlanSimulatorBlock BlockLink;
 
@@ -185,6 +187,8 @@ namespace ApsRT.Core.PlanSimulator
             {
                 WorstGhostPrevsDate = filter1.Min(x => x.GhostPrevsWorstDate.Value);
             }
+
+            PlacesCount = StagesAsNormal.Max(x => x.PlacesCount);
 
             //void classic()
             //{

@@ -2151,5 +2151,42 @@ namespace ApsRTCustomComponents
             sw.Close();
             reader.Close();
         }
+
+        private void findRechangesButton_Click(object sender, EventArgs e)
+        {
+            var stage1Text = textBoxForRechange1.Text;
+            var stage2Text = textBoxForRechange2.Text;
+            var arr1 = stage1Text.Split(',');
+            var arr2 = stage2Text.Split(',');
+
+            var guid1 = Guid.Parse(arr1[0].Trim());
+            var guid2 = Guid.Parse(arr2[0].Trim());
+
+            var stageN1 = arr1.Length > 1 ? int.Parse(arr1[1].Trim()) : 1;
+            var stageN2 = arr2.Length > 1 ? int.Parse(arr2[1].Trim()) : 1;
+
+            var stage1Index = sessionLink.MasterDataLinks.StagesMasterData.TryGetStageIndexByGuid(guid1, stageN1);
+            var stage2Index = sessionLink.MasterDataLinks.StagesMasterData.TryGetStageIndexByGuid(guid2, stageN2);
+
+            var stage1 = sessionLink.MasterDataLinks.StagesMasterData.AllStages[stage1Index];
+            var stage2 = sessionLink.MasterDataLinks.StagesMasterData.AllStages[stage2Index];
+
+            var centerText = textBoxForRechange3.Text;
+
+            var centerArr = centerText.Split(';');
+
+            var centerCode = Guid.Parse(centerArr[0].Trim());
+            var centerLabel = centerArr.Length > 1 ? centerArr[1].Trim() : "";
+
+            Uco center = new Uco(centerCode, centerLabel);
+
+            var centerData = PlanSimulatorEngine.FillCenterWithSomeData(null, center, DateTime.Now);
+
+            RechangesEngineData data = new RechangesEngineData(centerData, null, stage1, stage2, center);
+
+            var rechanges = sessionLink.MasterDataLinks.RechangesMasterData.FindRechanges(data);
+
+            ;
+        }
     }
 }

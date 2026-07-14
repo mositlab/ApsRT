@@ -119,16 +119,18 @@ namespace ApsRT.Core.PlanSimulator
             //UpdatePossibleRCsHere();
             if (CreateTara)
             {
-                var tmp1 = lists.Select(x => x.FirstOperJust.CurrentTara).Where(x => !x.IsEmpty);//.GroupBy(x => x);
+                var tmp1 = lists.Select(x => (x.FirstOperJust.CurrentTara, x.PlacesCount)).Where(x => !x.CurrentTara.IsEmpty);//.GroupBy(x => x);
                 ExistingTaraHere = new();
+                ExistingTaraHereCount = 0;
                 foreach (var el in tmp1)
                 {
-                    if (!ExistingTaraHere.ContainsKey(el))
+                    if (!ExistingTaraHere.ContainsKey(el.CurrentTara))
                     {
-                        ExistingTaraHere.Add(el, 0);
+                        ExistingTaraHere.Add(el.CurrentTara, 0);
                     }
 
-                    ExistingTaraHere[el]++;
+                    ExistingTaraHere[el.CurrentTara] += el.PlacesCount;
+                    ExistingTaraHereCount += el.PlacesCount;
                 }
             }
         }
@@ -137,6 +139,8 @@ namespace ApsRT.Core.PlanSimulator
         /// Какие тут тары и в каком количестве есть.
         /// </summary>
         public Dictionary<Uco, int> ExistingTaraHere = new();
+
+        public int ExistingTaraHereCount = 0;
 
         /// <summary>
         /// Насколько заполнен блок. От 0 до 1.

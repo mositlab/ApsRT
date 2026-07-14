@@ -210,7 +210,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                             block.SumTimeToPrevs = blockFromPrevPlan.Lists[0].PrevMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].PrevMods.Sum(x => (start -x.DateOfEnd[0]).TotalSeconds));
 
-                            block.ProstoiOnNextStages = blockFromPrevPlan.Lists[0].NextMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].NextMods.Sum(nextMod => UsedWorkflow.BestValue.ProstoiBeforeFirstStages.TryGetValue(nextMod.FirstOperJust.Index, out var pros) ? pros.Interval.Duration.TotalSeconds : 0));
+                            if (UsedWorkflow.BestValue.ProstoiBeforeFirstStages != null) block.ProstoiOnNextStages = blockFromPrevPlan.Lists[0].NextMods.Count == 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(blockFromPrevPlan.Lists[0].NextMods.Sum(nextMod => UsedWorkflow.BestValue.ProstoiBeforeFirstStages.TryGetValue(nextMod.FirstOperJust.Index, out var pros) ? pros.Interval.Duration.TotalSeconds : 0));
                         }
 
                         // Тут надо сделать копию так, чтобы параллельки и прочее исчезло. А как это сделать, если UsedPool уже изменен эркой?

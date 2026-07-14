@@ -505,7 +505,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                 basisLink.AlgorithmCallback?.Invoke(basisLink.CurrentStage, noResultIters);
 
-                if (noResultIters >= 1000 || forcedToReminimize > 100)
+                if (noResultIters >= 800 || forcedToReminimize > 100)
                 {
                     break;
                 }

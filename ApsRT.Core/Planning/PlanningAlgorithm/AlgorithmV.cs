@@ -393,9 +393,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                                 choosencent,
                                 OpersCopy[j].Lists[0].FirstOperJust.OperationVid,
                                 parID,
-                                OpersCopy[j].Lists.Count, //TODO: у общих этапов их количество может быть больше
+                                lastBlock.ExistingTaraHereCount,//OpersCopy[j].Lists.Count, //TODO: у общих этапов их количество может быть больше
                                 lastBlock.ExistingTaraHere,
                                 tara.choosenTara,
+                                OpersCopy[j].Lists[0].PlacesCount,
                                 out var resultat
                                 );
                             if (result == -1)
@@ -638,6 +639,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
                 }
 
                 lastBlock.ExistingTaraHere[tara.tara]++;
+                lastBlock.ExistingTaraHereCount += firstMod.PlacesCount;
 
                 lastBlock.UpdatePossibleRCsHere(); // Обновляем инфу по центрам
             }

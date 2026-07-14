@@ -214,6 +214,7 @@ namespace ApsRT.Core.Planning.ParallelPlanning
             int myTotalCount,
             Dictionary<Uco, int> TaraIn,
             Uco OneMoreTaraIn,
+            int oneMoreTaraInCount,
             out Dictionary<Uco, int> TaraOut)
         {
             TaraOut = null;
@@ -321,7 +322,7 @@ namespace ApsRT.Core.Planning.ParallelPlanning
                                 {
                                     if (tableElement.Value.MaxCapacity > 0)
                                     {
-                                        maxCountHere--;
+                                        maxCountHere -= oneMoreTaraInCount;
                                         if (maxCountHere < 0)
                                         {
                                             // Вылезла за пределы. Уходим.
@@ -331,7 +332,7 @@ namespace ApsRT.Core.Planning.ParallelPlanning
                                     }
                                     else
                                     {
-                                        goodResult[OneMoreTaraIn]--;
+                                        goodResult[OneMoreTaraIn] -= oneMoreTaraInCount;
                                         if (goodResult[OneMoreTaraIn] < 0)
                                         {
                                             // Вылезла за пределы. Уходим.
@@ -340,7 +341,7 @@ namespace ApsRT.Core.Planning.ParallelPlanning
                                         }
                                         else
                                         {
-                                            maxCountHere--;
+                                            maxCountHere -= oneMoreTaraInCount;
                                             if (maxCountHere < 0)
                                             {
                                                 // Вылезла за пределы. Уходим.

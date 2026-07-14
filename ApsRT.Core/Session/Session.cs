@@ -248,6 +248,7 @@ namespace ApsRT.Core.Session
             Task.Run(AssignedLogger.LogThread);
             var process = Process.GetCurrentProcess();
             AssignedLogger.LogQueue.Enqueue($"process ID: {process.Id} [session ID {process.SessionId}]\r\n");
+            AssignedLogger.LogQueue.Enqueue($"start at: {DateTime.Now}\r\n");
             AssignedLogger.LogQueue.Enqueue($"flags: silent {SessionOptions.IsSilent}, part {SessionOptions.LaunchPartia}, plan {SessionOptions.LaunchPlan}, zadel {SessionOptions.LaunchZadel}\r\n");
 
             // Загружаем настройки

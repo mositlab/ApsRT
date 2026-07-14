@@ -596,6 +596,7 @@ namespace ApsRT.Core.PlanSimulator
                 if (!WithTara)
                 {
                     block.ExistingTaraHere = Blocks[i].ExistingTaraHere;
+                    block.ExistingTaraHereCount = Blocks[i].ExistingTaraHereCount;
                     block.HowMuchPlaceHere = Blocks[i].HowMuchPlaceHere;
                     block.FillKoeff = Blocks[i].FillKoeff;
                 }

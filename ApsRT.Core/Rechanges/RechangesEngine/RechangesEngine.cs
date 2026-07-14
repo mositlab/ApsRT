@@ -405,7 +405,8 @@ namespace ApsRT.Core.Rechanges.RechangesEngine
                     // Они отличаются?
                     bool isEqual = val1.Equals(val2);
 
-                    if (isEqual)
+                    //if (isEqual)
+                    if (true) // Проверяем "ЛЮБОЙ" - в любом случае
                     {
                         // Если НЕ отличаются, то мы юзаем "любой"
 
@@ -422,7 +423,9 @@ namespace ApsRT.Core.Rechanges.RechangesEngine
                         // С любого на любой
                         if (mainStorage.FromAnythingToAnything != null) MethodToWrite(result, mainStorage.FromAnythingToAnything, engineData, CriteriaIndex);
                     }
-                    else
+
+                    //else
+                    if (!isEqual)
                     {
                         // Если отличаются, то нужно юзать "любой другой"
 

@@ -228,7 +228,7 @@ namespace ApsRT.Core.Rechanges.MasterData
 
         #region Поиск переналадок
 
-        internal RechangesEngineResult FindRechanges(RechangesEngineData engineData)
+        public RechangesEngineResult FindRechanges(RechangesEngineData engineData)
         {
             if (RechangesCashe.TryGetValue(engineData.ActualRC, out var lvl10) &&
                 lvl10.TryGetValue(engineData.ObjectA.Index, out var lvl20) &&

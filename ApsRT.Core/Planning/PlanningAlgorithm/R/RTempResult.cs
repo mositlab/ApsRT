@@ -73,8 +73,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             if (TransferTime < otherResult.TransferTime) return true;
             if (TransferTime > otherResult.TransferTime) return false;
 
-            //if (ItsParr && !otherResult.ItsParr) return true;
-            //if (!ItsParr && otherResult.ItsParr) return false;
+            if (ItsParr && !otherResult.ItsParr) return true;
+            if (!ItsParr && otherResult.ItsParr) return false;
 
             if (NoSteps) return DeltaFromStart < otherResult.DeltaFromStart;
 

@@ -22,6 +22,7 @@ namespace ApsRT.Core.Session
         {
             StreamWriter exitLogSW = new StreamWriter(logPath + session.SessionOutputEngine.ExitLogFile, false, Encoding.UTF8);
             exitLogSW.WriteLine($"exit code: {exitCode}");
+            exitLogSW.WriteLine($"end at: {DateTime.Now}");
 
             try
             {
