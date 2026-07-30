@@ -9,6 +9,7 @@ using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.RechangesEngine;
 using Azure;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
@@ -520,6 +521,8 @@ namespace ApsRT.Core.Session
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
 
+            bool OutputMods = false;
+
             SessionLink.SessionOptions.GetPreparedOutputPath(out var outputPath);
 
             StreamWriter fullOutput = null;
@@ -537,7 +540,7 @@ namespace ApsRT.Core.Session
             }
 
 
-            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске");
+            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске" + (OutputMods ? "; GUIDОбъединения;ДлинаОбъединения;СледДлинаОбъединения;GUIDОбщегоЭтапа;ДлинаОбщегоЭтапа;СледДлинаОбщегоЭтапа" : ""));
             fullOutput?.WriteLine($"N;Регистратор;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
 
             var DLitt = 1;
@@ -555,7 +558,7 @@ namespace ApsRT.Core.Session
                     {
                         var op = list.Stages[j];
                         var mod = op.Stage.CurrentModelling;//IsCustomModelling ? op.Stage.CustomModelling : op.Stage.MesModelling.Code;
-                        var modNalads = mod == Guid.Empty ? op.NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
+                        //var modNalads = mod == Guid.Empty ? op.NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
                         if (wasLastFlag && mod != lastEasyFlag)
                         {
                             firstMod = false; // это уже другой мод
@@ -567,6 +570,7 @@ namespace ApsRT.Core.Session
                             wasLastFlag = true;
                         }
                         var lengths = op.NaladLengthData[PoolIndex];
+                        var MODlengths = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData[op.Stage.CurrentModelling].NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
                         var OP1 = op.Stage;
                         for (int place = 1; place <= OP1.PlacesCount; place++)
                         {
@@ -577,7 +581,8 @@ namespace ApsRT.Core.Session
                         //$"{OP1.StageVersion};" +
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
-                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
+                                    (OutputMods ? $";{op.Stage.CurrentModelling};{MODlengths.Data.NaladLengthHere.Value};{MODlengths.Data.NaladLengthNexts.Value};{OP1.EasyFlag ?? Guid.Empty};{lengths.Data.NaladLengthHere.Value};{lengths.Data.NaladLengthNexts.Value}" : ""));
                                 DLitt++;
 
                             }
@@ -593,12 +598,12 @@ namespace ApsRT.Core.Session
                                     $";{OP1.IsVspom};{lengths.Data.prevKoeff};{OP1.Count};{list.FirstOperJust.EdIzmClassificator};" +
                                     $"{list.ModID};" +
                                     $"{list.Count};" +
-                                    $"{modNalads.Data.NaladLengthHere};" +
-                                    $"{modNalads.Data.NaladLengthNexts};" +
-                                    $"{modNalads.Data.prevKoeff};" +
+                                    $"{MODlengths.Data.NaladLengthHere};" +
+                                    $"{MODlengths.Data.NaladLengthNexts};" +
+                                    $"{MODlengths.Data.prevKoeff};" +
                                     $"{OP1.CurrentTara};" +
                                     $"{OP1.CurrentTaraMaxCapacity};" +
-                                    $"{(OP1.IsVspom || OP1.NoChangeTara || !OP1.EndTara.IsEmpty ? "" : (OP1.CurrentTaraMaxCapacity >= modNalads.Data.NaladLengthHere.Value + list.Count))};" +
+                                    $"{(OP1.IsVspom || OP1.NoChangeTara || !OP1.EndTara.IsEmpty ? "" : (OP1.CurrentTaraMaxCapacity >= MODlengths.Data.NaladLengthHere.Value + list.Count))};" +
                                     $"{(OP1.NeededNaladLength.HasValue ? OP1.NeededNaladLength.Value.Length.Value.ToString() : "Нет")}"/*;{CatchedErrors != null && CatchedErrors.ContainsKey(list.ModID)}*/);
                                 Dbig++;
                             }
@@ -1164,7 +1169,8 @@ namespace ApsRT.Core.Session
                         sw.WriteLine($"{zadel.Key};{zadel.Value.UsedTara.Label};{zadel.Value.UsedTara.Code};" +
                             $"{zadel.Value.SeriaCode};" +
                             $"{zadel.Value.WhereCanUsed.First().Key.Object.Code};" +
-                            $"{etap.Key};" +
+                            $"{etap.Key.Object.Code};" +
+                            $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{etap.Key.Version};" : "")}" +
                             $"{Guid.Empty};{Guid.Empty};0;0;{ZadelToString(zadel.Value.ZadelStatus)}");
                     }
                 }

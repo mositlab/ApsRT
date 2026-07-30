@@ -178,7 +178,7 @@ namespace ApsRT.Core.Partias.Zadels
                                     || zadel.WhereCanUsed.TryGetValue(new UniversalPack.Common.CodedObjectVersioned<Guid, string, int>(opHere.ID.Object, 0), out countToSet))//) // сюда можно сунуть толерантность ещё. 18.06: внезапно выяснилось, что есть право выдать задел, который совершенно не подходит по количеству - и мол может встать, под ответственность юзера.
                                                   // 19.06: если задела вообще не осталось, то операции назначить его не получится.
                                 {
-                                    if (partia1[i][j].ZadelsGUIDs.Count == opHere.PlacesCount)
+                                    if (partia1[i][j].ZadelsGUIDs != null && partia1[i][j].ZadelsGUIDs.Count == opHere.PlacesCount)
                                     {
                                         // Он уже сюда не влезет. Другие заделы использовали
                                         //if (freeZadels && zadel.ZadelStatus == ZadelStatus.CannotBeFound)
@@ -240,13 +240,16 @@ namespace ApsRT.Core.Partias.Zadels
                             sdvigP.ZadelCode = zadelCode;
                             sdvigP.Tara = OriginallyTaraWasThis[prev].Tara; // Возвращаем тару на месту, если там была перезапись
                             sdvigP.Max = OriginallyTaraWasThis[prev].namot; // Возвращаем тару на месту, если там была перезапись
-                            foreach (var zadelGuid in sdvigP.ZadelsGUIDs)
+                            if (sdvigP.ZadelsGUIDs != null)
                             {
-                                //Zadels.LinearZadelsDictionary[zadelGuid].CalcCount = Zadels.LinearZadelsDictionary[zadelGuid].Count; // Очищаем инфу в заделах
-                                LinearZadelsDictionary[zadelGuid].WhereIsUsed.Clear(); // всё стираем
-                                LinearZadelsDictionary[zadelGuid].ZadelStatus = ZadelStatus.HigherZadelUsed;
+                                foreach (var zadelGuid in sdvigP.ZadelsGUIDs)
+                                {
+                                    //Zadels.LinearZadelsDictionary[zadelGuid].CalcCount = Zadels.LinearZadelsDictionary[zadelGuid].Count; // Очищаем инфу в заделах
+                                    LinearZadelsDictionary[zadelGuid].WhereIsUsed.Clear(); // всё стираем
+                                    LinearZadelsDictionary[zadelGuid].ZadelStatus = ZadelStatus.HigherZadelUsed;
+                                }
+                                sdvigP.ZadelsGUIDs.Clear();
                             }
-                            sdvigP.ZadelsGUIDs.Clear();
                             EraseZadelsTree(sdvigP, zadelCode);
                         }
                     }
@@ -470,7 +473,7 @@ namespace ApsRT.Core.Partias.Zadels
                     > zadelsLevelsHere = new();
 
                 if (zadelsGPsHere.TryGetValue(stage.OrderLink.OrderID, out var res11)) zadelsLevelsHere = zadelsLevelsHere.Union(res11).ToDictionary();
-                if (freeZadels && zadelsGPsHere.TryGetValue(OrderID.EmptyObject, out var res22)) zadelsLevelsHere = zadelsLevelsHere.Union(res22).ToDictionary();
+                if (/*freeZadels && */zadelsGPsHere.TryGetValue(OrderID.EmptyObject, out var res22)) zadelsLevelsHere = zadelsLevelsHere.Union(res22).ToDictionary();
 
                 if (zadelsLevelsHere.Count > 0)
                 {

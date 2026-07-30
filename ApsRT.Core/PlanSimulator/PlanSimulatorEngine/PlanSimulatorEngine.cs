@@ -754,6 +754,10 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             {
                 var mod = block.Lists[ChoosenModellings[i]]; // Берём моделирование
 
+                Guid? lastModGuid = null;
+
+                bool itsFirstMod = true;
+
                 for (int j = 0; j < mod.Stages.Count; j++) // Смотрим на детей-модов
                 {
                     var op1 = mod.Stages[j];
@@ -762,7 +766,17 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     int etapID = thatEtap.Index;
                     var modGuid = thatEtap.CurrentModelling;
 
+                    if (!lastModGuid.HasValue) lastModGuid = modGuid;
+
+                    if (modGuid != lastModGuid)
+                    {
+                        itsFirstMod = false;
+                        lastModGuid = modGuid;
+                    }
+
                     bool firstLaunch = NaladLengthsMasterData.ItsFirstLaunch(RechangesList, lastMod);
+
+                    firstLaunch &= itsFirstMod; // Если это не первый мод в общем этапе, то дальше считаем иначе.
 
                     var clas = op1.PartiaRecalcData[PoolIndex];//pool.NaladLengthsNeedToRecalc[guid];
 
@@ -863,6 +877,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         NaladLengthsRecursiveSet(PoolIndex, op1, 1/*, true*/, currentFlag, result);
                     }
                 }
+
+
+
             }
         }
 
@@ -927,16 +944,21 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
                 PlanSimulatorNaladLengthData modNaladInfo;
 
+                List<Stage> modStages;
+
                 if (thatMod.EasyLifeData != null) // Значит это общий этап. Вытаскиваем из него данные по конкретному моделированию.
                 {
-                    countHere = thatMod.EasyLifeData[modGuid].Sum;
-                    thatEtap = thatMod.EasyLifeData[modGuid].FirstOper;
-                    modNaladInfo = thatMod.EasyLifeData[modGuid].NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
+                    var aseasy = thatMod.EasyLifeData[modGuid];
+                    countHere = aseasy.Sum;
+                    thatEtap = aseasy.FirstOper;
+                    modNaladInfo = aseasy.NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
+                    modStages = aseasy.AsMod.AllOpers;
                 }
                 else
                 {
                     thatEtap = thatMod.FirstOperJust;
                     modNaladInfo = thatMod.NaladLengthData[PoolIndex];//pool.NaladLengthsDataAsMods[modGuid];
+                    modStages = thatMod.StagesAsNormal;
                 }
 
                 ref var modData = ref modNaladInfo.Data;
@@ -959,10 +981,17 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
                 }
 
-                double nextNaladMod = modData.prevKoeff * countHere - countHere; // "план. потребность + след. длина"
+                var stagesPlanned = modStages.Select(stage => thatMod.BlockLink.PoolLink.StagesLinks[stage.Index]); // Превращаем в стадии из пула - потом ОПТИМИЗИРОВАТЬ
+                var stagesWithKids = stagesPlanned.Where(x => x.ModLink.NextMods.Count > 0);
+                var grouped = stagesWithKids.GroupBy(x => x.ModLink.NextMods[0]);
+                var lengths = grouped.Sum(group => group.Max(stage => stage.NaladLengthData[PoolIndex].Data.NaladLengthNexts.Value));
 
-                if (nextNaladMod > modData.NaladLengthNexts.Value)
-                    modData.NaladLengthNexts.Value = (float)nextNaladMod;// прибавляем к моделированию (к след длине) длину текущего этапа, только здесь можно ещё посчитать без проблем
+                modData.NaladLengthNexts.Value = lengths;
+
+                //double nextNaladMod = modData.prevKoeff * countHere - countHere; // "план. потребность + след. длина"
+
+                //if (nextNaladMod > modData.NaladLengthNexts.Value)
+                //    modData.NaladLengthNexts.Value = (float)nextNaladMod;// прибавляем к моделированию (к след длине) длину текущего этапа, только здесь можно ещё посчитать без проблем
 
 
                 modData.IsFirst |= stageData.IsFirst; // моду эта инфа, как и коэфф, тоже не оч нужны, но для отладки пусть будет
