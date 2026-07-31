@@ -24,21 +24,38 @@ namespace ApsRT.Core.DataErrors
         //public string PartiasErrorsFile = "partiasErrors.csv";
         //public string PartiasErrorsBigFile = "partiasErrorsBig.csv";
         public string DatasErrorsFile = "dataErrors.csv";
+        public string DatasErrorsFileExcepted = "dataErrorsExceptions.csv";
         public string DatasErrorsBigFile = "dataErrorsBig.csv";
 
         public ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorStruct>> NewDataErrors = new();
+        public ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorStruct>> NewDataErrorsExcepted = new();
 
         object lockerHere = new();
         public void AddNewPartiaError(int ID, NewDataErrorType error, DataErrorStruct errorData)
         {
-            if (!NewDataErrors.ContainsKey(ID))
+            if (session.MasterDataLinks.StagesMasterData.AllStages[ID].OrderLink.WillBeExcepted)
             {
-                NewDataErrors.TryAdd(ID, new());
+                if (!NewDataErrorsExcepted.ContainsKey(ID))
+                {
+                    NewDataErrorsExcepted.TryAdd(ID, new());
+                }
+                lock (lockerHere) // Проседающая залупень, нужно как-то переписать. Нужен АНДРЕЙ
+                {
+                    if (!NewDataErrorsExcepted[ID].ContainsKey(error)) NewDataErrorsExcepted[ID].Add(error, errorData);
+                }
             }
-            lock (lockerHere) // Проседающая залупень, нужно как-то переписать. Нужен АНДРЕЙ
+            else
             {
-                if (!NewDataErrors[ID].ContainsKey(error)) NewDataErrors[ID].Add(error, errorData);
+                if (!NewDataErrors.ContainsKey(ID))
+                {
+                    NewDataErrors.TryAdd(ID, new());
+                }
+                lock (lockerHere) // Проседающая залупень, нужно как-то переписать. Нужен АНДРЕЙ
+                {
+                    if (!NewDataErrors[ID].ContainsKey(error)) NewDataErrors[ID].Add(error, errorData);
+                }
             }
+
         }
 
         public ConcurrentBag<(NewDataErrorType type, DataErrorStruct data)> NewDataErrorsNoStages = new();
@@ -52,7 +69,7 @@ namespace ApsRT.Core.DataErrors
             }
         }
 
-        internal bool TryOutputDataErrors()
+        bool OutputErrorsAlready(ConcurrentDictionary<int, Dictionary<NewDataErrorType, DataErrorStruct>> dataErrorsToOutput, string datasErrorsFile, bool outputNoStages, bool BigOutput)
         {
             bool HasErrors = false;
             //var sw = new StreamWriter(PartiasErrorsFile, false, Encoding.UTF8);
@@ -60,11 +77,11 @@ namespace ApsRT.Core.DataErrors
 
             session.SessionOptions.GetPreparedOutputPath(out var outputPath);
 
-            var swNew = new StreamWriter(outputPath + DatasErrorsFile, false, Encoding.UTF8);
+            var swNew = new StreamWriter(outputPath + datasErrorsFile, false, Encoding.UTF8);
             StreamWriter swNewBig = null;
             try
             {
-                swNewBig = new StreamWriter(outputPath + DatasErrorsBigFile, false, Encoding.UTF8);
+                if (BigOutput) swNewBig = new StreamWriter(outputPath + DatasErrorsBigFile, false, Encoding.UTF8);
             }
             catch
             {
@@ -74,44 +91,44 @@ namespace ApsRT.Core.DataErrors
 
             string BtoS(bool b) => b ? "ДА" : "НЕТ";
 
-            bool yes1 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnThisEtap != null && x.RCsOnThisEtap.Count > 0);
-            bool yes2 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnThisEtap != null && x.TarasOnThisEtap.Count > 0);
-            bool yes3 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.NeededOtdTarasOnThisEtap != null && x.NeededOtdTarasOnThisEtap.Count > 0);
-            bool yes4 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.MaxNamotka != null && x.MaxNamotka.Count > 0);
-            bool yes5 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.MaxPlusUsedTaras != null && x.MaxPlusUsedTaras.Count > 0);
-            bool yes51 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnNextEtap != null && x.RCsOnNextEtap.Count > 0);
-            bool yes52 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnNextEtap != null && x.TarasOnNextEtap.Count > 0);
-            bool yes53 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.PartiaSettings != null);
-            bool yes54 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.PartiaGuid != null);
-            bool yesCOL = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customEtapsGuids != null && x.customEtapsGuids.Count > 0);
-            bool yesCRC = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customRC != null);
-            bool yesCRCR = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customRCroute != null);
-            bool yesdOP = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TechData != null);
-            bool yes6 = NewDataErrors.Any(x => x.Key >= 0);
+            bool yes1 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnThisEtap != null && x.RCsOnThisEtap.Count > 0);
+            bool yes2 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnThisEtap != null && x.TarasOnThisEtap.Count > 0);
+            bool yes3 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.NeededOtdTarasOnThisEtap != null && x.NeededOtdTarasOnThisEtap.Count > 0);
+            bool yes4 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.MaxNamotka != null && x.MaxNamotka.Count > 0);
+            bool yes5 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.MaxPlusUsedTaras != null && x.MaxPlusUsedTaras.Count > 0);
+            bool yes51 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnNextEtap != null && x.RCsOnNextEtap.Count > 0);
+            bool yes52 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnNextEtap != null && x.TarasOnNextEtap.Count > 0);
+            bool yes53 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.PartiaSettings != null);
+            bool yes54 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.PartiaGuid != null);
+            bool yesCOL = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customEtapsGuids != null && x.customEtapsGuids.Count > 0);
+            bool yesCRC = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customRC != null);
+            bool yesCRCR = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customRCroute != null);
+            bool yesdOP = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TechData != null);
+            bool yes6 = dataErrorsToOutput.Any(x => x.Key >= 0);
 
 
-            bool yesCharNom = NewDataErrors.Any(x => x.Key >= 0 /*&& allStages[x.Key]*/);
-            bool yesCharProd = NewDataErrors.Any(x => x.Key >= 0 /*&& allStages[x.Key]*/);
+            bool yesCharNom = dataErrorsToOutput.Any(x => x.Key >= 0 /*&& allStages[x.Key]*/);
+            bool yesCharProd = dataErrorsToOutput.Any(x => x.Key >= 0 /*&& allStages[x.Key]*/);
 
             var allStages = session.MasterDataLinks.StagesMasterData.AllStages;
 
-            bool yes61 = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].RCRoute.IsEmpty);
-            bool yes62 = NewDataErrors.Any(x => x.Key >= 0 && !allStages[x.Key].RCRoute.IsEmpty);
+            bool yes61 = dataErrorsToOutput.Any(x => x.Key >= 0 && allStages[x.Key].RCRoute.IsEmpty);
+            bool yes62 = dataErrorsToOutput.Any(x => x.Key >= 0 && !allStages[x.Key].RCRoute.IsEmpty);
 
-            bool yes55 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnPrevEtap != null && x.RCsOnPrevEtap.Count > 0);
-            bool yes56 = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnPrevEtap != null && x.TarasOnPrevEtap.Count > 0);
+            bool yes55 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.RCsOnPrevEtap != null && x.RCsOnPrevEtap.Count > 0);
+            bool yes56 = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.TarasOnPrevEtap != null && x.TarasOnPrevEtap.Count > 0);
 
-            bool yesPrevs = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].PrevsNormCount > 0);
-            bool yesNexts = NewDataErrors.Any(x => x.Key >= 0 && allStages[x.Key].Nexts.Count > 0);
+            bool yesPrevs = dataErrorsToOutput.Any(x => x.Key >= 0 && allStages[x.Key].PrevsNormCount > 0);
+            bool yesNexts = dataErrorsToOutput.Any(x => x.Key >= 0 && allStages[x.Key].Nexts.Count > 0);
 
-            bool yesCount = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.Count != 0);
-            bool yesNalad = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.NaladLength != 0);
+            bool yesCount = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.Count != 0);
+            bool yesNalad = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.NaladLength != 0);
 
-            bool yesMod = NewDataErrors.Any(x => x.Key >= 0 && x.Value.Any(y => y.Value.Count != 0) && allStages[x.Key].MesModelling.Code != Guid.Empty);
+            bool yesMod = dataErrorsToOutput.Any(x => x.Key >= 0 && x.Value.Any(y => y.Value.Count != 0) && allStages[x.Key].MesModelling.Code != Guid.Empty);
 
-            bool yesCProd = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customProd != null);
-            bool yesCNom = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customNomen != null);
-            bool yesCVid = NewDataErrors.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customVid != null);
+            bool yesCProd = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customProd != null);
+            bool yesCNom = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customNomen != null);
+            bool yesCVid = dataErrorsToOutput.SelectMany(x => x.Value.Select(y => y.Value)).Any(x => x.customVid != null);
 
             var str1 = $"{BtoS(yes1)};{BtoS(yes2)};{BtoS(yes3)};{BtoS(yes4)};{BtoS(yes5)};{BtoS(yes51)};{BtoS(yes52)};" +
                 $"{BtoS(yes55)};{BtoS(yes56)};" +
@@ -142,14 +159,18 @@ namespace ApsRT.Core.DataErrors
             swNewBig?.WriteLine(str1);
             swNewBig?.WriteLine(str2);
 
-            if (NewDataErrors.Any())
+            var errorsFromNoStages = NewDataErrorsNoStages.Select(x => new KeyValuePair<NewDataErrorType, DataErrorStruct>(x.type, x.data));
+
+            if (dataErrorsToOutput.Any())
             {
                 HasErrors = true;
-                foreach (var element in NewDataErrors)
+                foreach (var element in dataErrorsToOutput)
                 {
-                    var errorsFromNoStages = NewDataErrorsNoStages.Select(x => new KeyValuePair<NewDataErrorType, DataErrorStruct>(x.type, x.data));
                     var list = element.Value.ToList();
-                    if (element.Key == -1) list.AddRange(errorsFromNoStages);
+                    if (outputNoStages)
+                    {
+                        if (element.Key == -1) list.AddRange(errorsFromNoStages);
+                    }
 
                     //var list = element.Key == -1 ? .AddRange().ToArray() : element.Value.ToArray();
 
@@ -157,7 +178,7 @@ namespace ApsRT.Core.DataErrors
                     {
                         var message = error.Key switch
                         {
-            
+
                             NewDataErrorType.NoProduction => (allStages[element.Key].UsedCalcMethod == DimensionUnit.m ? "По данной продукции не найдена максимальная намотка с методом расчета по метражу." : "По данной номенклатуре и тех. операции не найдена максимальная намотка с методом расчёта по весу."),
                             NewDataErrorType.NoNomenklature => "По данной продукции не найдена максимальная намотка по указанной номенклатуре.",
                             NewDataErrorType.NoCharacteristics => "По данной продукции и номенклатуре не найдена максимальная намотка по указанной характеристике.",
@@ -254,7 +275,7 @@ namespace ApsRT.Core.DataErrors
                             ;
                         }
 
-                            string list4 = ""; if (error.Value.MaxNamotka != null)
+                        string list4 = ""; if (error.Value.MaxNamotka != null)
                             list4 = string.Join(", ", error.Value.MaxNamotka.Select(X => $"{X.Tara.Label} ({X.Max})"));
                         string list5 = ""; if (error.Value.MaxPlusUsedTaras != null) list5 = string.Join(", ", error.Value.MaxPlusUsedTaras.Select(X => X.Label));
                         string list51 = ""; if (error.Value.RCsOnNextEtap != null) list51 = string.Join(", ", error.Value.RCsOnNextEtap.Select(X => X.Label));
@@ -330,6 +351,13 @@ namespace ApsRT.Core.DataErrors
             swNewBig?.Close();
 
             return HasErrors;
+        }
+
+        internal bool TryOutputDataErrors()
+        {
+            var result = OutputErrorsAlready(NewDataErrors, DatasErrorsFile, true, true);
+            OutputErrorsAlready(NewDataErrorsExcepted, DatasErrorsFileExcepted, false, false);
+            return result;
         }
     }
 }

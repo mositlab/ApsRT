@@ -1153,7 +1153,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         public static PartiasConnectorEngineResult Connect(PartiaConnectorEngineData data)
         {
             (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
-            if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
+            if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.IsExcepted || secondPartia.IsExcepted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
             {
                 return new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue);
             }

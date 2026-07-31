@@ -270,6 +270,7 @@ namespace ApsRT.Core.Session
 
         public void PostDataProcess()
         {
+            MasterDataLinks.OrdersMasterData.ProcessOrdersExceptions(); // Получаем исключения для заказиков
 
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.EnsureVersionedStagesDependencies(); // Сначала грамотно устанавливаем зависимости

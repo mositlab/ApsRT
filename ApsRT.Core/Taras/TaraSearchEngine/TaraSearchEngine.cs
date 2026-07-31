@@ -1,6 +1,7 @@
 ﻿using ApsRT.Core.DataErrors;
 using ApsRT.Core.Partias.MergeConditions;
 using ApsRT.Core.Session;
+using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -9,8 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
 using UniversalPack.Extensions;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 using ZLinq;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Taras.TaraSearchEngine
 {
@@ -99,6 +100,14 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             return returnFirst ? false : rcs.Count > 0;
         }
 
+
+        public static bool RcIsHanded(IAbleForTaraCalcInterface allOpers)
+        {
+            return allOpers.AllOpers.Any(x => x.PossibleCenters == null
+            && x.OrderLink.PartiaPF.HasValue
+            && x.OrderLink.PartiaPFFlags.IsNotFree);
+        }
+
         /// <summary>
         /// Получаем список РЦ и тары, которая может встать для них
         /// </summary>
@@ -134,6 +143,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 //NotTaraCount = 0,
                 //notChangeTara = false
             };
+
+            var rcIsHanded = RcIsHanded(allOpers);
 
             searchData.dataErrorMore.RCsOnPrevEtap = allOpers.AllOpers.AsValueEnumerable().SelectMany(x => x.Prevs).SelectMany(Index =>
             {
@@ -203,7 +214,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         && (!first.IsVspom || CentersData[first.OriginalCenter].AbleToVspom);
                     if (res00)
                     {
-                        if (TaraHereMustBeThis == null || TaraHereMustBeThis.Count == 0 || TaraHereMustBeThis.All(x => TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, x.WasVspom)/*.FromAndToTara[first.Center]*/.otd.TryGetValue(x.WasVspom, out var has) && has.Contains(x.Tara)))
+                        if (rcIsHanded // Если РЦ ручной, то мне похер на требуемую отдающую тару
+                            || TaraHereMustBeThis == null || TaraHereMustBeThis.Count == 0 || TaraHereMustBeThis.All(x => TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, x.WasVspom)/*.FromAndToTara[first.Center]*/.otd.TryGetValue(x.WasVspom, out var has) && has.Contains(x.Tara)))
                         {
                             res = (TaraDataSet.GetNeededTaras(first.OriginalCenter, first.OperationVid, null).priem.TryGetValue(false, out var has) ? has.AsValueEnumerable().Select(x => (RC: first.OriginalCenter, Tara: x)).ToArray() : new (Uco, Uco)[] { });
                         }
@@ -257,17 +269,20 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 // Проверим конечную тару
                 if (!WantThisOrigTara.IsEmpty && !res.AsValueEnumerable().Any(X => X.Tara == WantThisOrigTara))
                 {
-                    // Тут нет ни единой тары, которая подойдёт как конечная
-                    if (LogErrorsBySettings)
+                    if (!rcIsHanded)
                     {
-                        var dem = searchData.dataErrorMore;
-                        dem.DataToInsert = WantThisOrigTara.Label;
-                        dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index, NewDataErrorType.NoPriemOrigTara, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
+                        // Тут нет ни единой тары, которая подойдёт как конечная
+                        if (LogErrorsBySettings)
+                        {
+                            var dem = searchData.dataErrorMore;
+                            dem.DataToInsert = WantThisOrigTara.Label;
+                            dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index, NewDataErrorType.NoPriemOrigTara, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
+                        }
+                        return false;
                     }
-                    return false;
                 }
 
-                if (res.Length == 0) // В результате пересечения нет ни одного РЦ
+                if (res.Length == 0 && !rcIsHanded) // В результате пересечения нет ни одного РЦ
                 {
                     //if (withUI) This.MergeTextBox.Text += $"Нет пересечения РЦ на этапе {ii}.\r\n";
                     searchData.errorMessage?.Insert(0, $"ОШИБКА! У этапа {first} нет ни одного РЦ, у которого есть тара.");
@@ -334,7 +349,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     //if (withUI) This.MergeTextBox.Text += $"Намотки для {first.oper}: {string.Join(", ", poss2.Select(x => x.Tara))}\r\n";
                     searchData.errorMessage?.Append(string.Join("\r\n", res0.Select(x => $"{x.Tara} ({x.Namot} {x.Format.DimensionUnitToString()})")) + "\r\n");
 
-                    if (/*!first.IsVspom && */searchData.BARABANAS.Length == 0 && checkBarabanasCount)
+                    if (/*!first.IsVspom && */searchData.BARABANAS.Length == 0 && checkBarabanasCount && !rcIsHanded)
                     {
                         //if (withUI) This.MergeTextBox.Text += $"Нет пересечения на этапе {ii}.\r\n";
                         searchData.errorMessage?.Insert(0, $"ОШИБКА! Нет пересечения намоток из-за операции {first}.");
@@ -354,7 +369,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 }
                 else
                 {
-                    if (checkBarabanasCount)
+                    if (checkBarabanasCount && !rcIsHanded)
                     {
                         searchData.errorMessage?.Insert(0, $"ОШИБКА! У операции {first} нет намоток вообще.");
                         searchData.errorMessage?.Append($"\r\n");
@@ -398,7 +413,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.AsValueEnumerable().Intersect(res/*, new CodedObjectTaraEqualityComparer()*/).ToArray();
                 }
 
-                if (searchData.PossibleCentersAndTaras.Length == 0)
+                if (searchData.PossibleCentersAndTaras.Length == 0 && !rcIsHanded)
                 {
                     //if (withUI) This.MergeTextBox.Text += $"Нет пересечения РЦ на этапе {ii}.\r\n";
                     searchData.errorMessage?.Insert(0, $"ОШИБКА! Нет пересечения РЦ из-за операции {first}.");
@@ -423,7 +438,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
 
             // Теперь нужно ещё и пересечение с детьми, если конечно надо
-            if (true/*CheckChildren*/)
+            if (true/*CheckChildren*/ && !rcIsHanded)
             {
                 // У самых первых детей есть булевый признак, который врубает проверку на РЦ. Если там дальше будет "не менять тару", этот признак позволяет отключить лишние проверки.
                 var childs = allOpers.AllOpers.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(y => (op: ALL[y], isFirst: true))
@@ -746,7 +761,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             //BARABANAS = BARABANAS.IntersectBy(PossibleCentersAndTaras.Select(x => x.Tara), x => x.Tara).ToList();// в конце концов пересекаем.
 
 
-            if (checkBarabanasCount && (searchData.BARABANAS == null || searchData.BARABANAS.Length == 0))
+            if (checkBarabanasCount && (searchData.BARABANAS == null || searchData.BARABANAS.Length == 0) && !rcIsHanded)
             {
                 if (LogErrorsBySettings && allOpers.AllOpers.Count == 1 /*|| allOpers.FirstOperLink.Modelling != Guid.Empty*/ && options.NextRCsMustBeThese == null)
                 {
@@ -822,6 +837,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 return true;
             }
 
+            bool RcIsHanded = TaraSearchEngine.RcIsHanded(someOpers);
+
             // Посмотрим на "менять тару"
 
             Uco NotChangeTaraMustBeThis = Uco.EmptyObject;
@@ -858,8 +875,11 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                         {
                                             SessionLink.AssignedLogger.PartiasLogQueue.Enqueue(errorMessage.ToString());
                                         }
-                                        if (LogErrorsBySettings && options.LogSomeErrors) dataErrors.AddNewPartiaError(op.Index, NewDataErrorType.NoChangeTaraMoreThanOne, searchData.dataErrorMore);
-                                        return false;
+                                        if (!RcIsHanded)
+                                        {
+                                            if (LogErrorsBySettings && options.LogSomeErrors) dataErrors.AddNewPartiaError(op.Index, NewDataErrorType.NoChangeTaraMoreThanOne, searchData.dataErrorMore);
+                                            return false;
+                                        }
                                     }
                                 }
                             }
@@ -1059,31 +1079,76 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 if (NoChangeTaraNonErrorsCount == 0)
                 {
                     // не найден, потому что ни одна не подошла из-за "не менять тару"
-                    if (searchData.WillVspom)
-                        dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NoChangeTaraNoPriemVspom, searchData.dataErrorMore);
+                    if (RcIsHanded)
+                    {
+                        // Если это назначенный РЦ, то ставим пустую тару
+                        result.FinalRC = searchData.PossibleCentersAndTaras[0].RC;
+                        result.CurrentPlacesCountK = 1;
+                        result.TaraName = Uco.EmptyObject;
+                        result.Max = 0;
+                        result.used_format = DimensionUnit.Unknown;
+                        // result.notChangeTara - задана ранее
+                        if (options.SaveAvailableResults) searchData.AvailableResults[0] = 0;
+                        return true;
+                    }
                     else
-                        dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NoChangeTaraNoPriem, searchData.dataErrorMore);
+                    {
+                        if (searchData.WillVspom)
+                            dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NoChangeTaraNoPriemVspom, searchData.dataErrorMore);
+                        else
+                            dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NoChangeTaraNoPriem, searchData.dataErrorMore);
+                    }
                 }
                 else
                 {
                     if (OrigTaraNonErrorsCount == 0)
                     {
                         // не найден РЦ с подходящей приемной тарой
-                        var dem = searchData.dataErrorMore;
-                        dem.DataToInsert = origTara.Label;
-                        dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NoPriemOrigTara, dem);
+                        if (RcIsHanded)
+                        {
+                            // Если это назначенный РЦ, то ставим пустую тару
+                            result.FinalRC = searchData.PossibleCentersAndTaras[0].RC;
+                            result.CurrentPlacesCountK = 1;
+                            result.TaraName = Uco.EmptyObject;
+                            result.Max = 0;
+                            result.used_format = DimensionUnit.Unknown;
+                            // result.notChangeTara - задана ранее
+                            if (options.SaveAvailableResults) searchData.AvailableResults[0] = 0;
+                            return true;
+                        }
+                        else
+                        {
+                            var dem = searchData.dataErrorMore;
+                            dem.DataToInsert = origTara.Label;
+                            dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NoPriemOrigTara, dem);
+                        }
                     }
                     else
                     {
                         // Здесь - банальная ошибка на случай, если нужно чекнуть "вылажу ли я за максимальные намотки"
                         if (someOpers.AllOpers.Count == 1 || someOpers.FirstOperLink.MesModelling.Code != Guid.Empty)
                         {
-                            //AddPartiaError(someOpers.FirstOperLink.Index, PartiaErrorLogType.NotEnoughMaxOnTaras);
-
-                            if (searchData.WillVspom)
-                                dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NotEnoughMaxOnTarasVspom, searchData.dataErrorMore);
+                            if (RcIsHanded)
+                            {
+                                // Если это назначенный РЦ, то ставим пустую тару
+                                result.FinalRC = searchData.PossibleCentersAndTaras[0].RC;
+                                result.CurrentPlacesCountK = 1;
+                                result.TaraName = Uco.EmptyObject;
+                                result.Max = 0;
+                                result.used_format = DimensionUnit.Unknown;
+                                // result.notChangeTara - задана ранее
+                                if (options.SaveAvailableResults) searchData.AvailableResults[0] = 0;
+                                return true;
+                            }
                             else
-                                dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NotEnoughMaxOnTaras, searchData.dataErrorMore);
+                            {
+                                //AddPartiaError(someOpers.FirstOperLink.Index, PartiaErrorLogType.NotEnoughMaxOnTaras);
+
+                                if (searchData.WillVspom)
+                                    dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NotEnoughMaxOnTarasVspom, searchData.dataErrorMore);
+                                else
+                                    dataErrors.AddNewPartiaError(someOpers.FirstOperLink.Index, NewDataErrorType.NotEnoughMaxOnTaras, searchData.dataErrorMore);
+                            }
                         }
                     }
                 }

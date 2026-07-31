@@ -385,7 +385,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 if (passedCenters.Contains(center) || passedBlocks.Contains(element.Block)) continue;
 
                 if (LinearPlan.Count < basisLink.GLOBAL_FIXED_MIN && !element.Block.Lists[0].IsFixed) continue;
-                if (LinearPlan.Count < basisLink.GLOBAL_VPZ_MAX && !element.Block.Lists[0].IsFactOrVPZ) continue;
+                if (LinearPlan.Count < basisLink.GLOBAL_VPZ_MAX
+                    && !element.Block.Lists[0].IsFixed
+                    && !element.Block.Lists[0].IsFactOrVPZ) continue;
 
                 if (basisLink.SessionLink.SettingsController.CurrentSettings.Demos_BigPlanningLog)
                 {

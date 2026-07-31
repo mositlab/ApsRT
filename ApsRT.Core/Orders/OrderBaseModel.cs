@@ -35,6 +35,13 @@ namespace ApsRT.Core.Orders
         [DataRecordColumn("ИдентификаторПартииПФ")]
         public Guid? PartiaPF { get; set; } // Если этот айдишник не указан, то эта партия - элементарная
 
+        public PartiaPFFlags PartiaPFFlags;
+
         public HashSet<int> RelatedOpers = new();
+
+        /// <summary>
+        /// Будет ли заказ исключён. Если да, то его ГП не будут объединяться ни с кем, а его ошибки будут выведены в другой список.
+        /// </summary>
+        public bool WillBeExcepted { get; set; } = false;
     }
 }

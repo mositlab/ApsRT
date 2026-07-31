@@ -335,7 +335,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             foreach (var order in elementarGPs)
             {
                 // Каждый заказ это одна партия здесь
-                CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { order }, 0, false, Guid.NewGuid(), WithLog);
+                CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { order }, 0, false, order.Value.WillBeExcepted, Guid.NewGuid(), WithLog);
             }
 
             // 1.2 В зависимости от типа запуска АПС, манера может быть разной.
@@ -354,7 +354,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     // Одна группа. У нее есть гуид, по которому их сгруппировали
                     foreach (var orderInGroup in oneGroup)
                     {
-                        CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { orderInGroup }, PfFlag, false, oneGroup.Key.Value, WithLog); // Флаг: PfFlag (схлопывание между своими), НЕ ограничено
+                        CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { orderInGroup }, PfFlag, false, orderInGroup.Value.WillBeExcepted, oneGroup.Key.Value, WithLog); // Флаг: PfFlag (схлопывание между своими), НЕ ограничено
                     }
                     PfFlag++;
                 }
@@ -369,7 +369,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     var partiaPf = elementarGPsBad.Key;
                     foreach (var order in elementarGPsBad)
                     {
-                        CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { order }, PfFlag, true, partiaPf, WithLog); // Флаг: PfFlag (схлопывание невозможно), ограничено
+                        CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { order }, PfFlag, true, order.Value.WillBeExcepted, partiaPf, WithLog); // Флаг: PfFlag (схлопывание невозможно), ограничено
 
                         var partiaClass = PFPartiasData[partiaPf];
                         SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"[{DateTime.Now}] ТОЛЬКО ПАРТИИ: Обнаружена партия {partiaPf}, Заказ: '{order.Key.Object}', ГП '{order.Key.Version}'," +
@@ -388,7 +388,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 var elementarGPsWithPF = orders.Where(x => x.Value.PartiaPF.HasValue && !PFPartiasData[x.Value.PartiaPF.Value].IsNotFree);
                 foreach (var element in elementarGPsWithPF)
                 {
-                    CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { element }, 0, false, Guid.NewGuid(), WithLog); // Флаг: 0 (свободное схлопывание), НЕ ограничено, гуид рандомный назначит partiaOutput
+                    CreatePartiasAndAddToList(new List<KeyValuePair<OrderID, OrderBaseModel>>() { element }, 0, false, element.Value.WillBeExcepted, Guid.NewGuid(), WithLog); // Флаг: 0 (свободное схлопывание), НЕ ограничено, гуид рандомный назначит partiaOutput
                 }
 
                 // Теперь получаем те, что уже с партиями ПФ
@@ -402,7 +402,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     //{
                     // Условие: эта партия ни с кем не схлопывается, и гуид берет из пф.
                     // В таком случае все заказы из этой группы превратятся в одну большую партию
-                    CreatePartiasAndAddToList(allPF, PfFlag, true, allPF.Key, WithLog); // Гуид из партии ПФ, ОГРАНИЧЕН, да и флаг 1+
+                    CreatePartiasAndAddToList(allPF, PfFlag, true, false, allPF.Key, WithLog); // Гуид из партии ПФ, ОГРАНИЧЕН, да и флаг 1+
                     PfFlag++;
                     //}
                 }
@@ -434,7 +434,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
         public Dictionary<int, Uco> RestrictionsVia74110;
 
-        void CreatePartiasAndAddToList(IEnumerable<KeyValuePair<OrderID, OrderBaseModel>> orders, int flag, bool restrictIt, Guid guidToSet, bool WithLog)
+        void CreatePartiasAndAddToList(IEnumerable<KeyValuePair<OrderID, OrderBaseModel>> orders, int flag, bool restrictIt, bool exceptIt, Guid guidToSet, bool WithLog)
         {
             var ops = new List<Stage>();
 
@@ -477,7 +477,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110), Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {
-                    var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, flag, guidToSet, -1);
+                    var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, exceptIt, flag, guidToSet, -1);
                     PartiasGeneratorEngine.PartiasGeneratorEngine.PrepareNaladLengths(partiaL, NaladLengthsData); // Подготавливаем налад длины
                     if (!restrictIt)
                     {
@@ -511,6 +511,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     }
 
                     if (orderToPartia[allGPToCheckNow[i]].MergeFlag != orderToPartia[allGPToCheckNow[j]].MergeFlag) continue;
+
+                    if (orderToPartia[allGPToCheckNow[i]].IsExcepted || orderToPartia[allGPToCheckNow[j]].IsExcepted) continue;
 
                     if (orderToPartia[allGPToCheckNow[i]].IsRestricted || orderToPartia[allGPToCheckNow[j]].IsRestricted) continue;
 
@@ -546,14 +548,16 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                     if (orderToPartia[allGPToCheckNow[i]].MergeFlag != orderToPartia[allGPToCheckNow[j]].MergeFlag) return;
 
+                    if (orderToPartia[allGPToCheckNow[i]].IsExcepted || orderToPartia[allGPToCheckNow[j]].IsExcepted) return;
+
                     if (orderToPartia[allGPToCheckNow[i]].IsRestricted || orderToPartia[allGPToCheckNow[j]].IsRestricted) return;
 
                     var prt1 = orderToPartia[allGPToCheckNow[i]];
                     var prt2 = orderToPartia[allGPToCheckNow[j]];
 
-                    var partiaClass1 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.MergeFlag, prt1.MyGuid, prt1.MaxThereCountForLongestOpers);
+                    var partiaClass1 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[i]]), orders[allGPToCheckNow[i]].Deadline, /*new List<int>() { 0 }, new List<string>() { allElemenetal[i].ToString() },*/ prt1.IsRestricted, prt1.IsExcepted, prt1.MergeFlag, prt1.MyGuid, prt1.MaxThereCountForLongestOpers);
                     partiaClass1.Sort();
-                    var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.MergeFlag, prt2.MyGuid, prt2.MaxThereCountForLongestOpers);
+                    var partiaClass2 = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(OriginalCopies[allGPToCheckNow[j]]), orders[allGPToCheckNow[j]].Deadline, /*new List<int>() { 1 }, new List<string>() { allElemenetal[j].ToString() },*/ prt2.IsRestricted, prt2.IsExcepted, prt2.MergeFlag, prt2.MyGuid, prt2.MaxThereCountForLongestOpers);
                     partiaClass2.Sort();
 
 
@@ -697,8 +701,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 var partia2 = listToCheck[0].to;
 
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
-                var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
-                var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.MergeFlag, partia2.MyGuid, partia2.MaxThereCountForLongestOpers, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
+                var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.IsExcepted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);
+                var partia2C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia2.OpersHere), partia2.PossibleDeadline, /*new(partia2.ModelsHere), new(partia2.OrdersHere), */partia2.IsRestricted, partia2.IsExcepted, partia2.MergeFlag, partia2.MyGuid, partia2.MaxThereCountForLongestOpers, partia2.GPsCountNow/*, partia2.LongestModsMaxCount*/);
 
 
                 partia1C.Sort();
@@ -808,8 +812,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             return;
                         }
 
-                        var partia = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(thisCopy), finalDead, /*new List<int>() { 0 }, new(partia1.OrdersHere),*/ partia1.IsRestricted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/); // копия
-                        var partiaLocal = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(remain.OpersHere), remain.PossibleDeadline, /*new List<int>() { 1 }, new(remain.OrdersHere), */remain.IsRestricted, remain.MergeFlag, remain.MyGuid, remain.MaxThereCountForLongestOpers, remain.GPsCountNow/*, remain.LongestModsMaxCount*/);
+                        var partia = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(thisCopy), finalDead, /*new List<int>() { 0 }, new(partia1.OrdersHere),*/ partia1.IsRestricted, partia1.IsExcepted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/); // копия
+                        var partiaLocal = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(remain.OpersHere), remain.PossibleDeadline, /*new List<int>() { 1 }, new(remain.OrdersHere), */remain.IsRestricted, remain.IsExcepted, remain.MergeFlag, remain.MyGuid, remain.MaxThereCountForLongestOpers, remain.GPsCountNow/*, remain.LongestModsMaxCount*/);
 
                         //var perc = FoundSecondsAndWin(
                         //    new PartiaClass(DeepCopy(thisCopy), finalDead, new List<int>() { 0 }),

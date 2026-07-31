@@ -891,6 +891,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
             if (thatEtap.ClosedByZadels) return; // Заглушка для закрытых заделом этапов
             if (thatEtap.IsVolokno) return; // Заглушка для волокон
+            //if (thatEtap.CurrentTara.IsEmpty) return; // Заглушка для пустых тар вообще
 
             // всё, что дальше, сделано по приказу алены и марины, 23.07.24.
             var stageNaladInfo = stage.NaladLengthData[PoolIndex];//pool.NaladLengthsData[etapID];
@@ -1017,6 +1018,9 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             if (firstEtap.IsVspom) return;
             if (firstEtap.NoCheckNamotka) return;
             if (firstEtap.DoNotCheckWindings) return;
+
+            if (firstEtap.CurrentTaraMaxCapacity == 0) return; // а это для тар из ручного РЦ
+
             //resultToFill.Session.MasterDataLinks.MergeConditionsMasterData.DoNotCheckWindingsSafe(firstEtap.OperationVid.Code, firstEtap.Subdivision.Code)
             var length = naladLengthHere + naladLengthNext;
             length = MathF.Round(length, 3);

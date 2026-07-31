@@ -199,5 +199,8 @@ namespace ApsRT.Core.Settings
         [JsonProperty]
         public bool Demos_NO_WHITESPACES_OnOutput { get; set; }
 
+        [JsonProperty]
+        public bool Demos_OutputModsInNaladLengthsFile { get; set; }
+
     }
 }

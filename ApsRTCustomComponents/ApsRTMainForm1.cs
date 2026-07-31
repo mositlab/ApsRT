@@ -66,6 +66,7 @@ namespace ApsRTCustomComponents
         private void ClearAllSessionErrorsButton_Click(object sender, EventArgs e)
         {
             sessionLink.DataErrors.NewDataErrors.Clear();
+            sessionLink.DataErrors.NewDataErrorsExcepted.Clear();
             sessionLink.DataErrors.NewDataErrorsNoStages.Clear();
         }
 
@@ -986,7 +987,7 @@ namespace ApsRTCustomComponents
 
                 var partia = ((CodedObjectInGui)AllForAllPartiasGuidComboBox.Items[AllForAllPartiasGuidComboBox.SelectedIndex]).ValueIndex;
 
-                var aps = new PartiaClass(PartiasGeneratorEngine.DeepCopy(partiasAlgorithm.SavedPartiasTrees[partia].List), DateTime.Now, false, 0, partia, partiasAlgorithm.SavedPartiasTrees[partia].MaxLongest, partiasAlgorithm.SavedPartiasTrees[partia].GPsCount);
+                var aps = new PartiaClass(PartiasGeneratorEngine.DeepCopy(partiasAlgorithm.SavedPartiasTrees[partia].List), DateTime.Now, false, false, 0, partia, partiasAlgorithm.SavedPartiasTrees[partia].MaxLongest, partiasAlgorithm.SavedPartiasTrees[partia].GPsCount);
                 aps.LastK = partiasAlgorithm.SavedPartiasTrees[partia].K;
                 aps.Sort();
 
@@ -1083,11 +1084,11 @@ namespace ApsRTCustomComponents
                 Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
 
 
-                var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid(), -1);
+                var partiaClass1 = new PartiaClass(tree1, Orders[tree1[0][0].Opers[0].OrderLink.OrderID].Deadline, false, false, 0, Guid.NewGuid(), -1);
                 PartiasGeneratorEngine.PrepareNaladLengths(partiaClass1, NaladLengthsData); // Подготавливаем налад длины
                 partiaClass1.Sort();
                 TwoPartiasPartia1View.SetThisTree(NaladLengthsData, partiaClass1);
-                var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, 0, Guid.NewGuid(), -1);
+                var partiaClass2 = new PartiaClass(tree2, Orders[tree2[0][0].Opers[0].OrderLink.OrderID].Deadline, false, false, 0, Guid.NewGuid(), -1);
                 PartiasGeneratorEngine.PrepareNaladLengths(partiaClass2, NaladLengthsData); // Подготавливаем налад длины
                 partiaClass2.Sort();
                 TwoPartiasPartia2View.SetThisTree(NaladLengthsData, partiaClass2);

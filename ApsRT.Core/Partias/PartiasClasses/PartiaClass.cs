@@ -31,6 +31,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
 
         public DateTime PossibleDeadline;
         public bool IsRestricted;
+        public bool IsExcepted;
         public bool IsElementar = true;
         public int MergeFlag = 0;
         public Guid MyGuid; // гуид для партии пф
@@ -97,6 +98,7 @@ namespace ApsRT.Core.Partias.PartiasClasses
             OpersHere = what.OpersHere;
             PossibleDeadline = what.PossibleDeadline;
             IsRestricted = what.IsRestricted;
+            IsExcepted = what.IsExcepted;
             MyGuid = what.MyGuid;
             MergeFlag = what.MergeFlag;
             IsElementar = what.IsElementar;
@@ -105,13 +107,14 @@ namespace ApsRT.Core.Partias.PartiasClasses
             MaxThereCountForLongestOpers = what.MaxThereCountForLongestOpers;
         }
 
-        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, int mergeFlag, Guid pfGuid, int maxThereCountForLongestOpers, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
+        public PartiaClass(List<List<PartiaModelling>> opersHere, DateTime deadline /*List<int> modelsHere, List<string> ordersHere*//*, Color? usedColor = null*/, bool isRestricted, bool isExcepted, int mergeFlag, Guid pfGuid, int maxThereCountForLongestOpers, int GPsCount = 1/*, int longestModsMaxCount = int.MaxValue*/)
         {
             OpersHere = opersHere;
             //ModelsHere = modelsHere;
             //OrdersHere = ordersHere;
             PossibleDeadline = deadline;
             IsRestricted = isRestricted;
+            IsExcepted = isExcepted;
             MyGuid = pfGuid;
             MergeFlag = mergeFlag;
             //UsedColor = usedColor.HasValue ? usedColor.Value : Color.White;

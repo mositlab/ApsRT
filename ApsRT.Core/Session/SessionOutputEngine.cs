@@ -521,7 +521,7 @@ namespace ApsRT.Core.Session
 
             var sw = new StreamWriter(filename, false, Encoding.UTF8);
 
-            bool OutputMods = false;
+            bool OutputMods = SessionLink.SettingsController.CurrentSettings.Demos_OutputModsInNaladLengthsFile;
 
             SessionLink.SessionOptions.GetPreparedOutputPath(out var outputPath);
 

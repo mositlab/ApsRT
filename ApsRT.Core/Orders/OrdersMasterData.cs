@@ -59,7 +59,9 @@ namespace ApsRT.Core.Orders
                     PFPartiasData.Add(pfPartia.Value, flags);
                 }
 
-                var partia = PFPartiasData[pfPartia.Value];
+                finalOrderModel.PartiaPFFlags = PFPartiasData[pfPartia.Value];
+
+                var partia = finalOrderModel.PartiaPFFlags;
                 if (!SessionLink.SettingsController.CurrentSettings.Demos_AllPartiasAreFree)
                 {
                     partia.Fixed |= stage.Fixed;
@@ -98,6 +100,36 @@ namespace ApsRT.Core.Orders
                 else
                 {
                     return Math.Pow(days, koeffs.Level3.A) * koeffs.Level3.K;
+                }
+            }
+        }
+
+
+        public string ExceptionsFilename = "Exceptions.txt";
+        public void ProcessOrdersExceptions()
+        {
+            if (!File.Exists(ExceptionsFilename)) File.WriteAllLines(ExceptionsFilename, Array.Empty<string>());
+
+            var reader = new StreamReader(ExceptionsFilename);
+
+            while (!reader.EndOfStream)
+            {
+                var line = reader.ReadLine();
+                try
+                {
+                    line = line.Trim().ToLower();
+                    var foundOrders = AllOrders.Where(x => x.Key.Object.Label.ToLower() == line);
+                    foreach (var order in foundOrders)
+                    {
+                        order.Value.WillBeExcepted = true;
+                        Console.WriteLine($"Exceptions: Заказ '{order.Key}' помечен исключённым.");
+                        SessionLink.AssignedLogger.LogQueue.Enqueue($"Exceptions: Заказ '{order.Key}' помечен исключённым.\r\n");
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine($"Exceptions: Неизвестный заказ '{line}'");
+                    SessionLink.AssignedLogger.LogQueue.Enqueue($"Exceptions: Неизвестный заказ '{line}'.\r\n");
                 }
             }
         }
