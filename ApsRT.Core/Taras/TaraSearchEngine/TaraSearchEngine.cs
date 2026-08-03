@@ -438,7 +438,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
 
             // Теперь нужно ещё и пересечение с детьми, если конечно надо
-            if (true/*CheckChildren*/ && !rcIsHanded)
+            if (true/*CheckChildren*/ /*&& !rcIsHanded*/)
             {
                 // У самых первых детей есть булевый признак, который врубает проверку на РЦ. Если там дальше будет "не менять тару", этот признак позволяет отключить лишние проверки.
                 var childs = allOpers.AllOpers.AsValueEnumerable().SelectMany(x => x.Nexts).Distinct().Select(y => (op: ALL[y], isFirst: true))
@@ -475,9 +475,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 if (alreadyWasThisTara.HasValue && alreadyWasThisTara.Value != thisTaraNeededToBe && options.LogSomeErrors)
                                 {
                                     // Ошибка
-                                    var dem = searchData.dataErrorMore;
-                                    dem.DataToInsert = childs[i].op.EndTara.Label;
-                                    dataErrors.AddNewPartiaError(childs[i].op.Index, NewDataErrorType.NoNeededNoChangeFinalTaraOnChildMoreThanOne, dem);
+                                    if (!rcIsHanded)
+                                    {
+                                        var dem = searchData.dataErrorMore;
+                                        dem.DataToInsert = childs[i].op.EndTara.Label;
+                                        dataErrors.AddNewPartiaError(childs[i].op.Index, NewDataErrorType.NoNeededNoChangeFinalTaraOnChildMoreThanOne, dem);
+                                    }
                                 }
                                 else
                                 {
@@ -487,7 +490,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 if (searchData.PossibleCentersAndTaras.Length == 0)
                                 {
                                     // Ошибка
-                                    if (options.LogSomeErrors)
+                                    if (options.LogSomeErrors && !rcIsHanded)
                                     {
                                         var dem = searchData.dataErrorMore;
                                         dem.DataToInsert = childs[i].op.EndTara.Label;
@@ -534,7 +537,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                 }
                                 else
                                 {
-                                    if (options.LogSomeErrors)
+                                    if (options.LogSomeErrors && !rcIsHanded)
                                     {
                                         var dem = searchData.dataErrorMore;
                                         dem.DataToInsert = first.op.EndTara.Label;
@@ -553,7 +556,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                                     dem.RCsOnNextEtap == null ? rcsToIns.ToList() :
                                     dem.RCsOnNextEtap.Union(rcsToIns).Distinct().ToList()
                                     ;
-                                if (LogErrorsBySettings && options.LogSomeErrors)
+                                if (LogErrorsBySettings && options.LogSomeErrors && !rcIsHanded)
                                     dataErrors.AddNewPartiaError(allOpers.FirstOperLink.Index/*first.op.Index*/, NewDataErrorType.NoPriemOrigTaraOnNextEtap, dem); // не нашёл нужную ПРИЕМНУЮ конечную тару
                                 foundOtdTara = new();
                             }
@@ -641,7 +644,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             }
                             else
                             {
-                                if (options.LogSomeErrors)
+                                if (options.LogSomeErrors && !rcIsHanded)
                                 {
                                     var dem = searchData.dataErrorMore;
                                     dem.DataToInsert = first.op.EndTara.Label;
@@ -696,7 +699,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         ;
 
                     // Если есть отдающая тара, проверим её
-                    if (!WantThisOrigTara.IsEmpty && !foundOtdTara.Any(X => X.Tara == WantThisOrigTara))
+                    if (!WantThisOrigTara.IsEmpty && !foundOtdTara.Any(X => X.Tara == WantThisOrigTara) && !rcIsHanded)
                     {
                         // Тут нет ни единой тары, которая подойдёт как конечная
                         if (LogErrorsBySettings)
@@ -716,7 +719,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     searchData.PossibleCentersAndTaras = searchData.PossibleCentersAndTaras.AsValueEnumerable().Where(x => set2.Contains(x.Tara)).ToArray();//.Add(poss2);
 
                     //PossibleCentersAndTaras = PossibleCentersAndTaras.IntersectBy(res.Select(x => x.Tara), x => x.Tara).ToList();
-                    if (searchData.PossibleCentersAndTaras.Length == 0)
+                    if (searchData.PossibleCentersAndTaras.Length == 0 && !rcIsHanded)
                     {
                         if (LogErrorsBySettings && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty) && options.NextRCsMustBeThese == null) // это пусть сработает только для начала
                         {
