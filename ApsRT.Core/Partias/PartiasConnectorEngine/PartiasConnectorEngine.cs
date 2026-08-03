@@ -86,17 +86,41 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                          //{
                                          //    ;
                                          //}
-            foreach (var id in here1.Opers)
+            if (here1 == null)
             {
-                var id2 = id.Index;
+                Console.WriteLine("here1 = null");
+                return;
+            }
+            if (here1.Opers == null)
+            {
+                Console.WriteLine("here1.Opers = null");
+                return;
+            }
+            try
+            {
+                foreach (var id in here1.Opers)
+                {
+                    var id2 = id.Index;
 
-                if (IDToTara.ContainsKey(id2))
-                {
-                    IDToTara[id2] = gotTara;
+                    if (IDToTara.ContainsKey(id2))
+                    {
+                        IDToTara[id2] = gotTara;
+                    }
+                    else
+                    {
+                        IDToTara.Add(id2, gotTara);
+                    }
                 }
-                else
+            }
+            catch
+            {
+                try
                 {
-                    IDToTara.Add(id2, gotTara);
+                    Console.WriteLine("ERROR: " + here1.Opers[0].OrderLink.OrderID);
+                }
+                catch
+                {
+
                 }
             }
         }
