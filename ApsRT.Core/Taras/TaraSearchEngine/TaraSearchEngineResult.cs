@@ -17,6 +17,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
         public int CurrentPlacesCountK = 1;
 
+        public int ExceptTheseTarasNonErrorsCount = int.MaxValue;
+
         public TaraSearchEngineResult()
         {
             TaraName = Uco.EmptyObject;

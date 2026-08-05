@@ -170,6 +170,18 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
             PartiasConnectorEngine.PartiasConnectorEngine.PrepareResultForOneRCData(finalResult, PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(partia1).Select(x => (IAbleForTaraCalcInterface)x).ToList(), new(), false);
 
+
+            CheckListWithDeepChecks(partia1, engineData, WithLog, finalResult);
+
+
+            return partia1;
+        }
+
+        /// <summary>
+        /// 05.08: метод, который учитывает ошибки вроде 16 бмк барабана. Если на уровне 1 поставлен он, на 3-м уровне, где корзина, вылазит ошибка. Этот большой метод чекает тары и выбирает ту, которая позволяет собрать цепочку.
+        /// </summary>
+        public static void CheckListWithDeepChecks(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult)
+        {
             for (int i = 0; i < partia1.Count; i++)
             {
                 for (int j = 0; j < partia1[i].Count; j++)
@@ -177,10 +189,6 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     partia1[i][j] = checkThisList(partia1[i][j], engineData, WithLog, finalResult);
                 }
             }
-
-
-
-            return partia1;
         }
 
         public static void Checks74_110(List<List<PartiaModelling>> partia1, Dictionary<int, Uco> RestrictionsVia74110, bool searchForMax)
@@ -290,7 +298,12 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
 
 
-            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs, EmptyErroredTarasInfo = errored, TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null, LogSomeErrors = false,
+            if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog)
+            {
+                PrevsInfo = prevs,
+                EmptyErroredTarasInfo = errored,
+                TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
+                LogSomeErrors = false,
                 RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                 RecommendedSubdivision = subdiv
             }))
@@ -307,7 +320,9 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
             else
             {
-                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog) { PrevsInfo = prevs,
+                if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog)
+                {
+                    PrevsInfo = prevs,
                     EmptyErroredTarasInfo = errored,
                     RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                     RecommendedSubdivision = subdiv
@@ -321,6 +336,10 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     addInfoLocal(opers, RES2.TaraName, RES2.Max, sdvig, true, true, engineData);
                     //OpersToSdvigs.Add(x.ID, sdvig);
                     return sdvig;
+                }
+                else
+                {
+                    ;
                 }
             }
 

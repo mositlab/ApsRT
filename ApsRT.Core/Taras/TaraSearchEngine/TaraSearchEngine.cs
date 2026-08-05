@@ -907,11 +907,13 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var sum = (someOpers.Sum / currentPlacesCountK) + options.NaladLength;
             int NoChangeTaraNonErrorsCount = 0;
             int OrigTaraNonErrorsCount = 0;
+            int ExceptTheseTarasNonErrorsCount = 0;
             while (currentPlacesCountK < 10) // Попытаемся изменить количество мест, и уменьшить количество
             {
                 sum = (someOpers.Sum / currentPlacesCountK) + options.NaladLength;
                 NoChangeTaraNonErrorsCount = 0;
                 OrigTaraNonErrorsCount = 0;
+                ExceptTheseTarasNonErrorsCount = 0;
                 for (int h = 0; h < searchData.PossibleCentersAndTaras.Length; h++)
                 {
                     if (options.SaveAvailableResults) searchData.AvailableResults[h] = -1; // Пока недоступно.
@@ -947,6 +949,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     {
                         continue;
                     }
+
+                    ExceptTheseTarasNonErrorsCount++;
 
                     if (options.RecommendedSubdivision.HasValue // Есть ограничение?
                         && !result.FinalRC.IsEmpty // Я уже назначил РЦ?
@@ -1060,6 +1064,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             }
 
             if (currentPlacesCountK > 1) result.CurrentPlacesCountK = currentPlacesCountK;
+
+            result.ExceptTheseTarasNonErrorsCount = ExceptTheseTarasNonErrorsCount;
 
             if (!result.FinalRC.IsEmpty)
             {
