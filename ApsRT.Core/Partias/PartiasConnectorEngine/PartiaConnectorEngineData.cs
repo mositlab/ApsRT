@@ -18,6 +18,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
         public bool withHerself;
         public Dictionary<int, NaladLengths.GottenNaladLengthStruct> NaladLengthsData;
         public Dictionary<int, Uco> RestrictionsVia74110;
+        public Dictionary<int, HashSet<Uco>> ExceptTheseTarasGlobal;
 
         public void Deconstruct(out PartiaClass partia1, out PartiaClass partia2, out bool withLog, out bool withHerself)
         {
@@ -27,7 +28,11 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             withHerself = this.withHerself;
         }
 
-        public PartiaConnectorEngineData(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself, Dictionary<int, GottenNaladLengthStruct> naladLengthsData, Dictionary<int, Uco> restrictionsVia74110)
+        public PartiaConnectorEngineData(PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself,
+            Dictionary<int, GottenNaladLengthStruct> naladLengthsData,
+            Dictionary<int, Uco> restrictionsVia74110,
+            Dictionary<int, HashSet<Uco>> exceptTheseTarasGlobal
+            )
         {
             this.firstPartia = firstPartia;
             this.secondPartia = secondPartia;
@@ -35,6 +40,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             this.withHerself = withHerself;
             NaladLengthsData = naladLengthsData;
             RestrictionsVia74110 = restrictionsVia74110;
+            ExceptTheseTarasGlobal = exceptTheseTarasGlobal;
         }
     }
 }

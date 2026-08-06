@@ -1064,13 +1064,15 @@ namespace ApsRTCustomComponents
                 }
 
                 Dictionary<int, Uco> RestrictionsVia74110 = new();
+                Dictionary<int, HashSet<Uco>> ExceptTheseTarasGlobal = new();
+
 
                 List<List<PartiaModelling>> tree1;
                 if (GUID1.HasValue && partiasAlgorithm.SavedPartiasTrees.TryGetValue(GUID1.Value, out var ress)) tree1 = PartiasGeneratorEngine.DeepCopy(ress.List);
                 else
                 {
                     var find = partiasAlgorithm.FindStagesToProcess(GUID1, order1);
-                    tree1 = PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(find, RestrictionsVia74110), col1, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
+                    tree1 = PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(find, RestrictionsVia74110, ExceptTheseTarasGlobal), col1, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
                 }
 
                 List<List<PartiaModelling>> tree2;
@@ -1078,7 +1080,7 @@ namespace ApsRTCustomComponents
                 else
                 {
                     var find = partiasAlgorithm.FindStagesToProcess(GUID2, order2);
-                    tree2 = PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(find, RestrictionsVia74110), col2, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
+                    tree2 = PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(find, RestrictionsVia74110, ExceptTheseTarasGlobal), col2, withUI, Orders[find[0].OrderLink.OrderID].PartiaPF);
                 }
 
                 Dictionary<int, ApsRT.Core.NaladLengths.GottenNaladLengthStruct> NaladLengthsData = new();
@@ -1100,15 +1102,15 @@ namespace ApsRTCustomComponents
                 var res0 = -1;
                 if (areDiff)
                 {
-                    res0 = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, withUI, false, NaladLengthsData, RestrictionsVia74110)).Total;
+                    res0 = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, withUI, false, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal)).Total;
                 }
 
                 if (InGPCheckBox.Checked)
                 {
-                    res = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass1, withUI, true, NaladLengthsData, RestrictionsVia74110));
+                    res = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass1, withUI, true, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal));
                     if (areDiff && res0 == 0 && partiaClass2.OpersHere[0].Count > 0)
                     {
-                        res = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass2, partiaClass2, withUI, true, NaladLengthsData, RestrictionsVia74110));
+                        res = PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass2, partiaClass2, withUI, true, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal));
                     }
                 }
 

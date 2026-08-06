@@ -326,6 +326,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             OriginalCopies = new Dictionary<OrderID, List<List<PartiaModelling>>>(count);
 
             RestrictionsVia74110 = new Dictionary<int, Uco>(count);
+            ExceptTheseTarasGlobal = new Dictionary<int, HashSet<Uco>>(count);
 
             // А это = небольшой словарь, который хранит ссылки на полученные только что элементарные партии. Он нужен, чтобы сформировать на первом этапе таблицы глубины и дедлайнов, потом уже не понадобится.
             orderToPartia = new Dictionary<OrderID, PartiaClass>(count);
@@ -434,6 +435,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
         public Dictionary<int, Uco> RestrictionsVia74110;
 
+        public Dictionary<int, HashSet<Uco>> ExceptTheseTarasGlobal;
+
         void CreatePartiasAndAddToList(IEnumerable<KeyValuePair<OrderID, OrderBaseModel>> orders, int flag, bool restrictIt, bool exceptIt, Guid guidToSet, bool WithLog)
         {
             var ops = new List<Stage>();
@@ -474,7 +477,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     }
                 }
 
-                var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110), Colors.NewRandomColor(), WithLog, guidToSet);
+                var tree = PartiasGeneratorEngine.PartiasGeneratorEngine.GenerateTree(new PartiasGeneratorEngineData(ops, RestrictionsVia74110, ExceptTheseTarasGlobal), Colors.NewRandomColor(), WithLog, guidToSet);
                 if (tree != null)
                 {
                     var partiaL = new PartiaClass(tree, orders.Max(x => x.Value.Deadline), restrictIt, exceptIt, flag, guidToSet, -1);
@@ -561,7 +564,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     partiaClass2.Sort();
 
 
-                    var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData, RestrictionsVia74110));
+                    var res = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partiaClass1, partiaClass2, WithLog, false, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal));
 
                     if (!DEEP.ContainsKey(prt1))
                     {
@@ -708,7 +711,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 partia1C.Sort();
                 partia2C.Sort();
 
-                var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData, RestrictionsVia74110));
+                var final = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia1C, partia2C, WithLog, false, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal));
                 var finalDead = partia1C.PossibleDeadline;
 
                 //var ord1 = partia1.OpersHere[0][0].Opers[0].OrderLink.OrderID;
@@ -822,7 +825,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                         var dead = Math.Abs((partia.PossibleDeadline - partiaLocal.PossibleDeadline).TotalDays);
 
-                        var mergedRes = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia, partiaLocal, WithLog/*, CheckChildren*/, false, NaladLengthsData, RestrictionsVia74110));
+                        var mergedRes = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(partia, partiaLocal, WithLog/*, CheckChildren*/, false, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal));
 
                         var key1 = (remain, partia1);
 
@@ -1068,7 +1071,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             var COUNTER = 0;
             var resu = Parallel.ForEach(fin, el =>
             {
-                var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(el, el, WithLog, true, NaladLengthsData, RestrictionsVia74110));
+                var r = PartiasConnectorEngine.PartiasConnectorEngine.Connect(new PartiaConnectorEngineData(el, el, WithLog, true, NaladLengthsData, RestrictionsVia74110, ExceptTheseTarasGlobal));
                 if (SessionLink.SettingsController.SpecialSettings.OptimizeSubdivisionsInPartias) el.SubdivisionsOptimizer(r);
                 el.TaraDecreaser74_110(); // Попытаемся уменьшить тару где это возможно
                 Interlocked.Increment(ref COUNTER);

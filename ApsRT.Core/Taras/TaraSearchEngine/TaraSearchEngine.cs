@@ -721,7 +721,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     //PossibleCentersAndTaras = PossibleCentersAndTaras.IntersectBy(res.Select(x => x.Tara), x => x.Tara).ToList();
                     if (searchData.PossibleCentersAndTaras.Length == 0 && !rcIsHanded)
                     {
-                        if (LogErrorsBySettings && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty) && options.NextRCsMustBeThese == null) // это пусть сработает только для начала
+                        if (options.LogSomeErrors && LogErrorsBySettings && (allOpers.AllOpers.Count == 1 || allOpers.FirstOperLink.MesModelling.Code != Guid.Empty) && options.NextRCsMustBeThese == null) // это пусть сработает только для начала
                         {
                             if (allOpers.FirstOperLink.NoChangeTara)
                             {

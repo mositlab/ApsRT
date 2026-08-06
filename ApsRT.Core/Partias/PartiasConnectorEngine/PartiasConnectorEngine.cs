@@ -1,18 +1,19 @@
-﻿using Azure;
+﻿using ApsRT.Core.Partias.PartiasClasses;
+using ApsRT.Core.Taras.TaraSearchEngine;
+using Azure;
+using Google.OrTools.Algorithms;
 using Microsoft.VisualBasic;
-using ApsRT.Core.Partias.PartiasClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
-using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
-using ApsRT.Core.Taras.TaraSearchEngine;
-using Google.OrTools.Algorithms;
-using ZLinq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using UniversalPack.Extensions;
+using ZLinq;
+using static ApsRT.Core.Partias.PartiasGeneratorEngine.PartiasGeneratorEngine;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
 namespace ApsRT.Core.Partias.PartiasConnectorEngine
 {
@@ -612,7 +613,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                 RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
 
-                                NaladLength = naladLength
+                                NaladLength = naladLength,
+
+                                ExceptTheseTaras = data.ExceptTheseTarasGlobal == null ? null : data.ExceptTheseTarasGlobal.TryGetValue(here1.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras : null
                             });
                         if (sum && got != null)
                         {
@@ -959,7 +962,8 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                     PrevsInfo = resultToFill.IDToTara,
                                     EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
                                     RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
-                                    RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null
+                                    RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null,
+                                    ExceptTheseTaras = data.ExceptTheseTarasGlobal == null ? null : data.ExceptTheseTarasGlobal.TryGetValue(sdvig.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras : null
                                 })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, res.TaraName, res.FinalRC, res.Max, res.used_format, res.CurrentPlacesCountK, resultToFill);
