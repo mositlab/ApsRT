@@ -711,6 +711,10 @@ namespace ApsRT.Core.Session
                                     $";{(partiasAlgorithm != null && partiasAlgorithm.ThisOperHasPartiaErrors(operLoc) ? "Да" : "Нет")}" +
                                     $";{(mod.WasPassed[PoolIndex] ? "Да" : "Нет")}");
                             }
+                            else
+                            {
+                                ;
+                            }
                         }
                     }
                 }

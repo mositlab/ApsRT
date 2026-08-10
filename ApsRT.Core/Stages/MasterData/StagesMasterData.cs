@@ -627,6 +627,7 @@ namespace ApsRT.Core.Stages.MasterData
                     //SessionLink.DataErrors.AddNewPartiaError(
                     //    oper.Index
                     //    , NewDataErrorType.LivenshteinBadOper, new DataErrorStruct());
+                    ;
                 }
                 else
                 {

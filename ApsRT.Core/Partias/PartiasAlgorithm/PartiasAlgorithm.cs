@@ -1261,7 +1261,12 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                             // Записываем инфу об ошибках тары, если они есть
                             // отсутствие тары (только если операция не вспомогательная). Решено Аленой, 30.05.
-                            if (SessionLink.SettingsController.CurrentSettings.LogErrors && lvl2.ZadelCode == 0 && !lvl2.Opers[0].IsVspom && lvl2.Tara.IsEmpty && !lvl2.Opers[0].NoCheckNamotka)
+                            if (SessionLink.SettingsController.CurrentSettings.LogErrors
+                                && lvl2.ZadelCode == 0
+                                && !lvl2.Opers[0].IsVspom
+                                && !TaraSearchEngine.RcIsHanded(lvl2)
+                                && lvl2.Tara.IsEmpty
+                                && !lvl2.Opers[0].NoCheckNamotka)
                             {
                                 PartiaHasErrors[chosenPartiaGuid] = true;
                             }

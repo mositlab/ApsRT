@@ -1097,7 +1097,7 @@ namespace ApsRTCustomComponents
 
 
 
-                PartiasConnectorEngineResult res = new PartiasConnectorEngineResult(0, 0, 0, 0);
+                PartiasConnectorEngineResult res = new PartiasConnectorEngineResult(0, 0, 0, 0, 0, 0, 0);
                 var areDiff = tree1[0][0].Opers[0].OrderLink.OrderID != tree2[0][0].Opers[0].OrderLink.OrderID;
                 var res0 = -1;
                 if (areDiff)

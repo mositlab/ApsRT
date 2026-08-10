@@ -1183,7 +1183,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             (PartiaClass firstPartia, PartiaClass secondPartia, bool withLog, bool withHerself) = data;
             if (firstPartia.IsRestricted || secondPartia.IsRestricted || firstPartia.IsExcepted || secondPartia.IsExcepted || firstPartia.MergeFlag != secondPartia.MergeFlag) // они ограниченные, либо флаг не тот?
             {
-                return new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue);
+                return new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);
             }
 
             var CurrentCount = firstPartia.OpersHere.Sum(x => x.Count) + secondPartia.OpersHere.Sum(x => x.Count);

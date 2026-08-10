@@ -1091,11 +1091,12 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     if (RcIsHanded)
                     {
                         // Если это назначенный РЦ, то ставим пустую тару
-                        result.FinalRC = searchData.PossibleCentersAndTaras[0].RC;
+                        result.FinalRC = someOpers.FirstOperLink.OriginalCenter;
                         result.CurrentPlacesCountK = 1;
                         result.TaraName = Uco.EmptyObject;
                         result.Max = 0;
                         result.used_format = DimensionUnit.Unknown;
+                        
                         // result.notChangeTara - задана ранее
                         if (options.SaveAvailableResults) searchData.AvailableResults[0] = 0;
                         return true;
@@ -1116,7 +1117,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                         if (RcIsHanded)
                         {
                             // Если это назначенный РЦ, то ставим пустую тару
-                            result.FinalRC = searchData.PossibleCentersAndTaras[0].RC;
+                            result.FinalRC = someOpers.FirstOperLink.OriginalCenter;
                             result.CurrentPlacesCountK = 1;
                             result.TaraName = Uco.EmptyObject;
                             result.Max = 0;
@@ -1140,7 +1141,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                             if (RcIsHanded)
                             {
                                 // Если это назначенный РЦ, то ставим пустую тару
-                                result.FinalRC = searchData.PossibleCentersAndTaras[0].RC;
+                                result.FinalRC = someOpers.FirstOperLink.OriginalCenter;
                                 result.CurrentPlacesCountK = 1;
                                 result.TaraName = Uco.EmptyObject;
                                 result.Max = 0;

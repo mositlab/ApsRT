@@ -313,6 +313,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
             // Формируем список этапчиков
             List<Stage> stages = SessionLink.MasterDataLinks.StagesMasterData.AllStages.Select(x => x.Value).ToList();
 
+            var count1 = $"unfiltered stages count is {stages.Count}";
+            Console.WriteLine(count1);
+            SessionLink.AssignedLogger.LogQueue.Enqueue(count1 + "\r\n");
+
             // Фильтр этапчиков
             stages = stages.Where(x => x != null && !x.ClosedByZadels && !x.IsVolokno).ToList();
 

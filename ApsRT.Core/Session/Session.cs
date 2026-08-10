@@ -272,9 +272,9 @@ namespace ApsRT.Core.Session
         {
             MasterDataLinks.OrdersMasterData.ProcessOrdersExceptions(); // Получаем исключения для заказиков
 
-            MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.EnsureVersionedStagesDependencies(); // Сначала грамотно устанавливаем зависимости
             MasterDataLinks.StagesMasterData.EnsureVersionedStagesProperCount(); // А теперь установим и количество правильное
+            MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
 
             if (DataErrors.TryOutputDataErrors())

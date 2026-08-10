@@ -696,7 +696,7 @@ namespace ApsRT.Core.Leftovers
             var dt1 = DateTime.Now;
             var delta = dt1 - dt0;
             Console.WriteLine($"1/2 time wasted on cpSolver is {delta}, status: {status}");
-            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"1/2 time wasted on solver is {delta}, status: {status}");
+            SessionLink.AssignedLogger.PartiasLogQueue.Enqueue($"1/2 time wasted on solver is {delta}, status: {status}\r\n");
             SetResults(status);
 
             long maxWeightFound = (long)solverNew.ObjectiveValue;
