@@ -519,10 +519,10 @@ namespace ApsRT.Core.Taras
 
             var dataErrors = SessionLink.DataErrors;
 
-            //if (SavedTara.TryGetValue(first, out var resu))
-            //{
-            //    return resu;
-            //}
+            if (SavedTara.TryGetValue(first, out var resu))
+            {
+                return resu;
+            }
 
             Dictionary<Uco,
                 Dictionary<Uco,

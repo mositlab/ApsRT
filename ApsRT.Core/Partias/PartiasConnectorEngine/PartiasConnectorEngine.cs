@@ -1172,6 +1172,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             var CentersData = SessionLink.MasterDataLinks.CentersMasterData.CentersData;
 
             var bestSubdivision = listOnOne.SelectMany(x => x.Opers[0].PossibleCenters ?? new List<Uco>() { x.Opers[0].OriginalCenter }) // Сначала найдём ВСЕ центры здесь, у обоих партий
+                .Where(x => !x.IsEmpty)
                     .GroupBy(x => CentersData[x].Subdivision) // группируем по цеху
                     .MaxBy(x => x.Count()) // найдем максимальный
                     .Key; // берем ключ, потому что это цех

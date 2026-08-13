@@ -182,6 +182,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         {
             public bool CanSearchTara;
             public HashSet<Uco> ExceptThisTara;
+            public int TryCount = 0;
 
             public DeepCheckData()
             {
@@ -224,7 +225,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         else
                         {
                             dic1.TryAdd(result.firstPrevIndex, new());
-                            if (result.last)
+                            if (result.last || dic1[result.firstPrevIndex].TryCount > 100)
                             {
                                 // Больше НЕЛЬЗЯ менять тару для него
                                 dic1[result.firstPrevIndex].CanSearchTara = false;
@@ -234,6 +235,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                                 if (engineData.prevs.TryGetValue(result.firstPrevIndex, out var tara))
                                 {
                                     dic1[result.firstPrevIndex].ExceptThisTara.Add(tara);
+                                    dic1[result.firstPrevIndex].TryCount++;
                                 }
                                 else
                                 {
