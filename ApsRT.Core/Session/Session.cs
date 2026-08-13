@@ -272,6 +272,8 @@ namespace ApsRT.Core.Session
         {
             MasterDataLinks.OrdersMasterData.ProcessOrdersExceptions(); // Получаем исключения для заказиков
 
+            MasterDataLinks.TarasMasterData.CustomMaxCapacityPostProcess();
+
             MasterDataLinks.StagesMasterData.EnsureVersionedStagesDependencies(); // Сначала грамотно устанавливаем зависимости
             MasterDataLinks.StagesMasterData.EnsureVersionedStagesProperCount(); // А теперь установим и количество правильное
             MasterDataLinks.StagesMasterData.FixVPZDependencies();

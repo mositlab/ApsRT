@@ -2122,12 +2122,19 @@ namespace ApsRTCustomComponents
                                 var opNomer = level5.Key;
                                 foreach (var level6 in level5.Value)
                                 {
-                                    var tara = level6.Key;
-                                    foreach (var data in level6.Value)
+                                    var order = level6.Key;
+                                    if (order.Object.IsEmpty)
                                     {
-                                        var unit = data.Format;
-                                        var value = data.Value;
-                                        writer.WriteLine($"{production.Label}\t{production.Code}\t{nomenklature.Label}\t{nomenklature.Code}\t{chars.Label}\t{chars.Code}\t{vid.Label}\t{vid.Code}\t{opNomer}\t{tara.Label}\t{tara.Code}\t{unit.DimensionUnitToString(false)}\t{value}");
+                                        foreach (var level7 in level6.Value)
+                                        {
+                                            var tara = level7.Key;
+                                            foreach (var data in level7.Value)
+                                            {
+                                                var unit = data.Format;
+                                                var value = data.Value;
+                                                writer.WriteLine($"{production.Label}\t{production.Code}\t{nomenklature.Label}\t{nomenklature.Code}\t{chars.Label}\t{chars.Code}\t{vid.Label}\t{vid.Code}\t{opNomer}\t{tara.Label}\t{tara.Code}\t{unit.DimensionUnitToString(false)}\t{value}");
+                                            }
+                                        }
                                     }
                                 }
                             }

@@ -1,6 +1,11 @@
 ﻿using ApsRT.Core.DataErrors;
 using ApsRT.Core.Session;
 using Azure;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Google.Protobuf.Compiler;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -8,6 +13,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +21,7 @@ using UniversalPack;
 using UniversalPack.Extensions;
 using static Azure.Core.HttpHeader;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
+using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 
 namespace ApsRT.Core.Taras
 {
@@ -240,8 +247,10 @@ namespace ApsRT.Core.Taras
                 Dictionary<Uco, // Хар-ка
                     Dictionary<Uco, // ОПЕР
                         Dictionary<int, // ВЕРСИЯ ЭТАПА
-                            Dictionary<Uco, // ТипТары
-                                List<(DimensionUnit Format, double Value)>
+                            Dictionary<OrderID, // ЗАКАЗ
+                                Dictionary<Uco, // ТипТары
+                                    List<(DimensionUnit Format, double Value)>
+                                >
                             >
                         >
                     >
@@ -250,15 +259,164 @@ namespace ApsRT.Core.Taras
         > TarasMaxCapacities
         { get; private set; } = new();
 
-        public void AddMaxCapacityData(MaxCapacityDataLoaderModel model)
-        {
-            var production = model.Production;
-            var Nomen = model.Nomenklature;
-            var Chars = model.Characteristics;
-            var oper_int = model.OperationVid;
-            var version = model.StageVersion;
-            if (version <= 0) version = 1;
+        public string CustomMaxCapacitiesFile = "customMax.xlsx";
 
+        public void CustomMaxCapacityPostProcess()
+        {
+            // Сначала сохраняем файл
+            if (!File.Exists(CustomMaxCapacitiesFile))
+            {
+                using (var workbook = new XLWorkbook())
+                {
+                    var worksheet = workbook.Worksheets.Add("Намотки");
+
+                    worksheet.Row(1).Cell(1).Value = "Продукция";
+                    worksheet.Row(1).Cell(2).Value = "Продукция_GUID";
+                    worksheet.Row(1).Cell(3).Value = "Номенклатура";
+                    worksheet.Row(1).Cell(4).Value = "Номенклатура_GUID";
+                    worksheet.Row(1).Cell(5).Value = "ХарактеристикаНоменклатуры";
+                    worksheet.Row(1).Cell(6).Value = "ХарактеристикаНоменклатуры_GUID";
+
+                    int i = 7;
+                    if (SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput)
+                    {
+                        worksheet.Row(1).Cell(i).Value = "НомерОперации";
+                        i++;
+                    }
+
+                    worksheet.Row(1).Cell(i).Value = "ВидОперации";
+                    worksheet.Row(1).Cell(i + 1).Value = "ВидОперации_GUID";
+                    worksheet.Row(1).Cell(i + 2).Value = "Заказ";
+                    worksheet.Row(1).Cell(i + 3).Value = "Заказ_GUID";
+                    worksheet.Row(1).Cell(i + 4).Value = "ПартияГП";
+                    worksheet.Row(1).Cell(i + 5).Value = "ТипТары";
+                    worksheet.Row(1).Cell(i + 6).Value = "ТипТары_GUID";
+                    worksheet.Row(1).Cell(i + 7).Value = "ВеличинаНамотки";
+
+                    workbook.SaveAs(CustomMaxCapacitiesFile);
+                }
+            }
+
+            // Теперь читаем
+            try
+            {
+                using (var fileStream = new FileStream(CustomMaxCapacitiesFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (XLWorkbook xLWorkbook = new XLWorkbook(fileStream))
+                    {
+                        var firstSheet = xLWorkbook.Worksheets.First();
+                        int populatedRowsCount = firstSheet.RowsUsed().Count();
+
+                        if (populatedRowsCount > 1)
+                        {
+                            // Считываем всё из файла
+
+                            var columnLetters = firstSheet.ColumnsUsed().Select((col, i) => (name: col.FirstCell().Value.ToString(), index: i)).ToDictionary(x => x.name, x => x.index + 1);
+
+                            int stageVerIndex = columnLetters.TryGetValue("НомерОперации", out var i0) ? i0 : -1;
+
+                            int operVIndex = columnLetters.TryGetValue("ВидОперации", out var i1) ? i1 : -1;
+                            int operVGIndex = columnLetters.TryGetValue("ВидОперации_GUID", out var i2) ? i2 : -1;
+
+                            int CharIndex = columnLetters.TryGetValue("ХарактеристикаНоменклатуры", out var i3) ? i3 : -1;
+                            int CharGIndex = columnLetters.TryGetValue("ХарактеристикаНоменклатуры_GUID", out var i4) ? i4 : -1;
+
+                            int NIndex = columnLetters.TryGetValue("Номенклатура", out var i5) ? i5 : -1;
+                            int NGIndex = columnLetters.TryGetValue("Номенклатура_GUID", out var i6) ? i6 : -1;
+
+                            int PIndex = columnLetters.TryGetValue("Продукция", out var i7) ? i7 : -1;
+                            int PGIndex = columnLetters.TryGetValue("Продукция_GUID", out var i8) ? i8 : -1;
+
+                            int TIndex = columnLetters.TryGetValue("ТипТары", out var i9) ? i9 : -1;
+                            int TGIndex = columnLetters.TryGetValue("ТипТары_GUID", out var i10) ? i10 : -1;
+
+                            int aIndex = columnLetters.TryGetValue("ВеличинаНамотки", out var i11) ? i11 : -1;
+
+                            int ZIndex = columnLetters.TryGetValue("Заказ", out var i12) ? i12 : -1;
+                            int ZGIndex = columnLetters.TryGetValue("Заказ_GUID", out var i13) ? i13 : -1;
+
+                            int ZGPIndex = columnLetters.TryGetValue("ПартияГП", out var i14) ? i14 : -1;
+
+                            List<(Uco pr, Uco nom, Uco cha, Uco vid, int ver, OrderID ord, Uco tar, double val)> RawList = new();
+
+                            for (int i = 2; i <= populatedRowsCount; i++)
+                            {
+                                try
+                                {
+                                    Uco production = new Uco(Guid.TryParse(firstSheet.Row(i).Cell(PGIndex).GetValue<string>(), out var resP) ? resP : Guid.Empty,
+                                        firstSheet.Row(i).Cell(PIndex).GetValue<string>());
+
+                                    Uco Nomen = new Uco(new Guid(firstSheet.Row(i).Cell(NGIndex).GetValue<string>()),
+                                        firstSheet.Row(i).Cell(NIndex).GetValue<string>());
+
+                                    Uco Chars = CharIndex == -1 ? Uco.EmptyObject : new Uco(Guid.TryParse(firstSheet.Row(i).Cell(CharGIndex).GetValue<string>(), out Guid res) ? res : Guid.Empty,
+                                        firstSheet.Row(i).Cell(CharIndex).GetValue<string>());
+
+                                    Uco oper_int = new Uco(new Guid(firstSheet.Row(i).Cell(operVGIndex).GetValue<string>()),
+                                        firstSheet.Row(i).Cell(operVIndex).GetValue<string>());
+
+                                    var version = stageVerIndex == -1 ? 1 : firstSheet.Row(i).Cell(stageVerIndex).GetValue<int>();
+
+                                    OrderID order = new OrderID(new Uco(Guid.TryParse(firstSheet.Row(i).Cell(ZGIndex).GetValue<string>(), out var res0) ? res0 : Guid.Empty,
+                                        firstSheet.Row(i).Cell(ZIndex).GetValue<string>()), firstSheet.Row(i).Cell(ZGPIndex).GetValue<string>());
+
+                                    Uco tara = new Uco(new Guid(firstSheet.Row(i).Cell(TGIndex).GetValue<string>()),
+                                        firstSheet.Row(i).Cell(TIndex).GetValue<string>());
+
+                                    double amount = firstSheet.Row(i).Cell(aIndex).GetValue<double>();
+
+                                    RawList.Add((production, Nomen, Chars, oper_int, version, order, tara, amount));
+                                }
+                                catch (Exception ex)
+                                {
+                                    string error = $"Не удалось прочитать строку {i} кастомных макс намоток: " + ex.ToString();
+                                    Console.WriteLine(error);
+                                    SessionLink.AssignedLogger.LogQueue.Enqueue(error + "\r\n");
+                                }
+                            }
+
+                            var groups = RawList.GroupBy(x => (x.pr, x.nom, x.cha, x.vid, x.ver, x.ord));
+
+                            foreach (var group in groups)
+                            {
+                                var production = group.Key.pr;
+                                var Nomen = group.Key.nom;
+                                var Chars = group.Key.cha;
+                                var oper_int = group.Key.vid;
+                                var version = group.Key.ver;
+                                var order = group.Key.ord;
+                                if (version <= 0) version = 1;
+
+                                // Убеждаемся, что есть словарь, и ОЧИЩАЕМ его сразу же
+                                EnsureMaxCapacityDics(production, Nomen, Chars, oper_int, version, order, true);
+
+                                foreach (var value in group)
+                                {
+                                    var amount = value.val;
+                                    var tara = value.tar;
+
+                                    // Добавляем ТАРУ
+                                    AddMaxCapacityData(production, Nomen, Chars, oper_int, version, order, DimensionUnit.Unknown, amount, tara);
+                                }
+
+                            }
+
+                        }
+
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                string error = "Не удалось прочитать файл кастомных макс намоток: " + ex.ToString();
+                Console.WriteLine(error);
+                SessionLink.AssignedLogger.LogQueue.Enqueue(error + "\r\n");
+            }
+        }
+
+        void EnsureMaxCapacityDics(Uco production, Uco Nomen, Uco Chars, Uco oper_int, int version, OrderID order, bool clear)
+        {
             if (!TarasMaxCapacities.ContainsKey(production))
             {
                 TarasMaxCapacities.Add(production, new(/*new CodedObjectEqualityComparer()*/));
@@ -284,21 +442,35 @@ namespace ApsRT.Core.Taras
                 TarasMaxCapacities[production][Nomen][Chars][oper_int].Add(version, new());
             }
 
+            if (!TarasMaxCapacities[production][Nomen][Chars][oper_int].ContainsKey(version))
+            {
+                TarasMaxCapacities[production][Nomen][Chars][oper_int].Add(version, new());
+            }
 
-            var what = (model.DimensionUnit, model.Amount);
+            if (!TarasMaxCapacities[production][Nomen][Chars][oper_int][version].ContainsKey(order))
+            {
+                TarasMaxCapacities[production][Nomen][Chars][oper_int][version].Add(order, new());
+            }
 
-            Add2(model.TaraType, what);
+            if (clear) TarasMaxCapacities[production][Nomen][Chars][oper_int][version][order].Clear();
+        }
+
+        public void AddMaxCapacityData(Uco production, Uco Nomen, Uco Chars, Uco oper_int, int version, OrderID order, DimensionUnit unit, double amount, Uco tara)
+        {
+            var what = (unit, amount);
+
+            Add2(tara, what);
 
             if (SessionLink.SettingsController.CurrentSettings.UsePseudoTara)
             {
-                Add2(Pseudotara1, (what.DimensionUnit, 100000));
-                Add2(Pseudotara2, (what.DimensionUnit, 100000));
-                Add2(Pseudotara3, (what.DimensionUnit, 100000));
+                Add2(Pseudotara1, (unit, 100000));
+                Add2(Pseudotara2, (unit, 100000));
+                Add2(Pseudotara3, (unit, 100000));
             }
 
             void Add2(Uco whichTara, (DimensionUnit, double) val)
             {
-                var lvl = TarasMaxCapacities[production][Nomen][Chars][oper_int][version];
+                var lvl = TarasMaxCapacities[production][Nomen][Chars][oper_int][version][order];
 
                 if (!lvl.ContainsKey(whichTara))
                 {
@@ -310,6 +482,21 @@ namespace ApsRT.Core.Taras
                     lvl[whichTara].Add(val);
                 }
             }
+        }
+
+        public void AddMaxCapacityData(MaxCapacityDataLoaderModel model)
+        {
+            var production = model.Production;
+            var Nomen = model.Nomenklature;
+            var Chars = model.Characteristics;
+            var oper_int = model.OperationVid;
+            var version = model.StageVersion;
+            var order = OrderID.EmptyObject;
+            if (version <= 0) version = 1;
+
+            EnsureMaxCapacityDics(production, Nomen, Chars, oper_int, version, order, false);
+
+            AddMaxCapacityData(production, Nomen, Chars, oper_int, version, order, model.DimensionUnit, model.Amount, model.TaraType);
         }
 
         public void ClearMaxCapacities()
@@ -332,17 +519,19 @@ namespace ApsRT.Core.Taras
 
             var dataErrors = SessionLink.DataErrors;
 
-            if (SavedTara.TryGetValue(first, out var resu))
-            {
-                return resu;
-            }
+            //if (SavedTara.TryGetValue(first, out var resu))
+            //{
+            //    return resu;
+            //}
 
             Dictionary<Uco,
                 Dictionary<Uco,
                     Dictionary<Uco,
                         Dictionary<int,
-                            Dictionary<Uco,
-                                List<(DimensionUnit Format, double Value)>
+                            Dictionary<OrderID,
+                                Dictionary<Uco,
+                                    List<(DimensionUnit Format, double Value)>
+                                >
                             >
                         >
                     >
@@ -382,27 +571,36 @@ namespace ApsRT.Core.Taras
                         {
                             if (lvl2.TryGetValue(first.OperationVid, out var byVersion))
                             {
-                                if (byVersion.TryGetValue(version, out var possible))
+                                if (byVersion.TryGetValue(version, out var byOrder))
                                 {
-                                    var finalList = returnFunc(possible);
-                                    SavedTara.TryAdd(first, finalList);
-                                    return finalList;
-                                }
-                                else
-                                {
-                                    // На случай если функционала ВООБЩЕ НЕТ
-                                    if (false/*byVersion.TryGetValue(0, out var possible2)*/)
+                                    if (byOrder.TryGetValue(first.OrderLink.OrderID, out var possible))
                                     {
-                                        //var finalList = returnFunc(possible2);
-                                        //SavedTara.TryAdd(first, finalList);
-                                        //return finalList;
+                                        var finalList = returnFunc(possible);
+                                        SavedTara.TryAdd(first, finalList);
+                                        return finalList;
                                     }
                                     else
                                     {
-                                        // Сразу ошибка
-                                        dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
-                                        return prodError();
+                                        if (byOrder.TryGetValue(OrderID.EmptyObject, out var possible2))
+                                        {
+                                            var finalList = returnFunc(possible2);
+                                            SavedTara.TryAdd(first, finalList);
+                                            return finalList;
+                                        }
+                                        else
+                                        {
+                                            // Сразу ошибка - если пустого заказа нету, это значит, что вся эта цепочка не вела никуда, а значит, всё началось с продукции.
+                                            dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoProduction, new DataErrorStruct());
+                                            return prodError();
+                                        }
                                     }
+
+                                }
+                                else
+                                {
+                                    // Сразу ошибка
+                                    dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
+                                    return prodError();
                                 }
                             }
                             else
@@ -418,27 +616,36 @@ namespace ApsRT.Core.Taras
                             {
                                 if (lvl22.TryGetValue(first.OperationVid, out var byVersion))
                                 {
-                                    if (byVersion.TryGetValue(version, out var possible))
+                                    if (byVersion.TryGetValue(version, out var byOrder))
                                     {
-                                        var finalList = returnFunc(possible);
-                                        SavedTara.TryAdd(first, finalList);
-                                        return finalList;
-                                    }
-                                    else
-                                    {
-                                        // На случай если функционала ВООБЩЕ НЕТ
-                                        if (false/*byVersion.TryGetValue(0, out var possible2)*/)
+                                        if (byOrder.TryGetValue(first.OrderLink.OrderID, out var possible))
                                         {
-                                            //var finalList = returnFunc(possible2);
-                                            //SavedTara.TryAdd(first, finalList);
-                                            //return finalList;
+                                            var finalList = returnFunc(possible);
+                                            SavedTara.TryAdd(first, finalList);
+                                            return finalList;
                                         }
                                         else
                                         {
-                                            // Сразу ошибка
-                                            dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
-                                            return prodError();
+                                            if (byOrder.TryGetValue(OrderID.EmptyObject, out var possible2))
+                                            {
+                                                var finalList = returnFunc(possible2);
+                                                SavedTara.TryAdd(first, finalList);
+                                                return finalList;
+                                            }
+                                            else
+                                            {
+                                                // Сразу ошибка - если пустого заказа нету, это значит, что вся эта цепочка не вела никуда, а значит, всё началось с продукции.
+                                                dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoProduction, new DataErrorStruct());
+                                                return prodError();
+                                            }
                                         }
+
+                                    }
+                                    else
+                                    {
+                                        // Сразу ошибка
+                                        dataErrors.AddNewPartiaError(first.Index, NewDataErrorType.NoVersion, new DataErrorStruct());
+                                        return prodError();
                                     }
                                 }
                                 else
@@ -502,8 +709,10 @@ namespace ApsRT.Core.Taras
                 Dictionary<Uco,
                     Dictionary<Uco,
                         Dictionary<int,
-                            Dictionary<Uco,
-                                List<(DimensionUnit Format, double Value)>
+                            Dictionary<OrderID,
+                                Dictionary<Uco,
+                                    List<(DimensionUnit Format, double Value)>
+                                >
                             >
                         >
                     >
@@ -512,20 +721,26 @@ namespace ApsRT.Core.Taras
 
                 Dictionary<Uco,
                     Dictionary<int,
-                        Dictionary<Uco,
-                            List<(DimensionUnit Format, double Value)>
+                        Dictionary<OrderID,
+                            Dictionary<Uco,
+                                List<(DimensionUnit Format, double Value)>
+                            >
                         >
                     >
                 > lvl11 = null;
 
                 Dictionary<int,
-                    Dictionary<Uco,
-                        List<(DimensionUnit Format, double Value)>
+                    Dictionary<OrderID,
+                            Dictionary<Uco,
+                                List<(DimensionUnit Format, double Value)>
+                            >
                     >
                 > byVersion = null;
 
-                Dictionary<Uco, // ТипТары
-                    List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                Dictionary<OrderID, 
+                            Dictionary<Uco, // ТипТары
+                                List<(DimensionUnit Format, double Value)> // Намотка (формат и значения)
+                            >
                     > possible = null;
 
                 if (b1) b2 = lvl0.TryGetValue(first.Nomenklature, out lvl1);
@@ -553,7 +768,27 @@ namespace ApsRT.Core.Taras
 
                 if (b1 && b2 && b22 && b3 && b33)
                 {
-                    finalList.AddRange(returnFunc(possible));
+                    if (possible.TryGetValue(first.OrderLink.OrderID, out var withOrder))
+                    {
+                        finalList.AddRange(returnFunc(withOrder));
+                    }
+                    else
+                    {
+                        if (possible.TryGetValue(OrderID.EmptyObject, out var nOrder))
+                        {
+                            finalList.AddRange(returnFunc(nOrder));
+                        }
+                        else
+                        {
+                            // Обнуляем вообще всё
+                            b1 = false;
+                            b2 = false;
+                            b22 = false;
+                            b3 = false;
+                            b33 = false;
+                        }
+                    }
+
                 }
 
                 bool b4 = TarasMaxCapacities.TryGetValue(Uco.EmptyObject, out lvl0);
@@ -585,7 +820,26 @@ namespace ApsRT.Core.Taras
 
                 if (b4 && b5 && b55 && b6 && b66)
                 {
-                    finalList.AddRange(returnFunc(possible));
+                    if (possible.TryGetValue(first.OrderLink.OrderID, out var withOrder))
+                    {
+                        finalList.AddRange(returnFunc(withOrder));
+                    }
+                    else
+                    {
+                        if (possible.TryGetValue(OrderID.EmptyObject, out var nOrder))
+                        {
+                            finalList.AddRange(returnFunc(nOrder));
+                        }
+                        else
+                        {
+                            // Обнуляем вообще всё
+                            b4 = false;
+                            b5 = false;
+                            b55 = false;
+                            b6 = false;
+                            b66 = false;
+                        }
+                    }
                 }
                 finalList = finalList.Distinct().ToList();
                 if (finalList.Count == 0)
@@ -617,7 +871,7 @@ namespace ApsRT.Core.Taras
             // Это превращалка в таблицу - на случай, если у одной тары есть несколько значений макс количества.
             List<(Uco, DimensionUnit, double)> returnFunc(Dictionary<Uco, List<(DimensionUnit Format, double Value)>> possibl)
             {
-                var res = possibl.SelectMany(x => x.Value.Select(y => (x.Key, y.Format, y.Value))).ToList();//.Where(x => x.Value >= first.Count)
+                var res = possibl.SelectMany(x => x.Value.Select(y => (x.Key, y.Format, y.Value))).ToList();
                 return res;
             }
         }
