@@ -32,6 +32,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
         public Dictionary<int, Uco> RestrictionsVia74110 = new();
         public Dictionary<int, HashSet<Uco>> ExceptTheseTarasGlobal = new();
+        public Dictionary<int, HashSet<Uco>> PossibleRCsGlobal;
 
         public Uco? BestSubdivision = null;
 
@@ -41,10 +42,11 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             Session = stages?[0].SessionLink ?? sessionLink;
         }
 
-        public PartiasGeneratorEngineData(List<Stages.Stage> stages, Dictionary<int, Uco> restrictionsVia74110, Dictionary<int, HashSet<Uco>> exceptTheseTarasGlobal) : this(stages)
+        public PartiasGeneratorEngineData(List<Stages.Stage> stages, Dictionary<int, Uco> restrictionsVia74110, Dictionary<int, HashSet<Uco>> exceptTheseTarasGlobal, Dictionary<int, HashSet<Uco>> possibleRCsGlobal) : this(stages)
         {
             RestrictionsVia74110 = restrictionsVia74110;
             ExceptTheseTarasGlobal = exceptTheseTarasGlobal;
+            PossibleRCsGlobal = possibleRCsGlobal;
         }
     }
 }

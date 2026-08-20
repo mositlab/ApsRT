@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniversalPack;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using StageGUID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, int>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
@@ -196,6 +195,32 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         /// </summary>
         public static void CheckListWithDeepChecks(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult)
         {
+            var errored = engineData.EmptyErroredTarasInfo;
+            var RestrictionsVia74110 = engineData.RestrictionsVia74110;
+
+            var possibleRCs = engineData.PossibleRCsGlobal;
+
+            // Сначала найдём все доступные РЦ для каждого этапа
+            for (int i = 0; i < partia1.Count; i++)
+            {
+                for (int j = 0; j < partia1[i].Count; j++)
+                {
+                    var sdvig = partia1[i][j];
+                    var RCs = sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].OriginalCenter };
+                    Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var rtara) ? rtara : null);
+                    var result = RCs.Where(rc =>
+                    {
+                        return TaraSearchEngine.SumIsPossible(sdvig, out _, out _, new SumIsPossibleOptions(false)
+                        {
+                            LogSomeErrors = false,
+                            RCMustBeThis = new HashSet<Uco>() { rc },
+                            EmptyErroredTarasInfo = errored,
+                            TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
+                        });
+                    });
+                    foreach (var stage in sdvig.Opers) possibleRCs[stage.Index] = result.ToHashSet();
+                }
+            }
 
             var ExceptTheseTarasGlobal = engineData.ExceptTheseTarasGlobal;
 
@@ -216,7 +241,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 {
                     for (int j = 0; j < partia1[i].Count; j++)
                     {
-                        var result = checkThisList(partia1[i][j], engineData, WithLog, finalResult, dic1, dicSdvigs);
+                        var result = checkThisList(partia1[i][j], engineData, WithLog, finalResult, dic1, dicSdvigs, possibleRCs);
 
                         if (result.success)
                         {
@@ -225,7 +250,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         else
                         {
                             dic1.TryAdd(result.firstPrevIndex, new());
-                            if (result.last || dic1[result.firstPrevIndex].TryCount > 100)
+                            if (result.last /*|| dic1[result.firstPrevIndex].TryCount > 100*/)
                             {
                                 // Больше НЕЛЬЗЯ менять тару для него
                                 dic1[result.firstPrevIndex].CanSearchTara = false;
@@ -241,9 +266,9 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                                 {
                                     dic1[result.firstPrevIndex].CanSearchTara = false;
                                 }
+                                anyError = true;
+                                break;
                             }
-                            anyError = true;
-                            break;
                         }
                     }
                     if (anyError) break;
@@ -329,7 +354,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         }
 
         public static DeepCheckResult checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult,
-            Dictionary<int, DeepCheckData> deepCheckData, Dictionary<int, PartiaModelling> dicSdvigs)
+            Dictionary<int, DeepCheckData> deepCheckData, Dictionary<int, PartiaModelling> dicSdvigs, Dictionary<int, HashSet<Uco>> possibleRCs)
         {
             var DoneIDS = engineData.DoneIDS;
             //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
@@ -381,7 +406,6 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
             var resultOneRC = PartiasConnectorEngine.PartiasConnectorEngine.GetCenterFromOneRCGroup(listOnOneRc1, finalResult, out Uco? NeededRC, out var group1);
 
-
             if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES, out _, new SumIsPossibleOptions(WithLog)
             {
                 PrevsInfo = prevs,
@@ -390,7 +414,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 LogSomeErrors = false,
                 RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                 RecommendedSubdivision = subdiv,
-                ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras.ExceptThisTara : null
+                ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras.ExceptThisTara : null,
+                NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(listOnOneRc1.Opers, possibleRCs),
             }))
             {
                 // Нашлась, отработала хорошо.
@@ -408,6 +433,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var tempRes, out _, new SumIsPossibleOptions(WithLog)
                 {
                     //PrevsInfo = prevs, // - Убираем вот эту важную часть, чтобы убедиться, что это исключительно из-за предков, и надо искать другую тару выше
+                    //NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(listOnOneRc1.Opers, possibleRCs),
                     EmptyErroredTarasInfo = errored,
                     TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
                     LogSomeErrors = false, // Ошибки пока всё ещё выключены
@@ -420,7 +446,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     var possiblePrevsToCheck = listOnOneRc1.Opers.SelectMany(x => x.Prevs).Select(x => dicSdvigs[x]).Distinct();//.ToList();
 
                     // Теперь смотрим, каких из них можно проверить
-                    possiblePrevsToCheck = possiblePrevsToCheck.Where(prev => deepCheckData.TryGetValue(prev.Opers[0].Index, out var data) && data.CanSearchTara);
+                    possiblePrevsToCheck = possiblePrevsToCheck.Where(prev => deepCheckData.TryGetValue(prev.Opers[0].Index, out var data) && data.CanSearchTara && data.TryCount < 100);
 
                     if (possiblePrevsToCheck.Count() == 0)
                     {
@@ -435,12 +461,35 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                             RecommendedSubdivision = subdiv,
                             ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null
                         });
+
+                        var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
+                        addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, true, engineData);
+                        return new DeepCheckResult(sdvig, false, -1, true);
                     }
                     else
                     {
-
-                        return new DeepCheckResult(null, false, possiblePrevsToCheck.First().Opers[0].Index, tempRes.ExceptTheseTarasNonErrorsCount == 0);
+                        var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
+                        addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, true, engineData);
+                        return new DeepCheckResult(sdvig, false, possiblePrevsToCheck.First().Opers[0].Index, tempRes.ExceptTheseTarasNonErrorsCount == 0);
                     }
+                }
+                else
+                {
+                    // Если таких нету, то мне приходится просто вывести все ошибки с помощью SumIsPossible, и тупо пойти дальше.
+                    Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out _, out _, new SumIsPossibleOptions(WithLog)
+                    {
+                        PrevsInfo = prevs,
+                        EmptyErroredTarasInfo = errored,
+                        TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
+                        //LogSomeErrors = false, // Включаем ошибки.
+                        RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                        RecommendedSubdivision = subdiv,
+                        ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null
+                    });
+
+                    //var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
+                    //addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, true, engineData);
+                    //return new DeepCheckResult(sdvig, false, -1, true);
                 }
                 //if (Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(listOnOneRc1, out var RES2, out _, new SumIsPossibleOptions(WithLog)
                 //{

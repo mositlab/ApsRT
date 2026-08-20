@@ -290,6 +290,10 @@ namespace ApsRT.Core.Stages
 
         public OrderBaseModel OrderLink { get; set; }
 
+
+        [DataRecordColumn("ОпытныйОрдер", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes)]
+        public bool ItsOrder { get; set; }
+
         /// <summary>
         /// Ссылка на материал - отдельный класс, нужен только в партиях
         /// </summary>
@@ -448,7 +452,7 @@ namespace ApsRT.Core.Stages
             var currSets = SessionLink.SettingsController.CurrentSettings;
 
             // Если нет информации там, ищу в базах данных
-            if (masterData.AnyDurations && masterData.TryGetTypicalDuration(RC, this, out var timePerEd))
+            if (masterData.TryGetTypicalDuration(RC, this, out var timePerEd))
             {
                 var integ = (int)Math.Round(timePerEd * countToTime * ZadelsDurationK);
                 if (integ == 0) integ = 1;

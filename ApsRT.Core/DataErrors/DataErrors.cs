@@ -33,7 +33,7 @@ namespace ApsRT.Core.DataErrors
         object lockerHere = new();
         public void AddNewPartiaError(int ID, NewDataErrorType error, DataErrorStruct errorData)
         {
-            if (session.MasterDataLinks.StagesMasterData.AllStages[ID].OrderLink.WillBeExcepted)
+            if (session.MasterDataLinks.StagesMasterData.AllStages.TryGetValue(ID, out var stage) && stage.OrderLink.WillBeExcepted)
             {
                 if (!NewDataErrorsExcepted.ContainsKey(ID))
                 {

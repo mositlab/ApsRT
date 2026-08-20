@@ -158,6 +158,7 @@ namespace ApsRT.Core.Stages.MasterData
                 else
                 {
                     session.AssignedLogger.LogQueue.Enqueue($"ЗАГРУЗКА (операции): Маршрут {stage.RCRoute} не существует.\r\n");
+                    Console.WriteLine($"Маршрут {stage.RCRoute} не существует.");
                 }
             }
             #endregion

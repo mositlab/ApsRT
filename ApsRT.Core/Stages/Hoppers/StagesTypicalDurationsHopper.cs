@@ -22,7 +22,7 @@ namespace ApsRT.Core.Stages.Hoppers
         void IHopperInterface.BeforeAllLoading(Session.Session session, string[] filenames)
         {
             StagesTypicalDurationsMasterData = session.MasterDataLinks.StagesTypicalDurationsMasterData;
-            StagesTypicalDurationsMasterData.ClearAll();
+            StagesTypicalDurationsMasterData.ClearTypicalDurations();
         }
 
         void IHopperInterface.BeforeLoading(string filename, DataLoaderOptions options)
@@ -45,7 +45,7 @@ namespace ApsRT.Core.Stages.Hoppers
 
         void IHopperInterface.AfterLoading()
         {
-            StagesTypicalDurationsMasterData.PostProcess();
+            StagesTypicalDurationsMasterData.PostProcessTypicalDurations();
         }
     }
 

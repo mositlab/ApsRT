@@ -1,6 +1,7 @@
 ﻿using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Google.OrTools.Algorithms;
 using Microsoft.VisualBasic;
 using System;
@@ -22,7 +23,13 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
         public static Dictionary<int, PartiaModelling> SeeSdvigsAsDic(List<List<PartiaModelling>> opers)
         {
-            var list = opers.AsValueEnumerable().SelectMany(x => x.SelectMany(y => y.Opers.Select(z => (z.Index, y))));
+            var list = opers.AsValueEnumerable().SelectMany((x, index1) =>
+            {
+                return x.SelectMany((y, index2) =>
+                {
+                    return y.Opers.Select(z => (z.Index, y, x, index2, index1));
+                });
+            });
             return list.ToDictionary(x => x.Index, x => x.y);
         }
 
@@ -592,6 +599,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                             EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
                             LogSomeErrors = false,
                             RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                            NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(here01.Opers, data.PossibleRCsGlobal)
                         })
                             &&
                             Taras.TaraSearchEngine.TaraSearchEngine.FilterAllVariants(here01, searchData, out got, new SumIsPossibleOptions(withLog)
@@ -962,8 +970,9 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                     PrevsInfo = resultToFill.IDToTara,
                                     EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
                                     RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
-                                    RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null,
-                                    ExceptTheseTaras = data.ExceptTheseTarasGlobal == null ? null : data.ExceptTheseTarasGlobal.TryGetValue(sdvig.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras : null
+                                    RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null,// (data.PossibleRCsGlobal == null ? null : (data.PossibleRCsGlobal.TryGetValue(sdvig.Opers[0].Index, out var rcs) ? rcs : null)),
+                                    ExceptTheseTaras = data.ExceptTheseTarasGlobal == null ? null : data.ExceptTheseTarasGlobal.TryGetValue(sdvig.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras : null,
+                                    NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(sdvig.Opers, data.PossibleRCsGlobal)
                                 })) // ошибки - только если она сама с собой, на последнем этапе
                                 {
                                     updateDataBcsSuccess(sdvig, res.TaraName, res.FinalRC, res.Max, res.used_format, res.CurrentPlacesCountK, resultToFill);

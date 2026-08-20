@@ -18,6 +18,39 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
     public class TaraSearchEngine
     {
 
+        public static HashSet<Uco> FindNeededNextRCsInDic(IEnumerable<Stages.Stage> stages, Dictionary<int, HashSet<Uco>> possibleRCs)
+        {
+            HashSet<Uco> result = new();
+            foreach (Stages.Stage stage in stages)
+            {
+                checkOp(stage, true);
+            }
+
+            void checkOp(Stages.Stage stage, bool itsFirst)
+            {
+                // Пройдемся по всем след детям
+                foreach (var nextOp in stage.Nexts)
+                {
+                    var nextStage = stage.SessionLink.MasterDataLinks.StagesMasterData.AllStages[nextOp];
+                    if (nextStage.NoChangeTara)
+                    {
+                        if (true/*itsFirst*/)
+                        {
+                            if (possibleRCs.TryGetValue(nextStage.Index, out var list)) result.AddRange(list);
+                        }
+                        //if (nextStage.IsVspom) continue;
+                        checkOp(nextStage, false);
+                    }
+                    else
+                    {
+                        if (possibleRCs.TryGetValue(nextStage.Index, out var list)) result.AddRange(list);
+                    }
+                }
+            }
+
+            return result.Count == 0 ? null : result;
+        }
+
         public static HashSet<Uco> FindNeededNextRCs(IEnumerable<Stages.Stage> stages, Func<int, Uco?>? customSelector)
         {
             HashSet<Uco> result = new();
@@ -450,6 +483,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                 {
                     var first = childs[i];
 
+                    if (first.op.IsVspom) continue; // Если операция вспомогательная, то к ней вся эта хуйня В ПРИНЦИПЕ не применяется.
 
                     List<(Uco RC, Uco Tara)> foundOtdTara;
 
@@ -841,6 +875,9 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             }
 
             bool RcIsHanded = TaraSearchEngine.RcIsHanded(someOpers);
+
+
+            if (options.ExceptTheseTaras != null && options.ExceptTheseTaras.Count > 0) errorMessage?.Append($"Исключенные тары: {string.Join(", ", options.ExceptTheseTaras)}\r\n");
 
             // Посмотрим на "менять тару"
 

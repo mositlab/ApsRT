@@ -24,9 +24,9 @@ namespace ApsRT.Core.Stages.MasterData
                 >
             > TypicalDurations;
 
-        public void PostProcess()
+        public void PostProcessTypicalDurations()
         {
-            if (!AnyDurations) return;
+            if (!AnyTypicalDurations) return;
 
             foreach (var rcs in TypicalDurations)
             {
@@ -44,54 +44,116 @@ namespace ApsRT.Core.Stages.MasterData
             }
         }
 
-        public bool AnyDurations => TypicalDurations != null;
+        public bool AnyTypicalDurations => TypicalDurations != null;
 
-        public void ClearAll() => TypicalDurations = null;
+        public void ClearTypicalDurations() => TypicalDurations = null;
+
+        public void ClearOrderDurations() => OrderDurations = null;
+
+        public bool AnyOrderDurations => OrderDurations != null;
+
+
+        Dictionary<Uco, // РЦ
+                Dictionary<Uco, // Вид
+                    Dictionary<bool, // ОО
+                        double>
+                    >
+                > OrderDurations;
+
+        public void PostProcessOrderDurations()
+        {
+            if (!AnyOrderDurations) return;
+            // Пока тут ничего нет, но мб в будущем понадобится
+            ;
+        }
+
+        public bool TryAddOrderDuration(Uco RC, Uco OperationType, bool order, double DurationNorm)
+        {
+            if (OrderDurations == null) OrderDurations = new();
+            OrderDurations.TryAdd(RC, new());
+            OrderDurations[RC].TryAdd(OperationType, new());
+            return OrderDurations[RC][OperationType].TryAdd(order, DurationNorm);
+        }
+
+        public bool TryAddOrderDuration(OrderDurationDataLoaderModel model)
+        {
+            return TryAddOrderDuration(model.Center, model.OperationVid, model.ItsOrder, model.Duration);
+        }
 
         public bool TryGetTypicalDuration(Uco RC, Stage stage, out double DurationNorm)
         {
-            Uco Nomenklature = stage.Nomenklature;
             Uco OperationType = stage.OperationVid;
-            Uco Characteristics = stage.Characteristics;
-            if (TypicalDurations.TryGetValue(RC, out var nomens)
-                && nomens.TryGetValue(Nomenklature, out var opers))
+
+            if (AnyTypicalDurations)
             {
-                if (opers.TryGetValue(OperationType, out var chars))
+                Uco Nomenklature = stage.Nomenklature;
+                Uco Characteristics = stage.Characteristics;
+                if (TypicalDurations.TryGetValue(RC, out var nomens)
+                    && nomens.TryGetValue(Nomenklature, out var opers))
                 {
-                    if (chars.TryGetValue(Characteristics, out var dur))
+                    if (opers.TryGetValue(OperationType, out var chars))
                     {
-                        DurationNorm = dur.GetDuration(stage);
-                        return true;
-                    }
-                    else
-                    {
-                        if (chars.TryGetValue(Uco.EmptyObject, out var dur2))
-                        {
-                            DurationNorm = dur2.GetDuration(stage);
-                            return true;
-                        }
-                    }
-                }
-                else
-                {
-                    if (opers.TryGetValue(Uco.EmptyObject, out var chars2))
-                    {
-                        if (chars2.TryGetValue(Characteristics, out var dur))
+                        if (chars.TryGetValue(Characteristics, out var dur))
                         {
                             DurationNorm = dur.GetDuration(stage);
                             return true;
                         }
                         else
                         {
-                            if (chars2.TryGetValue(Uco.EmptyObject, out var dur2))
+                            if (chars.TryGetValue(Uco.EmptyObject, out var dur2))
                             {
                                 DurationNorm = dur2.GetDuration(stage);
                                 return true;
                             }
                         }
                     }
+                    else
+                    {
+                        if (opers.TryGetValue(Uco.EmptyObject, out var chars2))
+                        {
+                            if (chars2.TryGetValue(Characteristics, out var dur))
+                            {
+                                DurationNorm = dur.GetDuration(stage);
+                                return true;
+                            }
+                            else
+                            {
+                                if (chars2.TryGetValue(Uco.EmptyObject, out var dur2))
+                                {
+                                    DurationNorm = dur2.GetDuration(stage);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+            if (AnyOrderDurations)
+            {
+                bool order = stage.ItsOrder;
+                if (OrderDurations.TryGetValue(RC, out var opers))
+                {
+                    if (opers.TryGetValue(OperationType, out var orders))
+                    {
+                        if (orders.TryGetValue(order, out var res))
+                        {
+                            DurationNorm = res;
+                            return true;
+                        }
+                        else
+                        {
+                            // Если нет по Ордеру, ищем среднее, у нее нет галки ОО
+                            if (orders.TryGetValue(false, out var res2))
+                            {
+                                DurationNorm = res2;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
             DurationNorm = 0;
             return false;
         }
