@@ -299,7 +299,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false)
                 {
                     PrevsInfo = PrevsInfoForR,
-                    ModToTaraInfoLink = basisLink.ModToTaraInfo
+                    ModToTaraInfoLink = basisLink.ModToTaraInfo,
+                    NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(mod.StagesAsNormal, basisLink.SessionLink.AssignedPartiasAlgorithm.PossibleRCsGlobal)
                 });
 
                 bool anythingWas = false;
@@ -948,7 +949,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 TemporaryTaraSearchData data = null;
 
-                bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForR, ModToTaraInfoLink = basisLink.ModToTaraInfo });
+                bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false) { PrevsInfo = PrevsInfoForR, ModToTaraInfoLink = basisLink.ModToTaraInfo, NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(mod.StagesAsNormal, basisLink.SessionLink.AssignedPartiasAlgorithm.PossibleRCsGlobal) });
 
                 (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
 
@@ -1243,7 +1244,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false) {
                         PrevsInfo = PrevsInfoForR,
-                        ModToTaraInfoLink = basisLink.ModToTaraInfo
+                        ModToTaraInfoLink = basisLink.ModToTaraInfo,
+                        NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(mod.StagesAsNormal, basisLink.SessionLink.AssignedPartiasAlgorithm.PossibleRCsGlobal)
                     });
 
                     (List<Uco> allowedRC, Uco? neededThisRC) = GetOneRCInfo(mod);
