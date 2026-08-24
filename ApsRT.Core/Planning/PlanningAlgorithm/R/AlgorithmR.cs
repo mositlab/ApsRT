@@ -7,6 +7,7 @@ using ApsRT.Core.Rechanges.MasterData;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Presentation;
 using Google.OrTools.Sat;
 using System;
@@ -20,6 +21,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using System.Xml.Linq;
 using UniversalPack.Extensions;
+using ZLinq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using OrderID = UniversalPack.Common.CodedObjectVersioned<System.Guid, string, string>;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
@@ -296,10 +298,20 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                 TemporaryTaraSearchData data = null;
 
+                var PossibleRCsHere = mod.PossibleRCsHere.ToHashSet();
+
+                if (mod.FirstOperJust.OnOneRC
+                && mod.BlockLink.PoolLink.ModIDToOnOneRCGroupID.TryGetValue(mod.ModID, out var dataID)
+                && mod.BlockLink.PoolLink.OnOneRCGroupData.TryGetValue(dataID, out var dataORC))
+                {
+                    PossibleRCsHere = PossibleRCsHere.AsValueEnumerable().Intersect(dataORC.PossibleRCs).ToHashSet();
+                }
+
                 bool Can1 = TaraSearchEngine.GetAllVariantsForThese(mod, out data, new SumIsPossibleOptions(false)
                 {
                     PrevsInfo = PrevsInfoForR,
                     ModToTaraInfoLink = basisLink.ModToTaraInfo,
+                    RCMustBeThis = PossibleRCsHere,
                     NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(mod.StagesAsNormal, basisLink.SessionLink.AssignedPartiasAlgorithm.PossibleRCsGlobal)
                 });
 
@@ -310,6 +322,9 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     {
                         Uco currentCenter = data.PossibleCentersAndTaras[j].RC;
                         Uco currentTara = data.PossibleCentersAndTaras[j].Tara;
+
+                        if (!PossibleRCsHere.Contains(currentCenter)) continue;
+
                         if (TaraSearchEngine.FilterAllVariants(mod, data, out var res, new SumIsPossibleOptions(false)
                         {
                             LogSomeErrors = false,
@@ -328,7 +343,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 // Придётся задействовать самую простую технику, но именно что ошибочную.
                 if (!Can1 || !anythingWas)
                 {
-                    foreach (var rc in mod.PossibleRCsHere)
+                    foreach (var rc in PossibleRCsHere)
                     {
                         firstResults.Add(new RFirstStageResult(mod.BlockLink, rc, mod.FirstOperJust.CurrentTara, mod.FirstOperJust.CurrentTaraMaxCapacity, true, 0));
                     }
