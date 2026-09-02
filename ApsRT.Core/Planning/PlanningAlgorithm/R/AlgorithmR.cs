@@ -518,7 +518,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                 Console.WriteLine("R: post checker...");
                 Step4_PostChecker();
 
-                var blocks = basisLink.UsedPool.Blocks.Where(x => x.GetCenterData(0).Center.Label.Contains("НАКАЛ"));
+                //var blocks = basisLink.UsedPool.Blocks.Where(x => basisLink.UsedPool.on);
 
                 ;
             }
@@ -1658,7 +1658,9 @@ List<PlanSimulatorBlock> toCheck;
 
                     if (searcherClass.ThisResultIsBad)
                     {
-                        Console.WriteLine($"badly set {searcherClass.ChoosenMod} {{{searcherClass.ChoosenMod.ModType}}} as {LinearPlan.Count} on RC {searcherClass.ChoosenCenter} (was {searcherClass.ChoosenMod.FirstOperJust.Center}), tara was {searcherClass.ChoosenMod.FirstOperJust.CurrentTara}, now {searcherClass.ChoosenTara}");
+                        string badStr = $"badly set {searcherClass.ChoosenMod} {{{searcherClass.ChoosenMod.ModType}}} as {LinearPlan.Count} on RC {searcherClass.ChoosenCenter} (was {searcherClass.ChoosenMod.FirstOperJust.Center}), tara was {searcherClass.ChoosenMod.FirstOperJust.CurrentTara}, now {searcherClass.ChoosenTara}";
+                        Console.WriteLine(badStr);
+                        basisLink.SessionLink.AssignedLogger.LogQueue.Enqueue(badStr);
                     }
 
 
