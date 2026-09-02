@@ -657,6 +657,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                 (
                                 localResult.GlobalPlanEndDate < LastResult.GlobalPlanEndDate
                                 || (localResult.GlobalPlanEndDate == LastResult.GlobalPlanEndDate && localResult.DaysRuinedValue < LastResult.DaysRuinedValue)
+                                ||
+                                (localResult.GlobalPlanEndDate == LastResult.GlobalPlanEndDate && localResult.DaysRuinedValue == LastResult.DaysRuinedValue && localResult.TransfersSeconds < LastResult.TransfersSeconds)
                                 )
                                 )
                                 {

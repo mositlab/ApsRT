@@ -116,6 +116,17 @@ namespace ApsRT.Core.PlanSimulator
                 return array;
             });
 
+            FrozenDictionary<Guid, PlanSimulatorTransfersData[]> TransfersData = null;
+
+            TransfersData = partiasCodes.ToFrozenDictionary(x => x, x =>
+            {
+                var array = new PlanSimulatorTransfersData[PoolSize];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = new PlanSimulatorTransfersData(TimeSpan.Zero, -1);
+                }
+                return array;
+            });
 
             Blocks = blocks;
 
@@ -175,6 +186,8 @@ namespace ApsRT.Core.PlanSimulator
                     mod.RottingTimeInDays = new double[PoolSize];
 
                     mod.LastSubsData = LastSubs[partiaCode];
+
+                    mod.TransfersData = TransfersData[partiaCode];
 
                     for (int s = 0; s < mod.Stages.Count; s++)
                     {

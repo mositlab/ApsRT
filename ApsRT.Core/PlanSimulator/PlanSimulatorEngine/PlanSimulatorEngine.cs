@@ -313,7 +313,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                 
 
                 // Задаём минимальные даты начала детям
-                SetMinDatesToChildsAndRotting(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag);
+                SetMinDatesToChildsAndRotting(PoolIndex, currentBlock, blockIndex, ChoosenModellings, lastDateFinally, currentFlag, resultToFill);
 
                 ProcessRottingData(PoolIndex, currentBlock, blockIndex, ChoosenModellings, currentFlag, resultToFill);
 
@@ -486,7 +486,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// <param name="ChoosenModellings">Выбранные моделирования из блока</param>
         /// <param name="LastDate">Собственно дата назначения</param>
         /// <param name="currentFlag">Текущий "флаг расчёта"</param>
-        static void SetMinDatesToChildsAndRotting(int PoolIndex, PlanSimulatorBlock block, int blockIndex, List<int> ChoosenModellings, DateTime LastDate, int currentFlag)
+        static void SetMinDatesToChildsAndRotting(int PoolIndex, PlanSimulatorBlock block, int blockIndex, List<int> ChoosenModellings, DateTime LastDate, int currentFlag, PlanSimulatorEngineResult resultToFill)
         {
             for (int i = 0; i < ChoosenModellings.Count; i++) // Проходим по всем вставшим моделированиям
             {
@@ -500,11 +500,13 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
                     // Подразделения
                     var subdivsMasterData = nextModHere.FirstOperJust.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData;
+                    TimeSpan transferTimeTS = TimeSpan.Zero;
                     if (subdivsMasterData.HasAnyData)
                     {
                         var subDiv1 = block.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
                         var subDiv2 = nextModHere.BlockLink.GetCenterData(PoolIndex).CenterModelDataLink.Subdivision;
                         var transferTime = subdivsMasterData.GetSubdivisionTransferTime(subDiv1, subDiv2);
+                        transferTimeTS = TimeSpan.FromSeconds(transferTime);
                         LastDateHere = LastDateHere.AddSeconds(transferTime);
                     }
 
@@ -519,6 +521,24 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                         hh.LastBlockIndex = blockIndex;
                         hh.LastID = mod.FirstOperJust.Index;
                         //opers.DatesData[next] = hh;
+                    }
+
+                    var transfersData = nextModHere.TransfersData[PoolIndex];
+
+                    if (transfersData.Flag != currentFlag)
+                    {
+                        transfersData.Flag = currentFlag;
+                        resultToFill.TransfersSeconds += transferTimeTS;
+                        transfersData.Transfer = transferTimeTS;
+                    }
+                    else
+                    {
+                        if (transfersData.Transfer < transferTimeTS)
+                        {
+                            resultToFill.TransfersSeconds -= transfersData.Transfer;
+                            transfersData.Transfer = transferTimeTS;
+                            resultToFill.TransfersSeconds += transferTimeTS;
+                        }
                     }
 
                     // Назначаем детям инфу о себе

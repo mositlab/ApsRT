@@ -1267,6 +1267,7 @@ namespace ApsRTCustomComponents
                     PlanningDataTable.Rows[6].Cells[2].Value = resToShow.BadOffsets;
                     PlanningDataTable.Rows[7].Cells[2].Value = resToShow.NaladLengthsTotal;
                     PlanningDataTable.Rows[8].Cells[2].Value = resToShow.GetCatchedNaladLengthsErrorsCount(algorithm.IgnoredGlobalFixedNaladLengthsErrors);
+                    PlanningDataTable.Rows[9].Cells[2].Value = resToShow.TransfersSeconds;
 
                     OrdersCurve.AddPoint(algorithm.LastGen, resToShow.DaysRuinedValue);
                     OrdersGraphControl.AxisChange();
@@ -1297,6 +1298,7 @@ namespace ApsRTCustomComponents
                     var v6 = Math.Round(100.0 - (resToShow.BadOffsets / algorithm.OriginalValue.BadOffsets * 100f), 2);
                     var v7 = Math.Round(100.0 - (resToShow.NaladLengthsTotal / algorithm.OriginalValue.NaladLengthsTotal * 100f), 2);
                     var v8 = Math.Round(100.0 - (resToShow.GetCatchedNaladLengthsErrorsCount(algorithm.IgnoredGlobalFixedNaladLengthsErrors) / (float)algorithm.OriginalValue.GetCatchedNaladLengthsErrorsCount(algorithm.IgnoredGlobalFixedNaladLengthsErrors) * 100f), 2);
+                    var v9 = Math.Round(100.0 - (resToShow.TransfersSeconds / algorithm.OriginalValue.TransfersSeconds * 100f), 2);
 
                     OrdersCurveOnBig.AddPoint(algorithm.LastGen, v0);
                     RechangesCurveOnBig.AddPoint(algorithm.LastGen, v1);
@@ -1316,6 +1318,7 @@ namespace ApsRTCustomComponents
                     PlanningDataTable.Rows[6].Cells[3].Value = v6 + "%";
                     PlanningDataTable.Rows[7].Cells[3].Value = v7 + "%";
                     PlanningDataTable.Rows[8].Cells[3].Value = v8 + "%";
+                    PlanningDataTable.Rows[9].Cells[3].Value = v9 + "%";
                     //if (!IsSilent)
                     //{
 
@@ -1366,6 +1369,7 @@ namespace ApsRTCustomComponents
                 PlanningDataTable.Rows[6].Cells[1].Value = res.BadOffsets;
                 PlanningDataTable.Rows[7].Cells[1].Value = res.NaladLengthsTotal;
                 PlanningDataTable.Rows[8].Cells[1].Value = res.CatchedNaladLengthsErrorsCount;
+                PlanningDataTable.Rows[9].Cells[1].Value = res.TransfersSeconds;
 
                 PrepareGraphsForPlanning(sessionLink.AssignedPlanningAlgorithm.MinAcceptableDate);
 
@@ -1707,7 +1711,7 @@ namespace ApsRTCustomComponents
 
         private void CreatePlanningTableConcrete(DataGridView PlanningDataTable)
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
             {
                 PlanningDataTable.Rows.Add();
             }
@@ -1756,6 +1760,11 @@ namespace ApsRTCustomComponents
             row9.DefaultCellStyle.ForeColor = Color.DarkOrange;
             row9.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
             row9.Cells[0].Value = "Ошибок наладочных длин";
+
+            var row10 = PlanningDataTable.Rows[9];
+            row10.DefaultCellStyle.ForeColor = Color.Gray;
+            row10.DefaultCellStyle.Font = new Font(row1.DefaultCellStyle.Font, FontStyle.Bold);
+            row10.Cells[0].Value = "Переходы по цехам";
         }
 
         #endregion
@@ -2012,6 +2021,7 @@ namespace ApsRTCustomComponents
             ManualPlanningDataTable.Rows[6].Cells[1].Value = res.BadOffsets;
             ManualPlanningDataTable.Rows[7].Cells[1].Value = res.NaladLengthsTotal;
             ManualPlanningDataTable.Rows[8].Cells[1].Value = res.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
+            ManualPlanningDataTable.Rows[9].Cells[1].Value = res.TransfersSeconds;
 
 
             ManualPlanningDataTable.Rows[0].Cells[2].Value = OriginalManualResult.DaysRuinedValue;
@@ -2023,6 +2033,7 @@ namespace ApsRTCustomComponents
             ManualPlanningDataTable.Rows[6].Cells[2].Value = OriginalManualResult.BadOffsets;
             ManualPlanningDataTable.Rows[7].Cells[2].Value = OriginalManualResult.NaladLengthsTotal;
             ManualPlanningDataTable.Rows[8].Cells[2].Value = OriginalManualResult.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors);
+            ManualPlanningDataTable.Rows[9].Cells[2].Value = OriginalManualResult.TransfersSeconds;
 
             ManualPlanningDataTable.Rows[0].Cells[3].Value = Math.Round(100 - (res.DaysRuinedValue * 100f / OriginalManualResult.DaysRuinedValue), 2) + "%";
             ManualPlanningDataTable.Rows[1].Cells[3].Value = Math.Round(100 - (res.RechangesSeconds * 100f / OriginalManualResult.RechangesSeconds), 2) + "%";
@@ -2033,6 +2044,7 @@ namespace ApsRTCustomComponents
             ManualPlanningDataTable.Rows[6].Cells[3].Value = Math.Round(100 - (res.BadOffsets * 100f / OriginalManualResult.BadOffsets), 2) + "%";
             ManualPlanningDataTable.Rows[7].Cells[3].Value = Math.Round(100 - (res.NaladLengthsTotal * 100f / OriginalManualResult.NaladLengthsTotal), 2) + "%";
             ManualPlanningDataTable.Rows[8].Cells[3].Value = Math.Round(100 - (res.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors) * 100f / OriginalManualResult.GetCatchedNaladLengthsErrorsCount(sessionLink.AssignedPlanningAlgorithm.IgnoredGlobalFixedNaladLengthsErrors)), 2) + "%";
+            ManualPlanningDataTable.Rows[9].Cells[3].Value = Math.Round(100 - (res.TransfersSeconds * 100f / OriginalManualResult.TransfersSeconds), 2) + "%";
 
             OriginalManualResult = res;
         }

@@ -31,6 +31,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
         /// </summary>
         public DateTime MostRechangedRCEndDate { get; set; } // ЕСТЬ
         public TimeSpan ProstoiSeconds { get; set; } // ЕСТЬ
+        public TimeSpan TransfersSeconds { get; set; }
         public double DaysRuinedValue { get; set; } // ЕСТЬ
         public double DaysRuinedLinearValue { get; set; } // ЕСТЬ
         public double RuinedCount { get; set; } // ЕСТЬ
@@ -138,6 +139,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             result.GlobalPlanEndDate = GlobalPlanEndDate;
             result.MostRechangedRCEndDate = MostRechangedRCEndDate;
             result.ProstoiSeconds = ProstoiSeconds;
+            result.TransfersSeconds = TransfersSeconds;
             result.DaysRuinedValue = DaysRuinedValue;
             result.DaysRuinedLinearValue = DaysRuinedLinearValue;
             result.RuinedCount = RuinedCount;

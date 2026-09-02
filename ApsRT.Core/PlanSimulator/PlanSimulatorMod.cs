@@ -31,6 +31,7 @@ namespace ApsRT.Core.PlanSimulator
         public HashSet<OrderID> OrdersHere { get; private set; }
 
         public PlanSimulatorLastSubsData[] LastSubsData; // Инфа по подразделениям имеет смысл в моделировании.
+        public PlanSimulatorTransfersData[] TransfersData; // Инфа по подразделениям имеет смысл в моделировании.
         public PlanSimulatorNaladLengthData[] NaladLengthData; // ТОЛЬКО для моделирований простых, для общих этапов там свои
         public PlanSimulatorDatesData[] MinDatesData;
 
