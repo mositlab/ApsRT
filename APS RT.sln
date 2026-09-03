@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApsRTCustomComponents", "Ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApsRT.SKO", "ApsRT.SKO\ApsRT.SKO.csproj", "{825AA84E-347D-11DC-9F8C-8B53E17A6820}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApsRT.ErrorsToggler", "ApsRT.ErrorsToggler\ApsRT.ErrorsToggler.csproj", "{6AC0329D-0CA0-4CFD-BF07-585D5B238A5D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{825AA84E-347D-11DC-9F8C-8B53E17A6820}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AC0329D-0CA0-4CFD-BF07-585D5B238A5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AC0329D-0CA0-4CFD-BF07-585D5B238A5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AC0329D-0CA0-4CFD-BF07-585D5B238A5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AC0329D-0CA0-4CFD-BF07-585D5B238A5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
