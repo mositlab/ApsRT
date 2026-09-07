@@ -570,6 +570,7 @@ namespace ApsRT.Core.Stages.MasterData
                 stage.RechangeParameters[i].SetData(data, options);
             }
 
+            SessionLink.MasterDataLinks.TarasMasterData.FillCustomDataFromOper(stage);
 
             stage.Color = Colors.NewRandomColor();
         }

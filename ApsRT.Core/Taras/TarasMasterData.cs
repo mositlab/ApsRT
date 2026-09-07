@@ -205,6 +205,8 @@ namespace ApsRT.Core.Taras
             bool otd = model.IsOutput;
             bool priem = model.IsInput;
 
+            TaraStrToGuid.TryAdd(model.TaraType.Label, model.TaraType.Code);
+
             FromAndToTara.TryAdd(center_int, new());
 
             if (!FromAndToTara[center_int].ContainsKey(vid))
@@ -259,10 +261,33 @@ namespace ApsRT.Core.Taras
         > TarasMaxCapacities
         { get; private set; } = new();
 
+        Dictionary<string, Guid> ProdStrToGuid = new();
+        Dictionary<string, Guid> NomenStrToGuid = new();
+        Dictionary<string, Guid> CharStrToGuid = new();
+        Dictionary<string, Guid> VidStrToGuid = new();
+        Dictionary<string, Guid> OrderStrToGuid = new();
+        Dictionary<string, Guid> TaraStrToGuid = new();
+
+        public void FillCustomDataFromOper(Stages.Stage op)
+        {
+            ProdStrToGuid.TryAdd(op.Production.Label, op.Production.Code);
+            NomenStrToGuid.TryAdd(op.Nomenklature.Label, op.Nomenklature.Code);
+            CharStrToGuid.TryAdd(op.Characteristics.Label, op.Characteristics.Code);
+            VidStrToGuid.TryAdd(op.OperationVid.Label, op.OperationVid.Code);
+            OrderStrToGuid.TryAdd(op.OrderLink.OrderID.Object.Label, op.OrderLink.OrderID.Object.Code);
+        }
+
         public string CustomMaxCapacitiesFile = "customMax.xlsx";
 
         public void CustomMaxCapacityPostProcess()
         {
+            ProdStrToGuid.TryAdd("", Guid.Empty);
+            NomenStrToGuid.TryAdd("", Guid.Empty);
+            CharStrToGuid.TryAdd("", Guid.Empty);
+            VidStrToGuid.TryAdd("", Guid.Empty);
+            OrderStrToGuid.TryAdd("", Guid.Empty);
+            TaraStrToGuid.TryAdd("", Guid.Empty);
+
             // Сначала сохраняем файл
             if (!File.Exists(CustomMaxCapacitiesFile))
             {
@@ -271,13 +296,13 @@ namespace ApsRT.Core.Taras
                     var worksheet = workbook.Worksheets.Add("Намотки");
 
                     worksheet.Row(1).Cell(1).Value = "Продукция";
-                    worksheet.Row(1).Cell(2).Value = "Продукция_GUID";
-                    worksheet.Row(1).Cell(3).Value = "Номенклатура";
-                    worksheet.Row(1).Cell(4).Value = "Номенклатура_GUID";
-                    worksheet.Row(1).Cell(5).Value = "ХарактеристикаНоменклатуры";
-                    worksheet.Row(1).Cell(6).Value = "ХарактеристикаНоменклатуры_GUID";
+                    //worksheet.Row(1).Cell(2).Value = "Продукция_GUID";
+                    worksheet.Row(1).Cell(2).Value = "Номенклатура";
+                    //worksheet.Row(1).Cell(4).Value = "Номенклатура_GUID";
+                    worksheet.Row(1).Cell(3).Value = "ХарактеристикаНоменклатуры";
+                    //worksheet.Row(1).Cell(6).Value = "ХарактеристикаНоменклатуры_GUID";
 
-                    int i = 7;
+                    int i = 4;
                     if (SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput)
                     {
                         worksheet.Row(1).Cell(i).Value = "НомерОперации";
@@ -285,13 +310,13 @@ namespace ApsRT.Core.Taras
                     }
 
                     worksheet.Row(1).Cell(i).Value = "ВидОперации";
-                    worksheet.Row(1).Cell(i + 1).Value = "ВидОперации_GUID";
-                    worksheet.Row(1).Cell(i + 2).Value = "Заказ";
-                    worksheet.Row(1).Cell(i + 3).Value = "Заказ_GUID";
-                    worksheet.Row(1).Cell(i + 4).Value = "ПартияГП";
-                    worksheet.Row(1).Cell(i + 5).Value = "ТипТары";
-                    worksheet.Row(1).Cell(i + 6).Value = "ТипТары_GUID";
-                    worksheet.Row(1).Cell(i + 7).Value = "ВеличинаНамотки";
+                    //worksheet.Row(1).Cell(i + 1).Value = "ВидОперации_GUID";
+                    worksheet.Row(1).Cell(i + 1).Value = "Заказ";
+                    //worksheet.Row(1).Cell(i + 3).Value = "Заказ_GUID";
+                    worksheet.Row(1).Cell(i + 2).Value = "ПартияГП";
+                    worksheet.Row(1).Cell(i + 3).Value = "ТипТары";
+                    //worksheet.Row(1).Cell(i + 6).Value = "ТипТары_GUID";
+                    worksheet.Row(1).Cell(i + 4).Value = "ВеличинаНамотки";
 
                     workbook.SaveAs(CustomMaxCapacitiesFile);
                 }
@@ -316,24 +341,24 @@ namespace ApsRT.Core.Taras
                             int stageVerIndex = columnLetters.TryGetValue("НомерОперации", out var i0) ? i0 : -1;
 
                             int operVIndex = columnLetters.TryGetValue("ВидОперации", out var i1) ? i1 : -1;
-                            int operVGIndex = columnLetters.TryGetValue("ВидОперации_GUID", out var i2) ? i2 : -1;
+                            //int operVGIndex = columnLetters.TryGetValue("ВидОперации_GUID", out var i2) ? i2 : -1;
 
                             int CharIndex = columnLetters.TryGetValue("ХарактеристикаНоменклатуры", out var i3) ? i3 : -1;
-                            int CharGIndex = columnLetters.TryGetValue("ХарактеристикаНоменклатуры_GUID", out var i4) ? i4 : -1;
+                            //int CharGIndex = columnLetters.TryGetValue("ХарактеристикаНоменклатуры_GUID", out var i4) ? i4 : -1;
 
                             int NIndex = columnLetters.TryGetValue("Номенклатура", out var i5) ? i5 : -1;
-                            int NGIndex = columnLetters.TryGetValue("Номенклатура_GUID", out var i6) ? i6 : -1;
+                            //int NGIndex = columnLetters.TryGetValue("Номенклатура_GUID", out var i6) ? i6 : -1;
 
                             int PIndex = columnLetters.TryGetValue("Продукция", out var i7) ? i7 : -1;
-                            int PGIndex = columnLetters.TryGetValue("Продукция_GUID", out var i8) ? i8 : -1;
+                            //int PGIndex = columnLetters.TryGetValue("Продукция_GUID", out var i8) ? i8 : -1;
 
                             int TIndex = columnLetters.TryGetValue("ТипТары", out var i9) ? i9 : -1;
-                            int TGIndex = columnLetters.TryGetValue("ТипТары_GUID", out var i10) ? i10 : -1;
+                            //int TGIndex = columnLetters.TryGetValue("ТипТары_GUID", out var i10) ? i10 : -1;
 
                             int aIndex = columnLetters.TryGetValue("ВеличинаНамотки", out var i11) ? i11 : -1;
 
                             int ZIndex = columnLetters.TryGetValue("Заказ", out var i12) ? i12 : -1;
-                            int ZGIndex = columnLetters.TryGetValue("Заказ_GUID", out var i13) ? i13 : -1;
+                            //int ZGIndex = columnLetters.TryGetValue("Заказ_GUID", out var i13) ? i13 : -1;
 
                             int ZGPIndex = columnLetters.TryGetValue("ПартияГП", out var i14) ? i14 : -1;
 
@@ -343,25 +368,25 @@ namespace ApsRT.Core.Taras
                             {
                                 try
                                 {
-                                    Uco production = new Uco(Guid.TryParse(firstSheet.Row(i).Cell(PGIndex).GetValue<string>(), out var resP) ? resP : Guid.Empty,
-                                        firstSheet.Row(i).Cell(PIndex).GetValue<string>());
+                                    string prod = firstSheet.Row(i).Cell(PIndex).GetValue<string>();
+                                    Uco production = new Uco(ProdStrToGuid[prod], prod);
 
-                                    Uco Nomen = new Uco(new Guid(firstSheet.Row(i).Cell(NGIndex).GetValue<string>()),
-                                        firstSheet.Row(i).Cell(NIndex).GetValue<string>());
+                                    string nomen = firstSheet.Row(i).Cell(NIndex).GetValue<string>();
+                                    Uco Nomen = new Uco(NomenStrToGuid[nomen], nomen);
 
-                                    Uco Chars = CharIndex == -1 ? Uco.EmptyObject : new Uco(Guid.TryParse(firstSheet.Row(i).Cell(CharGIndex).GetValue<string>(), out Guid res) ? res : Guid.Empty,
-                                        firstSheet.Row(i).Cell(CharIndex).GetValue<string>());
+                                    string chars = CharIndex == -1 ? "" : firstSheet.Row(i).Cell(CharIndex).GetValue<string>();
+                                    Uco Chars = CharIndex == -1 ? Uco.EmptyObject : new Uco(CharStrToGuid[chars], chars);
 
-                                    Uco oper_int = new Uco(new Guid(firstSheet.Row(i).Cell(operVGIndex).GetValue<string>()),
-                                        firstSheet.Row(i).Cell(operVIndex).GetValue<string>());
+                                    string vid = firstSheet.Row(i).Cell(operVIndex).GetValue<string>();
+                                    Uco oper_int = new Uco(VidStrToGuid[vid], vid);
 
                                     var version = stageVerIndex == -1 ? 1 : firstSheet.Row(i).Cell(stageVerIndex).GetValue<int>();
 
-                                    OrderID order = new OrderID(new Uco(Guid.TryParse(firstSheet.Row(i).Cell(ZGIndex).GetValue<string>(), out var res0) ? res0 : Guid.Empty,
-                                        firstSheet.Row(i).Cell(ZIndex).GetValue<string>()), firstSheet.Row(i).Cell(ZGPIndex).GetValue<string>());
+                                    string ord = firstSheet.Row(i).Cell(ZIndex).GetValue<string>();
+                                    OrderID order = new OrderID(new Uco(OrderStrToGuid[ord], ord), firstSheet.Row(i).Cell(ZGPIndex).GetValue<string>());
 
-                                    Uco tara = new Uco(new Guid(firstSheet.Row(i).Cell(TGIndex).GetValue<string>()),
-                                        firstSheet.Row(i).Cell(TIndex).GetValue<string>());
+                                    string tar = firstSheet.Row(i).Cell(TIndex).GetValue<string>();
+                                    Uco tara = new Uco(TaraStrToGuid[tar], tar);
 
                                     double amount = firstSheet.Row(i).Cell(aIndex).GetValue<double>();
 
@@ -453,6 +478,11 @@ namespace ApsRT.Core.Taras
             }
 
             if (clear) TarasMaxCapacities[production][Nomen][Chars][oper_int][version][order].Clear();
+
+            ProdStrToGuid.TryAdd(production.Label, production.Code);
+            NomenStrToGuid.TryAdd(Nomen.Label, Nomen.Code);
+            CharStrToGuid.TryAdd(Chars.Label, Chars.Code);
+            VidStrToGuid.TryAdd(oper_int.Label, oper_int.Code);
         }
 
         public void AddMaxCapacityData(Uco production, Uco Nomen, Uco Chars, Uco oper_int, int version, OrderID order, DimensionUnit unit, double amount, Uco tara)
@@ -497,6 +527,8 @@ namespace ApsRT.Core.Taras
             EnsureMaxCapacityDics(production, Nomen, Chars, oper_int, version, order, false);
 
             AddMaxCapacityData(production, Nomen, Chars, oper_int, version, order, model.DimensionUnit, model.Amount, model.TaraType);
+
+            TaraStrToGuid.TryAdd(model.TaraType.Label, model.TaraType.Code);
         }
 
         public void ClearMaxCapacities()
