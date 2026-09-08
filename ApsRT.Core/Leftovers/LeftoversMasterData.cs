@@ -590,6 +590,7 @@ namespace ApsRT.Core.Leftovers
                         allBins.Select((bin, binIndex) => (xNew[elementIndex, binIndex], bin)) // Выбираем ща все элементы, связанные с этой корзиной + саму корзину
                         .Where(x =>
                         {
+                            if (x.Item1 == null) return false;
                             var binMatData = (x.bin.MatData.Nomenklature, x.bin.MatData.Characteristics);
                             return binMatData == list.Value.List[arrayIndex].Analogue;
                             }) // Фильтруем: оставляем только те предметы, которые влезут в ту корзину, чья номенлкатура равна номенклатуре аналога
@@ -598,8 +599,8 @@ namespace ApsRT.Core.Leftovers
                         )
                         .ToArray();
 
-                    AddConstraint(items);
-                    AddConstraint(items2);
+                    if (items.Length > 0) AddConstraint(items);
+                    if (items2.Length > 0) AddConstraint(items2);
 
                     void DenyThisGroup()
                     {
@@ -853,6 +854,10 @@ namespace ApsRT.Core.Leftovers
                         var matsClass = oper.StageMaterialsInfo;
                         var matsList = matsClass.UsedMaterials;
 
+                        if (mod.AllOpers.Any(x => x.GUID.ToString() == "041d21f0-6bb8-11f1-a4ec-6cb31158f807"))
+                        {
+                            ;
+                        }
 
                         var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.CurrentModelling].NaladLengthData[PoolIndex];
 
@@ -933,10 +938,32 @@ namespace ApsRT.Core.Leftovers
 
                                     //result.Add(lack);
 
+                                    DateTime? nextPrihod = GetPrihod(pointsToAnalyze, currentPoint, key);
 
                                     var count = howMuchAtStart[key][pair.Key];
                                     count.Count -= valueToMinus;
                                     howMuchAtStart[key][pair.Key] = count;
+
+                                    var lack = new LeftoverLackData(
+                                            key,
+                                            matsList[i].AsMaterialUcoData(),
+                                            oper.GetPartiaCode() ?? Guid.Empty,
+                                            originalCount[i],
+                                            valueToMinus,
+                                            count.Count + valueToMinus,
+                                            pair.Value.DimensionUnit,
+                                            //pair.Key,
+                                            point.Date,
+                                            nextPrihod ?? DateTime.MinValue,
+                                            //nextPrihodSub,
+                                            oper.ID,
+                                            oper.CurrentModelling,
+                                            oper.GetEasyFlagToOutput(),
+                                            center,
+                                            false
+                                            );
+
+                                    result.Add(lack);
                                 }
                             }
                             continue; // Если тут никаких ошибок нет, то забиваем болт и идём дальше
@@ -1045,7 +1072,7 @@ namespace ApsRT.Core.Leftovers
                                 var globalIndex = mats[resultedIndexes[i]].ElementIndex;
                                 leftoversList[globalIndex] = new StageLeftover(analogues[i].AnalogueToSet, analogues[i].CountToSet, analogues[i].OriginalCount, analogues[i].EdIzm);
                             }
-                            resultedIndexes = resultedIndexes.OrderByDescending(x => x).ToArray();
+                            resultedIndexes = resultedIndexes.OrderByDescending(x => x).Distinct().ToArray();
                             foreach (var index in resultedIndexes) mats.RemoveAt(index); // Отсортировав по убыванию, можно безопасно удалить элементы
                         }
 

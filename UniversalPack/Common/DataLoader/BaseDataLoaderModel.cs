@@ -162,7 +162,7 @@ namespace UniversalPack.Common.DataLoader
         {
             var guidValue = (Guid?)ConvertGuid(record, options, attribute.GuidName, attribute.DefaultIfNull) ?? Guid.Empty;
             var nameValue = record[attribute.ValueName].ConvertToOrDefault(string.Empty);
-            var versionValue = record[attribute.VersionName].ConvertToOrDefault(string.Empty);
+            var versionValue = record[attribute.VersionName]?.ConvertToOrDefault(string.Empty) ?? null;
 
             if (attribute.VersionIsInteger)
             {
