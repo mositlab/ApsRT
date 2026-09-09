@@ -503,7 +503,7 @@ namespace ApsRT.Core.Partias.Zadels
                         > zadelsCharsHere = new();
 
                         if (zadelsNomensHere.TryGetValue(stage.Nomenklature, out var res111111)) zadelsCharsHere = zadelsCharsHere.Union(res111111).ToDictionary();
-                        if (freeZadels && zadelsNomensHere.TryGetValue(Uco.EmptyObject, out var res222222)) zadelsCharsHere = zadelsCharsHere.Union(res222222).ToDictionary();
+                        if (/*freeZadels && */zadelsNomensHere.TryGetValue(Uco.EmptyObject, out var res222222)) zadelsCharsHere = zadelsCharsHere.Union(res222222).ToDictionary();
 
                         if (zadelsCharsHere.Count > 0)
                         {
@@ -515,14 +515,14 @@ namespace ApsRT.Core.Partias.Zadels
                             > zadelsPovivsHere = new();
 
                             if (zadelsCharsHere.TryGetValue(stage.Characteristics, out var res1111)) zadelsPovivsHere = zadelsPovivsHere.Union(res1111).ToDictionary();
-                            if (freeZadels && zadelsCharsHere.TryGetValue(Uco.EmptyObject, out var res2222)) zadelsPovivsHere = zadelsPovivsHere.Union(res2222).ToDictionary();
+                            if (/*freeZadels && */zadelsCharsHere.TryGetValue(Uco.EmptyObject, out var res2222)) zadelsPovivsHere = zadelsPovivsHere.Union(res2222).ToDictionary();
 
                             if (zadelsPovivsHere.Count > 0)
                             {
                                 Dictionary<Guid, ConcreteZadel> finalZadelsHere = new();
 
                                 if (zadelsPovivsHere.TryGetValue(stage.Poviv, out var res11111)) finalZadelsHere = finalZadelsHere.Union(res11111).ToDictionary();
-                                if (freeZadels && zadelsPovivsHere.TryGetValue(0, out var res22222)) finalZadelsHere = finalZadelsHere.Union(res22222).ToDictionary();
+                                if (/*freeZadels && */zadelsPovivsHere.TryGetValue(0, out var res22222)) finalZadelsHere = finalZadelsHere.Union(res22222).ToDictionary();
 
                                 // Номенклатуру нашли, теперь ищем повивы, и если находим - находим наконец-то заделы.
 

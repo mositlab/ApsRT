@@ -89,6 +89,45 @@ namespace ApsRT.Core.Leftovers
             Dictionary<Guid, LeftoversReplacementClass>
             > LeftoversGroupsInfo { get; private set; } = new();
 
+        internal void PostProcessLeftoverGroups()
+        {
+
+            // Под конец все данные обновляем
+            foreach (var mainPair in LeftoversGroupsInfo)
+            {
+                var dic = mainPair.Value;
+
+                // Сначала поменяем хреновые наборы
+                var allKeys = dic.Keys.ToArray();
+
+                foreach (var origKey in allKeys)
+                {
+                    var leftoverClass = dic[origKey];
+                    if (leftoverClass.List.Count > 1)
+                    {
+                        var groups = leftoverClass.List.GroupBy(x => x.Original);
+                        if (groups.Count() == 1)
+                        {
+                            // Это ОДИН материал, у которого куча аналогов. Надо всё разобрать
+                            while (leftoverClass.List.Count > 1)
+                            {
+                                var newGuid = Guid.NewGuid();
+                                var newClass = new LeftoversReplacementClass();
+                                newClass.List.Add(leftoverClass.List[^1]);
+                                dic.Add(newGuid, newClass);
+                                leftoverClass.List.RemoveAt(leftoverClass.List.Count - 1);
+                            }
+                        }
+                    }
+                }
+
+                //Сохраняем хэши теперь и прочее
+                foreach (var element in dic)
+                {
+                    element.Value.PostProcess();
+                }
+            }
+        }
 
         internal void AddLeftoversGroupsInfo(LeftoverGroupDataLoaderModel model)
         {
@@ -854,10 +893,10 @@ namespace ApsRT.Core.Leftovers
                         var matsClass = oper.StageMaterialsInfo;
                         var matsList = matsClass.UsedMaterials;
 
-                        if (mod.AllOpers.Any(x => x.GUID.ToString() == "041d21f0-6bb8-11f1-a4ec-6cb31158f807"))
-                        {
-                            ;
-                        }
+                        //if (mod.AllOpers.Any(x => x.GUID.ToString() == "041d21f0-6bb8-11f1-a4ec-6cb31158f807"))
+                        //{
+                        //    ;
+                        //}
 
                         var naladLengthData = planMod.EasyLifeData == null ? planMod.NaladLengthData[PoolIndex] : planMod.EasyLifeData[oper.CurrentModelling].NaladLengthData[PoolIndex];
 

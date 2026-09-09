@@ -272,7 +272,7 @@ namespace ApsRT.Core.Taras
         {
             ProdStrToGuid.TryAdd(op.Production.Label, op.Production.Code);
             NomenStrToGuid.TryAdd(op.Nomenklature.Label, op.Nomenklature.Code);
-            CharStrToGuid.TryAdd(op.Characteristics.Label, op.Characteristics.Code);
+            if (!string.IsNullOrEmpty(op.Characteristics.Label)) CharStrToGuid.TryAdd(op.Characteristics.Label, op.Characteristics.Code);
             VidStrToGuid.TryAdd(op.OperationVid.Label, op.OperationVid.Code);
             OrderStrToGuid.TryAdd(op.OrderLink.OrderID.Object.Label, op.OrderLink.OrderID.Object.Code);
         }
@@ -481,7 +481,7 @@ namespace ApsRT.Core.Taras
 
             ProdStrToGuid.TryAdd(production.Label, production.Code);
             NomenStrToGuid.TryAdd(Nomen.Label, Nomen.Code);
-            CharStrToGuid.TryAdd(Chars.Label, Chars.Code);
+            if (!string.IsNullOrEmpty(Chars.Label)) CharStrToGuid.TryAdd(Chars.Label, Chars.Code);
             VidStrToGuid.TryAdd(oper_int.Label, oper_int.Code);
         }
 
