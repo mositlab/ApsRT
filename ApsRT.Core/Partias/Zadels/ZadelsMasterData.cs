@@ -193,7 +193,7 @@ namespace ApsRT.Core.Partias.Zadels
 
                                         //zadel.CalcCount -= finalCount; // отнимает из общего количества
 
-                                        zadel.ZadelStatus = ZadelStatus.SussesfullyUsed;
+                                        if (zadel.WhereCanUsed.Count == zadel.WhereIsUsed.Count) zadel.ZadelStatus = ZadelStatus.SussesfullyUsed;
 
                                         var guid = zadelV.Key;
 

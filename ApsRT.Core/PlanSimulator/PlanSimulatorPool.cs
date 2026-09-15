@@ -189,6 +189,8 @@ namespace ApsRT.Core.PlanSimulator
 
                     mod.TransfersData = TransfersData[partiaCode];
 
+                    mod.CurrentFlags = new int[PoolSize];
+
                     for (int s = 0; s < mod.Stages.Count; s++)
                     {
                         var stage = mod.Stages[s];
@@ -237,8 +239,63 @@ namespace ApsRT.Core.PlanSimulator
             }
             ModLinks = modLinks.ToFrozenDictionary();
 
+
+
             PrepareOnOneRCData();
             PrepareAllRCsOnBlocks();
+
+            if (session.SettingsController.CurrentSettings.Demos_CalculateOneOtdTaraRestriction)
+            {
+                PrepareOneOtdTaraRestrictions();
+            }
+        }
+
+        //public Dictionary<int, int> OneOtdTaraRestrictionsGroupID = new();
+        public Dictionary<int, PlanSimulatorOneOtdTaraRstrData> OneOtdTaraRestrictionsData = new();
+
+        public void PrepareOneOtdTaraRestrictions()
+        {
+            // Сначала просто всё очищаем
+            //OneOtdTaraRestrictionsGroupID.Clear();
+            OneOtdTaraRestrictionsData.Clear();
+            foreach (var block in Blocks)
+            {
+                foreach (var list in block.Lists)
+                {
+                    list.OneOtdTaraRestrictionGroup = -1;
+                }
+            }
+
+            // Теперь возьмём те этапы, которые объединенные, т.е. больше одного, но у которых след. этапы - разошлись. И вот у след этапов одна группа
+            var neededMods = Blocks.SelectMany(block => block.Lists.Where(list =>
+            {
+                var nextMods = list.NextMods; // вот у нас есть список след кубиков. Объед/Исход этапы. Про общие пока не заикаюсь
+
+                if (nextMods.Count > 1) return true; // пока заглушка
+
+                return false;
+
+            }));
+
+            // Для каждого такого мода помечаем группу его детей
+            foreach (var modToCheck in neededMods)
+            {
+                var groupID = OneOtdTaraRestrictionsData.Count;
+
+                var data = new PlanSimulatorOneOtdTaraRstrData(PoolSize);
+
+                var nextMods = modToCheck.NextMods;
+
+                foreach (var next in nextMods)
+                {
+                    next.OneOtdTaraRestrictionGroup = groupID;
+                    next.PlanSimulatorOneOtdTaraRstrData = data;
+
+                    data.AllModsInGroup.Add(next);
+                }
+
+                OneOtdTaraRestrictionsData.Add(groupID, data); // Пока тоже заглушка
+            }
         }
 
 

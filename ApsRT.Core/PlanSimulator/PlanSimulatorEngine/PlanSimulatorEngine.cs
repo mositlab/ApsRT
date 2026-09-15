@@ -260,6 +260,8 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     if (resultToFill.FirstStagesAdditionalInfos != null) resultToFill.FirstStagesAdditionalInfos.TryAdd(firstID, binaryCopy);
 
                     resultToFill.CurrentRank += MOD.Stages.Count; // В ЛЮБОМ СЛУЧАЕ добавляем
+
+                    MOD.CurrentFlags[PoolIndex] = currentFlag;
                 }
 
                 // Обновляем результаты:
@@ -512,15 +514,10 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
 
                     if (hh.Flag != currentFlag || hh.MinValue < LastDateHere)
                     {
-                        //if (hh.Flag == currentFlag)
-                        //{
-                        //    tempData.TaraRedutantUsage += (LastDate - hh.MinValue).TotalDays / thisMod.FirstOper.Level;
-                        //}
                         hh.MinValue = LastDateHere;
                         hh.Flag = currentFlag;
                         hh.LastBlockIndex = blockIndex;
                         hh.LastID = mod.FirstOperJust.Index;
-                        //opers.DatesData[next] = hh;
                     }
 
                     var transfersData = nextModHere.TransfersData[PoolIndex];
@@ -547,6 +544,30 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
                     {
                         rottingData.Flag = currentFlag;
                         rottingData.WorstMod = mod;
+                    }
+                }
+            
+                // Теперь, если если я врубил ограничение - смотрим его
+                // Нужно всем модам из группы, которые ещё не встали в план, задать минимальную дату
+                if (mod.PlanSimulatorOneOtdTaraRstrData != null)
+                {
+                    var list = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup;
+                    for (int l = 0; l < list.Count; l++)
+                    {
+                        var modFromGroup = list[l];
+                        if (modFromGroup.CurrentFlags[PoolIndex] == currentFlag) continue; // Если там стоит флаг, то не подходит
+                        if (modFromGroup == mod) continue; // Если это тот же самый мод, что и текущий, тоже не рассматриваем
+
+                        var datesDataInfo = modFromGroup.MinDatesData[PoolIndex];
+
+                        // Если не был задан флаг, либо был задан, но значение меньше, то я перезаписываю данные собой
+                        if (datesDataInfo.Flag != currentFlag || datesDataInfo.MinValue < LastDate)
+                        {
+                            datesDataInfo.MinValue = LastDate;
+                            datesDataInfo.Flag = currentFlag;
+                            datesDataInfo.LastBlockIndex = blockIndex;
+                            datesDataInfo.LastID = mod.FirstOperJust.Index;
+                        }
                     }
                 }
             }

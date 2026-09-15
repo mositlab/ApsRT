@@ -557,7 +557,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                     if (isZadel)
                     {
                         gotMax = here01.Opers.Sum(x => x.Count);
-                        if (here1.ZadelsGUIDs.Count > 0)
+                        if (here1.ZadelsGUIDs != null && here1.ZadelsGUIDs.Count > 0)
                         {
                             gotTara = Zadels.LinearZadelsDictionary.TryGetValue(here1.ZadelsGUIDs[0], out var zet) ? zet.UsedTara : Uco.EmptyObject;
                         }

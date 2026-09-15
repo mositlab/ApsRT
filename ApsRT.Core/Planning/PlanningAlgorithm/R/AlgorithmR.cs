@@ -49,6 +49,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
         List<PlanSimulatorBlock> LinearPlan = new();
 
+        HashSet<PlanSimulatorMod> ExistingMods = new();
+
         HashSet<PlanSimulatorBlock> ExistingBlocks = new();
 
         // Словарик для хранения выбранных тар для правильного алгоритма
@@ -142,6 +144,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             GroupedByLevel[level].Remove(block);
             AddFixedOrVPZ(firstMod, false);
             if (block.NeedsToBeFirst) NeedsToBeFirstCounter--;
+            ExistingMods.Add(firstMod);
         }
 
         void AddBlockParallel(PlanSimulatorBlock block, Uco center, Uco tara, double max, PlanSimulatorBlock mainBlock)
@@ -179,6 +182,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
             GroupedByLevel[level].Remove(block);
             OpersCopy.Remove(block);
 
+            ExistingMods.Add(firstMod);
 
             Queue<PlanSimulatorBlock> blocks = new();
             blocks.Enqueue(mainBlock);
@@ -1017,6 +1021,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     &&
 
+                    block.Lists[0].OneOtdTaraRestrictionGroup != mod.OneOtdTaraRestrictionGroup // Если они в одной группе, они 100% не могут параллельно встать
+
+                    &&
+
                     block.Lists[0].FirstOperJust.ParallelPlanningIDs.TryGetValue(currentCenter, out var parrIDToCheck) && parrIDToCheck == parrID // Сначала проверим, чтоб у блока был тот же айдишник, что и нужен нам
 
                     &&
@@ -1846,12 +1854,22 @@ List<PlanSimulatorBlock> toCheck;
             var operationA = list.Count == 0 ? null : lastBlock.Lists[0]?.FirstOper;
 
                 Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[choosenCenter].Subdivision;
-            var minDateWithMod = mod.PrevMods.Select(prevMod =>
+
+            // Если есть эта группа - чекаем и по ней
+            IEnumerable<PlanSimulatorMod> modsFromOneGroup = Array.Empty<PlanSimulatorMod>();
+            if (mod.PlanSimulatorOneOtdTaraRstrData != null)
+            {
+                // Нужно найти моды, которые уже встали - и добавить их в этот список 
+                modsFromOneGroup = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup.Where(Mod => ExistingMods.Contains(Mod) && Mod != mod);
+            }
+
+            var minDateWithMod = mod.PrevMods.Concat(modsFromOneGroup).Select(prevMod =>
             {
                 Uco lastSubdivision = prevMod.BlockLink.GetCenterData(0).CenterModelDataLink.Subdivision;
                 return (Mod: prevMod, Time: prevMod.DateOfEnd[0].AddSeconds(basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion)));
             }
             );
+
 
             int timeTransfer = 0;
             DateTime minDate = basisLink.StartOfPlanningDate;
@@ -1862,6 +1880,8 @@ List<PlanSimulatorBlock> toCheck;
                 timeTransfer = (int)(maxHere.Time - maxHere.Mod.DateOfEnd[0]).TotalSeconds;
             }
 
+
+            // TODO: Добавить здесь чек из одной группы
 
             if (minDate == DateTime.MinValue) minDate = basisLink.StartOfPlanningDate; // Получаем минимальную дату
 

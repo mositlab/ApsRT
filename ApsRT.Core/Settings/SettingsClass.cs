@@ -202,5 +202,8 @@ namespace ApsRT.Core.Settings
         [JsonProperty]
         public bool Demos_OutputModsInNaladLengthsFile { get; set; }
 
+        [JsonProperty]
+        public bool Demos_CalculateOneOtdTaraRestriction { get; set; }
+
     }
 }

@@ -136,7 +136,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             {
                 var CurrentLevel1 = ops
                     .Where(x => x.Level == Level)
-                    .GroupBy(x => x.MesModelling.Code) // достаточно лишь того, который пришёл из меса, поэтому так
+                    .GroupBy(x => engineData.Session.SessionOptions.LaunchZadel ? Guid.Empty : x.MesModelling.Code) // достаточно лишь того, который пришёл из меса, поэтому так
 
                     .SelectMany(group => selectSdvigs(group))
                     

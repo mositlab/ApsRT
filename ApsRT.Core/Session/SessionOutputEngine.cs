@@ -758,10 +758,12 @@ namespace ApsRT.Core.Session
                 "Выбранный РЦ;" +
                 "ГруппаНаОдномРЦ;" +
                 "ПодразделениеРЦ;" +
+                "ГруппаОднОтдТар;" +
                 "Заказ;" +
                 "Партия ГП;" +
                 "ПартияПФ;" +
                 "Номенклатура;" +
+                "Характеристика;" +
                 "Продукция;" +
                 "Вид Операции;" +
 
@@ -824,7 +826,7 @@ namespace ApsRT.Core.Session
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{nextOper.StageVersion};" : "")}" +
                             $"{nextOper.Registrator}" +
-                            $";;;;;;;;;;{blockRC};;;;;;;;;" +
+                            $";;;;;;;;;;{blockRC};;;;;;;;;;;" +
 
                             string.Join(";", ExistingCriterias.Select((x, index) => $"")) +
 
@@ -889,10 +891,12 @@ namespace ApsRT.Core.Session
                             $"{blockRC};" +
                             $"{(block.PoolLink.ModIDToOnOneRCGroupID.TryGetValue(currMod.ModID, out var group) ? group.ToString() : "-1")};" +
                             $"{SessionLink.MasterDataLinks.CentersMasterData.CentersData[blockRC].Subdivision};" +
+                            $"{currMod.OneOtdTaraRestrictionGroup};" +
                             $"{ord};" +
                             $"{gp};" +
                             $"{operLoc.GetOrderOrPartiaCode()};" +
                             $"{operLoc.Nomenklature};" +
+                            $"{operLoc.Characteristics};" +
                             $"{operLoc.Production};" +
                             $"{operLoc.OperationVid};" +
                             $"{string.Join(";", ExistingCriterias.Select((x, index) => operLoc.RechangeParameters[index].ToString()))};" +
@@ -1121,7 +1125,7 @@ namespace ApsRT.Core.Session
                 }
 
                 sw.Close();
-                workbook.SaveAs("matsErrors.xlsx");
+                workbook.SaveAs("matsErrorsAsXLSX.xlsx");
             }
 
             //var D = 0;

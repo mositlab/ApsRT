@@ -76,6 +76,11 @@ namespace ApsRT.Core.PlanSimulator
         public List<PlanSimulatorMod> NextMods = new();
         public List<PlanSimulatorMod> PrevMods = new();
 
+        public int OneOtdTaraRestrictionGroup = -1;
+        public PlanSimulatorOneOtdTaraRstrData PlanSimulatorOneOtdTaraRstrData;
+
+        public int[] CurrentFlags;
+
         public PlanSimulatorMod(List<Stage> list, bool parrRC, PlanningModellingType type, int modId, int poolSize)
         {
             this.DateOfStart = new DateTime[poolSize];
