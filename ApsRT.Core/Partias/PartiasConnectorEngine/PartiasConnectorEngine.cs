@@ -917,11 +917,10 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
 
                                     // Текущий варик для ЗМК
                                     filledK = 0;
-                                    //resultToFill.mergedNorm = 0; // раскомментить
+                                    resultToFill.mergedNorm = 0;
 
                                     // Текущий варик для СКО
-                                    filledK = 0.001f;
-                                    //resultToFill.mergedNorm = 0;
+                                    //filledK = 0.001f;
                                 }
 
                                 break;

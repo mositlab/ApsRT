@@ -1021,7 +1021,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
 
                     &&
 
-                    block.Lists[0].OneOtdTaraRestrictionGroup != mod.OneOtdTaraRestrictionGroup // Если они в одной группе, они 100% не могут параллельно встать
+                    (mod.OneOtdTaraRestrictionGroup == -1 || block.Lists.All(list =>
+                    (list.OneOtdTaraRestrictionGroup == -1 || list.OneOtdTaraRestrictionGroup != mod.OneOtdTaraRestrictionGroup))) // Если они в одной группе, они 100% не могут параллельно встать
 
                     &&
 

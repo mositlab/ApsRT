@@ -540,7 +540,7 @@ namespace ApsRT.Core.Session
             }
 
 
-            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске" + (OutputMods ? "; GUIDОбъединения;ДлинаОбъединения;СледДлинаОбъединения;GUIDОбщегоЭтапа;ДлинаОбщегоЭтапа;СледДлинаОбщегоЭтапа" : ""));
+            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске" + (OutputMods ? "; GUIDОбъединения;МестоОбъединения;ДлинаОбъединения;СледДлинаОбъединения;GUIDОбщегоЭтапа;МестоОбщегоЭтапа;НомерЗаписиОбщегоЭтапа;ДлинаОбщегоЭтапа;СледДлинаОбщегоЭтапа" : ""));
             fullOutput?.WriteLine($"N;Регистратор;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
 
             var DLitt = 1;
@@ -554,6 +554,7 @@ namespace ApsRT.Core.Session
                     bool wasLastFlag = false;
                     Guid? lastEasyFlag = null;
                     (var center, _, _) = block.GetCenterData(PoolIndex);
+                    int number = 1;
                     for (int j = 0; j < list.StagesAsNormal.Count; j++)
                     {
                         var op = list.Stages[j];
@@ -572,6 +573,9 @@ namespace ApsRT.Core.Session
                         var lengths = op.NaladLengthData[PoolIndex];
                         var MODlengths = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData[op.Stage.CurrentModelling].NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
                         var OP1 = op.Stage;
+                        var obsEtLengthFirst = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthFirst.Value) : 0;
+                        var obsEtLengthOther = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthOther.Value) : 0;
+                        var obsEtLengthNexts = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthNexts.Value) : 0;
                         for (int place = 1; place <= OP1.PlacesCount; place++)
                         {
 
@@ -582,7 +586,7 @@ namespace ApsRT.Core.Session
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
                                     $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
-                                    (OutputMods ? $";{op.Stage.CurrentModelling};{MODlengths.Data.NaladLengthHere.Value};{MODlengths.Data.NaladLengthNexts.Value};{OP1.EasyFlag ?? Guid.Empty};{lengths.Data.NaladLengthHere.Value};{lengths.Data.NaladLengthNexts.Value}" : ""));
+                                    (OutputMods ? $";{op.Stage.CurrentModelling};{place};{(place == 1 ? MODlengths.Data.NaladLengthFirst.Value : MODlengths.Data.NaladLengthOther.Value)};{MODlengths.Data.NaladLengthNexts.Value};{OP1.EasyFlag ?? Guid.Empty};{place};{number};{(place == 1 ? obsEtLengthFirst : obsEtLengthOther)};{obsEtLengthNexts}" : ""));
                                 DLitt++;
 
                             }
@@ -608,6 +612,7 @@ namespace ApsRT.Core.Session
                                 Dbig++;
                             }
 
+                            number++;
                         }
                     }
                     //firstMod = false;
