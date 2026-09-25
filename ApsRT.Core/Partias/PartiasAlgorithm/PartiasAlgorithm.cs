@@ -113,6 +113,7 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                             .SelectMany(level => level)
                         )
                         .Select(x => (x as IAbleForTaraCalcInterface, (PlanSimulatorNaladLengthData)null))
+                //.Where(x => x.Item1.AllOpers.Any(x => x.GUID.ToString() == "1fdd83cb-5db5-11f1-a4ea-6cb31158f807"))
                         .ToList()
 
                         );
@@ -602,6 +603,234 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
             }
         }
 
+        private const int LookAheadCandidatesLimit = 30;
+        private const double TaraFillTolerance = 0.001;
+
+        private bool TryMergeForLookAhead(
+    PartiaClass first,
+    PartiaClass second,
+    out PartiaClass merged)
+        {
+            merged = null;
+
+            if (first == null || second == null || first == second)
+            {
+                return false;
+            }
+
+            var firstCopy = CopyPartiaForLookAhead(first);
+            var secondCopy = CopyPartiaForLookAhead(second);
+
+            var result =
+                PartiasConnectorEngine.PartiasConnectorEngine.Connect(
+                    new PartiaConnectorEngineData(
+                        firstCopy,
+                        secondCopy,
+                        false,
+                        false,
+                        NaladLengthsData,
+                        RestrictionsVia74110,
+                        CloneSetDictionary(ExceptTheseTarasGlobal),
+                        CloneSetDictionary(PossibleRCsGlobal)));
+
+            if (result.Total <= 0)
+            {
+                return false;
+            }
+
+            merged = firstCopy;
+            return true;
+        }
+
+        private static PartiaClass CopyPartiaForLookAhead(PartiaClass source)
+        {
+            var copy = new PartiaClass(
+                PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(
+                    source.OpersHere),
+                source.PossibleDeadline,
+                source.IsRestricted,
+                source.IsExcepted,
+                source.MergeFlag,
+                source.MyGuid,
+                source.MaxThereCountForLongestOpers,
+                source.GPsCountNow);
+
+            copy.IsElementar = source.IsElementar;
+            copy.LastK = source.LastK;
+
+            copy.Sort();
+
+            return copy;
+        }
+
+        private static Dictionary<int, HashSet<Uco>> CloneSetDictionary(
+            Dictionary<int, HashSet<Uco>> source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            return source.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value == null
+                    ? new HashSet<Uco>()
+                    : new HashSet<Uco>(pair.Value));
+        }
+
+        private static bool IsCriticalTaraFull(PartiaClass partia)
+        {
+            if (partia == null || partia.OpersHere.Count == 0)
+            {
+                return false;
+            }
+
+            var longestData = partia.GetLongestOpersForPostCheck();
+
+            if (longestData.Modelling == null ||
+                longestData.Modelling.Count == 0 ||
+                longestData.LevelIndex < 0 ||
+                longestData.LevelIndex >= partia.OpersHere.Count)
+            {
+                return false;
+            }
+
+            var criticalOperationIds = longestData.Modelling
+                .Select(operation => operation.Index)
+                .ToHashSet();
+
+            var criticalModellings = partia
+                .OpersHere[longestData.LevelIndex]
+                .Where(modelling =>
+                    modelling.ZadelCode == 0 &&
+                    modelling.Opers.Any(operation =>
+                        criticalOperationIds.Contains(operation.Index)))
+                .ToList();
+
+            if (criticalModellings.Count == 0)
+            {
+                return false;
+            }
+
+            return criticalModellings.All(modelling =>
+            {
+                if (modelling.Max <= 0)
+                {
+                    return false;
+                }
+
+                var sum = ((IAbleForTaraCalcInterface)modelling).Sum;
+
+                return sum >= modelling.Max - TaraFillTolerance;
+            });
+        }
+
+
+        private (
+            int korz,
+            int gpCount,
+            int effiency,
+            float k,
+            PartiaClass from,
+            PartiaClass to
+        ) SelectCandidateWithLookAhead(
+            List<(
+                int korz,
+                int gpCount,
+                int effiency,
+                float k,
+                PartiaClass from,
+                PartiaClass to
+            )> orderedCandidates,
+            bool withLog)
+        {
+            if (orderedCandidates == null || orderedCandidates.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "Не найдено ни одного варианта объединения партий.");
+            }
+
+            var candidatesToCheck = orderedCandidates
+                .Take(LookAheadCandidatesLimit)
+                .ToList();
+
+            foreach (var candidate in candidatesToCheck)
+            {
+                if (!TryMergeForLookAhead(
+                        candidate.from,
+                        candidate.to,
+                        out var mergedPartia))
+                {
+                    continue;
+                }
+
+                if (IsCriticalTaraFull(mergedPartia))
+                {
+                    LogLookAheadChoice(candidate, orderedCandidates[0], "партия заполнена");
+                    return candidate;
+                }
+                var canContinueMerging = PartiiList
+                    .Where(partia =>
+                        partia != candidate.from &&
+                        partia != candidate.to &&
+                        partia.OpersHere.Count > 0 &&
+                        partia.OpersHere[0].Count > 0)
+                    .Any(partia =>
+                        TryMergeForLookAhead(
+                            mergedPartia,
+                            partia,
+                            out _));
+
+                if (canContinueMerging)
+                {
+                    LogLookAheadChoice(
+                        candidate,
+                        orderedCandidates[0],
+                        "партию можно дополнить");
+
+                    return candidate;
+                }
+
+                SessionLink.AssignedLogger.PartiasLogQueue.Enqueue(
+                    $"LOOKAHEAD: пропущено тупиковое объединение " +
+                    $"[{candidate.from}] + [{candidate.to}]\r\n");
+            }
+
+            return orderedCandidates[0];
+
+            void LogLookAheadChoice(
+                (
+                    int korz,
+                    int gpCount,
+                    int effiency,
+                    float k,
+                    PartiaClass from,
+                    PartiaClass to
+                ) selected,
+                (
+                    int korz,
+                    int gpCount,
+                    int effiency,
+                    float k,
+                    PartiaClass from,
+                    PartiaClass to
+                ) original,
+                string reason)
+            {
+                if (selected.from == original.from &&
+                    selected.to == original.to)
+                {
+                    return;
+                }
+
+                SessionLink.AssignedLogger.PartiasLogQueue.Enqueue(
+                    $"LOOKAHEAD: вместо первоначального варианта " +
+                    $"[{original.from}] + [{original.to}] выбран " +
+                    $"[{selected.from}] + [{selected.to}]: {reason}\r\n");
+            }
+        }
+
+
         void SearchProcess(bool WithLog, int maxdeads)
         {
             var diapazon = SessionLink.SettingsController.CurrentSettings.MaxDaysBetweenPartias;
@@ -702,8 +931,14 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                     }
                 }
 
+                //var selectedCandidate = SelectCandidateWithLookAhead(listToCheck, WithLog);
+
+                //var partia1 = selectedCandidate.from;
+                //var partia2 = selectedCandidate.to;
+
                 var partia1 = listToCheck[0].from;
                 var partia2 = listToCheck[0].to;
+
 
                 // 4. Нам приходится делать копию: на случай, если схлопнется не полностью, или вовсе испортится (такое бывает)
                 var partia1C = new PartiaClass(PartiasGeneratorEngine.PartiasGeneratorEngine.DeepCopy(partia1.OpersHere), partia1.PossibleDeadline, /*new(partia1.ModelsHere), new(partia1.OrdersHere), */partia1.IsRestricted, partia1.IsExcepted, partia1.MergeFlag, partia1.MyGuid, partia1.MaxThereCountForLongestOpers, partia1.GPsCountNow/*, partia1.LongestModsMaxCount*/);

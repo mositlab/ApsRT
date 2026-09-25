@@ -278,7 +278,10 @@ namespace ApsRT.Core.Leftovers
                  */
 
                 )
-            ).ToList());
+            )
+                //.Where(x => x.AsMod.AllOpers.Any(x => x.GUID.ToString() == "1fdd83cb-5db5-11f1-a4ea-6cb31158f807"))
+                .ToList());
+            
         }
 
         public void PrepareModsForLeftovers(List<(IAbleForTaraCalcInterface mod, PlanSimulatorNaladLengthData naladLengthData)> modsToArrange)
@@ -407,6 +410,8 @@ namespace ApsRT.Core.Leftovers
                 {
                     var binMatData = (allBins[b].MatData.Nomenklature, allBins[b].MatData.Characteristics);
 
+                    var itemMatData = (allItems[i].MatData.Nomenklature, allItems[i].MatData.Characteristics);
+
                     if (binMatData == allItems[i].MatData)
                     {
                         //IBtable[i, b] = allItems[i].MatWeight;
@@ -443,7 +448,7 @@ namespace ApsRT.Core.Leftovers
 
                         if (allBins[b].ItsZadel) continue; // Если этот остаток - задел, то я не могу говорить об аналогах.
 
-                        if (AllPossibleAnaloguesForMats[i].TryGetValue(binMatData, out var analogueW)) // НО! Если у мата есть аналог, как раз такой остаток, то поместить МОЖНО!
+                        if (AllPossibleAnaloguesForMats[i].TryGetValue(itemMatData, out var analogueW)) // НО! Если у мата есть аналог, как раз такой остаток, то поместить МОЖНО!
                         {
                             // Причем не с абы каким весом, а с новым
                             //IBtable[i, b] = (long)analogueW;
@@ -893,7 +898,7 @@ namespace ApsRT.Core.Leftovers
                         var matsClass = oper.StageMaterialsInfo;
                         var matsList = matsClass.UsedMaterials;
 
-                        //if (mod.AllOpers.Any(x => x.GUID.ToString() == "041d21f0-6bb8-11f1-a4ec-6cb31158f807"))
+                        //if (mod.AllOpers.Any(x => x.GUID.ToString() == "1fdd83cb-5db5-11f1-a4ea-6cb31158f807"))
                         //{
                         //    ;
                         //}

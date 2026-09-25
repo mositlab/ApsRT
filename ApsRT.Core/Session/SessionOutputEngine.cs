@@ -9,6 +9,7 @@ using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.RechangesEngine;
 using Azure;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office.Word;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Concurrent;
@@ -558,8 +559,8 @@ namespace ApsRT.Core.Session
                     for (int j = 0; j < list.StagesAsNormal.Count; j++)
                     {
                         var op = list.Stages[j];
-                        var mod = op.Stage.CurrentModelling;//IsCustomModelling ? op.Stage.CustomModelling : op.Stage.MesModelling.Code;
-                        //var modNalads = mod == Guid.Empty ? op.NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
+                        var mod = op.Stage.CurrentModelling;
+
                         if (wasLastFlag && mod != lastEasyFlag)
                         {
                             firstMod = false; // это уже другой мод
@@ -570,12 +571,12 @@ namespace ApsRT.Core.Session
                             lastEasyFlag = mod;
                             wasLastFlag = true;
                         }
+
                         var lengths = op.NaladLengthData[PoolIndex];
-                        var MODlengths = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData[op.Stage.CurrentModelling].NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
                         var OP1 = op.Stage;
-                        var obsEtLengthFirst = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthFirst.Value) : 0;
-                        var obsEtLengthOther = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthOther.Value) : 0;
-                        var obsEtLengthNexts = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthNexts.Value) : 0;
+
+                        var MODlengths = op.Stage.EasyFlag.HasValue ? op.ModLink.EasyLifeData[op.Stage.CurrentModelling].NaladLengthData[PoolIndex] : op.ModLink.NaladLengthData[PoolIndex];
+
                         for (int place = 1; place <= OP1.PlacesCount; place++)
                         {
 
@@ -585,8 +586,8 @@ namespace ApsRT.Core.Session
                         //$"{OP1.StageVersion};" +
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
-                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}" +
-                                    (OutputMods ? $";{op.Stage.CurrentModelling};{place};{(place == 1 ? MODlengths.Data.NaladLengthFirst.Value : MODlengths.Data.NaladLengthOther.Value)};{MODlengths.Data.NaladLengthNexts.Value};{OP1.EasyFlag ?? Guid.Empty};{place};{number};{(place == 1 ? obsEtLengthFirst : obsEtLengthOther)};{obsEtLengthNexts}" : ""));
+                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+
                                 DLitt++;
 
                             }
@@ -615,6 +616,89 @@ namespace ApsRT.Core.Session
                             number++;
                         }
                     }
+
+                    if (OutputMods && !list.FirstOperJust.NeededNaladLength.HasValue)
+                    {
+                        List<(PlanSimulatorMod mod, PlanSimulatorNaladLengthData naladLength)> groupedMods;
+                        if (list.FirstOperJust.EasyFlag.HasValue)
+                        {
+                            groupedMods = list.EasyLifeData.Select(x => (list, x.Value.NaladLengthData[PoolIndex])).ToList();
+                        }
+                        else
+                        {
+                            groupedMods = new()
+                            {
+                                (list, list.NaladLengthData[PoolIndex])
+                            };
+                        }
+
+                        firstMod = true;
+                        wasLastFlag = false;
+                        lastEasyFlag = null;
+
+                        foreach (var modData in groupedMods)
+                        {
+                            
+                            var mod = modData.mod.FirstOperJust.CurrentModelling;
+
+                            if (wasLastFlag && mod != lastEasyFlag)
+                            {
+                                firstMod = false; // это уже другой мод
+                                lastEasyFlag = mod;
+                            }
+                            if (!wasLastFlag)
+                            {
+                                lastEasyFlag = mod;
+                                wasLastFlag = true;
+                            }
+
+                            if (mod == Guid.Empty) continue;
+
+                            var placesCount = modData.mod.StagesAsNormal.Max(oper => oper.PlacesCount);
+
+                            bool hasAnyFirstFlag = modData.naladLength.Data.IsFirst;
+
+                            for (int j = 1; j <= placesCount; j++)
+                            {
+                                sw.WriteLine($"{DLitt};;" +
+                                $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $";" : "")}" +
+                                $";;;" +
+                                $"{(j == 1 && hasAnyFirstFlag && firstMod ? "Да" : "Нет")};" +
+                                $"{modData.mod.FirstOperJust.CurrentModelling};{j};" +
+                                $"{(j == 1 ? modData.naladLength.Data.NaladLengthFirst.Value : modData.naladLength.Data.NaladLengthOther.Value)};" +
+                                $"{modData.naladLength.Data.NaladLengthNexts.Value}");
+
+                                DLitt++;
+                            }
+
+                        }
+
+                        // Теперь выводим информацию об общем этапе, если он есть
+                        if (list.FirstOperJust.EasyFlag.HasValue)
+                        {
+                            var obsEtLengthFirst = list.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthFirst.Value);
+                            var obsEtLengthOther = list.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthOther.Value);
+                            var obsEtLengthNexts = list.EasyLifeData.Max(x => x.Value.NaladLengthData[PoolIndex].Data.NaladLengthNexts.Value);
+
+                            var placesCount = list.EasyLifeData.Max(x => x.Value.AsMod.AllOpers.Max(oper => oper.PlacesCount));
+
+                            bool hasAnyFirstFlag = list.EasyLifeData.Any(x => x.Value.NaladLengthData[PoolIndex].Data.IsFirst);
+
+                            for (int j = 1; j <= placesCount; j++)
+                            {
+                                sw.WriteLine($"{DLitt};;" +
+                                    $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $";" : "")}" +
+                                    $";;;" +
+                                    $"{(j == 1 && hasAnyFirstFlag ? "Да" : "Нет")};" +
+                                    $";;;;" +
+                                    $"{list.FirstOperJust.EasyFlag};{j};{j};{(j == 1 ? obsEtLengthFirst : obsEtLengthOther)};{obsEtLengthNexts}");
+                                DLitt++;
+                            }
+                        }
+
+
+                    }
+
                     //firstMod = false;
                 }
             }
