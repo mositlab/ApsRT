@@ -104,6 +104,48 @@ namespace ApsRT.Core.Orders
             }
         }
 
+        public string NoMergeFilename = "NoMergeExceptions.txt";
+        public void ProcessOrdersNoMerge()
+        {
+            if (!File.Exists(NoMergeFilename)) File.WriteAllLines(NoMergeFilename, Array.Empty<string>());
+
+            var reader = new StreamReader(NoMergeFilename);
+
+            while (!reader.EndOfStream)
+            {
+                var line = reader.ReadLine();
+                try
+                {
+                    line = line.Trim().ToLower();
+                    var foundOrders = AllOrders.Where(x => x.Key.Object.Label.ToLower() == line);
+                    foreach (var order in foundOrders)
+                    {
+                        order.Value.WillBeNoMergeExcepted = true;
+
+                        foreach (var opIndex in order.Value.RelatedOpers)
+                        {
+                            var op = SessionLink.MasterDataLinks.StagesMasterData.AllStages[opIndex];
+                            var str = $"op {opIndex}: {op.GUID} [{op.StageVersion}] - {op.Registrator} - НеОбъединять: ЛОЖЬ";
+                            op.IsLast = false;
+                            op.IsFact = false;
+                            Console.WriteLine(str);
+                            SessionLink.AssignedLogger.LogQueue.Enqueue(str + "\r\n");
+                        }
+
+                        var str2 = $"No Merge: Заказ '{order.Key}' - убраны флаги 'НеОбъединять'.";
+                        Console.WriteLine(str2);
+                        SessionLink.AssignedLogger.LogQueue.Enqueue(str2 + "\r\n");
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine($"Exceptions: Неизвестный заказ '{line}'");
+                    SessionLink.AssignedLogger.LogQueue.Enqueue($"Exceptions: Неизвестный заказ '{line}'.\r\n");
+                }
+            }
+            reader.Close();
+        }
+
 
         public string ExceptionsFilename = "Exceptions.txt";
         public void ProcessOrdersExceptions()
@@ -132,6 +174,7 @@ namespace ApsRT.Core.Orders
                     SessionLink.AssignedLogger.LogQueue.Enqueue($"Exceptions: Неизвестный заказ '{line}'.\r\n");
                 }
             }
+            reader.Close();
         }
 
     }

@@ -401,11 +401,14 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                 int PfFlag = 1;
                 foreach (var allPF in allPFGroups)
                 {
+
+                    bool anyIsNoMergeEx = allPF.Any(x => x.Value.WillBeNoMergeExcepted);
+
                     //foreach (var concretePF in allPF)
                     //{
                     // Условие: эта партия ни с кем не схлопывается, и гуид берет из пф.
                     // В таком случае все заказы из этой группы превратятся в одну большую партию
-                    CreatePartiasAndAddToList(allPF, PfFlag, true, false, allPF.Key, WithLog); // Гуид из партии ПФ, ОГРАНИЧЕН, да и флаг 1+
+                    CreatePartiasAndAddToList(allPF, anyIsNoMergeEx ? 0 : PfFlag, anyIsNoMergeEx ? false : true /* я знаю что правильнее !anyIsNoMergeEx, но оставил для удобства и если понадобится ещё че то */, false, allPF.Key, WithLog); // Гуид из партии ПФ, ОГРАНИЧЕН, да и флаг 1+
                     PfFlag++;
                     //}
                 }

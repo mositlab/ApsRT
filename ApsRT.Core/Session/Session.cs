@@ -272,6 +272,8 @@ namespace ApsRT.Core.Session
         {
             MasterDataLinks.OrdersMasterData.ProcessOrdersExceptions(); // Получаем исключения для заказиков
 
+            MasterDataLinks.OrdersMasterData.ProcessOrdersNoMerge(); // Получаем исключения "не объединять" для заказиков
+
             MasterDataLinks.TarasMasterData.CustomMaxCapacityPostProcess();
 
             MasterDataLinks.StagesMasterData.EnsureVersionedStagesDependencies(); // Сначала грамотно устанавливаем зависимости

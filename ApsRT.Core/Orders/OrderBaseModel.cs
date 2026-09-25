@@ -43,5 +43,10 @@ namespace ApsRT.Core.Orders
         /// Будет ли заказ исключён. Если да, то его ГП не будут объединяться ни с кем, а его ошибки будут выведены в другой список.
         /// </summary>
         public bool WillBeExcepted { get; set; } = false;
+
+        /// <summary>
+        /// Будет ли заказ исключён из ограничений по признаку НеОбъединять.
+        /// </summary>
+        public bool WillBeNoMergeExcepted { get; set; } = false;
     }
 }
