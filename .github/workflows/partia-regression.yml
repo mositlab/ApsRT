@@ -1,0 +1,34 @@
+name: Partia regression
+
+on:
+  pull_request:
+    branches: [lastNormWorking]
+  push:
+    branches: [fix/partia-deep-check-finalization]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    name: Partia regression (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      # StringNonEqualCheck уже падает в исходной ветке; здесь проверяем
+      # регрессию партий, сохраняя сборку всего тестового проекта.
+      - name: Build and test partia finalization
+        run: dotnet test ApsRT.Core.Tests/ApsRT.Core.Tests.csproj --configuration Release --filter FullyQualifiedName~PartiasGeneratorEngineTests --logger "trx;LogFileName=partia-regression.trx"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partia-regression-${{ matrix.os }}
+          path: ApsRT.Core.Tests/TestResults/*.trx

@@ -232,7 +232,16 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 ExceptThisTara = ExceptTheseTarasGlobal != null && ExceptTheseTarasGlobal.TryGetValue(x.Key, out var except) ? except : new()
             });
 
-            bool anyError = false;
+            CompleteDeepChecks(partia1, engineData, dic1, dicSdvigs,
+                sdvig => checkThisList(sdvig, engineData, WithLog, finalResult, dic1, dicSdvigs, possibleRCs));
+        }
+
+        // Отдельный цикл позволяет проверить завершение и повтор поиска независимо от НСИ тары.
+        internal static void CompleteDeepChecks(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData,
+            Dictionary<int, DeepCheckData> dic1, Dictionary<int, PartiaModelling> dicSdvigs,
+            Func<PartiaModelling, DeepCheckResult> checkModelling)
+        {
+            bool anyError;
 
             do
             {
@@ -241,34 +250,39 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 {
                     for (int j = 0; j < partia1[i].Count; j++)
                     {
-                        var result = checkThisList(partia1[i][j], engineData, WithLog, finalResult, dic1, dicSdvigs, possibleRCs);
+                        var result = checkModelling(partia1[i][j]);
 
-                        if (result.success)
+                        if (result.success || result.last)
                         {
+                            // last завершает подбор, даже если допустимая тара не найдена.
+                            // В этом случае sdvig уже содержит итоговый РЦ и должен заменить заготовку.
                             partia1[i][j] = result.sdvig;
+                            foreach (var op in result.sdvig.Opers)
+                                dicSdvigs[op.Index] = result.sdvig;
+
+                            if (!result.success && result.firstPrevIndex >= 0)
+                            {
+                                dic1.TryAdd(result.firstPrevIndex, new());
+                                dic1[result.firstPrevIndex].CanSearchTara = false;
+                            }
                         }
                         else
                         {
+                            if (result.firstPrevIndex < 0)
+                                throw new InvalidOperationException("Повтор подбора тары требует индекс предыдущего этапа.");
+
                             dic1.TryAdd(result.firstPrevIndex, new());
-                            if (result.last /*|| dic1[result.firstPrevIndex].TryCount > 100*/)
+                            if (engineData.prevs.TryGetValue(result.firstPrevIndex, out var tara))
                             {
-                                // Больше НЕЛЬЗЯ менять тару для него
-                                dic1[result.firstPrevIndex].CanSearchTara = false;
+                                dic1[result.firstPrevIndex].ExceptThisTara.Add(tara);
+                                dic1[result.firstPrevIndex].TryCount++;
                             }
                             else
                             {
-                                if (engineData.prevs.TryGetValue(result.firstPrevIndex, out var tara))
-                                {
-                                    dic1[result.firstPrevIndex].ExceptThisTara.Add(tara);
-                                    dic1[result.firstPrevIndex].TryCount++;
-                                }
-                                else
-                                {
-                                    dic1[result.firstPrevIndex].CanSearchTara = false;
-                                }
-                                anyError = true;
-                                break;
+                                dic1[result.firstPrevIndex].CanSearchTara = false;
                             }
+                            anyError = true;
+                            break;
                         }
                     }
                     if (anyError) break;
@@ -279,8 +293,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             // Сохраняем данные глобально
             foreach (var dicVal in dic1)
             {
-                ExceptTheseTarasGlobal.TryAdd(dicVal.Key, new());
-                ExceptTheseTarasGlobal[dicVal.Key] = dicVal.Value.ExceptThisTara;
+                engineData.ExceptTheseTarasGlobal[dicVal.Key] = dicVal.Value.ExceptThisTara;
             }
         }
 
@@ -463,14 +476,16 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         });
 
                         var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
-                        addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, true, engineData);
+                        addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, false, engineData);
                         return new DeepCheckResult(sdvig, false, -1, true);
                     }
                     else
                     {
                         var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
-                        addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, true, engineData);
-                        return new DeepCheckResult(sdvig, false, possiblePrevsToCheck.First().Opers[0].Index, tempRes.ExceptTheseTarasNonErrorsCount == 0);
+                        bool last = tempRes.ExceptTheseTarasNonErrorsCount == 0;
+                        // Промежуточный неуспех не должен менять данные ещё действующего результата.
+                        if (last) addInfoLocal(opers, Uco.EmptyObject, 0, sdvig, true, false, engineData);
+                        return new DeepCheckResult(sdvig, false, possiblePrevsToCheck.First().Opers[0].Index, last);
                     }
                 }
                 else
@@ -554,9 +569,12 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 //OpersToSdvigs.Add(x.Index, sdvig);
                 if (toPrevs)
                 {
+                    if (tara.IsEmpty) prevs.Remove(x.Index);
+                    else prevs[x.Index] = tara;
+
                     if (goodTara)
                     {
-                        if (!tara.IsEmpty) prevs[x.Index] = tara;
+                        errored.Remove(x.Index);
                     }
                     else
                     {
@@ -568,3 +586,4 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
     }
 }
+

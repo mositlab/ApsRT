@@ -1481,11 +1481,6 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
 
                             op1.Center = lvl2.RC;
 
-                            if (lvl2.RC.IsEmpty)
-                            {
-                                ;
-                            }
-
                             op1.CurrentTara = lvl2.Tara;
                             op1.CurrentTaraMaxCapacity = lvl2.Max;
 
@@ -1537,3 +1532,4 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
         }
     }
 }
+
