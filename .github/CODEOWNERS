@@ -1,0 +1,6 @@
+# Изменения расчёта партий проверяет разработчик алгоритма.
+/ApsRT.Core/Partias/PartiasGeneratorEngine/ @JasonScavenger
+/ApsRT.Core/Partias/PartiasAlgorithm/ @JasonScavenger
+/ApsRT.Core.Tests/PartiasGeneratorEngineTests.cs @JasonScavenger
+/.github/CODEOWNERS @JasonScavenger
+/.github/workflows/partia-regression.yml @JasonScavenger
