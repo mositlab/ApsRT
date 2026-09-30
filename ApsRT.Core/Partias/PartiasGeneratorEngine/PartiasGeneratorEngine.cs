@@ -254,6 +254,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                             {
                                 // Больше НЕЛЬЗЯ менять тару для него
                                 dic1[result.firstPrevIndex].CanSearchTara = false;
+                                partia1[i][j] = result.sdvig;
                             }
                             else
                             {
@@ -265,6 +266,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                                 else
                                 {
                                     dic1[result.firstPrevIndex].CanSearchTara = false;
+                                    partia1[i][j] = result.sdvig;
                                 }
                                 anyError = true;
                                 break;
