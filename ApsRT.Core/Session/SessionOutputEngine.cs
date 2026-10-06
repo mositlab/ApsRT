@@ -541,7 +541,7 @@ namespace ApsRT.Core.Session
             }
 
 
-            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске" + (OutputMods ? "; GUIDОбъединения;МестоОбъединения;ДлинаОбъединения;СледДлинаОбъединения;GUIDОбщегоЭтапа;МестоОбщегоЭтапа;НомерЗаписиОбщегоЭтапа;ДлинаОбщегоЭтапа;СледДлинаОбщегоЭтапа" : ""));
+            sw.WriteLine($"N;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Место;Длина;СледующаяДлина;ПерваяВЗапуске" + (OutputMods ? ";GUIDОбъединения;МестоОбъединения;ДлинаОбъединения;СледДлинаОбъединения;GUIDОбщегоЭтапа;МестоОбщегоЭтапа;НомерЗаписиОбщегоЭтапа;ДлинаОбщегоЭтапа;СледДлинаОбщегоЭтапа" : ""));
             fullOutput?.WriteLine($"N;Регистратор;GUID;{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? "ВерсияЭтапа;" : "")}Заказ;ГП;Партия;Уровень;Номенклатура;Вид;Продукция;РЦ;Место;Длина;СледующаяДлина;ПерваяВЗапуске;Вспом;Коэф;Колво;ЕдИзм;номер мода;Кол-воМода;НаладДлинаМода;СледНаладДлинаМода;КоэффМода;Тара этапа;Макс намотка;Влазит мод;Фикс?;Жалобы?");
 
             var DLitt = 1;
