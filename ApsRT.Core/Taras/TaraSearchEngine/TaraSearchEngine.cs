@@ -373,8 +373,31 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     }
                     else
                     {
-                        var set1 =/* new HashSet<Uco>(*/res0.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
-                        searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set1.Contains(x.Tara)).ToArray();//.Add(poss2);
+                        //var set1 = res0.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
+                        //searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set1.Contains(x.Tara)).ToArray();
+                        var limits = searchData.BARABANAS.AsValueEnumerable()
+                            .GroupBy(x => x.Tara)
+                            .Join(
+                                res0.GroupBy(x => x.Tara),
+                                a => a.Key,
+                                b => b.Key,
+                                (a, b) => new
+                                {
+                                    Tara = a.Key,
+                                    MaxNamot = Math.Min(a.Max(x => x.Namot), b.Max(x => x.Namot)
+                                    )
+                                }
+                            )
+                            .ToFrozenDictionary(x => x.Tara, x => x.MaxNamot);
+
+                        searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable()
+                            .Concat(res0)
+                            .Where(x =>
+                                limits.TryGetValue(x.Tara, out var limit) &&
+                                x.Namot <= limit
+                            )
+                            .ToArray();
+
                     }
 
                     searchData.dataErrorMore.MaxNamotka = searchData.BARABANAS.AsValueEnumerable().Select(x => (x.Tara, x.Namot)).ToList();

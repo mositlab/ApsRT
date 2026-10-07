@@ -157,22 +157,38 @@ namespace ApsRT.Core.Partias.MergeConditions
         //internal static BitArray[] OpersAreEqualCash;
         //internal static BitArray[] OpersAreEqualCashChecked;
 
-        bool MainChecks(Stage op1, Stage op2, out string reason, out string smallreason)
+        bool MainChecks(Stage op1, Stage op2, bool obsch, out string reason, out string smallreason)
         {
             reason = "";
             smallreason = "";
             // если у хотя бы одной операции "не объединять" - выходим
             if (op1.IsLast)
             {
-                reason = $"у {op1.Index} флаг не объед";
-                smallreason = "флаг НеОбъединять";
-                return false;
+                if (obsch && op1.CanFormEasyFlag)
+                {
+                    // В таком случае ничего страшного, можно идти дальше.
+                    // Если формируется общий этап и есть признак на разрешение, не препятствуем.
+                }
+                else
+                {
+                    reason = $"у {op1.Index} флаг не объед";
+                    smallreason = "флаг НеОбъединять";
+                    return false;
+                }
             }
             if (op2.IsLast)
             {
-                reason = $"у {op2.Index} флаг не объед";
-                smallreason = "флаг НеОбъединять";
-                return false;
+                if (obsch && op2.CanFormEasyFlag)
+                {
+                    // В таком случае ничего страшного, можно идти дальше.
+                    // Если формируется общий этап и есть признак на разрешение, не препятствуем.
+                }
+                else
+                {
+                    reason = $"у {op2.Index} флаг не объед";
+                    smallreason = "флаг НеОбъединять";
+                    return false;
+                }
             }
 
             if (op1.CanMergeOnlyInOneOrder && op1.OrderLink.OrderID.Object != op2.OrderLink.OrderID.Object)
@@ -289,7 +305,7 @@ namespace ApsRT.Core.Partias.MergeConditions
             // результат проверки объединения
             bool result = false;
 
-            if (!MainChecks(op1, op2, out var str, out var str2))
+            if (!MainChecks(op1, op2, forObshEtaps, out var str, out var str2))
             {
                 //if (!forObshEtaps)
                 //{

@@ -150,6 +150,9 @@ namespace ApsRT.Core.Stages
         [DataRecordColumn("НеОбъединять", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsLast { get; set; }
 
+        [DataRecordColumn("РазрешеноФормированиеОбщегоЭтапа", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        public bool CanFormEasyFlag { get; set; }
+
         [DataRecordColumn("ОбъединятьТолькоВнутриЗаказа", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool CanMergeOnlyInOneOrder { get; set; }
 
