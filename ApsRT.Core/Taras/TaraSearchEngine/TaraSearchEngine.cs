@@ -142,6 +142,43 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
         }
 
         /// <summary>
+        /// Пересекает максимальные намотки последовательных операций.
+        /// Для каждой тары допустимый предел — минимум двух максимальных намоток.
+        /// Дубликаты исходных записей сохраняются, как и в предыдущей реализации.
+        /// Группировка использует тот же стандартный comparer, что и словари.
+        /// </summary>
+        public static (Uco Tara, DimensionUnit Format, double Namot)[] IntersectAllowedWindings(
+            IEnumerable<(Uco Tara, DimensionUnit Format, double Namot)> previous,
+            IEnumerable<(Uco Tara, DimensionUnit Format, double Namot)> current)
+        {
+            ArgumentNullException.ThrowIfNull(previous);
+            ArgumentNullException.ThrowIfNull(current);
+
+            // Снимки важны при параллельном планировании: не перечисляем
+            // изменяемые внешние последовательности повторно.
+            var previousItems = previous.ToArray();
+            var currentItems = current.ToArray();
+
+            var previousLimits = previousItems
+                .GroupBy(x => x.Tara)
+                .ToDictionary(group => group.Key, group => group.Max(x => x.Namot));
+            var currentLimits = currentItems
+                .GroupBy(x => x.Tara)
+                .ToDictionary(group => group.Key, group => group.Max(x => x.Namot));
+
+            var limits = new Dictionary<Uco, double>();
+            foreach (var (tara, max) in previousLimits)
+            {
+                if (currentLimits.TryGetValue(tara, out var currentMax))
+                    limits.Add(tara, Math.Min(max, currentMax));
+            }
+
+            return previousItems.Concat(currentItems)
+                .Where(x => limits.TryGetValue(x.Tara, out var limit) && x.Namot <= limit)
+                .ToArray();
+        }
+
+        /// <summary>
         /// Получаем список РЦ и тары, которая может встать для них
         /// </summary>
         public static bool GetAllVariantsForThese(IAbleForTaraCalcInterface allOpers, out TemporaryTaraSearchData searchData, SumIsPossibleOptions options)
@@ -373,30 +410,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     }
                     else
                     {
-                        //var set1 = res0.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
-                        //searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set1.Contains(x.Tara)).ToArray();
-                        var limits = searchData.BARABANAS.AsValueEnumerable()
-                            .GroupBy(x => x.Tara)
-                            .Join(
-                                res0.GroupBy(x => x.Tara),
-                                a => a.Key,
-                                b => b.Key,
-                                (a, b) => new
-                                {
-                                    Tara = a.Key,
-                                    MaxNamot = Math.Min(a.Max(x => x.Namot), b.Max(x => x.Namot)
-                                    )
-                                }
-                            )
-                            .ToFrozenDictionary(x => x.Tara, x => x.MaxNamot);
-
-                        searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable()
-                            .Concat(res0)
-                            .Where(x =>
-                                limits.TryGetValue(x.Tara, out var limit) &&
-                                x.Namot <= limit
-                            )
-                            .ToArray();
+                        searchData.BARABANAS = IntersectAllowedWindings(searchData.BARABANAS, res0);
 
                     }
 
