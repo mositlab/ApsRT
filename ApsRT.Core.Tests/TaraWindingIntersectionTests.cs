@@ -1,5 +1,4 @@
 using ApsRT.Core.Taras.TaraSearchEngine;
-using System.Collections.Concurrent;
 using UniversalPack;
 using Uco = UniversalPack.Common.CodedObject<System.Guid, string>;
 
@@ -73,7 +72,7 @@ public class TaraWindingIntersectionTests
         Parallel.For(0, 1000, _ =>
         {
             var actual = TaraSearchEngine.IntersectAllowedWindings(previous, current);
-            Assert.Equal(new[] { 80d, 90d, 60d }, actual.Select(x => x.Namot).Order());
+            Assert.Equal(new[] { 60d, 80d, 90d }, actual.Select(x => x.Namot).Order());
         });
     }
 }
