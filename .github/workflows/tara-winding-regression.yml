@@ -6,6 +6,7 @@ on:
     paths:
       - 'ApsRT.Core/Taras/TaraSearchEngine/**'
       - 'ApsRT.Core.Tests/**'
+      - 'UniversalPack/Common/CodedObject.cs'
       - '.github/workflows/tara-winding-regression.yml'
   workflow_dispatch:
 
