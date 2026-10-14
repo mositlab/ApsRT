@@ -1,0 +1,23 @@
+name: Tara winding regression (.NET 8)
+
+on:
+  pull_request:
+    branches: [lastNormWorking]
+    paths:
+      - 'ApsRT.Core/Taras/TaraSearchEngine/**'
+      - 'ApsRT.Core.Tests/**'
+      - 'UniversalPack/Common/CodedObject.cs'
+      - '.github/workflows/tara-winding-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Run core tests
+        run: dotnet test "ApsRT.Core.Tests/ApsRT.Core.Tests.csproj" --configuration Release --verbosity normal
