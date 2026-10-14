@@ -74,9 +74,9 @@ namespace UniversalPack.Common
 
         public override int GetHashCode()
         {
-            return _code.GetHashCode();
-            //UpdateHashCode();
-            return _hashCode;
+            // CodedObject<string, ...> may legitimately have a null code.
+            // Use a stable null hash instead of throwing in Equals()/dictionaries.
+            return _code is null ? 0 : _code.GetHashCode();
         }
 
         static CodedObject<InputDataType, ValueType> _emptyObject = new CodedObject<InputDataType, ValueType>(default(InputDataType), default(ValueType));
