@@ -145,7 +145,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
         /// Пересекает максимальные намотки последовательных операций.
         /// Для каждой тары допустимый предел — минимум двух максимальных намоток.
         /// Дубликаты исходных записей сохраняются, как и в предыдущей реализации.
-        /// Группировка использует тот же стандартный comparer, что и словари.
+        /// Ключ словарей — GUID тары, чтобы не зависеть от хэш-равенства Uco.
         /// </summary>
         public static (Uco Tara, DimensionUnit Format, double Namot)[] IntersectAllowedWindings(
             IEnumerable<(Uco Tara, DimensionUnit Format, double Namot)> previous,
@@ -160,13 +160,13 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             var currentItems = current.ToArray();
 
             var previousLimits = previousItems
-                .GroupBy(x => x.Tara)
+                .GroupBy(x => x.Tara.Code)
                 .ToDictionary(group => group.Key, group => group.Max(x => x.Namot));
             var currentLimits = currentItems
-                .GroupBy(x => x.Tara)
+                .GroupBy(x => x.Tara.Code)
                 .ToDictionary(group => group.Key, group => group.Max(x => x.Namot));
 
-            var limits = new Dictionary<Uco, double>();
+            var limits = new Dictionary<Guid, double>();
             foreach (var (tara, max) in previousLimits)
             {
                 if (currentLimits.TryGetValue(tara, out var currentMax))
@@ -174,7 +174,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             }
 
             return previousItems.Concat(currentItems)
-                .Where(x => limits.TryGetValue(x.Tara, out var limit) && x.Namot <= limit)
+                .Where(x => limits.TryGetValue(x.Tara.Code, out var limit) && x.Namot <= limit)
                 .ToArray();
         }
 
