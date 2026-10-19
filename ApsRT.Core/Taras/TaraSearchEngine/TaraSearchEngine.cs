@@ -175,6 +175,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
             return previousItems.Concat(currentItems)
                 .Where(x => limits.TryGetValue(x.Tara.Code, out var limit) && x.Namot <= limit)
+                .Distinct()
                 .ToArray();
         }
 
@@ -333,7 +334,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
                 searchData.dataErrorMore.TarasOnThisEtap = 
                     searchData.dataErrorMore.TarasOnThisEtap == null ? res.Select(x => x.Tara).ToList() :
-                    searchData.dataErrorMore.TarasOnThisEtap.Union(res.Select(x => x.Tara)).ToList()
+                    searchData.dataErrorMore.TarasOnThisEtap.Union(res.Select(x => x.Tara)).Distinct().ToList()
                     ;
 
                 // Проверим конечную тару
@@ -411,7 +412,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
                     else
                     {
                         searchData.BARABANAS = IntersectAllowedWindings(searchData.BARABANAS, res0);
-
+                        //var set1 =/* new HashSet<Uco>(*/res0.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
+                        //searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set1.Contains(x.Tara)).ToArray();//.Add(poss2);
                     }
 
                     searchData.dataErrorMore.MaxNamotka = searchData.BARABANAS.AsValueEnumerable().Select(x => (x.Tara, x.Namot)).ToList();

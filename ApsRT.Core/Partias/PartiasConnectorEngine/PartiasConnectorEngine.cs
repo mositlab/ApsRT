@@ -970,7 +970,7 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
                                     EmptyErroredTarasInfo = resultToFill.EmptyErroredTarasInfo,
                                     RecommendedTara = data.RestrictionsVia74110 == null ? null : (data.RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var tara1) ? tara1 : null),
                                     RCMustBeThis = NeededRC.HasValue ? new HashSet<Uco>(1) { NeededRC.Value } : null,// (data.PossibleRCsGlobal == null ? null : (data.PossibleRCsGlobal.TryGetValue(sdvig.Opers[0].Index, out var rcs) ? rcs : null)),
-                                    ExceptTheseTaras = data.ExceptTheseTarasGlobal == null ? null : data.ExceptTheseTarasGlobal.TryGetValue(sdvig.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras : null,
+                                    //ExceptTheseTaras = data.ExceptTheseTarasGlobal == null ? null : data.ExceptTheseTarasGlobal.TryGetValue(sdvig.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras : null,
                                     NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(sdvig.Opers, data.PossibleRCsGlobal)
                                 })) // ошибки - только если она сама с собой, на последнем этапе
                                 {

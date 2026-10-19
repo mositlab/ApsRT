@@ -248,12 +248,17 @@ namespace ApsRT.Core.Partias.PartiasClasses
         public void TaraDecreaser74_110(Dictionary<int, HashSet<Uco>> PossibleRCsGlobal)
         {
             Dictionary<int, Uco> recommendedTara = new();
-            PartiasGeneratorEngine.PartiasGeneratorEngine.Checks74_110(OpersHere, recommendedTara, false);
+
+
             var engineData = new PartiasGeneratorEngine.PartiasGeneratorEngineData(null, OpersHere[0][0].Opers[0].SessionLink);
             engineData.BestSubdivision = PartiasConnectorEngine.PartiasConnectorEngine.GetBestSubdivisionHere(PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsList(OpersHere));
             engineData.Color = OpersHere[0][0].Opers[0].Color;
             engineData.RestrictionsVia74110 = recommendedTara;
             engineData.PossibleRCsGlobal = PossibleRCsGlobal;
+
+            PartiasGeneratorEngine.PartiasGeneratorEngine.RememberRCs(OpersHere, engineData);
+            PartiasGeneratorEngine.PartiasGeneratorEngine.Checks74_110(OpersHere, recommendedTara, engineData.PossibleRCsGlobal, false);
+
 
 
             var finalResult = new PartiasConnectorEngineResult(0, 0, 0, int.MaxValue, 0, 0, 0);

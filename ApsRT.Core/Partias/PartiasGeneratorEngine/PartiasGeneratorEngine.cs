@@ -161,8 +161,11 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 Level++;
             }
 
+            // Запоминаем РЦшки
+            RememberRCs(partia1, engineData);
+
             // Проверочки 74-110
-            Checks74_110(partia1, RestrictionsVia74110, true);
+            Checks74_110(partia1, RestrictionsVia74110, engineData.PossibleRCsGlobal, true);
 
             // Постобработка
 
@@ -190,15 +193,10 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
         }
 
-        /// <summary>
-        /// 05.08: метод, который учитывает ошибки вроде 16 бмк барабана. Если на уровне 1 поставлен он, на 3-м уровне, где корзина, вылазит ошибка. Этот большой метод чекает тары и выбирает ту, которая позволяет собрать цепочку.
-        /// </summary>
-        public static void CheckListWithDeepChecks(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult)
+        public static void RememberRCs(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData)
         {
-            var errored = engineData.EmptyErroredTarasInfo;
-            var RestrictionsVia74110 = engineData.RestrictionsVia74110;
-
             var possibleRCs = engineData.PossibleRCsGlobal;
+            var errored = engineData.EmptyErroredTarasInfo;
 
             // Сначала найдём все доступные РЦ для каждого этапа
             for (int i = 0; i < partia1.Count; i++)
@@ -206,8 +204,11 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 for (int j = 0; j < partia1[i].Count; j++)
                 {
                     var sdvig = partia1[i][j];
+
+
+
                     var RCs = sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].OriginalCenter };
-                    Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var rtara) ? rtara : null);
+                    //Uco? trr = RestrictionsVia74110 == null ? null : (RestrictionsVia74110.TryGetValue(sdvig.Opers[0].Index, out var rtara) ? rtara : null);
                     var result = RCs.Where(rc =>
                     {
                         return TaraSearchEngine.SumIsPossible(sdvig, out _, out _, new SumIsPossibleOptions(false)
@@ -215,12 +216,21 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                             LogSomeErrors = false,
                             RCMustBeThis = new HashSet<Uco>() { rc },
                             EmptyErroredTarasInfo = errored,
-                            TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
+                            //TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
                         });
                     });
                     foreach (var stage in sdvig.Opers) possibleRCs[stage.Index] = result.ToHashSet();
                 }
             }
+        }
+
+        /// <summary>
+        /// 05.08: метод, который учитывает ошибки вроде 16 бмк барабана. Если на уровне 1 поставлен он, на 3-м уровне, где корзина, вылазит ошибка. Этот большой метод чекает тары и выбирает ту, которая позволяет собрать цепочку.
+        /// </summary>
+        public static void CheckListWithDeepChecks(List<List<PartiaModelling>> partia1, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult)
+        {
+            var errored = engineData.EmptyErroredTarasInfo;
+            var RestrictionsVia74110 = engineData.RestrictionsVia74110;
 
             var ExceptTheseTarasGlobal = engineData.ExceptTheseTarasGlobal;
 
@@ -241,7 +251,12 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 {
                     for (int j = 0; j < partia1[i].Count; j++)
                     {
-                        var result = checkThisList(partia1[i][j], engineData, WithLog, finalResult, dic1, dicSdvigs, possibleRCs);
+                        var result = checkThisList(partia1[i][j], engineData, WithLog, finalResult, dic1, dicSdvigs, engineData.PossibleRCsGlobal);
+
+                        partia1[i][j] = result.sdvig;
+
+                        continue;
+
 
                         if (result.success)
                         {
@@ -286,17 +301,46 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             }
         }
 
-        public static void Checks74_110(List<List<PartiaModelling>> partia1, Dictionary<int, Uco> RestrictionsVia74110, bool searchForMax)
+        public static IEnumerable<T> IntersectMany<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            var enumerator = source.GetEnumerator();
+            if (!enumerator.MoveNext())
+                return Enumerable.Empty<T>();
+
+            // Начинаем с первой коллекции
+            var hashSet = new HashSet<T>(enumerator.Current);
+
+            // Пересекаем с каждой последующей
+            while (enumerator.MoveNext())
+            {
+                hashSet.IntersectWith(enumerator.Current);
+            }
+
+            return hashSet;
+        }
+
+        public static void Checks74_110(List<List<PartiaModelling>> partia1, Dictionary<int, Uco> RestrictionsVia74110, Dictionary<int, HashSet<Uco>> PossibleRCs, /*PartiaConnectorEngineData engineData, */bool searchForMax)
         {
             var ALL = partia1[0][0].Opers[0].SessionLink.MasterDataLinks.StagesMasterData.AllStages;
             var dicSdvigs = PartiasConnectorEngine.PartiasConnectorEngine.SeeSdvigsAsDic(partia1);
             var sdvigs = partia1.SelectMany(x => x).ToList();
             foreach (var sdvig in sdvigs)
             {
+                if (sdvig.Opers[0].Index == 13915)
+                {
+                    ;
+                }
+
                 var prevsIds = sdvig.Opers.SelectMany(x => x.Prevs).Distinct().Select(x => ALL[x]).ToList();
 
                 for (int i = 0; i < prevsIds.Count; i++)
                 {
+                    if (prevsIds[i].IsVspom || prevsIds[i].NoCheckNamotka/* || finalOps[i].UsesVspomTara || IDtoSdvig[finalOps[i].ID].ZadelCode != 0*/)
+                    {
+                        prevsIds.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
                     if (prevsIds[i].NoChangeTara)
                     {
                         prevsIds.AddRange(prevsIds[i].Prevs.Select(x => ALL[x]));
@@ -304,23 +348,38 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         i--;
                         continue;
                     }
-                    if (prevsIds[i].IsVspom/* || finalOps[i].UsesVspomTara || IDtoSdvig[finalOps[i].ID].ZadelCode != 0*/)
-                    {
-                        prevsIds.RemoveAt(i);
-                        i--;
-                    }
                 }
                 var prevsSdvigs = prevsIds.Select(x => dicSdvigs[x.Index]).ToList();
                 var filteredSdvigs = prevsSdvigs.DistinctBy(x => x.Opers[0].OperationVid);
                 if (filteredSdvigs.Count() > 1)
                 {
+                    /*
+                     
+                PrevsInfo = prevs,
+                TaraMustBeThis = trr.HasValue ? new(1) { trr.Value } : null,
+                LogSomeErrors = false,
+                RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
+                RecommendedSubdivision = subdiv,
+                ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras.ExceptThisTara : null,
+                NextRCsMustBeThese = ,
+                     */
+
+                    var possibleRCs = IntersectMany(filteredSdvigs.Select(x => TaraSearchEngine.FindNeededNextRCsInDic(x.Opers, PossibleRCs)));
+                        //PossibleRCs.TryGetValue(sdvig.Opers[0].Index, out var rcs) ? rcs.ToList() : (sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].OriginalCenter });
+
                     // Больше 1. Изучаем все РЦ, куда можно поставить.
-                    var possibleRCs = sdvig.Opers[0].PossibleCenters ?? new() { sdvig.Opers[0].OriginalCenter };
                     foreach (var rc in possibleRCs) // пройдемся по каждому РЦ и найдём вариант, при котором все prevsSdvigs смогут найти себе пару.
                     {
                         List<(bool Can, Uco Tara, PartiaModelling sdvig)> analysis = prevsSdvigs.Select(sdvigToCheck =>
                         {
-                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var res, out _, new SumIsPossibleOptions(false) { LogSomeErrors = false, NextRCsExcludeNoChangeTara = true, SearchForMaxTara = searchForMax, NextRCsMustBeThese = new() { rc } });
+                            bool can = Taras.TaraSearchEngine.TaraSearchEngine.SumIsPossible(sdvigToCheck, out var res, out _, new SumIsPossibleOptions(false)
+                            {
+                                //EmptyErroredTarasInfo = engineData. errored,
+                                LogSomeErrors = false,
+                                //NextRCsExcludeNoChangeTara = true,
+                                SearchForMaxTara = searchForMax,
+                                NextRCsMustBeThese = new() { rc }//TaraSearchEngine.FindNeededNextRCsInDic(sdvig.Opers, PossibleRCs, rc)
+                            });
                             return (can, res.TaraName, sdvigToCheck);
                         }).ToList();
 
@@ -356,7 +415,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
         }
 
         public static DeepCheckResult checkThisList(PartiaModelling sdvigWas, PartiasGeneratorEngineData engineData, bool WithLog, PartiasConnectorEngineResult finalResult,
-            Dictionary<int, DeepCheckData> deepCheckData, Dictionary<int, PartiaModelling> dicSdvigs, Dictionary<int, HashSet<Uco>> possibleRCs)
+            Dictionary<int, DeepCheckData> deepCheckData,
+            Dictionary<int, PartiaModelling> dicSdvigs, Dictionary<int, HashSet<Uco>> possibleRCs)
         {
             var DoneIDS = engineData.DoneIDS;
             //var OriginallyTaraWasThis = engineData.OriginallyTaraWasThis;
@@ -366,6 +426,12 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
             var errored = engineData.EmptyErroredTarasInfo;
             var ALL = engineData.Session.MasterDataLinks.StagesMasterData.AllStages;
             var col = engineData.Color;
+
+
+            if (sdvigWas.Opers[0].Index == 13913)
+            {
+                ;
+            }
 
             var opers = sdvigWas.Opers;
             // TODO: если уж так нужен флаг будет, то добавить его можно будет где-то здесь.
@@ -416,7 +482,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                 LogSomeErrors = false,
                 RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                 RecommendedSubdivision = subdiv,
-                ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras.ExceptThisTara : null,
+                //ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras) ? exceptTheseTaras.ExceptThisTara : null,
                 NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(listOnOneRc1.Opers, possibleRCs),
             }))
             {
@@ -441,7 +507,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                     LogSomeErrors = false, // Ошибки пока всё ещё выключены
                     RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                     RecommendedSubdivision = subdiv,
-                    ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras2) ? exceptTheseTaras2.ExceptThisTara : null
+                    //ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras2) ? exceptTheseTaras2.ExceptThisTara : null
                 }))
                 {
                     // Получаем всех предков
@@ -461,7 +527,8 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                             //LogSomeErrors = false, // Включаем ошибки.
                             RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                             RecommendedSubdivision = subdiv,
-                            ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null
+                            //ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null,
+                            NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(listOnOneRc1.Opers, possibleRCs)
                         });
 
                         var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
@@ -486,7 +553,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         //LogSomeErrors = false, // Включаем ошибки.
                         RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                         RecommendedSubdivision = subdiv,
-                        ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null
+                        //ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null
                     });
 
                     //var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);
