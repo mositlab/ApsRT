@@ -74,8 +74,8 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
             foreach (var pair in RCgroups)
             {
-                var opersSum = pair.Sum(block => block.GetCenterData(INDEX).CenterDataLink.OpersTime.TotalSeconds);
-                var rechangesSum = pair.Sum(block => block.GetCenterData(INDEX).CenterDataLink.RechangesTime.TotalSeconds);
+                var opersSum = pair.First().GetCenterData(INDEX).CenterDataLink.OpersTime.TotalSeconds;//pair.Sum(block => );
+                var rechangesSum = pair.First().GetCenterData(INDEX).CenterDataLink.RechangesTime.TotalSeconds;// pair.Sum(block => );
                 var rotTime = pair.Sum(block => block.Lists.Sum(mod =>
                 {
                     var delta = mod.RottingTimeInDays[INDEX];
