@@ -150,7 +150,7 @@ namespace ApsRT.Core.Stages
         [DataRecordColumn("НеОбъединять", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool IsLast { get; set; }
 
-        [DataRecordColumn("РазрешеноФормированиеОбщегоЭтапа", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
+        [DataRecordColumn("РазрешитьФормированиеОбщегоЭтапа", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
         public bool CanFormEasyFlag { get; set; }
 
         [DataRecordColumn("ОбъединятьТолькоВнутриЗаказа", DataRecordColumnAttribute.CustomConversionModes.StringToBooleanIsYes, true)]
@@ -224,6 +224,8 @@ namespace ApsRT.Core.Stages
                 return doNotCheckWindings.Value;
             }
         }
+
+        public bool UseMaxWindingsOnGPTara;
 
         #endregion
 

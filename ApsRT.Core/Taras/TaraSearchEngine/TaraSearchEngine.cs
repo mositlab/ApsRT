@@ -249,6 +249,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
             var WantThisOrigTara = allOpers.FirstOperLink.EndTara;
 
+            bool anyOpHasMaxGPTara = false;
+
             var ii = 0;
             foreach (var first in allOpers.AllOpers)
             {
@@ -504,6 +506,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
                     return false;
                 }
+
+                anyOpHasMaxGPTara |= first.UseMaxWindingsOnGPTara;
 
                 ii++;
             }
@@ -831,6 +835,13 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
 
             var set = searchData.PossibleCentersAndTaras.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
+
+            if (anyOpHasMaxGPTara)
+            {
+                // Не очень эффективно на самом деле. Надо будет оптимизировать
+                //set = set.AsValueEnumerable().Where(tara => SessionLink.MasterDataLinks.TarasMasterData.MaxGPTaraList2.Contains(tara)).ToHashSet();
+            }
+
             if (searchData.BARABANAS != null) searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set.Contains(x.Tara)).ToArray();//.Add(poss2);
 
             if (searchData.BARABANAS != null) searchData.dataErrorMore.MaxPlusUsedTaras = searchData.BARABANAS.AsValueEnumerable().Select(x => x.Tara).Distinct().ToList();

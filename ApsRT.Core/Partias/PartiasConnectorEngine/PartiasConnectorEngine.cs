@@ -1,4 +1,5 @@
 ﻿using ApsRT.Core.Partias.PartiasClasses;
+using ApsRT.Core.Settings;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -1041,10 +1042,11 @@ namespace ApsRT.Core.Partias.PartiasConnectorEngine
             finalResult.ForOneRCGroups = new();
             finalResult.PossibleCentersForOneRCGroups = new();
             finalResult.ForOneRCGroupAlreadyUsed = new();
-            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature));
-            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].OperationVid, mod.AllOpers[0].Nomenklature));
+            var groupToCheck1 = listOnOneRc1.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].OperationVid, SessionLink.SettingsController.SpecialSettings.OnOneRCMode == OnOneRCMode.CheckNomenklature ? mod.AllOpers[0].Nomenklature : Uco.EmptyObject, SessionLink.SettingsController.SpecialSettings.OnOneRCMode == OnOneRCMode.CheckLevel ? mod.AllOpers[0].Level : 1));
+            var groupToCheck2 = listOnOneRc2.Where(x => x.AllOpers[0].OnOneRC).GroupBy(mod => (mod.AllOpers[0].OperationVid, SessionLink.SettingsController.SpecialSettings.OnOneRCMode == OnOneRCMode.CheckNomenklature ? mod.AllOpers[0].Nomenklature : Uco.EmptyObject, SessionLink.SettingsController.SpecialSettings.OnOneRCMode == OnOneRCMode.CheckLevel ? mod.AllOpers[0].Level : 1));
+            //mod.FirstOperJust.Nomenklature
 
-            Dictionary<(Uco vid, Uco nomen), List<IAbleForTaraCalcInterface>> groupsToCheck = new();
+            Dictionary<(Uco vid, Uco nomen, int level), List<IAbleForTaraCalcInterface>> groupsToCheck = new();
             foreach (var group in groupToCheck1)
             {
                 groupsToCheck.TryAdd(group.Key, new());

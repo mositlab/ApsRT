@@ -30,6 +30,7 @@ namespace ApsRT.SKO
             //sessionLink.SettingsController.SpecialSettings.CalculateSubdivisionsTransfers = true;
             sessionLink.SettingsController.SpecialSettings.LivensteinCodesCriteriaName = "";
             sessionLink.SettingsController.SpecialSettings.UsedPartiaMergingRestriction = Core.Settings.SpecialSettings.PartiaMergingRestrictionType.Level2_Multiplies2;
+            sessionLink.SettingsController.SpecialSettings.OnOneRCMode = Core.Settings.OnOneRCMode.CheckNomenklature;
             sessionLink.SettingsController.SpecialSettings.UseOnlyWeightMethodWhenSearchWindings = true;
             sessionLink.SettingsController.SpecialSettings.UseLegacySettingsWhenNotFound = false;
             sessionLink.SettingsController.SpecialSettings.DoNotMergeVspomOps = false;

@@ -281,6 +281,8 @@ namespace ApsRT.Core.Session
             MasterDataLinks.StagesMasterData.FixVPZDependencies();
             MasterDataLinks.StagesMasterData.SetLivenCodes(SettingsController.SpecialSettings.LivensteinCodesCriteriaName);
 
+            MasterDataLinks.StagesMasterData.EnsureGPTaraMaxWindingsFlag();
+
             if (DataErrors.TryOutputDataErrors())
             {
                 if (SessionOptions.IsSilent)

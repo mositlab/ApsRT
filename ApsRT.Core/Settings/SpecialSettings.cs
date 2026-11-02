@@ -35,5 +35,6 @@ namespace ApsRT.Core.Settings
 
         public PartiaMergingRestrictionType UsedPartiaMergingRestriction { get; set; }
 
+        public OnOneRCMode OnOneRCMode { get; set; }
     }
 }

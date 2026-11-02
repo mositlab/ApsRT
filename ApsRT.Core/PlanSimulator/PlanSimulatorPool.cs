@@ -2,6 +2,7 @@
 using ApsRT.Core.Partias.PartiasClasses;
 using ApsRT.Core.Planning;
 using ApsRT.Core.Planning.PlanningAlgorithm;
+using ApsRT.Core.Settings;
 using ApsRT.Core.Stages;
 using ApsRT.Core.Taras.TaraSearchEngine;
 using Google.OrTools.ConstraintSolver;
@@ -311,7 +312,7 @@ namespace ApsRT.Core.PlanSimulator
 
             var modsToGroup = Blocks.SelectMany(x => x.Lists).Where(x => x.StagesAsNormal.Any(s => s.OnOneRC)); // Выберем все нужные моды
 
-            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), /*mod.FirstOperJust.Level,*/ mod.FirstOperJust.OperationVid, mod.FirstOperJust.Nomenklature/*, mod.FirstOperJust.Characteristics*//*, mod.FirstOperJust.Poviv*/));
+            var groups = modsToGroup.GroupBy(mod => (mod.FirstOperJust.GetOrderOrPartiaCode(), /*mod.FirstOperJust.Level,*/ mod.FirstOperJust.OperationVid, SessionLink.SettingsController.SpecialSettings.OnOneRCMode == OnOneRCMode.CheckNomenklature ? mod.FirstOperJust.Nomenklature : Uco.EmptyObject, SessionLink.SettingsController.SpecialSettings.OnOneRCMode == OnOneRCMode.CheckLevel ? mod.FirstOperJust.Level : 1/*, mod.FirstOperJust.Characteristics*//*, mod.FirstOperJust.Poviv*/));
             foreach (var group in groups) // каждая группа определена по номеру партии, уровню, виду операции, номенклатуры
             {
                 var groupID = OnOneRCGroupData.Count;

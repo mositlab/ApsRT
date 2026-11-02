@@ -549,7 +549,7 @@ namespace ApsRT.Core.PlanSimulator.PlanSimulatorEngine
             
                 // Теперь, если если я врубил ограничение - смотрим его
                 // Нужно всем модам из группы, которые ещё не встали в план, задать минимальную дату
-                if (mod.PlanSimulatorOneOtdTaraRstrData != null)
+                if (false && mod.PlanSimulatorOneOtdTaraRstrData != null)
                 {
                     var list = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup;
                     for (int l = 0; l < list.Count; l++)

@@ -1857,14 +1857,14 @@ List<PlanSimulatorBlock> toCheck;
                 Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[choosenCenter].Subdivision;
 
             // Если есть эта группа - чекаем и по ней
-            IEnumerable<PlanSimulatorMod> modsFromOneGroup = Array.Empty<PlanSimulatorMod>();
+            //IEnumerable<PlanSimulatorMod> modsFromOneGroup = Array.Empty<PlanSimulatorMod>();
             if (mod.PlanSimulatorOneOtdTaraRstrData != null)
             {
                 // Нужно найти моды, которые уже встали - и добавить их в этот список 
-                modsFromOneGroup = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup.Where(Mod => ExistingMods.Contains(Mod) && Mod != mod);
+                //modsFromOneGroup = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup.Where(Mod => ExistingMods.Contains(Mod) && Mod != mod);
             }
 
-            var minDateWithMod = mod.PrevMods.Concat(modsFromOneGroup).Select(prevMod =>
+            var minDateWithMod = mod.PrevMods/*.Concat(modsFromOneGroup)*/.Select(prevMod =>
             {
                 Uco lastSubdivision = prevMod.BlockLink.GetCenterData(0).CenterModelDataLink.Subdivision;
                 return (Mod: prevMod, Time: prevMod.DateOfEnd[0].AddSeconds(basisLink.SessionLink.MasterDataLinks.SubdivisionsTransfersMasterData.GetSubdivisionTransferTime(lastSubdivision, currentSubdivion)));

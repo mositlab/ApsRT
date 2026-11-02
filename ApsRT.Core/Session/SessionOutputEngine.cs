@@ -7,6 +7,7 @@ using ApsRT.Core.Planning;
 using ApsRT.Core.PlanSimulator;
 using ApsRT.Core.PlanSimulator.PlanSimulatorEngine;
 using ApsRT.Core.Rechanges.RechangesEngine;
+using ApsRT.Core.Taras.TaraSearchEngine;
 using Azure;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office.Word;
@@ -586,7 +587,7 @@ namespace ApsRT.Core.Session
                         //$"{OP1.StageVersion};" +
 
                         $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $"{OP1.StageVersion};" : "")}" +
-                                    $"{place};{(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value)};{lengths.Data.NaladLengthNexts.Value};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
+                                    $"{place};{Math.Round(place == 1 && firstMod ? lengths.Data.NaladLengthFirst.Value : lengths.Data.NaladLengthOther.Value, 3)};{Math.Round(lengths.Data.NaladLengthNexts.Value, 3)};{(place == 1 && firstMod && lengths.Data.IsFirst ? "Да" : "Нет")}");
 
                                 DLitt++;
 
@@ -619,10 +620,10 @@ namespace ApsRT.Core.Session
 
                     if (OutputMods && !list.FirstOperJust.NeededNaladLength.HasValue)
                     {
-                        List<(PlanSimulatorMod mod, PlanSimulatorNaladLengthData naladLength)> groupedMods;
+                        List<(IAbleForTaraCalcInterface mod, PlanSimulatorNaladLengthData naladLength)> groupedMods;
                         if (list.FirstOperJust.EasyFlag.HasValue)
                         {
-                            groupedMods = list.EasyLifeData.Select(x => (list, x.Value.NaladLengthData[PoolIndex])).ToList();
+                            groupedMods = list.EasyLifeData.Select(x => (x.Value.AsMod, x.Value.NaladLengthData[PoolIndex])).ToList();
                         }
                         else
                         {
@@ -639,7 +640,7 @@ namespace ApsRT.Core.Session
                         foreach (var modData in groupedMods)
                         {
                             
-                            var mod = modData.mod.FirstOperJust.CurrentModelling;
+                            var mod = modData.mod.FirstOperLink.CurrentModelling;
 
                             if (wasLastFlag && mod != lastEasyFlag)
                             {
@@ -654,7 +655,7 @@ namespace ApsRT.Core.Session
 
                             if (mod == Guid.Empty) continue;
 
-                            var placesCount = modData.mod.StagesAsNormal.Max(oper => oper.PlacesCount);
+                            var placesCount = modData.mod.AllOpers.Max(oper => oper.PlacesCount);
 
                             bool hasAnyFirstFlag = modData.naladLength.Data.IsFirst;
 
@@ -664,9 +665,9 @@ namespace ApsRT.Core.Session
                                 $"{(SessionLink.SettingsController.CurrentSettings.Demos_StagesVersionsOnOutput ? $";" : "")}" +
                                 $";;;" +
                                 $"{(j == 1 && hasAnyFirstFlag && firstMod ? "Да" : "Нет")};" +
-                                $"{modData.mod.FirstOperJust.CurrentModelling};{j};" +
-                                $"{(j == 1 ? modData.naladLength.Data.NaladLengthFirst.Value : modData.naladLength.Data.NaladLengthOther.Value)};" +
-                                $"{modData.naladLength.Data.NaladLengthNexts.Value}");
+                                $"{modData.mod.FirstOperLink.CurrentModelling};{j};" +
+                                $"{Math.Round(j == 1 ? modData.naladLength.Data.NaladLengthFirst.Value : modData.naladLength.Data.NaladLengthOther.Value, 3)};" +
+                                $"{Math.Round(modData.naladLength.Data.NaladLengthNexts.Value, 3)}");
 
                                 DLitt++;
                             }
@@ -691,7 +692,7 @@ namespace ApsRT.Core.Session
                                     $";;;" +
                                     $"{(j == 1 && hasAnyFirstFlag ? "Да" : "Нет")};" +
                                     $";;;;" +
-                                    $"{list.FirstOperJust.EasyFlag};{j};{j};{(j == 1 ? obsEtLengthFirst : obsEtLengthOther)};{obsEtLengthNexts}");
+                                    $"{list.FirstOperJust.EasyFlag};{j};{j};{Math.Round(j == 1 ? obsEtLengthFirst : obsEtLengthOther, 3)};{Math.Round(obsEtLengthNexts, 3)}");
                                 DLitt++;
                             }
                         }

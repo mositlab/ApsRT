@@ -907,5 +907,15 @@ namespace ApsRT.Core.Taras
                 return res;
             }
         }
+
+
+        public HashSet<Uco> MaxGPTaraList1 { get; private set; } = new();
+
+        public HashSet<Uco> MaxGPTaraList2 { get; private set; } = new();
+
+        internal bool TaraIsInMaxWindingsListOne(Uco endTara)
+        {
+            return MaxGPTaraList1.Contains(endTara);
+        }
     }
 }

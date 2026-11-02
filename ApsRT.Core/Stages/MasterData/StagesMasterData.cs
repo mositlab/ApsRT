@@ -713,5 +713,30 @@ namespace ApsRT.Core.Stages.MasterData
             return (byte)(matrixD[n - 1, m - 1]);
         }
 
+
+        public void EnsureGPTaraMaxWindingsFlag()
+        {
+            var firstStages = AllStages.Where(x => x.Value.Nexts.Count == 0).Select(x => x.Value); // Берём самые последние этапы
+
+            foreach (var stage in firstStages)
+            {
+                if (!stage.EndTara.IsEmpty && SessionLink.MasterDataLinks.TarasMasterData.TaraIsInMaxWindingsListOne(stage.EndTara)) // Если я попал в фильтрацию, то пометим всё, что выше, нужным нам признаком
+                {
+                    foreach (var next in stage.Prevs) checkStage(AllStages[next], true);
+                }
+                else
+                {
+                    foreach (var next in stage.Prevs) checkStage(AllStages[next], false);
+                }
+            }
+
+
+            void checkStage(Stage stage, bool setFlag)
+            {
+                if (!stage.EndTara.IsEmpty) stage.UseMaxWindingsOnGPTara |= setFlag;
+                foreach (var next in stage.Prevs) checkStage(AllStages[next], setFlag);
+            }
+
+        }
     }
 }
