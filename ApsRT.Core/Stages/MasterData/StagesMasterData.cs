@@ -726,14 +726,15 @@ namespace ApsRT.Core.Stages.MasterData
                 }
                 else
                 {
-                    foreach (var next in stage.Prevs) checkStage(AllStages[next], false);
+                    //foreach (var next in stage.Prevs) checkStage(AllStages[next], false);
                 }
             }
 
 
             void checkStage(Stage stage, bool setFlag)
             {
-                if (!stage.EndTara.IsEmpty) stage.UseMaxWindingsOnGPTara |= setFlag;
+                // Помечать можно и нужно только то, что не имеет конечной тары
+                if (stage.EndTara.IsEmpty) stage.UseMaxWindingsOnGPTara |= setFlag;
                 foreach (var next in stage.Prevs) checkStage(AllStages[next], setFlag);
             }
 

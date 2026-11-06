@@ -343,6 +343,12 @@ namespace ApsRT.Core.PlanSimulator
                 if (rcsCopy.Count() > 0)
                 {
                     rcs = rcsCopy.ToList();
+
+                    OnOneRCGroupData.Add(groupID, (modList, rcs));
+                    foreach (var modID in modList)
+                    {
+                        ModIDToOnOneRCGroupID.Add(modID.ModID, groupID); // Заполняем ссылки на группы
+                    }
                 }
                 else
                 {
@@ -350,11 +356,6 @@ namespace ApsRT.Core.PlanSimulator
                     ;
                 }
 
-                    OnOneRCGroupData.Add(groupID, (modList, rcs));
-                foreach (var modID in modList)
-                {
-                    ModIDToOnOneRCGroupID.Add(modID.ModID, groupID); // Заполняем ссылки на группы
-                }
             }
         }
 

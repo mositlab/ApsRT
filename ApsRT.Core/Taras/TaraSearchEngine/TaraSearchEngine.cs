@@ -839,7 +839,8 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
             if (anyOpHasMaxGPTara)
             {
                 // Не очень эффективно на самом деле. Надо будет оптимизировать
-                //set = set.AsValueEnumerable().Where(tara => SessionLink.MasterDataLinks.TarasMasterData.MaxGPTaraList2.Contains(tara)).ToHashSet();
+                // Если флаг выставлен, то мы можем юзать всё, КРОМЕ 24 типа (условно), вбитого в фильтр
+                set = set.AsValueEnumerable().Where(tara => !SessionLink.MasterDataLinks.TarasMasterData.MaxGPTaraList2.Contains(tara)).ToHashSet();
             }
 
             if (searchData.BARABANAS != null) searchData.BARABANAS = searchData.BARABANAS.AsValueEnumerable().Where(x => set.Contains(x.Tara)).ToArray();//.Add(poss2);
