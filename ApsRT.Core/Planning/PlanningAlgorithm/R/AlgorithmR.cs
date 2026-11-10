@@ -651,6 +651,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                             PlanSimulatorPool.MovePassedInfoInAllBlocks(LinearPlan, 0, IndexToWorkWith);
                             LinearPlan[blockIndex].SetCenter(rc, IndexToWorkWith);
                             block.PoolLink.UpdateOpsOnOneRC(block, IndexToWorkWith); // Реализуем ограничение "на одном РЦ"
+                            block.PoolLink.UpdateOneOtdTaraRC(block, IndexToWorkWith); // 1 отдающая тара
 
                             var localResult = PlanSimulatorEngine.CalculatePlan(LinearPlan, IndexToWorkWith, basisLink.StartOfPlanningDate, null);
                             lock (locker)
@@ -668,6 +669,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                                 {
                                     LinearPlan[blockIndex].SetCenter(rc, 0);
                                     block.PoolLink.UpdateOpsOnOneRC(block, 0); // Реализуем ограничение "на одном РЦ"
+                                    block.PoolLink.UpdateOneOtdTaraRC(block, 0); // 1 отдающая тара
                                     UpdateTaraOnMod(mod, choosenTara, maxNamotka, true); // Перезаписываем тару
                                     LastResult = localResult;
                                     basisLink.UpdateBcsSuccess(localResult, LinearPlan, 0);
@@ -1019,10 +1021,10 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm.R
                     &&
                     block.Lists[0].FirstOperJust.StartTimeFact == mod.FirstOperJust.StartTimeFact // Ну до кучи проверим ещё и это
 
+                    // Если они в одной группе, они 100% не могут параллельно встать - как иначе я выполню условие ставить их на 1 рц и при этом НЕ параллельно?
                     &&
-
                     (mod.OneOtdTaraRestrictionGroup == -1 || block.Lists.All(list =>
-                    (list.OneOtdTaraRestrictionGroup == -1 || list.OneOtdTaraRestrictionGroup != mod.OneOtdTaraRestrictionGroup))) // Если они в одной группе, они 100% не могут параллельно встать
+                    (list.OneOtdTaraRestrictionGroup == -1 || list.OneOtdTaraRestrictionGroup != mod.OneOtdTaraRestrictionGroup)))
 
                     &&
 
@@ -1857,11 +1859,11 @@ List<PlanSimulatorBlock> toCheck;
                 Uco currentSubdivion = basisLink.SessionLink.MasterDataLinks.CentersMasterData.CentersData[choosenCenter].Subdivision;
 
             // Если есть эта группа - чекаем и по ней
-            //IEnumerable<PlanSimulatorMod> modsFromOneGroup = Array.Empty<PlanSimulatorMod>();
+            IEnumerable<PlanSimulatorMod> modsFromOneGroup = Array.Empty<PlanSimulatorMod>();
             if (mod.PlanSimulatorOneOtdTaraRstrData != null)
             {
-                // Нужно найти моды, которые уже встали - и добавить их в этот список 
-                //modsFromOneGroup = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup.Where(Mod => ExistingMods.Contains(Mod) && Mod != mod);
+                // Нужно найти моды, которые уже встали - и добавить их в этот список - надо их учесть при планировании
+                modsFromOneGroup = mod.PlanSimulatorOneOtdTaraRstrData.AllModsInGroup.Where(Mod => ExistingMods.Contains(Mod) && Mod != mod);
             }
 
             var minDateWithMod = mod.PrevMods/*.Concat(modsFromOneGroup)*/.Select(prevMod =>

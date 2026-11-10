@@ -276,18 +276,17 @@ namespace ApsRT.Core.PlanSimulator
 
                 return false;
 
-            }));
+            }))
+                .Select(MOD => MOD.NextMods); // Без затей пока выбираем след моды
 
-            // Для каждого такого мода помечаем группу его детей
-            foreach (var modToCheck in neededMods)
+            foreach (var groupToCheck in neededMods)
             {
+                // Для каждого 
                 var groupID = OneOtdTaraRestrictionsData.Count;
 
                 var data = new PlanSimulatorOneOtdTaraRstrData(PoolSize);
 
-                var nextMods = modToCheck.NextMods;
-
-                foreach (var next in nextMods)
+                foreach (var next in groupToCheck)
                 {
                     next.OneOtdTaraRestrictionGroup = groupID;
                     next.PlanSimulatorOneOtdTaraRstrData = data;
@@ -297,6 +296,7 @@ namespace ApsRT.Core.PlanSimulator
 
                 OneOtdTaraRestrictionsData.Add(groupID, data); // Пока тоже заглушка
             }
+
         }
 
 
@@ -369,6 +369,25 @@ namespace ApsRT.Core.PlanSimulator
                     && OnOneRCGroupData.TryGetValue(dataID, out var data))
                 {
                     foreach (var neededMod in data.ModIDs)
+                    {
+                        if (neededMod.ModID == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
+                        neededMod.BlockLink.SetCenter(settedRC, PoolIndex);
+                        //var index = pool.Blocks.FindIndex(x => x.Lists.Any(y => y.ModID == neededMod));
+                        //if (index != -1) pool.Blocks[index].ActualRC = settedRC;
+                    }
+                }
+            }
+        }
+
+        public void UpdateOneOtdTaraRC(PlanSimulatorBlock blockToStart, int PoolIndex)
+        {
+            (var settedRC, _, _) = blockToStart.GetCenterData(PoolIndex);
+            foreach (var mod in blockToStart.Lists)
+            {
+                if (mod.OneOtdTaraRestrictionGroup != -1
+                    && OneOtdTaraRestrictionsData.TryGetValue(mod.OneOtdTaraRestrictionGroup, out var data))
+                {
+                    foreach (var neededMod in data.AllModsInGroup)
                     {
                         if (neededMod.ModID == mod.ModID) continue; // текущий мод не нужно искать и менять РЦ
                         neededMod.BlockLink.SetCenter(settedRC, PoolIndex);

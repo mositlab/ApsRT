@@ -836,7 +836,7 @@ namespace ApsRT.Core.Taras.TaraSearchEngine
 
             var set = searchData.PossibleCentersAndTaras.AsValueEnumerable().Select(x => x.Tara).ToHashSet();
 
-            if (anyOpHasMaxGPTara)
+            if (!anyOpHasMaxGPTara)
             {
                 // Не очень эффективно на самом деле. Надо будет оптимизировать
                 // Если флаг выставлен, то мы можем юзать всё, КРОМЕ 24 типа (условно), вбитого в фильтр

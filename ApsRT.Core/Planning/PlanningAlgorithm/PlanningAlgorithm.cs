@@ -969,6 +969,7 @@ namespace ApsRT.Core.Planning.PlanningAlgorithm
 
                                         block.SetCenter(ChoosenCenter, IndexToWorkWith);
                                         block.PoolLink.UpdateOpsOnOneRC(block, IndexToWorkWith);
+                                        block.PoolLink.UpdateOneOtdTaraRC(block, IndexToWorkWith); // 1 отдающая тара
 
                                         var result = PlanSimulatorEngineResult.CreateFullInstance(SessionLink, MinAcceptableDate);
 
