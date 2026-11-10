@@ -7,11 +7,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+namespace ApsRT.Core.Session;
+
 internal static class ApsCalculationHealth
 {
-    private static readonly HttpClient SentryClient = new() { Timeout = TimeSpan.FromSeconds(5) };
+    private static readonly HttpClient SentryClient = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(5) };
 
-    internal static void Observe(string operation, Action run, Func<Task?> getTask, Func<bool> isComplete)
+    internal static async Task<bool> ObserveAsync(string operation, Func<Task<bool>> run)
     {
         long startedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var timer = Stopwatch.StartNew();
@@ -21,14 +23,9 @@ internal static class ApsCalculationHealth
         string status = "faulted";
         try
         {
-            run();
-            status = getTask()?.Status switch
-            {
-                TaskStatus.Canceled => "cancelled",
-                TaskStatus.Faulted => "faulted",
-                TaskStatus.RanToCompletion when isComplete() => "success",
-                _ => "incomplete",
-            };
+            bool result = await run();
+            status = result ? "success" : "faulted";
+            return result;
         }
         catch (OperationCanceledException)
         {
@@ -39,10 +36,9 @@ internal static class ApsCalculationHealth
         {
             Write(operation, runId, startedAt, status, timer.ElapsedMilliseconds);
             if (status == "faulted")
-                _ = ReportFailureAsync(operation, runId);
+                await ReportFailureAsync(operation, runId);
         }
     }
-
 
     private static async Task ReportFailureAsync(string operation, string runId)
     {

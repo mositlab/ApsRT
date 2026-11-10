@@ -353,50 +353,30 @@ namespace ApsRT.Core.Session
 
             if (SessionOptions.IsSilent)
             {
-                // Если она тихая. то ПРИСТУПАЕМ - ВСЕГДА начиная с партий, какие бы настройки там ни были.
-                if (TryCreateNewPartiasAlgorithmInstance(out var newPartiasAlgorithmInstance)
-                    && newPartiasAlgorithmInstance.Start())
-                {
-                    bool result = await newPartiasAlgorithmInstance.Process;
+                PartiasAlgorithm partias = null;
+                bool result = await ApsCalculationHealth.ObserveAsync("partias", async () =>
+                    TryCreateNewPartiasAlgorithmInstance(out partias) && partias.Start() && await partias.Process);
 
-                    if (result)
-                    {
-                        if (SessionOptions.LaunchPlan && newPartiasAlgorithmInstance.CurrentStage == PartiasAlgorithmStage.Complete)
-                        {
-                            if (TryCreateNewPlanningAlgorithmInstance(out var newPlanningAlgorithmInstance)
-                                && newPlanningAlgorithmInstance.Start())
-                            {
-                                bool result2 = await newPlanningAlgorithmInstance.Process;
-
-                                if (result2)
-                                {
-                                    SessionOutputEngine.Output(ForcedToRecreate: false); // Выводим вообще всё.
-                                    EndSession(0);
-                                }
-                                else
-                                {
-                                    EndSession(13);
-                                }
-                            }
-                            else
-                            {
-                                EndSession(13);
-                            }
-                        }
-                        else
-                        {
-                            EndSession(0); // В таком случае можно всё закрывать
-                        }
-                    }
-                    else
-                    {
-                        EndSession(14);
-                    }
-                }
-                else
+                if (!result)
                 {
                     EndSession(14);
+                    return;
                 }
+
+                if (SessionOptions.LaunchPlan && partias.CurrentStage == PartiasAlgorithmStage.Complete)
+                {
+                    bool planned = await ApsCalculationHealth.ObserveAsync("planning", async () =>
+                        TryCreateNewPlanningAlgorithmInstance(out var planning) && planning.Start() && await planning.Process);
+                    if (!planned)
+                    {
+                        EndSession(13);
+                        return;
+                    }
+
+                    SessionOutputEngine.Output(ForcedToRecreate: false);
+                }
+
+                EndSession(0);
             }
         }
 
