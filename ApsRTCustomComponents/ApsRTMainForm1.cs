@@ -888,7 +888,7 @@ namespace ApsRTCustomComponents
             {
                 StartAlgorithmPButton.Enabled = false;
 
-                partiasAlgroithm = Task.Run(() => PartiasAlgorithm(algorithm));
+                partiasAlgroithm = Task.Run(() => ApsCalculationHealth.Observe("partias", () => PartiasAlgorithm(algorithm), () => algorithm.Process, () => algorithm.CurrentStage == PartiasAlgorithmStage.Complete));
             }
         }
 
@@ -1179,7 +1179,7 @@ namespace ApsRTCustomComponents
             {
                 LaunchPlanningButton.Enabled = false;
                 StopPlanningButton.Enabled = true;
-                planningAlgorithm = Task.Run(() => PlanningAlgorithm(algorithm));
+                planningAlgorithm = Task.Run(() => ApsCalculationHealth.Observe("planning", () => PlanningAlgorithm(algorithm), () => algorithm.Process, () => algorithm.CurrentStage == PlanningAlgorithmStage.Complete));
             }
         }
 
