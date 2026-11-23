@@ -1,4 +1,5 @@
 ﻿using ApsRT.Core.Stages.Hoppers;
+using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,12 @@ namespace ApsRT.Core.Stages.MasterData
     public class StagesTypicalDurationsMasterData
     {
         Dictionary<Uco, // РЦ
-            Dictionary<Uco, // Номенклатура
-                Dictionary<Uco, // Вид
-                    Dictionary<Uco, // харка
-                        TypicalDurationData>
+            Dictionary<Uco, // ПРОДУКЦИЯ
+                Dictionary<Uco, // Номенклатура
+                    Dictionary<Uco, // Вид
+                        Dictionary<Uco, // харка
+                            TypicalDurationData>
+                        >
                     >
                 >
             > TypicalDurations;
@@ -30,14 +33,17 @@ namespace ApsRT.Core.Stages.MasterData
 
             foreach (var rcs in TypicalDurations)
             {
-                foreach (var nomens in rcs.Value)
+                foreach (var prods in rcs.Value)
                 {
-                    foreach (var charas in nomens.Value)
+                    foreach (var nomens in prods.Value)
                     {
-                        foreach (var val in charas.Value)
+                        foreach (var charas in nomens.Value)
                         {
-                            val.Value.PrepareClassicDuration();
-                            val.Value.RememberMinDuration();
+                            foreach (var val in charas.Value)
+                            {
+                                val.Value.PrepareClassicDuration();
+                                val.Value.RememberMinDuration();
+                            }
                         }
                     }
                 }
@@ -88,45 +94,90 @@ namespace ApsRT.Core.Stages.MasterData
             {
                 Uco Nomenklature = stage.Nomenklature;
                 Uco Characteristics = stage.Characteristics;
-                if (TypicalDurations.TryGetValue(RC, out var nomens)
-                    && nomens.TryGetValue(Nomenklature, out var opers))
+                Uco Production = stage.Production;
+                if (TypicalDurations.TryGetValue(RC, out var prods))
                 {
-                    if (opers.TryGetValue(OperationType, out var chars))
+                    if (prods.TryGetValue(Production, out var nomens) && nomens.TryGetValue(Nomenklature, out var opers))
                     {
-                        if (chars.TryGetValue(Characteristics, out var dur))
+                        if (opers.TryGetValue(OperationType, out var chars))
                         {
-                            DurationNorm = dur.GetDuration(stage);
-                            return true;
-                        }
-                        else
-                        {
-                            if (chars.TryGetValue(Uco.EmptyObject, out var dur2))
-                            {
-                                DurationNorm = dur2.GetDuration(stage);
-                                return true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (opers.TryGetValue(Uco.EmptyObject, out var chars2))
-                        {
-                            if (chars2.TryGetValue(Characteristics, out var dur))
+                            if (chars.TryGetValue(Characteristics, out var dur))
                             {
                                 DurationNorm = dur.GetDuration(stage);
                                 return true;
                             }
                             else
                             {
-                                if (chars2.TryGetValue(Uco.EmptyObject, out var dur2))
+                                if (chars.TryGetValue(Uco.EmptyObject, out var dur2))
                                 {
                                     DurationNorm = dur2.GetDuration(stage);
                                     return true;
                                 }
                             }
                         }
+                        else
+                        {
+                            if (opers.TryGetValue(Uco.EmptyObject, out var chars2))
+                            {
+                                if (chars2.TryGetValue(Characteristics, out var dur))
+                                {
+                                    DurationNorm = dur.GetDuration(stage);
+                                    return true;
+                                }
+                                else
+                                {
+                                    if (chars2.TryGetValue(Uco.EmptyObject, out var dur2))
+                                    {
+                                        DurationNorm = dur2.GetDuration(stage);
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (prods.TryGetValue(Uco.EmptyObject, out var nomens2) && nomens2.TryGetValue(Nomenklature, out var opers2))
+                        {
+                            if (opers2.TryGetValue(OperationType, out var chars))
+                            {
+                                if (chars.TryGetValue(Characteristics, out var dur))
+                                {
+                                    DurationNorm = dur.GetDuration(stage);
+                                    return true;
+                                }
+                                else
+                                {
+                                    if (chars.TryGetValue(Uco.EmptyObject, out var dur2))
+                                    {
+                                        DurationNorm = dur2.GetDuration(stage);
+                                        return true;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (opers2.TryGetValue(Uco.EmptyObject, out var chars2))
+                                {
+                                    if (chars2.TryGetValue(Characteristics, out var dur))
+                                    {
+                                        DurationNorm = dur.GetDuration(stage);
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        if (chars2.TryGetValue(Uco.EmptyObject, out var dur2))
+                                        {
+                                            DurationNorm = dur2.GetDuration(stage);
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+
             }
 
             if (AnyOrderDurations)
@@ -160,17 +211,18 @@ namespace ApsRT.Core.Stages.MasterData
 
         public bool TryAddTypicalDuration(TypicalDurationDataLoaderModel model)
         {
-            return TryAddTypicalDuration(model.Center, model.Nomenklature, model.OperationVid, model.Characteristics, model.Variant, model.OperNumber, model.Duration);
+            return TryAddTypicalDuration(model.Center, model.Production, model.Nomenklature, model.OperationVid, model.Characteristics, model.Variant, model.OperNumber, model.Duration);
         }
 
-        public bool TryAddTypicalDuration(Uco RC, Uco Nomenklature, Uco OperationType, Uco Characteristics, Uco variant, int operNumber, double DurationNorm)
+        public bool TryAddTypicalDuration(Uco RC, Uco Production, Uco Nomenklature, Uco OperationType, Uco Characteristics, Uco variant, int operNumber, double DurationNorm)
         {
             if (TypicalDurations == null) TypicalDurations = new();
             TypicalDurations.TryAdd(RC, new());
-            TypicalDurations[RC].TryAdd(Nomenklature, new());
-            TypicalDurations[RC][Nomenklature].TryAdd(OperationType, new());
-            TypicalDurations[RC][Nomenklature][OperationType].TryAdd(Characteristics, new());
-            return TypicalDurations[RC][Nomenklature][OperationType][Characteristics].AddData(variant, operNumber, DurationNorm);
+            TypicalDurations[RC].TryAdd(Production, new());
+            TypicalDurations[RC][Production].TryAdd(Nomenklature, new());
+            TypicalDurations[RC][Production][Nomenklature].TryAdd(OperationType, new());
+            TypicalDurations[RC][Production][Nomenklature][OperationType].TryAdd(Characteristics, new());
+            return TypicalDurations[RC][Production][Nomenklature][OperationType][Characteristics].AddData(variant, operNumber, DurationNorm);
         }
     }
 }

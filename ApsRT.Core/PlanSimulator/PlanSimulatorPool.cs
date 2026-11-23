@@ -381,6 +381,7 @@ namespace ApsRT.Core.PlanSimulator
 
         public void UpdateOneOtdTaraRC(PlanSimulatorBlock blockToStart, int PoolIndex)
         {
+            if (!blockToStart.PoolLink.SessionLink.SettingsController.CurrentSettings.Demos_CalculateOneOtdTaraRestriction) return;
             (var settedRC, _, _) = blockToStart.GetCenterData(PoolIndex);
             foreach (var mod in blockToStart.Lists)
             {

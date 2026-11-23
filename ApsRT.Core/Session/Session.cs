@@ -164,6 +164,11 @@ namespace ApsRT.Core.Session
                     opts.DesiredGamma = double.Parse(arg.Substring(6).Replace('.', ','));
                     continue;
                 }
+                if (arg.StartsWith("nomixetapshours:"))
+                {
+                    opts.NoMixHours = double.Parse(arg.Substring(11).Replace('.', ','));
+                    continue;
+                }
                 if (arg.StartsWith("count:"))
                 {
                     opts.DesiredPercent = double.Parse(arg.Substring(6).Replace('.', ','));
@@ -249,7 +254,14 @@ namespace ApsRT.Core.Session
             var process = Process.GetCurrentProcess();
             AssignedLogger.LogQueue.Enqueue($"process ID: {process.Id} [session ID {process.SessionId}]\r\n");
             AssignedLogger.LogQueue.Enqueue($"start at: {DateTime.Now}\r\n");
-            AssignedLogger.LogQueue.Enqueue($"flags: silent {SessionOptions.IsSilent}, part {SessionOptions.LaunchPartia}, plan {SessionOptions.LaunchPlan}, zadel {SessionOptions.LaunchZadel}\r\n");
+            AssignedLogger.LogQueue.Enqueue($"flags: silent {SessionOptions.IsSilent}, part {SessionOptions.LaunchPartia}, plan {SessionOptions.LaunchPlan}, zadel {SessionOptions.LaunchZadel}, noMixHours {SessionOptions.NoMixHours}\r\n");
+            AssignedLogger.LogQueue.Enqueue("args:\r\n");
+            var args = Environment.GetCommandLineArgs();
+            foreach (var argu in args)
+            {
+                AssignedLogger.LogQueue.Enqueue($"{argu}\r\n");
+            }
+            AssignedLogger.LogQueue.Enqueue("end:\r\n");
 
             // Загружаем настройки
             if (!string.IsNullOrEmpty(SessionOptions.DesiredSettingsPath)) SettingsController.SavePath = SessionOptions.DesiredSettingsPath;

@@ -238,7 +238,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
 
             Dictionary<int, DeepCheckData> dic1 = dicSdvigs.ToDictionary(x => x.Key, x => new DeepCheckData()
             {
-                CanSearchTara = true,
+                CanSearchTara = false,
                 ExceptThisTara = ExceptTheseTarasGlobal != null && ExceptTheseTarasGlobal.TryGetValue(x.Key, out var except) ? except : new()
             });
 
@@ -554,6 +554,7 @@ namespace ApsRT.Core.Partias.PartiasGeneratorEngine
                         RCMustBeThis = NeededRC.HasValue ? new(1) { NeededRC.Value } : null,
                         RecommendedSubdivision = subdiv,
                         //ExceptTheseTaras = deepCheckData.TryGetValue(listOnOneRc1.Opers[0].Index, out var exceptTheseTaras3) ? exceptTheseTaras3.ExceptThisTara : null
+                        NextRCsMustBeThese = TaraSearchEngine.FindNeededNextRCsInDic(listOnOneRc1.Opers, possibleRCs),
                     });
 
                     //var sdvig = new PartiaModelling(opers, Uco.EmptyObject, 0.0, DimensionUnit.Unknown, x.PossibleCenters?[0] ?? x.OriginalCenter, sdvigWas.PlacesCountMultiplierToRewrite, sdvigWas.ZadelCode, sdvigWas.ZadelsGUIDs);

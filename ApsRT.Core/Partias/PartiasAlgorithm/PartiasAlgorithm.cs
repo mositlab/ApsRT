@@ -1514,7 +1514,8 @@ namespace ApsRT.Core.Partias.PartiasAlgorithm
                                 && !lvl2.Opers[0].IsVspom
                                 && !TaraSearchEngine.RcIsHanded(lvl2)
                                 && lvl2.Tara.IsEmpty
-                                && !lvl2.Opers[0].NoCheckNamotka)
+                                && !lvl2.Opers[0].NoCheckNamotka
+                                && !lvl2.Opers[0].OrderLink.WillBeExcepted)
                             {
                                 PartiaHasErrors[chosenPartiaGuid] = true;
                                 Console.WriteLine($"{chosenPartiaGuid} - ошибочен!");

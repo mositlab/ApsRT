@@ -22,6 +22,8 @@ namespace ApsRT.Core.Session
         public string LaunchPath { get; set; }
         public string OutputPath { get; set; }
 
+        public double? NoMixHours;
+
         public const string OutsPath = "outs";
         public const string SessionsPath = "sessions";
 
